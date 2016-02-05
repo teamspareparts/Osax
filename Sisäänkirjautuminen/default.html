@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="tyyli.css">
+	<meta charset="UTF-8">
+	<title>Login</title> 
+</head>
+<!--  -->
+<!--  -->
+<body>
+<!-- Otsikko, ja ingressi -->
+<h1>Kirjautumissivu</h1>
+<!-- Otsikko, ja ingressi -->
+<br><br><hr/><br><br>
+	
+<!--  -->
+<!--  -->
+<!--  -->
+
+<div id="outer">
+
+	<div id="content">
+		<fieldset>
+			<legend>Sisäänkirjautuminen</legend>
+			<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
+				<label>Email:</label><br>
+				<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
+				<label>Password:</label><br>
+				<input type="password" name="password" placeholder="password" required><br>
+				<br>
+				<input type="hidden" name="mode" value="login">
+				<input type="submit" value="Kirjaudu sisään">
+			</form>
+		</fieldset>
+		
+		<br><br>
+		
+		<fieldset>
+			<legend>Unohditko salasanasi?</legend>
+			<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
+				<label>Email:</label><br>
+				<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
+				<br>
+				<input type="hidden" name="mode" value="password_reset">
+				<input type="submit" value="Uusi salasana">
+			</form>
+		</fieldset>
+	</div>
+	
+</div>
+
+<!--  -->
+<!--  -->
+<!--  -->
+
+</body>
+</html>
+<!-- EOF -->
