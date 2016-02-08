@@ -1,0 +1,31 @@
+body {
+	font-family: Verdana, Arial;
+	font-size: 13px;
+	color: #000;
+}
+
+#outer	{
+	text-align: center;
+}
+
+#content	{
+	display: inline-block;
+	
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+label {
+	display: inline;
+	margin-top: 10px;
+}
+
+input.submit	{
+	margin: 5px;
+}
+
+fieldset	{
+	text-align:left;
+}
