@@ -14,17 +14,14 @@
 		<form action="db_lisaa_asiakas.php" name="uusi_asiakas" method="post" accept-charset="utf-8">
 			<fieldset><legend>Uuden käyttäjän tiedot</legend>
 				<br>
-				<label><span>Käyttäjätunnus<span class="required">*</span></span></label>
-				<input name="username" type="text" pattern="[a-zA-Z0-9]{1,20}" title="Käytä vain aakkosia ja numeroita. Pituus max 20 merkkiä." required="required">
+				<label><span>Sähköposti<span class="required">*</span></span></label>
+				<input name="sposti" type="email" pattern=".{1,255}" required="required">
 				<br><br>
 				<label><span>Etunimi</span></label>
 				<input name="etunimi" type="text" pattern="[a-zA-Z]{3,20}">
 				<br><br>
 				<label><span>Sukunimi</span></label>
 				<input name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}">
-				<br><br>
-				<label><span>Sähköposti</span></label>
-				<input name="sposti" type="text" pattern=".{1,255}">
 				<br><br>
 				<label><span>Puhelin</span></label>
 				<input name="puh" type="text" pattern=".{1,20}">
@@ -56,7 +53,7 @@
 	
 		if (isset($_SESSION['result'])){
 			if($_SESSION['result'] == -1){
-				echo "Käyttäjänimi varattu.";
+				echo "Sähköposti varattu.";
 			}
 			elseif ($_SESSION['result'] == -2){
 				echo "Salasanat eivät täsmää.";
