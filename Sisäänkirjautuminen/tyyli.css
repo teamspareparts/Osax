@@ -4,13 +4,16 @@ body {
 	color: #000;
 }
 
-#outer	{
+#logo	{
 	text-align: center;
+}
+
+#outer	{
+	text-align: center; /* Onko tämä turha? */
 }
 
 #content	{
 	display: inline-block;
-	
 	position: absolute;
 	left: 50%;
 	top: 50%;

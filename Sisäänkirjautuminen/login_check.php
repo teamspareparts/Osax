@@ -5,9 +5,9 @@
 <?php
 
 	$servername = "localhost";
-	$username = "root";
-	$password = "password";
-	$dbname = "myDB";
+	$username	= "root";
+	$password	= "password";
+	$dbname		= "myDB";
 
 	// Create connection
 	$connection = new mysqli( $servername, $username, $password, $dbname );
@@ -20,9 +20,9 @@
 
 	//Sisääkirjautuminen
 	if ( $mode == "login" ) {
-		$email = trim(strip_tags( $_POST["email"] ));
-		$password = trim(strip_tags( $_POST["password"] ));
-		$password_hashed = password_hash($password, PASSWORD_DEFAULT);
+		$email 			= trim(strip_tags( $_POST["email"] ));
+		$password 		= trim(strip_tags( $_POST["password"] ));
+		$password_hashed= password_hash($password, PASSWORD_DEFAULT);
 		
 		$sql = "
 			SELECT 	id, sahkoposti, salasana
@@ -33,20 +33,24 @@
 		//Pitäisikö se hakea kokonaan, ja tarkistaa vasta tässä,
 		// vai kuten se on tehty ylhäällä (tarkistetaan hakuvaiheessa)?
 		// Doesn't really matter at this stage.
-		$result = $connection->query($sql);
+		$result = $connection->query( $sql );
 
 		if ( $result->num_rows > 0 ) {
-			while($row = $result->fetch_assoc()) {
-				//Testausta varten. I like printing everything.
-				echo "id: " . $row["id"]. " - Email: " . $row["sahkoposti"]. "<br>";
-				//Tässä ei tarvitse muuta kuin lähettää eteenpäin seuraavalle sivulle.
-				//Testaisin tätä mielelläni, mutta XAMPP ei toimi. Oletan, että se toimii.
-			}
+			//Tässä ei tarvitse muuta kuin lähettää eteenpäin seuraavalle sivulle.
+			//Testaisin tätä mielelläni, mutta XAMPP ei toimi. Oletan, että se toimii.
 		}
 		else {
 		?>
-		<!-- Tähän HTML-koodia, kertomaan, että sinulla on väärä kirjautuminen -->
-		<br><h1>Sinulla on väärä salasana/sähköposti. Palaa takaisin lähtöruutuun.</h1>
+		<br>
+		<div id="content">
+			<fieldset>
+				<legend>Väärät kirjautumistiedot</legend>
+				<p>Salasana tai sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
+				<FORM METHOD="LINK" ACTION="default.html"><!-- Tämä on väärin -->
+					<INPUT TYPE="submit" VALUE="Palaa takaisin kirjautumissivulle">
+				</FORM>
+			</fieldset>
+		</div>
 		<?php	
 		}
 	}
@@ -57,13 +61,40 @@
 		$sql = "
 			SELECT id, sahkoposti
 			FROM kayttajat
-			WHERE salasana == $password_hashed";
+			WHERE sahkoposti == $email";
+		$result = $connection->query( $sql );
+
+		if ( $result->num_rows > 0 ) {
+			
+			/*
+			PHP:ssä on valmis mail()-funktio tätä varten. Jotta se toimisi 
+			se pitää konfiguroida PHP:n serveri puolen asetuksissa. 
+			Koska meillä ei ole sellaista (vielä), olen ottanut tämän pois käytöstä.
+			Lisäksi meiltä puuttuu palautuslinkki, joka annetaan sähköpostissa.
+			Sekin pitäisi vielä miettiä.
+			*/
+			
+			/* //Tästä alkaa sähköpostin kirjoitus
+			$kohde		= $email;
+			$otsikko 	= 'the subject';
+			$viesti 	= 'hello\nNew line';
+			$viesti 	= wordwrap($msg,70);
+			$headers 	= 'From: webmaster@example.com' . "\r\n" .
+							'Reply-To: webmaster@example.com' . "\r\n" .
+							'X-Mailer: PHP/' . phpversion();
+			mail( $kohde, $otsikko, $viesti, $headers );
+			*/ //End email writing/sending
+		}
 		?>
-		<!-- Tähän tulee luultavasti kasa HTML-koodia.
-		"Salasanan palautuslinkki lähetetty sähköpostiin" 
-		Tai jotain sinne päin.
-		Tässä ei ole tarkoitus kertoa käyttäjälle onko sähköposti käytössä.
-		Tietoturvallisuus risksi. Liikaa tietoa ei ole hyvä asia, kuulemma. -->
+		<div id="content">
+			<fieldset>
+				<legend>Salasanan palautus</legend>
+				<p>Salasanan palautuslinkki on lähetetty sähköpostilla osoitteeseen <?php $email ?></p>
+				<FORM METHOD="LINK" ACTION="default.html"><!-- Tämä on väärin -->
+					<INPUT TYPE="submit" VALUE="Palaa takaisin kirjautumissivulle">
+				</FORM>
+			</fieldset>
+		</div>
 		<?php
 	}
 	
