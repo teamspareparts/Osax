@@ -124,7 +124,6 @@ html, body {
 	display: inline-block;
 	position: relative;
 	font-size: 18px;
-	text-transform: uppercase;
 	top: 30px;
 	
 }
@@ -200,30 +199,28 @@ html, body {
 
 /********************************************	
 
-	Ylläpitäjän lisää_asiakas sivun tyylittely	
+	Kaikkien lomakkeitten (form) tyylittely	
 
 *********************************************/
 
 
-#lisaa_asiakas {
-}
 
 
 
 /* keskitetään form */
-#lisaa_asiakas #asiakas_tiedot {
+#lomake {
 	display: block;
 	text-align: center;
 	
 }
 
 
-#lisaa_asiakas #asiakas_tiedot form {
+#lomake form {
 	display: inline-block;
 	text-align: left;
 }
 
-#lisaa_asiakas #asiakas_tiedot fieldset {
+#lomake fieldset {
 	width: 450px;
 	border-radius: 10px;
     -webkit-border-radius: 10px;
@@ -233,36 +230,36 @@ html, body {
     padding: 20px;
 }
 
-#lisaa_asiakas #asiakas_tiedot fieldset legend {
+#lomake fieldset legend {
 	text-align: left;
     font-size: 20px;
 }
 
 
-#lisaa_asiakas #asiakas_tiedot label {		
+#lomake label {		
 	width: 200px;
 }
 
-#lisaa_asiakas #asiakas_tiedot label > span{
+#lomake label > span{
 	float: left;
 	width: 220px;
 	font-weight: bold;
 }
-#lisaa_asiakas #asiakas_tiedot label span .required {
+#lomake label span .required {
 	color: red;
 }
 
-#lisaa_asiakas #asiakas_tiedot input {}
+#lomake input {}
 
 
 
-/* Asetellaan "lisää asiakas"-painike */
-#lisaa_asiakas #asiakas_tiedot #submit {
+/* Asetellaan "submit"-painike */
+#lomake #submit {
 	display: block;
 	text-align: center;
 }
 
-#lisaa_asiakas #asiakas_tiedot input[type=submit]{
+#lomake input[type=submit]{
 	padding: 7px;
 	width: 120px;
 	color: blue;
@@ -282,3 +279,5 @@ html, body {
 	top: 50%;
 	transform: translate(-50%, -50%);
 }
+
+
