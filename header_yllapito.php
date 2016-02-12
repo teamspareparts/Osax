@@ -1,5 +1,5 @@
 <div id="header">
-	<img alt="Logo" src="img/logo1.png" height="70" width="150" align="left">
+	<img alt="Logo" src="img/rantak_varao-Logo.jpg" height="100" width="300" align="left">
 	<!-- <h1>Logo</h1> -->
 	<p class="kirjautuneena">Kirjautuneena:</p>
 	<?php 	
