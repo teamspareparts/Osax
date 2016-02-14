@@ -1,71 +1,66 @@
 <!DOCTYPE html>
 <html>
 <body>
-<h1>LOADING...</h1>
+<h1>LOADING... Redirecting</h1>
 <?php
-
-	$servername = "localhost";
-	$username	= "root";
-	$password	= "password";
-	$dbname		= "myDB";
-
-	// Create connection
-	$connection = new mysqli( $servername, $username, $password, $dbname );
-	// Check connection
-	if ( $connection->connect_error ) {
-		die( "Connection failed: " . $connection->connect_error );
-	} else { echo "Connection good.<br><br>"; }
+	session_start();	// Aloitetaan sessio kayttajan tietoja varten
 	
+	$host		= "localhost";		// Serverin nimi
+	$username	= "root";			// 
+	$password	= "";				// Tietokannan salasana
+	$dbname		= "projektityo";	// Tietokannan nimi
+	
+	// Luodaan yhteys
+	// TODO: try-catch ( or die() -tapaa ei pitäisi käyttää )
+	$connection = mysqli_connect( $host, $username, $password, $dbname ) 
+					or die("Connection error:" . mysqli_connect_error());
+	
+	// Haetaan moodi edelliseltä sivulta
 	$mode = $_POST["mode"];
 
-	//Sisääkirjautuminen
+	//Mode --> Sisääkirjautuminen
 	if ( $mode == "login" ) {
-		$email 			= trim(strip_tags( $_POST["email"] ));
-		$password 		= trim(strip_tags( $_POST["password"] ));
-		$password_hashed= password_hash($password, PASSWORD_DEFAULT);
+		$email 			= trim(strip_tags( $_POST["email"] ));			// Sähköposti
+		$password 		= trim(strip_tags( $_POST["password"] ));		// Salasana
+		$password_hashed= password_hash($password, PASSWORD_DEFAULT);	// Hajautettu salasana
 		
-		$sql = "
-			SELECT 	id, sahkoposti, salasana
+		// SQL-kysely
+		$sql_query = "
+			SELECT 	*
 			FROM 	kayttajat
-			WHERE 	sahkoposti == $email
-					salasana == $password_hashed";
+			WHERE 	sahkoposti = '$email',
+					salasana_hajautettu = '$password_hashed'";
 		
-		//Pitäisikö se hakea kokonaan, ja tarkistaa vasta tässä,
-		// vai kuten se on tehty ylhäällä (tarkistetaan hakuvaiheessa)?
-		// Doesn't really matter at this stage.
-		$result = $connection->query( $sql );
+		$result = mysqli_query($connection, $sql_query);	// Kyselyn tulos
+		$row_count = mysqli_num_rows($result);				// Kyselyn  tuloksen rivien määrä
 
-		if ( $result->num_rows > 0 ) {
-			//Tässä ei tarvitse muuta kuin lähettää eteenpäin seuraavalle sivulle.
-			//Testaisin tätä mielelläni, mutta XAMPP ei toimi. Oletan, että se toimii.
-		}
-		else {
-		?>
-		<br>
-		<div id="content">
-			<fieldset>
-				<legend>Väärät kirjautumistiedot</legend>
-				<p>Salasana tai sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
-				<FORM METHOD="LINK" ACTION="default.html"><!-- Tämä on väärin -->
-					<INPUT TYPE="submit" VALUE="Palaa takaisin kirjautumissivulle">
-				</FORM>
-			</fieldset>
-		</div>
-		<?php	
+		if ( $row_count > 0 ) {
+			//TODO: Siirrä tiedot session_dataan, ja lähetä eteenpäin
+		   $row = mysql_fetch_assoc($query);
+		   $_SESSION['user_id']	= $row['id'];
+		   $_SESSION['enimi']	= $row['etunimi'];
+		   $_SESSION['snimi']	= $row['sukunimi'];
+		   $_SESSION['ynimi']	= $row['yritys'];
+		   $_SESSION['email']	= $row['sahkoposti'];
+		   $_SESSION['puhelin']	= $row['puhelin'];
+		   $_SESSION['admin']	= $row['yllapitaja'];
+		   header("Refresh: 0;url=http://localhost/tuotehaku.php");
+		   
+		} else { //Ei tuloksia == väärät tiedot --> lähetä takaisin
+			header("Refresh: 1;url=http://localhost/login.php?redir=1");
 		}
 	}
 
-	//Salasanan resetointi
+	//Mode --> Salasanan resetointi
 	elseif ( $mode == "password_reset" ) {
 		$email = trim(strip_tags( $_POST["email"] ));
 		$sql = "
-			SELECT id, sahkoposti
-			FROM kayttajat
-			WHERE sahkoposti == $email";
+			SELECT	id, sahkoposti
+			FROM	kayttajat
+			WHERE	sahkoposti = '$email'";
 		$result = $connection->query( $sql );
 
 		if ( $result->num_rows > 0 ) {
-			
 			/*
 			PHP:ssä on valmis mail()-funktio tätä varten. Jotta se toimisi 
 			se pitää konfiguroida PHP:n serveri puolen asetuksissa. 
@@ -85,17 +80,8 @@
 			mail( $kohde, $otsikko, $viesti, $headers );
 			*/ //End email writing/sending
 		}
-		?>
-		<div id="content">
-			<fieldset>
-				<legend>Salasanan palautus</legend>
-				<p>Salasanan palautuslinkki on lähetetty sähköpostilla osoitteeseen <?php $email ?></p>
-				<FORM METHOD="LINK" ACTION="default.html"><!-- Tämä on väärin -->
-					<INPUT TYPE="submit" VALUE="Palaa takaisin kirjautumissivulle">
-				</FORM>
-			</fieldset>
-		</div>
-		<?php
+		// Lähetä takaisin kirjautumissivulle, jossa tulostetaan ilmoitus
+		header("Refresh: 2;url=http://localhost/login.php?redir=2");
 	}
 	
 	//Onko tämä tarpeen? Meneekö se eteenpäin? Who knows! ¯\_(ツ)_/¯
