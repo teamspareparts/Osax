@@ -22,20 +22,20 @@
 				<br>
 				<label><span>Sähköposti</span></label>
 				<p style="display: inline; color: blue; font-size: 16px;">
-					<?php echo $_SESSION['user']; ?>
+					<?php echo $_SESSION['email']; ?>
 				</p>
 				<br><br>
 				<label><span>Etunimi</span></label>
-				<input name="etunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $_SESSION['etunimi']; ?>" title="Vain aakkosia.">
+				<input name="etunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $_SESSION['enimi']; ?>" title="Vain aakkosia.">
 				<br><br>
 				<label><span>Sukunimi</span></label>
-				<input name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $_SESSION['sukunimi']; ?>" title="Vain aakkosia">
+				<input name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $_SESSION['snimi']; ?>" title="Vain aakkosia">
 				<br><br>
 				<label><span>Puhelin</span></label>
 				<input name="puh" type="text" pattern=".{1,20}" value="<?php echo $_SESSION['puhelin']; ?>">
 				<br><br>
 				<label><span>Yrityksen nimi</span></label>
-				<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?php echo $_SESSION['yritysnimi']; ?>">
+				<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?php echo $_SESSION['ynimi']; ?>">
 				<br><br><br>
 				<label><span>Uusi salasana</span></label>
 				<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">

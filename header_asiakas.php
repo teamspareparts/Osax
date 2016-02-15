@@ -5,8 +5,8 @@
 	<?php 	
 		session_start();
 		//tarkastaa onko nimi talletettu sessioniin
-		if(isset($_SESSION['user'])){
-			echo ('<p class="username">' . $_SESSION['user'] . '</p>');
+		if(isset($_SESSION['email'])){
+			echo ('<p class="username">' . $_SESSION['email'] . '</p>');
 		}
 	?>
 </div>

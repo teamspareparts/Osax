@@ -9,7 +9,7 @@
 	session_start();
 	
 	
-	$asiakas_sposti = $_SESSION['user'];		//oltava telletettuna sessioniin
+	$asiakas_sposti = $_SESSION['email'];		//oltava telletettuna sessioniin
 	
 	$asiakas_etunimi = $_POST['etunimi'];
 	$asiakas_sukunimi = $_POST['sukunimi'];
