@@ -4,7 +4,7 @@
 // Tietokannan asetukset
 //
 
-define('DB_HOST', 'localhost');
-define('DB_USERNAME', 'root');
-define('DB_PASSWORD', '');
-define('DB_NAME', 'tuoteluettelo_database');
+$db_host = 'localhost';
+$db_username = 'root';
+$db_password = '';
+$db_name = 'tuoteluettelo_database';
