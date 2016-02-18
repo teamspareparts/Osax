@@ -22,7 +22,6 @@ require 'tecdoc.php';
 require 'tietokanta.php';
 
 $email = isset($_SESSION['email']) ? addslashes($_SESSION['email']) : false;
-$email = 'testi@testi.testi';
 $admin = false;
 
 $result = false;

@@ -377,3 +377,18 @@ html, body {
 	background-color: #1d7ae2;
 	color: #fff;
 }
+
+.success, .error {
+	position: relative;
+	left: 5%;
+	padding: 10pt;
+	width: 300pt;
+}
+
+.success {
+	background-color: #DFF2BF;
+}
+
+.error {
+	background-color: #FFBABA;
+}
