@@ -23,9 +23,7 @@
 require 'tecdoc.php';
 require 'tietokanta.php';
 
-
 $email = isset($_SESSION['email']) ? addslashes($_SESSION['email']) : false;
-$email = 'testi@testi.testi';
 $admin = false;
 
 $result = false;
@@ -43,13 +41,16 @@ if ($result) {
 		echo '<h2>Tulokset:</h2>';
 		$products = get_products_by_number($number);
 		if (count($products) > 0) {
-			foreach (get_products_by_number($number) as $product) {
-				echo '<p>';
-				echo "<b>Nimi:</b> $product->articleName<br>";
-				echo "<b>Valmistaja</b>: $product->brandName<br>";
-				echo "<b>Tuotenumero:</b>: $product->articleNo<br>";
-				echo '</p>';
+			echo '<table>';
+			echo '<tr><th>Nimi</th><th>Valmistaja</th><th>Tuotenumero</th></tr>';
+			foreach ($products as $product) {
+				echo '<tr>';
+				echo "<td>$product->articleName</td>";
+				echo "<td>$product->brandName</td>";
+				echo "<td>$product->articleNo</td>";
+				echo '</tr>';
 			}
+			echo '</table>';
 		} else {
 			echo '<p>Ei tuloksia.</p>';
 		}
