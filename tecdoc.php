@@ -53,7 +53,11 @@ function get_products_by_number($number) {
 		return [];
 	}
 
-	return $response->data->array;
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+
+	return [];
 }
 
 //
