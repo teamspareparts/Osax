@@ -7,8 +7,8 @@ html, body {
 
 /***************************************
 
-	Menu palkin tyylittelyä	
-	
+	Menu palkin tyylittelyï¿½
+
 ***************************************/
 
 #navigationbar {
@@ -24,9 +24,9 @@ html, body {
 	line-height: 1;
 	display: block;
 	zoom: 1;
-	text-align: left;	
+	text-align: left;
 	border-top: 1px solid #214f87;
-	
+
 }
 
 #navigationbar .last {
@@ -34,12 +34,12 @@ html, body {
 }
 
 
-/*	Täytyy olla, jotta KIRJAUDU ULOS -painike pysyy
+/*	Tï¿½ytyy olla, jotta KIRJAUDU ULOS -painike pysyy
 	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
 #navigationbar ul:after {
 	content: " ";
-  	display: block;  
-  	clear: both; 
+  	display: block;
+  	clear: both;
 }
 
 
@@ -47,7 +47,7 @@ html, body {
   	display: inline-block;
   	padding: 0;
   	margin: 0;
-  
+
 }
 
 
@@ -61,7 +61,7 @@ html, body {
   	text-transform: uppercase;
   	font-size: 16px;
   	position: relative;
-	
+
 }
 
 
@@ -72,9 +72,9 @@ html, body {
 
 
 
-/********************************************	
+/********************************************
 
-	Headerin tyylittely	
+	Headerin tyylittely
 
 *********************************************/
 
@@ -89,11 +89,11 @@ html, body {
 
 
 #header img {
-	
+
 	position: absolute;
 	top: 18px;
 	left: 2%;
-	
+
 }
 
 
@@ -104,7 +104,7 @@ html, body {
 	width: 45%;
 	left: 5%;
 
-	
+
 }
 */
 
@@ -117,7 +117,7 @@ html, body {
 	font-size: 18px;
 	color: black;
 	top: 38px;
-	
+
 }
 
 #header .username {
@@ -125,7 +125,7 @@ html, body {
 	position: relative;
 	font-size: 18px;
 	top: 38px;
-	
+
 }
 
 
@@ -175,9 +175,9 @@ html, body {
 }
 
 
-/********************************************	
+/********************************************
 
-	Ylläpitäjän asiakas sivun tyylittely	
+	Yllï¿½pitï¿½jï¿½n asiakas sivun tyylittely
 
 *********************************************/
 
@@ -271,9 +271,9 @@ html, body {
 }
 
 
-/********************************************	
+/********************************************
 
-	Kaikkien lomakkeitten (form) tyylittely	
+	Kaikkien lomakkeitten (form) tyylittely
 
 *********************************************/
 
@@ -281,11 +281,11 @@ html, body {
 
 
 
-/* keskitetään form */
+/* keskitetï¿½ï¿½n form */
 #lomake {
 	display: block;
 	text-align: center;
-	
+
 }
 
 
@@ -310,7 +310,7 @@ html, body {
 }
 
 
-#lomake label {		
+#lomake label {
 	width: 200px;
 }
 
@@ -344,4 +344,36 @@ html, body {
     background: #356094;
     border: solid 1px #2A4E77;
     cursor: pointer;
+}
+
+.haku {
+	position: relative;
+	left: 5%;
+}
+
+.haku input {
+	padding: 5pt;
+	font-size: 140%;
+	border: 1px solid #1d7ae2;
+}
+
+.tulokset {
+	position: relative;
+	left: 5%;
+}
+
+.tulokset table {
+	background-color: #1d7ae2;
+}
+
+.tulokset table th, .tulokset table td {
+	padding: 5pt;
+	background-color: #fff;
+}
+
+.tulokset table th {
+	font-size: 120%;
+	font-weight: normal;
+	background-color: #1d7ae2;
+	color: #fff;
 }

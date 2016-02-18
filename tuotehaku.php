@@ -12,18 +12,17 @@
 
 	<?php include('header_asiakas.php');?>
 	<h1 class="otsikko">Tuotehaku</h1>
-	<p>
-		<form action="tuotehaku.php" method="post">
-			<input type="text" name="haku" placeholder="Tuotenumero">
-			<input type="submit" value="Hae">
-		</form>
-	</p>
+	<form action="tuotehaku.php" method="post" class="haku">
+		<input type="text" name="haku" placeholder="Tuotenumero">
+		<input type="submit" value="Hae">
+	</form>
 <?php
 
 require 'tecdoc.php';
 require 'tietokanta.php';
 
 $email = isset($_SESSION['email']) ? addslashes($_SESSION['email']) : false;
+$email = 'testi@testi.testi';
 $admin = false;
 
 $result = false;
@@ -38,11 +37,12 @@ if ($result) {
 	$number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if ($number) {
+		echo '<div class="tulokset">';
 		echo '<h2>Tulokset:</h2>';
 		$products = get_products_by_number($number);
 		if (count($products) > 0) {
 			echo '<table>';
-			echo '<tr><th>Nimi</th><th>Valmistaja</th><th>Tuotenumero</th></tr>';
+			echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th></tr>';
 			foreach ($products as $product) {
 				echo '<tr>';
 				echo "<td>$product->articleName</td>";
@@ -54,9 +54,10 @@ if ($result) {
 		} else {
 			echo '<p>Ei tuloksia.</p>';
 		}
+		echo '</div>';
 	}
 } else {
-	echo '<p>Et ole kirjautunut sisään!</p>';
+	echo '<div class="tulokset"><p>Et ole kirjautunut sisään!</p></div>';
 }
 
 ?>
