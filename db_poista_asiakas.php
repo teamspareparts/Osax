@@ -1,10 +1,7 @@
 <?php
 
 
-	$host = "localhost";				// Host
-	$username = "root";					// Käyttäjänimi
-	$password="";						// Salasana
-	$db_name="tuoteluettelo_database";	// Tietokannan nimi
+	require 'tietokanta.php';
 	$tbl_name="kayttaja";				// Taulun nimi
 	
 	
@@ -17,7 +14,7 @@
 	
 	
 	//Palvelimeen liittyminen
-	$connection = mysqli_connect($host, $username, $password, $db_name) or die("Connection error:" . mysqli_connect_error());
+	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 	
 	foreach ($asiakas_ids as $asiakas_id) {
 		$query = "DELETE FROM $tbl_name 
@@ -30,5 +27,6 @@
 	mysqli_close($connection);
 
 	header("location:yp_asiakkaat.php");
+	exit;
 	
 ?>

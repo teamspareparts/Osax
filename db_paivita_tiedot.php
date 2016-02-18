@@ -1,9 +1,6 @@
 <?php
 
-	$host = "localhost";				// Host
-	$username = "root";					// Käyttäjänimi
-	$password="";						// Salasana
-	$db_name="tuoteluettelo_database";	// Tietokannan nimi
+	require 'tietokanta.php';
 	$tbl_name="kayttaja";				// Taulun nimi
 	
 	session_start();
@@ -21,12 +18,8 @@
 	
 	
 	
-	//Tarkastetaan, että salasana ja vahvistussalasana ovat samat.
-	//Voi olla tyhjä vielä tässä vaiheessa!
-	
-	
-		//Palvelimeen liittyminen
-	$connection = mysqli_connect($host, $username, $password, $db_name) or die("Connection error:" . mysqli_connect_error());
+	//Palvelimeen liittyminen
+	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 	//Tarkastetaan löytyykö käyttäjätunnusta
 	$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
@@ -62,8 +55,10 @@
 	$row = mysqli_fetch_assoc($result);
 	if ($row["yllapitaja"] == 1){
 		header("location:yp_omat_tiedot.php");
+		exit;
 	}else {
 		header("location:omat_tiedot.php");
+		exit;
 	}
 
 

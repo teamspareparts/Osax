@@ -1,4 +1,3 @@
-
 <?php 
 	/**
 	 * Tiedosto, joka saa uuden asiakkaan tiedot ja
@@ -15,11 +14,8 @@
 
 
 
-	$host = "localhost";				// Host
-	$username = "root";					// Käyttäjänimi
-	$password="";						// Salasana
-	$db_name="tuoteluettelo_database";	// Tietokannan nimi
-	$tbl_name="kayttaja";				// Taulun nimi
+	require 'tietokanta.php';
+	$tbl_name = 'kayttaja';
 
 	session_start();
 	
@@ -39,12 +35,11 @@
 	//Tarkastetaan, että salsana ja vahvistussalasana ovat samat.
 	if ($asiakas_salasana != $asiakas_varmista_salasana){
 		$_SESSION['result'] = -2;	//salasanat ei täsmää
-		header("location:yp_lisaa_asiakas.php");
 	}else {
 	
 	
 		//Palvelimeen liittyminen
-		$connection = mysqli_connect($host, $username, $password, $db_name) or die("Connection error:" . mysqli_connect_error());
+		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 	
 		//Tarkastetaan onko samannimistä käyttäjätunnusta
 		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
@@ -61,8 +56,9 @@
 		}
 		mysqli_close($connection);
 		
-		header("location:yp_lisaa_asiakas.php");
 	}
+	header("location:yp_lisaa_asiakas.php");
+	exit;
 		
 	
 ?>
