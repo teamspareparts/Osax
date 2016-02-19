@@ -10,7 +10,7 @@
 <h1 class="otsikko">Lisää asiakas</h1>
 <br><br>
 <div id="lomake">
-	<form action="db_lisaa_asiakas.php" name="uusi_asiakas" method="post" accept-charset="utf-8">
+	<form action="yp_lisaa_asiakas.php" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Uuden käyttäjän tiedot</legend>
 			<br>
 			<label><span>Sähköposti<span class="required">*</span></span></label>
@@ -43,24 +43,58 @@
 	</form><br><br>
 	
 	<?php 
+	require 'tietokanta.php';
 	
-	//result:
-	//-1	salasanat ei täsmää
-	//-2	käyttäjätunnus jo olemassa
-	//1		lisäys onnistui
-	
-	
-		if (isset($_SESSION['result'])){
-			if($_SESSION['result'] == -1){
+		if (isset($_POST['sposti'])){
+			$result = db_lisaa_asiakas($_POST['etunimi'], $_POST['sukunimi'], $_POST['sposti'], $_POST['puh'],
+										$_POST['yritysnimi'], $_POST['password'], $_POST['confirm_password']);
+			if($result == -1){
 				echo "Sähköposti varattu.";
 			}
-			elseif ($_SESSION['result'] == -2){
+			elseif ($result == -2){
 				echo "Salasanat eivät täsmää.";
 			}
 			else {
 				echo "Lisäys onnistui.";
 			}
-			unset($_SESSION['result']);
+		}		
+		
+		//return:
+		//-1	salasanat ei täsmää
+		//-2	käyttäjätunnus on jo olemassa
+		//1		lisäys onnistui
+		function db_lisaa_asiakas($asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
+				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana){
+			
+					$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
+			
+					//Tarkastetaan, että salsana ja vahvistussalasana ovat samat.
+					if ($asiakas_salasana != $asiakas_varmista_salasana){
+						return -2;	//salasanat ei täsmää
+					}else {
+					
+					
+						//Palvelimeen liittyminen
+						$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+						$tbl_name = 'kayttaja';
+						
+						//Tarkastetaan onko samannimistä käyttäjätunnusta
+						$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
+						$result = mysqli_query($connection, $query);
+						$count = mysqli_num_rows($result);
+						if($count != 0){
+							return -1; //talletetaan tulos sessioniin: käyttäjänimi varattu
+						} else {
+							//lisätään tietokantaan
+							$query = "INSERT INTO $tbl_name (salasana_hajautus, etunimi, sukunimi, yritys, sahkoposti, puhelin)
+							VALUES ('$asiakas_hajautettu_salasana', '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh')";
+							$result = mysqli_query($connection, $query);
+							return 1;	//talletetaan tulos sessioniin
+						}
+						mysqli_close($connection);
+					
+					}		
+					
 		}
 	?>
 	</div>

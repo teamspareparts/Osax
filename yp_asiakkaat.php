@@ -6,7 +6,7 @@
 	<title>Asiakkaat</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php 	include 'header_yllapito.php';?>
 <div id=asiakas>
 	<h1 class="otsikko">Asiakkaat</h1>
 	<div id="painikkeet">
@@ -17,20 +17,17 @@
 	
 	<div id="asiakas_lista">
 	
-		<form action="db_poista_asiakas.php" method="post">
+		<form action="yp_asiakkaat.php" method="post">
 		<fieldset class="asiakas_info">
 			<p><span class="etunimi">Etunimi</span><span class="sukunimi">Sukunimi</span><span class="puhelin">Puhelin</span><span class="yritys">Yritys</span><span class="sposti">Sähköposti</span><span>Poista</span></p>
 		</fieldset>
 		
 			<?php 
+				require 'tietokanta.php';
 			
-				$host = "localhost";				// Host
-				$username = "root";					// Käyttäjänimi
-				$password="";						// Salasana
-				$db_name="tuoteluettelo_database";	// Tietokannan nimi
 				$tbl_name="kayttaja";				// Taulun nimi
 			
-				$connection = mysqli_connect($host, $username, $password, $db_name) or die("Connection error:" . mysqli_connect_error());
+				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 				
 				$query = "SELECT * FROM $tbl_name";
 				$result = mysqli_query($connection, $query);
@@ -62,5 +59,34 @@
 			</div>
 		</form>		
 	</div>
+	
+	
+	<?php 
+		if (isset($_POST['ids'])){
+			db_poista_asiakas($_POST['ids']);
+		}
+		
+		
+		
+		function db_poista_asiakas($ids){
+			$tbl_name="kayttaja";				// Taulun nimi
+			
+			
+			//Palvelimeen liittyminen
+			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+			
+			foreach ($ids as $asiakas_id) {
+				$query = "DELETE FROM $tbl_name
+				WHERE id='$asiakas_id'";
+				$result = mysqli_query($connection, $query);
+			}			
+			mysqli_close($connection);
+			
+			header("Location:yp_asiakkaat.php");
+			exit;
+		}
+	?>
+	
+
 </body>
 </html>
