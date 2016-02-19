@@ -3,16 +3,12 @@
 <body>
 <h1>LOADING... Redirecting</h1>
 <?php
+require 'tietokanta.php';
 	session_start();	// Aloitetaan sessio kayttajan tietoja varten
-	
-	$host		= "localhost";		// Serverin nimi
-	$username	= "root";			// 
-	$password	= "";				// Tietokannan salasana
-	$dbname		= "projektityo";	// Tietokannan nimi
 	
 	// Luodaan yhteys
 	// TODO: try-catch ( or die() -tapaa ei pitäisi käyttää )
-	$connection = mysqli_connect( $host, $username, $password, $dbname ) 
+	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
 					or die("Connection error:" . mysqli_connect_error());
 	
 	// Haetaan moodi edelliseltä sivulta
@@ -22,32 +18,33 @@
 	if ( $mode == "login" ) {
 		$email 			= trim(strip_tags( $_POST["email"] ));			// Sähköposti
 		$password 		= trim(strip_tags( $_POST["password"] ));		// Salasana
-		$password_hashed= password_hash($password, PASSWORD_DEFAULT);	// Hajautettu salasana
 		
 		// SQL-kysely
 		$sql_query = "
 			SELECT 	*
-			FROM 	kayttajat
-			WHERE 	sahkoposti = '$email',
-					salasana_hajautettu = '$password_hashed'";
+			FROM 	kayttaja
+			WHERE 	sahkoposti = '$email'";
 		
-		$result = mysqli_query($connection, $sql_query);	// Kyselyn tulos
+		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
 		$row_count = mysqli_num_rows($result);				// Kyselyn  tuloksen rivien määrä
-
+	
 		if ( $row_count > 0 ) {
+			$row = mysqli_fetch_assoc($result);
+			if(password_verify($password, $row['salasana_hajautus'])) {
 			//TODO: Siirrä tiedot session_dataan, ja lähetä eteenpäin
-		   $row = mysql_fetch_assoc($query);
-		   $_SESSION['user_id']	= $row['id'];
-		   $_SESSION['enimi']	= $row['etunimi'];
-		   $_SESSION['snimi']	= $row['sukunimi'];
-		   $_SESSION['ynimi']	= $row['yritys'];
-		   $_SESSION['email']	= $row['sahkoposti'];
-		   $_SESSION['puhelin']	= $row['puhelin'];
-		   $_SESSION['admin']	= $row['yllapitaja'];
-		   header("Refresh: 0;url=http://localhost/tuotehaku.php");
+		   		$_SESSION['email']	= $row['sahkoposti'];
+		   		$_SESSION['admin']	= $row['yllapitaja'];
+		   		header("Location:tuotehaku.php");
+		   		exit;
+			}
+			else {	//väärä salasana
+				header("Location:login.php?redir=3");
+				exit;
+			}
 		   
-		} else { //Ei tuloksia == väärät tiedot --> lähetä takaisin
-			header("Refresh: 1;url=http://localhost/login.php?redir=1");
+		} else { //Ei tuloksia == väärä käyttäjätunnus --> lähetä takaisin
+			header("Location:login.php?redir=1");
+			exit;
 		}
 	}
 

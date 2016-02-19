@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="../css/styles.css">
+	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
 	<meta charset="UTF-8">
 	<title>Login</title> 
 </head>
 <body>
 <h1 style="text-align:center;">
-	<img src="../img/rantak_varao-Logo.jpg" alt="Rantakylän Varaosa Oy" style="height:200px;">
+	<img src="img/rantak_varao-Logo.jpg" alt="Rantakylän Varaosa Oy" style="height:200px;">
 </h1>
 
 <!-- -->
@@ -19,8 +19,18 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Väärät kirjautumistiedot</legend>
-				<p>Salasana tai sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
+				<legend>Väärä sähköposti</legend>
+				<p>Sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
+			</fieldset>
+		</div>
+		
+<?php
+	} elseif ( $mode == 3 ) {	// Jos moodi == salasanan palautus
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend>Väärä salasana</legend>
+				<p>Väärä salasana. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
 <?php
