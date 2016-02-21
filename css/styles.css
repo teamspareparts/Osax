@@ -392,3 +392,19 @@ html, body {
 .error {
 	background-color: #FFBABA;
 }
+
+.nappi {
+	padding: 7pt 15pt;
+	background-color: #1d7ae2;
+	border: 1px solid #1d7ae2;
+	color: #fff;
+	text-decoration: none;
+}
+
+.dialogi-otsikko {
+	font-size: 120%;
+	font-weight: bold;
+	border-bottom: 1px solid #ddd;
+	margin-bottom: 10pt;
+	padding-bottom: 6pt;
+}
