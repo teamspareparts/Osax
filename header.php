@@ -13,26 +13,23 @@
 
 <div id="navigationbar">
 	<ul>
+        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
+        <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
     <?php
         if (isset($_SESSION['admin']) && $_SESSION['admin'] == 1) {
     ?>
-        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
-        <li><a href='yp_omat_tiedot.php'><span>Omat tiedot</span></a></li>
         <li><a href='yp_asiakkaat.php'><span>Asiakkaat</span></a></li>
         <li><a href='yp_hinnat.php'><span>Hinnat</span></a></li>
         <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
         <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
         <li><a href='yp_raportit.php'><span>Raportit</span></a></li>
-        <li class="last"><a href='logout.php'><span>Kirjaudu ulos</span></a></li>
     <?php
         } else {
     ?>
-        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
-        <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
         <li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
-        <li class="last"><a href='logout.php'><span>Kirjaudu ulos</span></a></li>
     <?php
         }
     ?>
+        <li class="last"><a href='logout.php'><span>Kirjaudu ulos</span></a></li>
 	</ul>
 </div>
