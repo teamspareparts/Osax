@@ -6,7 +6,7 @@
 	<title>Tilaukset</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php include("header.php");?>
 <h1 class="otsikko">Tilaukset</h1>
 </body>
 </html>

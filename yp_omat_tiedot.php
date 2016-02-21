@@ -6,16 +6,16 @@
 	<title>Omat Tiedot</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php include("header.php");?>
 
 <h1 class="otsikko">Omat Tiedot</h1>
 
-<?php 
+<?php
 	require 'tietokanta.php';
 	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
 	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 	$tbl_name = 'kayttaja';
-	
+
 	$email = $_SESSION['email'];
 	$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
@@ -53,15 +53,15 @@
 				<label><span>Vahvista salasana</span></label>
 				<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
 				<br><br><br>
-				
+
 				<div id="submit">
 					<input name="submit" value="Päivitä tiedot" type="submit">
 				</div>
 			</fieldset>
-		
+
 		</form><br><br>
-		
-		<?php 
+
+		<?php
 		if (isset($_SESSION['result'])){
 			if($_SESSION['result'] == -1){
 				echo "Sähköpostia ei löytynyt.";
@@ -74,7 +74,7 @@
 			}
 			unset($_SESSION['result']);
 		}
-		
+
 		if (isset($_POST['etunimi'])) {
 			$result = db_paivita_tiedot($_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi'],
 										$_POST['new_password'], $_POST['confirm_new_password']);
@@ -82,7 +82,7 @@
 			header("Location:yp_omat_tiedot.php");
 			exit;
 		}
-	
+
 		//result:
 		//-1	salasanat ei täsmää
 		//-2	käyttäjätunnus jo olemassa
@@ -91,10 +91,10 @@
 			$tbl_name="kayttaja";				// Taulun nimi
 			$asiakas_sposti = $_SESSION['email'];
 			$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
-			
+
 			//Palvelimeen liittyminen
 			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-			
+
 			//Tarkastetaan löytyykö käyttäjätunnusta
 			$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
 			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
@@ -109,25 +109,24 @@
 					$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh', yritys='$asiakas_yritysnimi'
 					WHERE sahkoposti='$asiakas_sposti'";
 					mysqli_query($connection, $query) or die(mysqli_error($connection));
-						
-						
+
+
 					//päivitetään myös salasana, jos muutettu
 					if ($asiakas_uusi_salasana != "" && $asiakas_varmista_uusi_salasana != ""){
 						$query = "UPDATE $tbl_name SET salasana_hajautus='$hajautettu_uusi_salasana'
 						WHERE sahkoposti='$asiakas_sposti'";
 						mysqli_query($connection, $query) or die(mysqli_error($connection));
 					}
-						
+
 					return 1;	//talletetaan tulos sessioniin
 				}
 			}
 			mysqli_close($connection);
-			
+
 		}
 
 		?>
 	</div>
-	
+
 </body>
 </html>
-

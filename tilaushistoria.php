@@ -6,8 +6,7 @@
 	<title>Tilaushistoria</title>
 </head>
 <body>
-<?php include("header_asiakas.php");?>
+<?php include("header.php");?>
 <h1 class="otsikko">Tilaushistoria</h1>
 </body>
 </html>
-

@@ -7,7 +7,7 @@
 	<title>Tuotteet</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php include("header.php");?>
 <h1 class="otsikko">Tuotteet</h1>
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
@@ -186,29 +186,33 @@ if ($result) {
 	$admin = (bool) mysqli_fetch_row($result)[0];
 	$number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
-	// Lomake lähetetty
-	if (isset($_POST['lisaa'])) {
-		$id = intval($_POST['lisaa']);
-		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
-		$varastosaldo = intval($_POST['varastosaldo']);
-		$minimisaldo = intval($_POST['minimisaldo']);
-		$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo);
-		if ($success) {
-			echo '<p class="success">Tuote lisätty!</p>';
-		} else {
-			echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
+	if ($admin) {
+		// Lomake lähetetty
+		if (isset($_POST['lisaa'])) {
+			$id = intval($_POST['lisaa']);
+			$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
+			$varastosaldo = intval($_POST['varastosaldo']);
+			$minimisaldo = intval($_POST['minimisaldo']);
+			$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo);
+			if ($success) {
+				echo '<p class="success">Tuote lisätty!</p>';
+			} else {
+				echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
+			}
+		} elseif (isset($_GET['poista'])) {
+			$success = remove_product_from_catalog($_GET['poista']);
+			if ($success) {
+				echo '<p class="success">Tuote poistettu!</p>';
+			} else {
+				echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
+			}
 		}
-	} elseif (isset($_GET['poista'])) {
-		$success = remove_product_from_catalog($_GET['poista']);
-		if ($success) {
-			echo '<p class="success">Tuote poistettu!</p>';
-		} else {
-			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
-		}
-	}
 
-	print_results($number);
-	print_catalog();
+		print_results($number);
+		print_catalog();
+	} else {
+		echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
+	}
 } else {
 	echo '<div class="tulokset"><p>Et ole kirjautunut sisään!</p></div>';
 }

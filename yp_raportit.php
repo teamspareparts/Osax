@@ -6,7 +6,7 @@
 	<title>Raportit</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php include("header.php");?>
 <h1 class="otsikko">Raportit</h1>
 </body>
 </html>

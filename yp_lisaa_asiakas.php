@@ -6,7 +6,7 @@
 	<title>Asiakkaat</title>
 </head>
 <body>
-<?php include("header_yllapito.php");?>
+<?php include("header.php");?>
 <h1 class="otsikko">Lisää asiakas</h1>
 <br><br>
 <div id="lomake">
@@ -34,17 +34,17 @@
 			<label><span>Vahvista salasana<span class="required">*</span></span></label>
 			<input name="confirm_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä." required="required">
 			<br><br><br>
-			
+
 			<div id="submit">
 				<input name="submit" value="Lisää asiakas" type="submit">
 			</div>
 		</fieldset>
-	
+
 	</form><br><br>
-	
-	<?php 
+
+	<?php
 	require 'tietokanta.php';
-	
+
 		if (isset($_POST['sposti'])){
 			$result = db_lisaa_asiakas($_POST['etunimi'], $_POST['sukunimi'], $_POST['sposti'], $_POST['puh'],
 										$_POST['yritysnimi'], $_POST['password'], $_POST['confirm_password']);
@@ -57,27 +57,27 @@
 			else {
 				echo "Lisäys onnistui.";
 			}
-		}		
-		
+		}
+
 		//return:
 		//-1	salasanat ei täsmää
 		//-2	käyttäjätunnus on jo olemassa
 		//1		lisäys onnistui
 		function db_lisaa_asiakas($asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
 				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana){
-			
+
 					$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
-			
+
 					//Tarkastetaan, että salsana ja vahvistussalasana ovat samat.
 					if ($asiakas_salasana != $asiakas_varmista_salasana){
 						return -2;	//salasanat ei täsmää
 					}else {
-					
-					
+
+
 						//Palvelimeen liittyminen
 						$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 						$tbl_name = 'kayttaja';
-						
+
 						//Tarkastetaan onko samannimistä käyttäjätunnusta
 						$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
 						$result = mysqli_query($connection, $query);
@@ -92,9 +92,9 @@
 							return 1;	//talletetaan tulos sessioniin
 						}
 						mysqli_close($connection);
-					
-					}		
-					
+
+					}
+
 		}
 	?>
 	</div>

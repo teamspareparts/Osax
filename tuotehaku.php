@@ -10,7 +10,7 @@
 </head>
 <body>
 
-	<?php include('header_asiakas.php');?>
+	<?php include('header.php');?>
 	<h1 class="otsikko">Tuotehaku</h1>
 	<form action="tuotehaku.php" method="post" class="haku">
 		<input type="text" name="haku" placeholder="Tuotenumero">
