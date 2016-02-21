@@ -89,6 +89,90 @@ function get_products_in_catalog() {
 	return [];
 }
 
+//
+// Hakee tuotteiden ID:iden perusteella TecDocista kunkin tuotteen tiedot ja yhdistää ne
+//
+function merge_products_with_tecdoc($products) {
+	// Kerätään tuotteiden ID:t taulukkoon
+	$ids = [];
+	foreach ($products as $product) {
+		array_push($ids, $product->id);
+	}
+
+	// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
+	$tecdoc_products = get_products_by_id($ids);
+
+	// Yhdistetään TecDocista saatu data $products-taulukkoon
+	foreach ($tecdoc_products as $tecdoc_product) {
+		foreach ($products as $product) {
+			if ($product->id == $tecdoc_product->articleId) {
+				foreach ($tecdoc_product as $key => $value) {
+					$product->{$key} = $value;
+				}
+			}
+		}
+	}
+}
+
+//
+// Tulostaa hakutulokset
+//
+function print_results($number) {
+	if (!$number) {
+		return;
+	}
+
+	echo '<div class="tulokset">';
+	echo '<h2>Tulokset:</h2>';
+	$products = get_products_by_number($number);
+	if (count($products) > 0) {
+		echo '<table>';
+		echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Toiminnot</th></tr>';
+		foreach ($products as $product) {
+			echo '<tr>';
+			echo "<td>$product->articleName</td>";
+			echo "<td>$product->brandName</td>";
+			echo "<td>$product->articleNo</td>";
+			echo "<td><a href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää valikoimaan</a></td>";
+			echo '</tr>';
+		}
+		echo '</table>';
+	} else {
+		echo '<p>Ei tuloksia.</p>';
+	}
+	echo '</div>';
+}
+
+//
+// Tulostaa tuotevalikoiman
+//
+function print_catalog() {
+	echo '<div class="tulokset">';
+	echo '<h2>Valikoima</h2>';
+	$products = get_products_in_catalog();
+	if (count($products) > 0) {
+		merge_products_with_tecdoc($products);
+
+		echo '<table>';
+		echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>Varastosaldo</th><th>Minimisaldo</th><th>Toiminnot</th></tr>';
+		foreach ($products as $product) {
+			echo '<tr>';
+			echo "<td>$product->articleName</td>";
+			echo "<td>$product->brandName</td>";
+			echo "<td>$product->articleNo</td>";
+			echo "<td>$product->hinta</td>";
+			echo "<td>$product->varastosaldo</td>";
+			echo "<td>$product->minimisaldo</td>";
+			echo "<td><a href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista valikoimasta</a></td>";
+			echo '</tr>';
+		}
+		echo '</table>';
+	} else {
+		echo '<p>Ei tuotteita valikoimassa.</p>';
+	}
+	echo '</div>';
+}
+
 $email = isset($_SESSION['email']) ? addslashes($_SESSION['email']) : false;
 $admin = false;
 
@@ -123,56 +207,8 @@ if ($result) {
 		}
 	}
 
-	if ($number) {
-		echo '<div class="tulokset">';
-		echo '<h2>Tulokset:</h2>';
-		$products = get_products_by_number($number);
-		if (count($products) > 0) {
-			echo '<table>';
-			echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Toiminnot</th></tr>';
-			foreach ($products as $product) {
-				echo '<tr>';
-				echo "<td>$product->articleName</td>";
-				echo "<td>$product->brandName</td>";
-				echo "<td>$product->articleNo</td>";
-				echo "<td><a href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää valikoimaan</a></td>";
-				echo '</tr>';
-			}
-			echo '</table>';
-		} else {
-			echo '<p>Ei tuloksia.</p>';
-		}
-		echo '</div>';
-	}
-
-	// Näytetään nykyinen valikoima
-	echo '<div class="tulokset">';
-	echo '<h2>Valikoima</h2>';
-	$products = get_products_in_catalog();
-	if (count($products) > 0) {
-		echo '<table>';
-		//echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Toiminnot</th></tr>';
-		echo '<tr><th>ID</th><th>Hinta</th><th>Varastosaldo</th><th>Minimisaldo</th><th>Toiminnot</th></tr>';
-		foreach ($products as $product) {
-			echo '<tr>';
-			/*
-			echo "<td>$product->articleName</td>";
-			echo "<td>$product->brandName</td>";
-			echo "<td>$product->articleNo</td>";
-			*/
-			// TODO: Näytä tuotteiden oikeat tiedot (TecDocista haetut). Nämä on tässä vain tilapäisesti.
-			echo "<td>$product->id</td>";
-			echo "<td>$product->hinta</td>";
-			echo "<td>$product->varastosaldo</td>";
-			echo "<td>$product->minimisaldo</td>";
-			echo "<td><a href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista valikoimasta</a></td>";
-			echo '</tr>';
-		}
-		echo '</table>';
-	} else {
-		echo '<p>Ei tuotteita valikoimassa.</p>';
-	}
-	echo '</div>';
+	print_results($number);
+	print_catalog();
 } else {
 	echo '<div class="tulokset"><p>Et ole kirjautunut sisään!</p></div>';
 }
