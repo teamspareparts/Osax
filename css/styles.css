@@ -362,18 +362,19 @@ html, body {
 	left: 5%;
 }
 
-.tulokset table {
+table {
 	background-color: #1d7ae2;
 }
 
-.tulokset table th, .tulokset table td {
+th, td {
 	padding: 5pt;
 	background-color: #fff;
 }
 
-.tulokset table th {
+th {
 	font-size: 120%;
 	font-weight: normal;
+	text-shadow: 0 1px 0 #368;
 	background-color: #1d7ae2;
 	color: #fff;
 }

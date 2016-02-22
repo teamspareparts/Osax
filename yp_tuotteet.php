@@ -173,21 +173,10 @@ function print_catalog() {
 	echo '</div>';
 }
 
-$email = isset($_SESSION['email']) ? addslashes($_SESSION['email']) : false;
-$admin = false;
-
-$result = false;
-if ($email) {
-	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-	$result = mysqli_query($connection, "SELECT yllapitaja FROM kayttaja WHERE sahkoposti='$email';");
-}
-
-if ($result) {
-	$admin = (bool) mysqli_fetch_row($result)[0];
+if (is_logged_in()) {
 	$number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
-	if ($admin) {
-		// Lomake lähetetty
+	if (is_admin()) {
 		if (isset($_POST['lisaa'])) {
 			$id = intval($_POST['lisaa']);
 			$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
