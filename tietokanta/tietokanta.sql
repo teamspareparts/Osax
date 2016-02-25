@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
+  `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -38,5 +39,6 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `tilaus_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
+  `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
