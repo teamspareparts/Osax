@@ -97,19 +97,6 @@ html, body {
 }
 
 
-/*
-#header h1 {
-	display: inline-block;
-	position: relative;
-	width: 45%;
-	left: 5%;
-
-
-}
-*/
-
-
-
 #header .kirjautuneena {
 	display: inline-block;
 	position: relative;
@@ -138,7 +125,7 @@ html, body {
 .otsikko {
 	display: inline-block;
 	position: relative;
-	width: 25%;
+	width: 50%;
 	left: 5%;
 }
 
@@ -149,8 +136,8 @@ html, body {
 
 ********************************************/
 
-#asiakas .lisaa_asiakas_painike, #asiakas_lista #submit input[type=submit],
-#lomake #submit input[type=submit] {
+#asiakas .lisaa_asiakas_painike, #lista #submit input[type=submit],
+#lomake #submit input[type=submit], #tilaukset .tilaushistoria_painike {
     padding: 8px 15px;
     color: #FFF;
     -webkit-border-radius: 4px;
@@ -177,7 +164,7 @@ html, body {
 
 /********************************************
 
-	Yllï¿½pitï¿½jï¿½n asiakas sivun tyylittely
+	Ylläpitäjän asiakas sivun tyylittely
 
 *********************************************/
 
@@ -187,14 +174,13 @@ html, body {
 
 
 #asiakas #painikkeet {
-	width: 74%;
+	width: 44%;
 	text-align: right;
 	display: inline-block;
 }
 
 #asiakas #painikkeet a {
-	position: relative;
-	right: 7%;
+	text-align: right;
 	text-decoration: none;
 }
 
@@ -215,26 +201,6 @@ html, body {
 
 
 
-
-#asiakas_lista {
-	text-align: center;
-	display: block;
-}
-
-#asiakas_lista form {
-	text-align: left;
-	display: inline-block;
-	width: 90%;
-}
-
-#asiakas_lista fieldset{
-	margin-top: -2px;
-}
-
-#asiakas_lista .asiakas_info {
-	border: 0;
-}
-
 .etunimi, .sukunimi, .puhelin {
 	display: inline-block;
 	width: 15%;
@@ -245,29 +211,107 @@ html, body {
 	width: 23%;
 }
 
-#asiakas_lista a {
-	text-decoration: none;
-	color: black;
-}
-
-#asiakas_lista input[type=checkbox] {
+#asiakas #lista input[type=checkbox] {
 	position: relative;
-	left: 18px;
+	left: 17px;
 }
 
-#asiakas_lista #submit {
-	text-align: right;
-}
-
-#asiakas_lista #submit input[type=submit] {
+#asiakas #lista #submit input[type=submit] {
 	background: #e60005;
 	border-color: #b70004;
 }
 
-#asiakas_lista #submit input[type=submit]:HOVER {
-	cursor: pointer;
+#asiakas #lista #submit input[type=submit]:HOVER {
 	background: #b70004;
 	border: solid 1px #750003;
+}
+
+/********************************************
+
+	Ylläpitäjän asiakas tiluashistoria sivu
+
+*********************************************/
+
+.asiakas_info {
+	display: block;
+	position: relative;
+	left: 5%;
+	font-size: 24px;
+
+}
+
+.tilausnumero, .pvm, .tuotteet_kpl, .sum {
+	display: inline-block;
+	width: 25%;
+}
+
+
+
+/********************************************
+
+	Ylläpitäjän tilaukset sivu
+
+*********************************************/
+
+
+#tilaukset {
+	width: 100%;
+}
+
+
+#tilaukset #painikkeet {
+	width: 44%;
+	text-align: right;
+	display: inline-block;
+}
+
+#tilaukset #painikkeet a {
+	text-align: right;
+	text-decoration: none;
+}
+
+
+
+#tilaukset .tilaushistoria_painike {
+    background: #4479BA;
+    border-color: #20538D;
+}
+
+
+
+#tilaukset .tilaushistoria_painike:HOVER {
+    background: #356094;
+    border: solid 1px #2A4E77;
+    cursor: pointer;
+}
+
+
+#tilaukset #lista #submit input[type=submit] {
+	background: #00cc1f;
+	border-color: #008013;
+}
+
+#tilaukset #lista #submit input[type=submit]:HOVER {
+	background: #008013;
+	border: solid 1px #005e0e;
+}
+
+
+.tilaukset_tilausnumero, .tilaukset_sum, 
+.tilaukset_pvm {
+	
+	display: inline-block;
+	width: 14%;
+}
+
+.tilaukset_tilaaja, .tilaukset_yritys {
+	display: inline-block;
+	width: 24%;
+}
+
+#tilaukset #lista input[type=checkbox] {
+	position: relative;
+	left: 27px;
 }
 
 
@@ -281,7 +325,7 @@ html, body {
 
 
 
-/* keskitetï¿½ï¿½n form */
+/* keskitetään form */
 #lomake {
 	display: block;
 	text-align: center;
@@ -345,6 +389,55 @@ html, body {
     border: solid 1px #2A4E77;
     cursor: pointer;
 }
+
+/*************************************************
+
+	Listojen tyylittely (joissa käytetään checkbox)
+
+**************************************************/
+
+
+#lista {
+	text-align: center;
+	display: block;
+	
+}
+
+#lista form {
+	text-align: left;
+	display: inline-block;
+	width: 90%;
+}
+
+
+#lista fieldset{
+	margin-top: -2px;
+}
+
+#lista .lista_info {
+	border: 0;
+}
+
+#lista a {
+	text-decoration: none;
+	color: black;
+}
+
+
+#lista #submit {
+	text-align: right;
+}
+
+#lista #submit input[type=submit]:HOVER {
+	cursor: pointer;
+}
+
+
+/*************************************************
+
+	
+
+**************************************************/
 
 .haku {
 	position: relative;

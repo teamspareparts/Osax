@@ -13,12 +13,12 @@
 		<a href="yp_lisaa_asiakas.php"><span class="lisaa_asiakas_painike">Lisää uusi asiakas</span></a>
 	</div>
 	<br><br><br>
-</div>
 
-	<div id="asiakas_lista">
+
+	<div id="lista">
 
 		<form action="yp_asiakkaat.php" method="post">
-		<fieldset class="asiakas_info">
+		<fieldset class="lista_info">
 			<p><span class="etunimi">Etunimi</span><span class="sukunimi">Sukunimi</span><span class="puhelin">Puhelin</span><span class="yritys">Yritys</span><span class="sposti">Sähköposti</span><span>Poista</span></p>
 		</fieldset>
 
@@ -39,7 +39,7 @@
 				while($row = mysqli_fetch_assoc($result)){
 					if ($row["yllapitaja"] != 1){	//listataan vain asiakkaat
 						echo '<fieldset>';
-						echo '<a href="yp_asiakkaat.php?id=' . $row["id"] . '"><span class="etunimi">' . $row["etunimi"] .
+						echo '<a href="yp_asiakas_tilaushistoria.php?id=' . $row["id"] . '"><span class="etunimi">' . $row["etunimi"] .
 							'</span><span class="sukunimi">' . $row["sukunimi"] .
 							'</span><span class="puhelin">' . $row["puhelin"] .
 							'</span><span class="yritys">' . $row["yritys"] .
@@ -60,7 +60,7 @@
 		</form>
 	</div>
 
-
+</div>
 	<?php
 		if (isset($_POST['ids'])){
 			db_poista_asiakas($_POST['ids']);
