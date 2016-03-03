@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `sahkoposti` varchar(255) COLLATE utf8_swedish_ci DEFAULT NULL,
   `puhelin` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hinta` decimal(11,2) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0',
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -39,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `tilaus_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
+  `pysyva_hinta` int(11) NOT NULL,
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
