@@ -31,7 +31,7 @@
 			<fieldset><legend>Nykyiset tiedot</legend>
 				<br>
 				<label><span>Sähköposti</span></label>
-				<p style="display: inline; color: blue; font-size: 16px;">
+				<p style="display: inline; font-size: 16px;">
 					<?php echo $_SESSION['email']; ?>
 				</p>
 				<br><br>
@@ -121,7 +121,6 @@
 					return 1;	//talletetaan tulos sessioniin
 				}
 			}
-			mysqli_close($connection);
 
 		}
 

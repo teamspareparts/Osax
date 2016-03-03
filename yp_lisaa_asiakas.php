@@ -54,6 +54,9 @@
 			elseif ($result == -2){
 				echo "Salasanat eivät täsmää.";
 			}
+			elseif ($result == 2) {
+				echo "Käyttäjä aktivoitu.";
+			}
 			else {
 				echo "Lisäys onnistui.";
 			}
@@ -63,6 +66,7 @@
 		//-1	salasanat ei täsmää
 		//-2	käyttäjätunnus on jo olemassa
 		//1		lisäys onnistui
+		//2		kayttaja aktivoitu uudelleen
 		function db_lisaa_asiakas($asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
 				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana){
 
@@ -82,19 +86,26 @@
 						$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
 						$result = mysqli_query($connection, $query);
 						$count = mysqli_num_rows($result);
-						if($count != 0){
+						$row = mysqli_fetch_assoc($result);
+						if($count != 0 && $row["aktiivinen"] == 1) {
 							return -1; //talletetaan tulos sessioniin: käyttäjänimi varattu
-						} else {
+						}
+						elseif ($count != 0 && $row["aktiivinen"] == 0){
+							$query = "UPDATE $tbl_name 
+										SET aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', yritys='$asiakas_yritysnimi',
+											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana'
+										WHERE sahkoposti='$asiakas_sposti'";
+							$result = mysqli_query($connection, $query);
+							return 2;
+						}
+						else {
 							//lisätään tietokantaan
 							$query = "INSERT INTO $tbl_name (salasana_hajautus, etunimi, sukunimi, yritys, sahkoposti, puhelin)
 							VALUES ('$asiakas_hajautettu_salasana', '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh')";
 							$result = mysqli_query($connection, $query);
 							return 1;	//talletetaan tulos sessioniin
 						}
-						mysqli_close($connection);
-
 					}
-
 		}
 	?>
 	</div>

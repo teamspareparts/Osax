@@ -30,10 +30,15 @@ require 'tietokanta.php';
 	
 		if ( $row_count > 0 ) {
 			$row = mysqli_fetch_assoc($result);
-			if(password_verify($password, $row['salasana_hajautus'])) {
+			if ($row["aktiivinen"] == 0){
+				header("Location:login.php?redir=4");
+				exit;
+			}
+			elseif(password_verify($password, $row['salasana_hajautus'])) {
 			//TODO: Siirrä tiedot session_dataan, ja lähetä eteenpäin
 		   		$_SESSION['email']	= $row['sahkoposti'];
 		   		$_SESSION['admin']	= $row['yllapitaja'];
+		   		$_SESSION['id']		= $row['id'];
 		   		header("Location:tuotehaku.php");
 		   		exit;
 			}

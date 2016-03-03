@@ -92,7 +92,7 @@ html, body {
 
 	position: absolute;
 	top: 18px;
-	left: 2%;
+	left:18px;
 
 }
 
@@ -201,14 +201,14 @@ html, body {
 
 
 
-.etunimi, .sukunimi, .puhelin {
+#asiakas .puhelin, #asiakas .nimi {
 	display: inline-block;
-	width: 15%;
+	width: 18%;
 }
 
-.sposti, .yritys {
+#asiakas .sposti, #asiakas .yritys {
 	display: inline-block;
-	width: 23%;
+	width: 28%;
 }
 
 #asiakas #lista input[type=checkbox] {
@@ -232,7 +232,7 @@ html, body {
 
 *********************************************/
 
-.asiakas_info {
+#asiakas_tilaushistoria .asiakas_info {
 	display: block;
 	position: relative;
 	left: 5%;
@@ -240,9 +240,12 @@ html, body {
 
 }
 
-.tilausnumero, .pvm, .tuotteet_kpl, .sum {
+#asiakas_tilaushistoria .tilausnumero, 
+#asiakas_tilaushistoria .pvm, 
+#asiakas_tilaushistoria .tuotteet_kpl, 
+#asiakas_tilaushistoria .sum {
 	display: inline-block;
-	width: 25%;
+	width: 22%;
 }
 
 
@@ -297,16 +300,21 @@ html, body {
 }
 
 
-.tilaukset_tilausnumero, .tilaukset_sum, 
-.tilaukset_pvm {
+#tilaukset .tilausnumero, #tilaukset .sum, 
+#tilaukset .pvm {
 	
 	display: inline-block;
 	width: 14%;
 }
 
-.tilaukset_tilaaja, .tilaukset_yritys {
+#tilaukset .tilaaja {
 	display: inline-block;
-	width: 24%;
+	width: 19%
+}
+
+#tilaukset .yritys {
+	display: inline-block;
+	width: 29%;
 }
 
 #tilaukset #lista input[type=checkbox] {
@@ -411,12 +419,18 @@ html, body {
 
 
 #lista fieldset{
-	margin-top: -2px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: black;
+	margin-top: -1px;
 }
 
-#lista .lista_info {
+#lista .lista_info{
+	padding-bottom: 0;
 	border: 0;
+	font-weight: bold;
 }
+
 
 #lista a {
 	text-decoration: none;

@@ -19,7 +19,7 @@
 
 		<form action="yp_asiakkaat.php" method="post">
 		<fieldset class="lista_info">
-			<p><span class="etunimi">Etunimi</span><span class="sukunimi">Sukunimi</span><span class="puhelin">Puhelin</span><span class="yritys">Yritys</span><span class="sposti">Sähköposti</span><span>Poista</span></p>
+			<p><span class="nimi">Nimi</span><span class="puhelin">Puhelin</span><span class="yritys">Yritys</span><span class="sposti">Sähköposti</span><span>Poista</span></p>
 		</fieldset>
 
 			<?php
@@ -37,10 +37,9 @@
 				//niihin linkit, jotka vievät asiakkaan tilaushistoriaan.
 				//Linkin mukana välitetään asiakkaan tietokanta id.
 				while($row = mysqli_fetch_assoc($result)){
-					if ($row["yllapitaja"] != 1){	//listataan vain asiakkaat
+					if ($row["yllapitaja"] == 0 && $row["aktiivinen"] == 1){	//listataan vain asiakkaat
 						echo '<fieldset>';
-						echo '<a href="yp_asiakas_tilaushistoria.php?id=' . $row["id"] . '"><span class="etunimi">' . $row["etunimi"] .
-							'</span><span class="sukunimi">' . $row["sukunimi"] .
+						echo '<a href="tilaushistoria.php?id=' . $row["id"] . '"><span class="nimi">' . $row["etunimi"] . " " . $row["sukunimi"] .
 							'</span><span class="puhelin">' . $row["puhelin"] .
 							'</span><span class="yritys">' . $row["yritys"] .
 							'</span><span class="sposti">' . $row["sahkoposti"] . '</span><a>';
@@ -64,6 +63,9 @@
 	<?php
 		if (isset($_POST['ids'])){
 			db_poista_asiakas($_POST['ids']);
+			
+			header("Location:yp_asiakkaat.php");
+			exit;
 		}
 
 
@@ -76,14 +78,14 @@
 			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 			foreach ($ids as $asiakas_id) {
-				$query = "DELETE FROM $tbl_name
-				WHERE id='$asiakas_id'";
+				$query = "UPDATE $tbl_name
+							SET aktiivinen=0
+							WHERE id='$asiakas_id'";
 				$result = mysqli_query($connection, $query);
 			}
 			mysqli_close($connection);
 
-			header("Location:yp_asiakkaat.php");
-			exit;
+			return;
 		}
 	?>
 

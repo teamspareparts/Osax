@@ -25,12 +25,21 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 		</div>
 		
 <?php
-	} elseif ( $mode == 3 ) {	// Jos moodi == salasanan palautus
+	} elseif ( $mode == 3 ) {	// Jos moodi == väärä salasana
 ?>
 		<div id="content">
 			<fieldset id=error>
 				<legend>Väärä salasana</legend>
 				<p>Väärä salasana. Varmista, että kirjoitit tiedot oikein.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 4 ) {	// Jos moodi == käyttäjätili poistettu
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend>Käyttäjätili poistettu</legend>
+				<p>Ylläpitäjä on poistanut käyttöoikeutesi palveluun.</p>
 			</fieldset>
 		</div>
 <?php
@@ -43,6 +52,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			</fieldset>
 		</div>
 <?php
+
 	}
 }
 ?>
