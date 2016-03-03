@@ -7,18 +7,14 @@
 </head>
 <body>
 <?php 	include 'header.php';?>
-<div id=tilaukset>
-	<h1 class="otsikko">Tilaukset</h1>
-	<div id="painikkeet">
-		<a href="yp_tilaushistoria.php"><span class="tilaushistoria_painike">Tilaushistoria</span></a>
-	</div>
-	<br><br>
-</div>
+<h1 class="otsikko">Tilaushistoria</h1>
+<br><br>
+
 
 <div id="tilaukset">
 	<div id="lista">
 
-		<form action="yp_tilaukset.php" method="post">
+		<form>
 		<fieldset class="lista_info">
 			<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="yritys">Yritys</span><span class="sum">Summa</span>Käsitelty</p>
 		</fieldset>
@@ -28,14 +24,14 @@
 
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
-				$query = "SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa
+				$query = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa 
 							FROM tilaus 
 							LEFT JOIN kayttaja 
 								ON kayttaja.id=tilaus.kayttaja_id
 							LEFT JOIN tilaus_tuote
 								ON tilaus_tuote.tilaus_id=tilaus.id
-							WHERE tilaus.kasitelty = 0
-							GROUP BY tilaus.id";
+							GROUP BY tilaus.id
+							ORDER BY tilaus.id DESC";
 				$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 
 				while($row = mysqli_fetch_assoc($result)){
@@ -45,9 +41,13 @@
 						'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
 						'</span><span class="yritys">' . $row["yritys"] .
 						'</span><span class="sum">' . $row["summa"] . "eur" .
-						'</span><a>';
-					echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '">';
-					echo '</fieldset>';
+						'</span>';
+					if ($row["kasitelty"] == 1) {
+						echo 'OK';
+					} else {
+						echo 'EI';
+					}
+					echo '</a></fieldset>';
 				}
 				
 
@@ -55,10 +55,6 @@
 				mysqli_close($connection);
 
 			?>
-			<br>
-		<div id=submit>
-			<input type="submit" value="Merkitse käsitellyksi">
-		</div>
 		</form>
 	</div>
 </div>
@@ -67,9 +63,6 @@
 	<?php
 		if (isset($_POST['ids'])){
 			db_merkitse_tilaus($_POST['ids']);
-			
-			header("Location:yp_tilaukset.php");
-			exit;
 		}
 
 
@@ -89,7 +82,8 @@
 			}
 			mysqli_close($connection);
 
-			return;
+			header("Location:yp_tilaukset.php");
+			exit;
 		}
 	?>
 
