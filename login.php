@@ -15,7 +15,7 @@
 <?php 
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
-	if ( $mode == 1 ) {			// Jos moodi == väärä kirjautuminen
+	if ( $mode == 1 ) {			// Jos moodi == väärä sähköposti
 ?>
 		<div id="content">
 			<fieldset id=error>
@@ -23,7 +23,6 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 				<p>Sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
-		
 <?php
 	} elseif ( $mode == 3 ) {	// Jos moodi == väärä salasana
 ?>
@@ -52,17 +51,16 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			</fieldset>
 		</div>
 <?php
-
 	}
 }
 ?>
 
 
-	<fieldset>
-		<legend>Sisäänkirjautuminen</legend>
+	<fieldset><legend><b>Sisäänkirjautuminen</b></legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Email:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
+			<input type="email" name="email" placeholder="yourname@email.com" required autofocus><br>
+			<br>
 			<label>Password:</label><br>
 			<input type="password" name="password" placeholder="password" required><br>
 			<br>
@@ -73,8 +71,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	
 	<br><br>
 	
-	<fieldset>
-		<legend>Unohditko salasanasi?</legend>
+	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Email:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
