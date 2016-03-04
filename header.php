@@ -17,7 +17,7 @@ function is_admin() {
 // Tarkistetaan, onko käyttäjä kirjautunut sisään;
 // jos ei, niin ohjataan suoraan kirjautumissivulle.
 if (!is_logged_in()) {
-    header('Location: login.php');
+    header('Location: login.php?redir=5');
     exit;
 }
 
@@ -27,11 +27,11 @@ if (!is_logged_in()) {
 	<!-- <h1>Logo</h1> -->
 	<p class="kirjautuneena">Kirjautuneena:</p>
 	<?php
-		//tarkastaa onko nimi talletettu sessioniin
-		if (is_logged_in()){
-			echo ('<p class="username">' . $_SESSION['email'] . '</p>');
-		}
+		echo ('<p class="username">' . $_SESSION['email'] . '</p>');
 	?>
+	<p class="logout">
+		<a href="logout.php">Kirjaudu ulos</a>
+	</p>
 </div>
 
 <div id="navigationbar">
@@ -50,13 +50,9 @@ if (!is_logged_in()) {
         } else {
     ?>
         <li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
-    <?php
-        }
-		if (is_logged_in()) {
-			echo '<li class="last"><a href="logout.php"><span>Kirjaudu ulos</span></a></li>';
-		} else {
-			echo '<li class="last"><a href="login.php"><span>Kirjaudu sisään</span></a></li>';
+	<?php
 		}
-    ?>
+	?>	
+<!--		<li class="last"><a href="logout.php"><span>Kirjaudu ulos</span></a></li> -->
 	</ul>
 </div>

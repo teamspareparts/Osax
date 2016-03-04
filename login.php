@@ -19,7 +19,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Väärä sähköposti</legend>
+				<legend> Väärä sähköposti </legend>
 				<p>Sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
@@ -28,7 +28,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Väärä salasana</legend>
+				<legend> Väärä salasana </legend>
 				<p>Väärä salasana. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
@@ -37,8 +37,27 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Käyttäjätili poistettu</legend>
+				<legend> Käyttäjätili poistettu </legend>
 				<p>Ylläpitäjä on poistanut käyttöoikeutesi palveluun.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 5 ) {	// Jos moodi == ei ole kirjautunut sisään
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> Et ole kirjautunut sisään </legend>
+				<p>Ole hyvä, ja kirjaudu sisään.
+				Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 6 ) {	// Jos moodi == uloskirjautuminen
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> :( </legend>
+				<p>Olet onnistuneesti kirjautunut ulos.</p>
 			</fieldset>
 		</div>
 <?php
@@ -46,7 +65,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Salasanan palautus</legend>
+				<legend> Salasanan palautus </legend>
 				<p>Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.</p>
 			</fieldset>
 		</div>
