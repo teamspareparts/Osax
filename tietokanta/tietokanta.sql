@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `tilaus_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
-  `pysyva_hinta` int(11) NOT NULL,
+  `pysyva_hinta` decimal(11,2) NOT NULL,
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
