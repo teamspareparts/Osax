@@ -5,6 +5,10 @@ html, body {
 	height: 100%;
 }
 
+input {
+	padding: 3pt;
+}
+
 /***************************************
 
 	Menu palkin tyylittely�
@@ -147,6 +151,7 @@ html, body {
 
 ********************************************/
 
+.nappi,
 #asiakas .lisaa_asiakas_painike, #lista #submit input[type=submit],
 #lomake #submit input[type=submit], #tilaukset .tilaushistoria_painike {
     padding: 8px 15px;
@@ -468,9 +473,9 @@ html, body {
 	margin-left: 5%;
 }
 
-.haku input {
+.haku input[type=text] {
 	padding: 5pt;
-	font-size: 140%;
+	font-size: 120%;
 	border: 1px solid #1d7ae2;
 }
 
@@ -479,20 +484,41 @@ html, body {
 }
 
 table {
-	background-color: #1d7ae2;
+	margin: 0;
+	padding: 0;
+	border-spacing: 0;
+	border-collapse: separate;
+}
+
+tr:nth-child(odd) {
+	background: #eee;
 }
 
 th, td {
-	padding: 5pt;
+	padding: 6pt 5pt;
+	margin: 0;
+	text-align: left;
+}
+
+td.toiminnot {
 	background-color: #fff;
+	padding-left: 0.5em;
+}
+
+td .nappi {
+	padding: 4pt 5pt;
+	font-size: 75%;
 }
 
 th {
-	font-size: 120%;
+	font-size: 130%;
 	font-weight: normal;
 	text-shadow: 0 1px 0 #368;
 	background-color: #1d7ae2;
 	color: #fff;
+	margin: 0;
+	padding-top: 5pt;
+	padding-bottom: 5pt;
 }
 
 .success, .error {
@@ -511,11 +537,15 @@ th {
 }
 
 .nappi {
-	padding: 7pt 15pt;
-	background-color: #1d7ae2;
-	border: 1px solid #1d7ae2;
-	color: #fff;
+	background: #4479BA;
+    border-color: #20538D;
 	text-decoration: none;
+}
+
+.nappi:hover {
+    background: #356094;
+    border: solid 1px #2A4E77;
+    cursor: pointer;
 }
 
 .dialogi-otsikko {

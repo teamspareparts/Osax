@@ -20,6 +20,7 @@
 
 require 'tecdoc.php';
 require 'tietokanta.php';
+require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
 
@@ -66,16 +67,14 @@ if ($number) {
 	$products = search_for_product_in_catalog($number);
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>Varastosaldo</th><th>Minimisaldo</th><th>Toiminnot</th></tr>';
+		echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th></tr>';
 		foreach ($products as $product) {
 			echo '<tr>';
 			echo "<td>$product->articleName</td>";
 			echo "<td>$product->brandName</td>";
 			echo "<td>$product->articleNo</td>";
-			echo "<td>$product->hinta</td>";
-			echo "<td>$product->varastosaldo</td>";
-			echo "<td>$product->minimisaldo</td>";
-			echo "<td><a href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista valikoimasta</a></td>";
+			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
+			echo "<td style=\"text-align: right;\">$product->varastosaldo</td>";
 			echo '</tr>';
 		}
 		echo '</table>';
