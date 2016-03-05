@@ -68,12 +68,10 @@
 				//
 				function get_products_in_tilaus($id) {
 					global $connection;
-					$query = "SELECT tuote.id, tilaus_tuote.pysyva_hinta, tilaus_tuote.kpl 
+					$query = "SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.kpl 
 								FROM tilaus 
 							LEFT JOIN tilaus_tuote
 								ON tilaus_tuote.tilaus_id=tilaus.id
-							LEFT JOIN tuote
-								ON tuote.id=tilaus_tuote.tuote_id
 							WHERE tilaus.id = '$id'";
 					$result = mysqli_query($connection, $query);
 					if ($result) {

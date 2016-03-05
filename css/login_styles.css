@@ -1,15 +1,37 @@
 /********************************************	
-
 	Kirjautumissivu
-
 *********************************************/
+body	{
+	background-color:#3399CC;
+}
+
+fieldset	{
+	background-color:lightgrey;
+	padding: 1.4em
+}
+
+legend	{
+	font-weight: bold;
+}
+
+input {
+	padding: 0.4em;
+	font-size: 1em;
+	width: 300px;
+}
+
+input.submit	{
+	width: 0.1em;
+}
 
 #login_container	{
-	display: inline-block;
+	margin: auto;
+    width: 400px;
+	/*display: inline-block;
 	position: absolute;
 	left: 50%;
 	top: 50%;
-	transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);*/
 }
 #error	{
 	color: red;

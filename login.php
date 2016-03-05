@@ -15,21 +15,20 @@
 <?php 
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
-	if ( $mode == 1 ) {			// Jos moodi == väärä kirjautuminen
+	if ( $mode == 1 ) {			// Jos moodi == väärä sähköposti
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Väärä sähköposti</legend>
+				<legend> Väärä sähköposti </legend>
 				<p>Sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
-		
 <?php
 	} elseif ( $mode == 3 ) {	// Jos moodi == väärä salasana
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Väärä salasana</legend>
+				<legend> Väärä salasana </legend>
 				<p>Väärä salasana. Varmista, että kirjoitit tiedot oikein.</p>
 			</fieldset>
 		</div>
@@ -38,8 +37,27 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Käyttäjätili poistettu</legend>
+				<legend> Käyttäjätili poistettu </legend>
 				<p>Ylläpitäjä on poistanut käyttöoikeutesi palveluun.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 5 ) {	// Jos moodi == ei ole kirjautunut sisään
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> Et ole kirjautunut sisään </legend>
+				<p>Ole hyvä, ja kirjaudu sisään.
+				Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 6 ) {	// Jos moodi == uloskirjautuminen
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> :( </legend>
+				<p>Olet onnistuneesti kirjautunut ulos.</p>
 			</fieldset>
 		</div>
 <?php
@@ -47,22 +65,21 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 		<div id="content">
 			<fieldset id=error>
-				<legend>Salasanan palautus</legend>
+				<legend> Salasanan palautus </legend>
 				<p>Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.</p>
 			</fieldset>
 		</div>
 <?php
-
 	}
 }
 ?>
 
 
-	<fieldset>
-		<legend>Sisäänkirjautuminen</legend>
+	<fieldset><legend><b>Sisäänkirjautuminen</b></legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Email:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
+			<input type="email" name="email" placeholder="yourname@email.com" required autofocus><br>
+			<br>
 			<label>Password:</label><br>
 			<input type="password" name="password" placeholder="password" required><br>
 			<br>
@@ -73,8 +90,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	
 	<br><br>
 	
-	<fieldset>
-		<legend>Unohditko salasanasi?</legend>
+	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Email:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
