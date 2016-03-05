@@ -90,31 +90,6 @@ function get_products_in_catalog() {
 }
 
 //
-// Hakee tuotteiden ID:iden perusteella TecDocista kunkin tuotteen tiedot ja yhdistää ne
-//
-function merge_products_with_tecdoc($products) {
-	// Kerätään tuotteiden ID:t taulukkoon
-	$ids = [];
-	foreach ($products as $product) {
-		array_push($ids, $product->id);
-	}
-
-	// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
-	$tecdoc_products = get_products_by_id($ids);
-
-	// Yhdistetään TecDocista saatu data $products-taulukkoon
-	foreach ($tecdoc_products as $tecdoc_product) {
-		foreach ($products as $product) {
-			if ($product->id == $tecdoc_product->articleId) {
-				foreach ($tecdoc_product as $key => $value) {
-					$product->{$key} = $value;
-				}
-			}
-		}
-	}
-}
-
-//
 // Tulostaa hakutulokset
 //
 function print_results($number) {
@@ -173,37 +148,33 @@ function print_catalog() {
 	echo '</div>';
 }
 
-if (is_logged_in()) {
-	$number = isset($_POST['haku']) ? $_POST['haku'] : false;
+$number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
-	if (is_admin()) {
-		if (isset($_POST['lisaa'])) {
-			$id = intval($_POST['lisaa']);
-			$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
-			$varastosaldo = intval($_POST['varastosaldo']);
-			$minimisaldo = intval($_POST['minimisaldo']);
-			$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo);
-			if ($success) {
-				echo '<p class="success">Tuote lisätty!</p>';
-			} else {
-				echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
-			}
-		} elseif (isset($_GET['poista'])) {
-			$success = remove_product_from_catalog($_GET['poista']);
-			if ($success) {
-				echo '<p class="success">Tuote poistettu!</p>';
-			} else {
-				echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
-			}
+if (is_admin()) {
+	if (isset($_POST['lisaa'])) {
+		$id = intval($_POST['lisaa']);
+		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
+		$varastosaldo = intval($_POST['varastosaldo']);
+		$minimisaldo = intval($_POST['minimisaldo']);
+		$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo);
+		if ($success) {
+			echo '<p class="success">Tuote lisätty!</p>';
+		} else {
+			echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
 		}
-
-		print_results($number);
-		print_catalog();
-	} else {
-		echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
+	} elseif (isset($_GET['poista'])) {
+		$success = remove_product_from_catalog($_GET['poista']);
+		if ($success) {
+			echo '<p class="success">Tuote poistettu!</p>';
+		} else {
+			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
+		}
 	}
+
+	print_results($number);
+	print_catalog();
 } else {
-	echo '<div class="tulokset"><p>Et ole kirjautunut sisään!</p></div>';
+	echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
 }
 
 ?>

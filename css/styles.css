@@ -164,7 +164,7 @@ html, body {
 
 /********************************************
 
-	Ylläpitäjän asiakas sivun tyylittely
+	Yllï¿½pitï¿½jï¿½n asiakas sivun tyylittely
 
 *********************************************/
 
@@ -228,7 +228,7 @@ html, body {
 
 /********************************************
 
-	Ylläpitäjän asiakas tiluashistoria sivu
+	Yllï¿½pitï¿½jï¿½n asiakas tiluashistoria sivu
 
 *********************************************/
 
@@ -240,9 +240,9 @@ html, body {
 
 }
 
-#asiakas_tilaushistoria .tilausnumero, 
-#asiakas_tilaushistoria .pvm, 
-#asiakas_tilaushistoria .tuotteet_kpl, 
+#asiakas_tilaushistoria .tilausnumero,
+#asiakas_tilaushistoria .pvm,
+#asiakas_tilaushistoria .tuotteet_kpl,
 #asiakas_tilaushistoria .sum {
 	display: inline-block;
 	width: 22%;
@@ -252,7 +252,7 @@ html, body {
 
 /********************************************
 
-	Ylläpitäjän tilaukset sivu
+	Yllï¿½pitï¿½jï¿½n tilaukset sivu
 
 *********************************************/
 
@@ -300,9 +300,9 @@ html, body {
 }
 
 
-#tilaukset .tilausnumero, #tilaukset .sum, 
+#tilaukset .tilausnumero, #tilaukset .sum,
 #tilaukset .pvm {
-	
+
 	display: inline-block;
 	width: 14%;
 }
@@ -333,7 +333,7 @@ html, body {
 
 
 
-/* keskitetään form */
+/* keskitetï¿½ï¿½n form */
 #lomake {
 	display: block;
 	text-align: center;
@@ -400,7 +400,7 @@ html, body {
 
 /*************************************************
 
-	Listojen tyylittely (joissa käytetään checkbox)
+	Listojen tyylittely (joissa kï¿½ytetï¿½ï¿½n checkbox)
 
 **************************************************/
 
@@ -408,7 +408,7 @@ html, body {
 #lista {
 	text-align: center;
 	display: block;
-	
+
 }
 
 #lista form {
@@ -449,13 +449,12 @@ html, body {
 
 /*************************************************
 
-	
+
 
 **************************************************/
 
 .haku {
-	position: relative;
-	left: 5%;
+	margin-left: 5%;
 }
 
 .haku input {
@@ -465,8 +464,7 @@ html, body {
 }
 
 .tulokset {
-	position: relative;
-	left: 5%;
+	margin-left: 5%;
 }
 
 table {
