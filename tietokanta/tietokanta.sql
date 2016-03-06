@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hinta` decimal(11,2) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0',
+  `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
