@@ -42,7 +42,6 @@ if (!is_logged_in()) {
         if (is_admin()) {
     ?>
         <li><a href='yp_asiakkaat.php'><span>Asiakkaat</span></a></li>
-        <li><a href='yp_hinnat.php'><span>Hinnat</span></a></li>
         <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
         <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
         <li><a href='yp_raportit.php'><span>Raportit</span></a></li>
@@ -52,7 +51,7 @@ if (!is_logged_in()) {
         <li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
 	<?php
 		}
-	?>	
+	?>
 <!--		<li class="last"><a href="logout.php"><span>Kirjaudu ulos</span></a></li> -->
 	</ul>
 </div>

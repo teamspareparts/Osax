@@ -67,14 +67,13 @@ if ($number) {
 	$products = search_for_product_in_catalog($number);
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th></tr>';
+		echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th></tr>';
 		foreach ($products as $product) {
 			echo '<tr>';
-			echo "<td>$product->articleName</td>";
-			echo "<td>$product->brandName</td>";
 			echo "<td>$product->articleNo</td>";
+			echo "<td>$product->brandName $product->articleName</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-			echo "<td style=\"text-align: right;\">$product->varastosaldo</td>";
+			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo '</tr>';
 		}
 		echo '</table>';

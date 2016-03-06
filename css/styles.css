@@ -495,7 +495,7 @@ tr:nth-child(odd) {
 }
 
 th, td {
-	padding: 6pt 5pt;
+	padding: 6pt 10pt;
 	margin: 0;
 	text-align: left;
 }
@@ -548,10 +548,32 @@ th {
     cursor: pointer;
 }
 
+#modal-container label {
+	display: inline-block;
+    width: 8em;
+    margin-bottom: 10pt;
+}
+
+#modal-container input {
+	text-align: right;
+}
+
 .dialogi-otsikko {
 	font-size: 120%;
 	font-weight: bold;
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 10pt;
 	padding-bottom: 6pt;
+}
+
+.dialogi-kentta {
+	margin-left: 1em;
+}
+
+.kpl {
+	width: 4em;
+}
+
+.eur {
+	width: 4em;
 }
