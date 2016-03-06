@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
@@ -36,10 +36,10 @@
 				</p>
 				<br><br>
 				<label><span>Etunimi</span></label>
-				<input name="etunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $enimi; ?>" title="Vain aakkosia.">
+				<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?php echo $enimi; ?>" title="Vain aakkosia.">
 				<br><br>
 				<label><span>Sukunimi</span></label>
-				<input name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}" value="<?php echo $snimi; ?>" title="Vain aakkosia">
+				<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?php echo $snimi; ?>" title="Vain aakkosia">
 				<br><br>
 				<label><span>Puhelin</span></label>
 				<input name="puh" type="text" pattern=".{1,20}" value="<?php echo $puhelin; ?>">

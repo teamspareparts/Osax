@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
@@ -85,30 +85,6 @@
 					return [];
 				}
 				
-				//
-				// Hakee tuotteiden ID:iden perusteella TecDocista kunkin tuotteen tiedot ja yhdistää ne
-				//
-				function merge_products_with_tecdoc($products) {
-					// Kerätään tuotteiden ID:t taulukkoon
-					$ids = [];
-					foreach ($products as $product) {
-						array_push($ids, $product->id);
-					}
-				
-					// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
-					$tecdoc_products = get_products_by_id($ids);
-				
-					// Yhdistetään TecDocista saatu data $products-taulukkoon
-					foreach ($tecdoc_products as $tecdoc_product) {
-						foreach ($products as $product) {
-							if ($product->id == $tecdoc_product->articleId) {
-								foreach ($tecdoc_product as $key => $value) {
-									$product->{$key} = $value;
-								}
-							}
-						}
-					}
-				}
 
 			?>
 </div>
