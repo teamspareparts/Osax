@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
@@ -116,4 +116,127 @@ function merge_products_with_tecdoc($products) {
 			}
 		}
 	}
+}
+
+
+/**
+ * Palauttaa olioista koostuvan arrayn. 
+ * Objekteilla attribuutit manuId ja manuName.
+ */
+function getManufacturers() {
+	$function = 'getManufacturers';
+	$params = [
+			'favouredList' => 1,
+			'linkingTargetType' => 'P',
+			'country' => TECDOC_COUNTRY,
+			'lang' => TECDOC_LANGUAGE,
+			'provider' => TECDOC_PROVIDER
+	];
+	
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+	
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+	
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+	
+	return [];
+}
+
+
+//hae kaikki assemblygoupNodeID:t
+function getChildNodesAllLinkingTarget2 ($carID, $shortCutID) {
+	$function = 'getChildNodesAllLinkingTarget2';
+	$params = [
+			'articleCountry' => TECDOC_COUNTRY,
+			'lang' => TECDOC_LANGUAGE,
+			'provider' => TECDOC_PROVIDER,
+			"linked" => true,
+			"linkingTargetId" => $carID,
+			"linkingTargetType" => "P",
+			"shortCutId" => 3,
+			"childNodes" => true
+	];
+	
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+	
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+	
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+		
+	return [];
+}
+
+
+//hae kaikki assemblygoupNodeID:t
+function getGenericArticlesByManufacturer6($carID, $groupID) {
+	$function = 'getGenericArticlesByManufacturer6';
+	$params = [
+			'articleCountry' => TECDOC_COUNTRY,
+			'lang' => TECDOC_LANGUAGE,
+			'provider' => TECDOC_PROVIDER,
+			"linkingTargetId" => $carID,
+			"assemblyGroupNodeId" => $groupID,
+			"linkingTargetType" => "P",
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+
+	return [];
+}
+
+
+
+
+function getArticleIdsWithState($carID, $groupID, $genericArticleIDs, $brandNos) {
+	$function = 'getGenericArticlesByManufacturer6';
+	$params = [
+			'articleCountry' => TECDOC_COUNTRY,
+			'lang' => TECDOC_LANGUAGE,
+			'provider' => TECDOC_PROVIDER,
+			"linkingTargetId" => $carID,
+			"assemblyGroupNodeId" => $groupID,
+			"linkingTargetType" => "P",
+			"brandNo" => ['array' => $brandNos],
+			"genericArticleId" => ['array' => $genericArticleIDs]
+	];
+	
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+	
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+	
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+	
+	return [];
 }
