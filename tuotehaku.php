@@ -1,21 +1,42 @@
 <!DOCTYPE html>
 <html lang="fi">
-
 <head>
 	<link rel="stylesheet" href="css/styles.css">
 	<meta charset="UTF-8">
 	<meta name="description" content="Asiakkaalle näkyvä pohja">
 	<title>Tuotehaku</title>
-
 </head>
 <body>
+<?php include('header.php');?>
+<h1 class="otsikko">Tuotehaku</h1>
+<form action="tuotehaku.php" method="post" class="haku">
+	<input type="text" name="haku" placeholder="Tuotenumero">
+	<input class="nappi" type="submit" value="Hae">
+</form>
+<script>
 
-	<?php include('header.php');?>
-	<h1 class="otsikko">Tuotehaku</h1>
-	<form action="tuotehaku.php" method="post" class="haku">
-		<input type="text" name="haku" placeholder="Tuotenumero">
-		<input class="nappi" type="submit" value="Hae">
-	</form>
+//
+// Lisää annetun tuotteen ostoskoriin
+//
+function addToShoppingCart(articleId) {
+	window.alert('Ei vielä implementoitu.');
+}
+
+//
+// Poistaa annetun tuotteen ostoskorista
+//
+function removeFromShoppingCart(articleId) {
+	window.alert('Ei vielä implementoitu.');
+}
+
+//
+// Tyhjentää koko ostoskorin
+//
+function emptyShoppingCart(articleId) {
+	window.alert('Ei vielä implementoitu.');
+}
+
+</script>
 <?php
 
 require 'tecdoc.php';
@@ -86,6 +107,7 @@ if ($number) {
 			echo "<td>$product->brandName $product->articleName</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($product->articleId)\">Lisää ostoskoriin</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
