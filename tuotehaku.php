@@ -28,9 +28,21 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero
 //
 function filter_by_article_no($products, $articleNo) {
+	// Korvaa jokerimerkit * ja ? säännöllisen lausekkeen vastineilla
+	// ja jättää muut säännöllisten lausekkeiden merkinnät huomioimatta.
+	function replace_wildcards($string) {
+		$replaced = preg_quote($string);
+		$replaced = str_replace('\*', '.*', $replaced);
+		$replaced = str_replace('\?', '.', $replaced);
+		return $replaced;
+	}
+
+	$articleNo = replace_wildcards($articleNo);
+	$regexp = '/^' . $articleNo . '$/i';  // kirjainkoolla ei väliä
 	$filtered = [];
+
 	foreach ($products as $product) {
-		if (stripos($product->articleNo, $articleNo) !== false) {
+		if (preg_match($regexp, $product->articleNo)) {
 			array_push($filtered, $product);
 		}
 	}
