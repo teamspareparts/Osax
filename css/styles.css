@@ -578,7 +578,10 @@ th {
 	width: 4em;
 }
 
-
+.maara {
+	width: 3em;
+	padding: 1pt;
+}
 
 #manufacturer, #model, #car, #osaTyyppi {
 	width: 500px;

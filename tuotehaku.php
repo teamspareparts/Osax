@@ -13,27 +13,39 @@
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
 </form>
+<form name="ostoskorilomake" method="post" action="tuotehaku.php">
+	<input id="ostoskori_toiminto" type="hidden" name="ostoskori_toiminto" value="">
+	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">
+	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">
+</form>
 <script>
 
 //
 // Lisää annetun tuotteen ostoskoriin
 //
 function addToShoppingCart(articleId) {
-	window.alert('Ei vielä implementoitu.');
+	var count = document.getElementById('maara_' + articleId).value;
+	document.getElementById('ostoskori_toiminto').value = 'lisaa';
+	document.getElementById('ostoskori_tuote').value = articleId;
+	document.getElementById('ostoskori_maara').value = count;
+	document.ostoskorilomake.submit();
 }
 
 //
 // Poistaa annetun tuotteen ostoskorista
 //
 function removeFromShoppingCart(articleId) {
-	window.alert('Ei vielä implementoitu.');
+	document.getElementById('ostoskori_toiminto').value = 'poista';
+	document.getElementById('ostoskori_tuote').value = articleId;
+	document.ostoskorilomake.submit();
 }
 
 //
 // Tyhjentää koko ostoskorin
 //
 function emptyShoppingCart(articleId) {
-	window.alert('Ei vielä implementoitu.');
+	document.getElementById('ostoskori_toiminto').value = 'tyhjenna';
+	document.ostoskorilomake.submit();
 }
 
 </script>
@@ -44,6 +56,27 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
+
+//
+// Lisää tuotteen ostoskoriin
+//
+function add_product_to_shopping_cart($id) {
+	return true;
+}
+
+//
+// Poistaa tuotteen ostoskorista
+//
+function remove_product_from_shopping_cart($id) {
+	return true;
+}
+
+//
+// Tyhjentää ostoskorin
+//
+function empty_shopping_cart() {
+	return true;
+}
 
 //
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero
@@ -93,21 +126,48 @@ function search_for_product_in_catalog($number) {
 	return [];
 }
 
-$number = isset($_POST['haku']) ? $_POST['haku'] : false;
+$cart_action = isset($_POST['ostoskori_toiminto']) ? $_POST['ostoskori_toiminto'] : null;
+if ($cart_action) {
+	$cart_product = isset($_POST['ostoskori_tuote']) ? $_POST['ostoskori_tuote'] : null;
+	$cart_amount = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
+
+	if ($cart_action === 'lisaa') {
+		if (add_product_to_shopping_cart($cart_product, $cart_amount)) {
+			echo '<p class="success">Tuote lisätty ostoskoriin.</p>';
+		} else {
+			echo '<p class="error">Tuotteen lisäys ei onnistunut.</p>';
+		}
+	} elseif ($cart_action === 'poista') {
+		if (remove_product_from_shopping_cart($cart_product)) {
+			echo '<p class="success">Tuote poistettu ostoskorista.</p>';
+		} else {
+			echo '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
+		}
+	} elseif ($cart_action === 'empty') {
+		if (empty_shopping_cart()) {
+			echo '<p class="success">Ostoskori tyhjennetty.</p>';
+		} else {
+			echo '<p class="error">Ostoskorin tyhjentäminen ei onnistunut.</p>';
+		}
+	}
+}
+
+$number = isset($_POST['haku']) ? $_POST['haku'] : null;
 if ($number) {
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset</h2>';
 	$products = search_for_product_in_catalog($number);
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th></tr>';
+		echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
 			echo '<tr>';
 			echo "<td>$product->articleNo</td>";
 			echo "<td>$product->brandName $product->articleName</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($product->articleId)\">Lisää ostoskoriin</a></td>";
+			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $product->articleId . "\" name=\"maara_" . $product->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($product->articleId)\">Osta</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
