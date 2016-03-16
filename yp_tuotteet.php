@@ -70,13 +70,14 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 //
 // Lisää uuden tuotteen valikoimaan
 //
-function add_product_to_catalog($id, $price, $count, $minimum_count) {
+function add_product_to_catalog($id, $price, $count, $minimum_count, $minimum_sale_count) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
 	$count = intval($count);
 	$minimum_count = intval($minimum_count);
-	$result = mysqli_query($connection, "INSERT INTO tuote (id, hinta, varastosaldo, minimisaldo) VALUES ($id, $price, $count, $minimum_count);");
+	$minimum_sale_count = intval($minimum_sale_count);
+	$result = mysqli_query($connection, "INSERT INTO tuote (id, hinta, varastosaldo, minimisaldo, minimimyyntiera) VALUES ($id, $price, $count, $minimum_count, $minimum_sale_count);");
 	return $result;
 }
 
@@ -185,7 +186,8 @@ if (is_admin()) {
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
-		$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo);
+		$minimimyyntiera = intval($_POST['minimimyyntiera']);
+		$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo, $minimimyyntiera);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
