@@ -97,6 +97,7 @@ input {
 	position: absolute;
 	top: 18px;
 	left:18px;
+	
 
 }
 
@@ -583,9 +584,15 @@ th {
 	padding: 1pt;
 }
 
-#manufacturer, #model, #car, #osaTyyppi {
+#manufacturer, #model, #car, #osaTyyppi, #osat_alalaji{
+
 	width: 500px;
+	padding: 1pt;
 	border: 1px solid #1d7ae2;
 	margin-left: 5%;
 	font-size: 90%;
+}
+
+#ajoneuvohaku {
+	margin-left: 5%;
 }
