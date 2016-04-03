@@ -34,7 +34,9 @@
 						");
 			} else { // Salasana ja varmistus tasmaa
 			
-				db_vaihda_salasana();
+				if ( db_vaihda_salasana($salasana) == TRUE ) {
+					echo "Salasana vaihdettu";
+				}
 				
 			}//if salasana == varmistus
 		}//if POST is empty (ei ole uudelleenohjaus)
@@ -53,18 +55,20 @@
 			if ( $row_count > 0 ) { 	// Katsotaan, loytyiko tulos
 				$row = mysqli_fetch_assoc( $result );
 				$_SESSION['email']	= $row['user_id'];			// Otetaan talteen tiedot
-				$time_then			= $row['reset_exp_aika'];	//  Aika, jolloin tieto tallennettiin (kun käyttäjä pyysi uutta salasanaa)
-				$time_now			= time();					//	Aika nyt
-				$difference			= $time_now - $time_then;	//	Kulunut aika pyynnosta (pyynto vanhenee tunnissa)
+				$mysql_dt			= $row['reset_exp_aika'];	//  Aika, jolloin tieto tallennettiin (kun käyttäjä pyysi uutta salasanaa)
+				$time_then 			= new DateTime( $mysql_dt );//   muunnettuna DateTime-muotoon
+				$time_now			= new DateTime();			//	Aika nyt
 				
+				$interval = $time_now -> diff($time_then);
 				
-				echo "Foo -- <br /> 
-					time_then: " . $time_then . "<br />" .
-					"time_now: " . $time_now . "<br />" .
-					"difference: " . $difference;
+				$y = $interval->format('%y');
+				$m = $interval->format('%m');
+				$d = $interval->format('%d');
+				$h = $interval->format('%h');
 				
-				if ( $difference < 3600 ) { //Tarkistetaan aika (sekunneissa, 1h = 3600s)?>
-					<?php echo "... bar";?>
+				$difference = $y + $m + $d + $h; // Lasketaan aikojen erotus
+				
+				if ( $difference < 1 ) { //Tarkistetaan aika ?>
 					<fieldset><legend>Unohditko salasanasi?</legend>
 						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
 							<?php echo $_SESSION['email']; // Muistutuksena kauttajalle ?>
@@ -75,6 +79,8 @@
 							<label>Vahvista uusi salasana</label>
 							<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä." required autofocus placeholder="vahvista salasana">
 							<br><br>
+							<input type="hidden" name="mode" value="password_reset">
+							<input type="submit" value="Vaihda salasana">
 						</form>
 					</fieldset>
 				<?php
@@ -90,20 +96,22 @@
 		$asiakas_sposti = $_SESSION['email'];
 		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
 
-		$query = "
+		$sql_query = "
 			SELECT 	* 
 			FROM 	kayttaja 
 			WHERE 	sahkoposti = '$asiakas_sposti'";
 			
-		$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+		$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
+					or die("Connection error:" . mysqli_connect_error());
+		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 		$row_count = mysqli_num_rows($result);
 		
 		if ( $row_count != 1 ) {
-			return -1; //Kayttajaa ei loytynyt
+			return 0; //Kayttajaa ei loytynyt
 		} else {
 			//päivitetään uusi salasana tietokantaan
 			$query = "
-				UPDATE	$tbl_name 
+				UPDATE	kayttaja 
 				SET 	salasana_hajautus='$hajautettu_uusi_salasana'
 				WHERE	sahkoposti='$asiakas_sposti'";
 			mysqli_query($connection, $query) or die(mysqli_error($connection));
