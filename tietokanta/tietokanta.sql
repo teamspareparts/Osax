@@ -45,3 +45,11 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `pw_reset` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `reset_key` varchar(100) NOT NULL,
+  `user_id` varchar(255) COLLATE utf8_swedish_ci NOT NULL,
+  `reset_exp_aika` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;

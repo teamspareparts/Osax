@@ -4,15 +4,65 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
+	<script>
+	var TECDOC_MANDATOR = 149;
+	var TECDOC_DEBUG = false;
+	var TECDOC_COUNTRY = 'FI';
+	var TECDOC_LANGUAGE = 'FI';
+	</script>
 	<title>Tuotteet</title>
 </head>
 <body>
-<?php include("header.php");?>
+<?php include("header.php");
+require 'tecdoc.php';?>
 <h1 class="otsikko">Tuotteet</h1>
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
 </form>
+
+<h4 style="margin-left: 5%;">TAI</h4>
+
+<form action="yp_tuotteet.php" method="post" id="ajoneuvomallihaku">
+	<select id="manufacturer" name="manuf">
+		<option value="">-- Valmistaja --</option> 
+		<?php
+		$manufs = getManufacturers ();
+		if ($manufs){
+			foreach ( $manufs as $manuf ) {
+				echo "<option value='$manuf->manuId'>$manuf->manuName</option>";
+			}
+		} else echo "<script type='text/javascript'>alert('TecDoc ei vastaa.');</script>";;
+		?>
+	</select>
+	<br>
+
+
+	<select id="model" name="model" disabled="disabled">
+	<option value="">-- Malli --</option> 
+	</select>
+	<br>
+	
+	<select id="car" name="car" disabled="disabled">
+	<option value="">-- Auto --</option> 
+	</select>
+	<br>
+
+	<select id="osaTyyppi" name="osat" disabled="disabled">
+	<option value="">-- Osat --</option> 
+	</select>
+	<br>
+	
+	<select id="osat_alalaji" name="osat_alalaji" disabled="disabled">
+	<option value="">-- Osien alalaji --</option> 
+	</select>
+	<br>
+	
+	<input type="submit" value="HAE" id="ajoneuvohaku">
+</form>
+
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
 
@@ -59,9 +109,396 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 }
 
 </script>
-<?php
 
-require 'tecdoc.php';
+<script type="text/javascript">
+
+
+    function getModelSeries(manufacturerID) {		
+        var functionName = "getModelSeries";
+        var params = {
+                "favouredList" : 1,
+                "linkingTargetType" : 'P',
+                "manuId" : manufacturerID,
+                "country" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR
+        };
+        params = toJSON(params);
+		tecdocToCatPort[functionName] (params, updateModelList);
+    }
+
+    function getVehicleIdsByCriteria(manufacturerID, modelID) {		
+        var functionName = "getVehicleIdsByCriteria";
+        var params = {
+                "carType" : "P",
+                "favouredList": 1,
+                "manuId" : manufacturerID,
+                "modId" : modelID,
+                "countriesCarSelection" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR
+        };
+        params = toJSON(params);
+		tecdocToCatPort[functionName] (params, getVehicleByIds3);
+
+    }
+
+    function getVehicleByIds3(response) {		
+        var functionName = "getVehicleByIds3";
+		var ids = [];
+		for(var i = 0; i < response.data.array.length; i++) {
+			ids.push(response.data.array[i].carId);
+		}
+
+
+		//pystyy vastaanottamaan max 25 id:tä
+		while(ids.length > 0) {
+			if(ids.length >= 25){
+				IDarray = ids.slice(0,25);
+				ids.splice(0, 25);
+			} else {
+				IDarray = ids.slice(0, ids.length);
+				ids.splice(0, ids.length);
+			}
+
+	        var params = {
+	                "favouredList": 1,
+					"carIds" : { "array" : IDarray},
+	                "articleCountry" : TECDOC_COUNTRY,
+	                "countriesCarSelection" : TECDOC_COUNTRY,
+	                "country" : TECDOC_COUNTRY,
+	                "lang" : TECDOC_LANGUAGE,
+	                "provider" : TECDOC_MANDATOR
+	        };
+	        params = toJSON(params);
+			tecdocToCatPort[functionName] (params, updateCarList);
+
+		}
+		
+    }
+
+    function getShortCuts2(carID) {		
+        var functionName = "getShortCuts2";
+        var params = {
+                "linkingTargetId" : carID,
+                "linkingTargetType" : "P",
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR
+        };      
+		tecdocToCatPort[functionName] (params, updatePartTypeList);
+    }
+
+    function getPartTypes(carID) {		
+        var functionName = "getChildNodesAllLinkingTarget2";
+        var params = {
+                "linked" : true,
+                "linkingTargetId" : carID,
+                "linkingTargetType" : "P",
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR,
+                "childNodes" : false
+        };      
+		tecdocToCatPort[functionName] (params, updatePartTypeList);
+    }
+
+    function getChildNodes(carID, parentNodeID) {		
+        var functionName = "getChildNodesAllLinkingTarget2";
+        var params = {
+        		"linked" : true,
+                "linkingTargetId" : carID,
+                "linkingTargetType" : "P",
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR,
+                "parentNodeId" : parentNodeID,
+                "childNodes" : false
+        };
+		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
+    }
+
+    
+
+
+    function getDirectArticlesByIds4(ids) {		
+        var functionName = "getDirectArticlesByIds4";
+        params = {
+           		'lang' : TECDOC_LANGUAGE,
+           		'articleCountry' : TECDOC_COUNTRY,
+           		'provider' : TECDOC_PROVIDER,
+           		'basicData' : true,
+           		'articleId' : {'array' : ids}
+        	};
+        params = toJSON(params);
+		tecdocToCatPort[functionName] (params, getVehicleByIds3);
+
+    }
+
+
+    // Create JSON String and put a blank after every ',':
+    function toJSON(obj) {        
+        return JSON.stringify(obj).replace(/,/g,", ");
+    }
+
+ 
+
+
+
+    //debuggaukseen....
+    function displayText(label, obj) {
+        // Create element to display:
+        var element = document.createElement('div');
+        // Create element as 'label' and append it:
+        var header = document.createElement('div');
+        header.innerHTML = label + ":";
+        header.style.fontWeight = 'bold';
+        element.appendChild(header);
+        
+        // Create element with data to display and append it:
+        var display = document.createElement('span');
+        display.appendChild(document.createTextNode(obj));
+        element.appendChild(display);
+        
+        // Append element to body:
+        document.body.appendChild(element);
+      }
+          
+
+      
+      
+
+      // Callback function to do something with the response:
+      function updateModelList(response) {         
+          response = response.data;
+
+        	//uudet tiedot listaan
+			var modelList = document.getElementById("model");
+			
+
+		    if (response.array){
+			    var i;
+			    for (i = 0; i < response.array.length; i++) {
+					var model = new Option(response.array[i].modelname, response.array[i].modelId);
+					modelList.options.add(model);
+			    }
+		    }
+		    $('#model').removeAttr('disabled');
+	          
+      }
+      
+
+
+      // Callback function to do something with the response:
+      function updateCarList(response) {
+            response = response.data;
+
+        	//uudet tiedot listaan
+			var carList = document.getElementById("car");
+
+		   if (response.array){
+			    var i;
+			    for (i = 0; i < response.array.length; i++) {
+				    var yearTo = response.array[i].vehicleDetails.yearOfConstrTo
+				    if(!yearTo) yearTo = "";
+				    var text = response.array[i].vehicleDetails.typeName
+				    			+ "\xa0\xa0\xa0\xa0\xa0\xa0"
+				    			+ "Year: " + response.array[i].vehicleDetails.yearOfConstrFrom
+	    						+ " -> " + yearTo
+	    						+ "\xa0\xa0\xa0\xa0\xa0\xa0"
+	    						 + response.array[i].vehicleDetails.powerKwFrom + "KW" 
+	    						+ " (" +response.array[i].vehicleDetails.powerHpFrom + "hp)";
+	    						
+			    	var car = new Option(text, response.array[i].carId);
+					carList.options.add(car);
+			    }
+		    }
+		    $('#car').removeAttr('disabled');
+	          
+      }
+
+      function updatePartTypeList(response) {
+          response = response.data;
+
+			//uudet tiedot listaan
+			var partTypeList = document.getElementById("osaTyyppi");
+			if (response.array){
+			    var i;
+			    for (i = 0; i < response.array.length; i++) {
+			    	var partType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
+					partTypeList.options.add(partType);
+			    }
+		    }
+		    
+		    $('#osaTyyppi').removeAttr('disabled');
+	          
+      }
+
+      function updatePartSubTypeList(response) {
+          response = response.data;
+
+			//uudet tiedot listaan
+			var subPartTypeList = document.getElementById("osat_alalaji");
+			if (response.array){
+			    var i;
+			    for (i = 0; i < response.array.length; i++) {
+			    	var subPartType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
+					subPartTypeList.options.add(subPartType);
+			    }
+		    }
+		    
+		    $('#osat_alalaji').removeAttr('disabled');
+	          
+      }
+     
+      
+
+
+	
+		
+	
+		$(document).ready(function(){
+			$("#manufacturer").on("change", function(){
+				//kun painaa jotain automerkkiä->
+				
+				var manuList = document.getElementById("manufacturer");
+				//selManu = manuID
+				var selManu = parseInt(manuList.options[manuList.selectedIndex].value);
+				
+				//Poistetaan vanhat tiedot
+				var modelList = document.getElementById("model");
+				var carList = document.getElementById("car");
+				var partTypeList = document.getElementById("osaTyyppi");
+				var subPartTypeList = document.getElementById("osat_alalaji");
+				while (modelList.options.length - 1) {
+					modelList.remove(1);
+				}	
+				while (carList.options.length - 1) {
+					carList.remove(1);
+				}
+				while (partTypeList.options.length - 1) {
+					partTypeList.remove(1);
+				}
+				while (subPartTypeList.options.length - 1) {
+					subPartTypeList.remove(1);
+				}	
+
+
+				//väliaikaisesti estetään modelin ja auton valinta
+				$('#model').attr('disabled', 'disabled');
+				$('#car').attr('disabled', 'disabled');
+				$('#osaTyyppi').attr('disabled', 'disabled');
+				$('#osat_alalaji').attr('disabled', 'disabled');
+				if(selManu > 0){
+					getModelSeries(selManu);
+				}
+				
+			});
+
+
+			$("#model").on("change", function(){
+				//kun painaa jotain automallia->
+				var manuList = document.getElementById("manufacturer");
+				var modelList = document.getElementById("model");
+				var selManu = parseInt(manuList.options[manuList.selectedIndex].value);
+				var selModel = parseInt(modelList.options[modelList.selectedIndex].value);
+
+				//tyhjennetään autolista ja haetaan uudet autot
+				var carList = document.getElementById("car");
+				while (carList.options.length - 1) {
+					carList.remove(1);
+				}
+				var partTypeList = document.getElementById("osaTyyppi");
+				while (partTypeList.options.length - 1) {
+					partTypeList.remove(1);
+				}
+				var subPartTypeList = document.getElementById("osat_alalaji");
+				while (subPartTypeList.options.length - 1) {
+					subPartTypeList.remove(1);
+				}
+
+				
+
+				$('#car').attr('disabled', 'disabled');
+				$('#osaTyyppi').attr('disabled', 'disabled');
+				$('#osat_alalaji').attr('disabled', 'disabled');
+				
+				if (selModel > 0 ) {
+					getVehicleIdsByCriteria(selManu, selModel);
+				}
+			});
+
+
+			$("#car").on("change", function(){
+				//kun painaa jotain autoa->
+				var manuList = document.getElementById("manufacturer");
+				var modelList = document.getElementById("model");
+				var carList = document.getElementById("car");
+
+				var selCar = parseInt(carList.options[carList.selectedIndex].value);
+
+				//tyhjennetään autolista ja haetaan uudet autot
+				var partTypeList = document.getElementById("osaTyyppi");
+				while (partTypeList.options.length - 1) {
+					partTypeList.remove(1);
+				}
+				var subPartTypeList = document.getElementById("osat_alalaji");
+				while (subPartTypeList.options.length - 1) {
+					subPartTypeList.remove(1);
+				}
+
+				$('#osaTyyppi').attr('disabled', 'disabled');
+				$('#osat_alalaji').attr('disabled', 'disabled');
+				if (selCar > 0 ) {
+					getPartTypes(selCar);
+				}
+			});
+
+			$("#osaTyyppi").on("change", function(){
+				//kun painaa jotain osatyyppiä->
+				var manuList = document.getElementById("manufacturer");
+				var modelList = document.getElementById("model");
+				var carList = document.getElementById("car");
+				var partTypeList = document.getElementById("osaTyyppi");
+
+				var selCar = parseInt(carList.options[carList.selectedIndex].value);
+				var selPartType = parseInt(partTypeList.options[partTypeList.selectedIndex].value);
+
+				//tyhjennetään osatyypilista
+				var subPartTypeList = document.getElementById("osat_alalaji");
+				while (subPartTypeList.options.length - 1) {
+					subPartTypeList.remove(1);
+				}
+				
+				$('#osat_alalaji').attr('disabled', 'disabled');
+				if (selPartType > 0 ) {
+					getChildNodes(selCar, selPartType);
+				}
+			});
+			
+
+
+			//annetaan hakea vain jos kaikki tarvittavat tiedot on annettu
+			$("#ajoneuvomallihaku").submit(function(e) {
+			    if (document.getElementById("osat_alalaji").selectedIndex != 0) {
+				    //sallitaan formin lähetys
+			        return true;
+			    }
+			    else {
+			        e.preventDefault();
+			        alert("Täytä kaikki kohdat ennen hakua!");
+			        return false;
+			    }
+			});
+
+
+		   
+			
+		});
+		
+	</script>
+	
+<?php
 require 'tietokanta.php';
 require 'apufunktiot.php';
 
@@ -178,6 +615,20 @@ function print_catalog() {
 	echo '</div>';
 }
 
+function print_results2($ids) {
+
+	$products = get_products_by_id($ids);
+
+	foreach ($products as $product) {
+		echo '<tr>';
+		echo "<td>$product->articleNo</td>";
+		echo "<td>$product->brandName $product->articleName</td>";
+		//echo "<td>$product->articleId</td>";
+		echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
+		echo '</tr>';
+	}
+}
+
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 if (is_admin()) {
@@ -212,6 +663,62 @@ if (is_admin()) {
 		} else {
 			echo '<p class="error">Tuotteen muokkaus epäonnistui!</p>';
 		}
+	}elseif (isset($_POST["manuf"])) {
+	
+		$selCar = $_POST["car"];
+		$selPartType = $_POST["osat_alalaji"];
+		
+		
+		/*  Debuggaukseen:
+		 * 
+		 *  echo "manuf: " . $_POST["manuf"] . " ";
+		 *	echo "model: " . $_POST["model"] . " ";
+		 *  echo "car: " . $_POST["car"] . " ";
+		 *  echo "groupID: " . $_POST["osat_alalaji"] . " "; 
+		 */
+	
+		
+		$articleIDs = [];
+		$articles = getArticleIdsWithState($selCar, $selPartType);
+		
+		//poistetaan duplikaatit
+		foreach ($articles as $article){
+			if(!in_array($article->articleId, $articleIDs)){
+				array_push($articleIDs, $article->articleId);
+					
+			}
+		}
+		
+		/* 
+		 * Jos printattavia tuotteita on ~yli 30, vie niiden kaikkien printtaus
+		 * paljon aikaa (kuten jos käyttäjä haluaa nähdä kaikki autoonsa sopivat
+		 * polttimot). Sen takia kasvatetaan TIMEOUT aikaa vakio 30sekuntista -> 60sek. 
+		*/
+		set_time_limit(60);
+		
+		//printataan tuotteet 25 kappaleen erissä
+		echo '<div class="tulokset">';
+		echo '<h2>Tulokset:</h2>';
+		if (count($articles) > 0) {
+			echo '<table>';
+			echo '<tr><th>Tuotenumero</th><th>Tuote</th></tr>';
+			$IDarray = [];
+			while(count($articleIDs) > 0){
+				if (count($articleIDs) >= 25){
+					$IDarray = array_slice($articleIDs, 0 , 25);
+					array_splice($articleIDs, 0, 25);
+				} else {
+					$IDarray = array_slice($articleIDs, 0 , count($articleIDs));
+					array_splice($articleIDs, 0, count($articleIDs)); 
+				}
+				print_results2($IDarray);
+			}
+			echo '</table>';
+		} else {
+				echo '<p>Ei tuloksia.</p>';
+		}
+		echo '</div>';
+		
 	}
 
 	print_results($number);
