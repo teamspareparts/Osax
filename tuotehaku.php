@@ -9,46 +9,23 @@
 <body>
 <?php include('header.php');?>
 <h1 class="otsikko">Tuotehaku</h1>
+<?php
+$cart_contents = '0 tuotetta';
+if (isset($_SESSION['cart'])) {
+	$cart_count = count($_SESSION['cart']);
+	if ($cart_count === 1) {
+		$cart_contents = '1 tuote';
+	} else {
+		$cart_contents = $cart_count . ' tuotetta';
+	}
+}
+?>
+<div id="ostoskori-linkki"><a href="ostoskori.php">Ostoskori (<?php echo $cart_contents; ?>)</a></div>
 <form action="tuotehaku.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
 </form>
-<form name="ostoskorilomake" method="post" action="tuotehaku.php">
-	<input id="ostoskori_toiminto" type="hidden" name="ostoskori_toiminto" value="">
-	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">
-	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">
-</form>
-<script>
-
-//
-// Lisää annetun tuotteen ostoskoriin
-//
-function addToShoppingCart(articleId) {
-	var count = document.getElementById('maara_' + articleId).value;
-	document.getElementById('ostoskori_toiminto').value = 'lisaa';
-	document.getElementById('ostoskori_tuote').value = articleId;
-	document.getElementById('ostoskori_maara').value = count;
-	document.ostoskorilomake.submit();
-}
-
-//
-// Poistaa annetun tuotteen ostoskorista
-//
-function removeFromShoppingCart(articleId) {
-	document.getElementById('ostoskori_toiminto').value = 'poista';
-	document.getElementById('ostoskori_tuote').value = articleId;
-	document.ostoskorilomake.submit();
-}
-
-//
-// Tyhjentää koko ostoskorin
-//
-function emptyShoppingCart(articleId) {
-	document.getElementById('ostoskori_toiminto').value = 'tyhjenna';
-	document.ostoskorilomake.submit();
-}
-
-</script>
+<?php include('ostoskori_lomake.php'); ?>
 <?php
 
 require 'tecdoc.php';
@@ -56,27 +33,6 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
-//
-// Lisää tuotteen ostoskoriin
-//
-function add_product_to_shopping_cart($id) {
-	return true;
-}
-
-//
-// Poistaa tuotteen ostoskorista
-//
-function remove_product_from_shopping_cart($id) {
-	return true;
-}
-
-//
-// Tyhjentää ostoskorin
-//
-function empty_shopping_cart() {
-	return true;
-}
 
 //
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero
@@ -126,31 +82,7 @@ function search_for_product_in_catalog($number) {
 	return [];
 }
 
-$cart_action = isset($_POST['ostoskori_toiminto']) ? $_POST['ostoskori_toiminto'] : null;
-if ($cart_action) {
-	$cart_product = isset($_POST['ostoskori_tuote']) ? $_POST['ostoskori_tuote'] : null;
-	$cart_amount = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
-
-	if ($cart_action === 'lisaa') {
-		if (add_product_to_shopping_cart($cart_product, $cart_amount)) {
-			echo '<p class="success">Tuote lisätty ostoskoriin.</p>';
-		} else {
-			echo '<p class="error">Tuotteen lisäys ei onnistunut.</p>';
-		}
-	} elseif ($cart_action === 'poista') {
-		if (remove_product_from_shopping_cart($cart_product)) {
-			echo '<p class="success">Tuote poistettu ostoskorista.</p>';
-		} else {
-			echo '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
-		}
-	} elseif ($cart_action === 'empty') {
-		if (empty_shopping_cart()) {
-			echo '<p class="success">Ostoskori tyhjennetty.</p>';
-		} else {
-			echo '<p class="error">Ostoskorin tyhjentäminen ei onnistunut.</p>';
-		}
-	}
-}
+handle_shopping_cart_action();
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
 if ($number) {

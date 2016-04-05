@@ -583,6 +583,13 @@ th {
 	padding: 1pt;
 }
 
+#ostoskori-linkki {
+	font-size: 150%;
+	float: right;
+	margin-top: 20pt;
+	margin-right: 5%;
+}
+
 #manufacturer, #model, #car, #osaTyyppi {
 	width: 500px;
 	border: 1px solid #1d7ae2;
