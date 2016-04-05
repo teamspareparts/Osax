@@ -48,7 +48,7 @@ handle_shopping_cart_action();
 $products = get_products_in_shopping_cart();
 
 if (empty($products)) {
-    echo '<p>Ostoskorissa ei ole tuotteita.</p>';
+    echo '<div class="tulokset"><p>Ostoskorissa ei ole tuotteita.</p></div>';
 } else {
     echo '<div class="tulokset">';
     echo '<table>';
@@ -64,6 +64,7 @@ if (empty($products)) {
         echo '</tr>';
     }
     echo '</table>';
+	echo '<p><a class="nappi" href="tilaus.php">Tilaa tuotteet</a></p>';
     echo '</div>';
 }
 
