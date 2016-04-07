@@ -19,11 +19,11 @@
 
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
-				
+
 				$id = $_GET["id"];
 				$query = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa, SUM(tilaus_tuote.kpl) AS kpl
-							FROM tilaus 
-							LEFT JOIN kayttaja 
+							FROM tilaus
+							LEFT JOIN kayttaja
 								ON kayttaja.id=tilaus.kayttaja_id
 							LEFT JOIN tilaus_tuote
 								ON tilaus_tuote.tilaus_id=tilaus.id
@@ -36,21 +36,22 @@
 				echo "<p>Tilausnro: " .$row["id"]. " Päivämäärä: " .date("d.m.Y", strtotime($row["paivamaara"])) . "</p>";
 				echo "<p>Tilaaja: " .$row["etunimi"] . " " . $row["sukunimi"]. " Yritys: " .$row["yritys"]. "</p>";
 				echo "<p>Tuotteet: " .$row["kpl"]. " Summa: " .$row["summa"] . "eur</p>";
-				
-				
-				
+
+
+
 				//tuotelista
 				$products = get_products_in_tilaus($id);
 				if (count($products) > 0) {
 					merge_products_with_tecdoc($products);
-				
+
 					echo '<table>';
 					echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>tilattu kpl</th></tr>';
 					foreach ($products as $product) {
+						$article = $product->directArticle;
 						echo '<tr>';
-						echo "<td>$product->articleName</td>";
-						echo "<td>$product->brandName</td>";
-						echo "<td>$product->articleNo</td>";
+						echo "<td>$article->articleName</td>";
+						echo "<td>$article->brandName</td>";
+						echo "<td>$article->articleNo</td>";
 						echo "<td>$product->pysyva_hinta</td>";
 						echo "<td>$product->kpl</td>";
 						echo '</tr>';
@@ -60,16 +61,16 @@
 					echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>';
 				}
 				echo '</div>';
-				
-				
-				
+
+
+
 				//
 				// Hakee tietokannasta kaikki tietyn tilauksen tuotteet
 				//
 				function get_products_in_tilaus($id) {
 					global $connection;
-					$query = "SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.kpl 
-								FROM tilaus 
+					$query = "SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.kpl
+								FROM tilaus
 							LEFT JOIN tilaus_tuote
 								ON tilaus_tuote.tilaus_id=tilaus.id
 							WHERE tilaus.id = '$id'";
@@ -84,7 +85,7 @@
 					}
 					return [];
 				}
-				
+
 
 			?>
 </div>

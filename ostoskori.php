@@ -54,13 +54,14 @@ if (empty($products)) {
     echo '<table>';
     echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
     foreach ($products as $product) {
+		$article = $product->directArticle;
         echo '<tr>';
-        echo "<td>$product->articleNo</td>";
-        echo "<td>$product->brandName $product->articleName</td>";
+        echo "<td>$article->articleNo</td>";
+        echo "<td>$article->brandName $article->articleName</td>";
         echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
         echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-        echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $product->articleId . "\" name=\"maara_" . $product->articleId . "\" class=\"maara\" type=\"number\" value=\"" . $product->cartCount . "\" min=\"0\"></td>";
-        echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"modifyShoppingCart($product->articleId)\">Päivitä</a></td>";
+        echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"" . $product->cartCount . "\" min=\"0\"></td>";
+        echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"modifyShoppingCart($article->articleId)\">Päivitä</a></td>";
         echo '</tr>';
     }
     echo '</table>';

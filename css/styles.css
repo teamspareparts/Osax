@@ -97,7 +97,7 @@ input {
 	position: absolute;
 	top: 18px;
 	left:18px;
-	
+
 
 }
 
@@ -582,6 +582,17 @@ th {
 .maara {
 	width: 3em;
 	padding: 1pt;
+}
+
+.thumb {
+	width: 64px;
+	height: 64px;
+	text-align: center;
+}
+
+.thumb img {
+	max-width: 64px;
+	max-height: 64px;
 }
 
 #ostoskori-linkki {

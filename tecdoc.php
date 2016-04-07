@@ -35,7 +35,7 @@ function _send_json($request) {
 //
 // Hakee tuotteet annetuen tuotenumeron (articleNo) perusteella
 //
-function get_products_by_number($number) {
+function getArticleDirectSearchAllNumbersWithState($number) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
@@ -63,7 +63,7 @@ function get_products_by_number($number) {
 //
 // Hakee tuotteet annettujen tunnisteiden (articleId) perusteella
 //
-function get_products_by_id($ids) {
+function getDirectArticlesByIds4($ids) {
 	$function = 'getDirectArticlesByIds4';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
@@ -71,6 +71,7 @@ function get_products_by_id($ids) {
 		'provider' => TECDOC_PROVIDER,
 		'basicData' => true,
 		'articleId' => ['array' => $ids],
+		'thumbnails' => true,
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -82,15 +83,23 @@ function get_products_by_id($ids) {
 		return [];
 	}
 
-	// Haetaan tuotteet helpommin käsiteltävään taulukkoon
-	$products = [];
-	foreach ($response->data->array as $product) {
-		if (isset($product->directArticle)) {
-			array_push($products, $product->directArticle);
-		}
-	}
+	return $response->data->array;
+}
 
-	return $products;
+//
+// Palauttaa annetun tuotteen kuvan URL:n
+//
+function get_thumbnail_url($product, $small = true) {
+	/*
+	echo '<pre>';
+	var_dump($product);
+	echo '</pre>';
+	*/
+	if (empty($product->articleThumbnails)) {
+		return 'img/ei-kuvaa.png';
+	}
+	$thumb_id = $product->articleThumbnails->array[0]->thumbDocId;
+	return TECDOC_THUMB_URL . $thumb_id . '/' . ($small ? 1 : 0);
 }
 
 //
@@ -104,15 +113,14 @@ function merge_products_with_tecdoc($products) {
 	}
 
 	// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
-	$tecdoc_products = get_products_by_id($ids);
+	$tecdoc_products = getDirectArticlesByIds4($ids);
 
 	// Yhdistetään TecDocista saatu data $products-taulukkoon
 	foreach ($tecdoc_products as $tecdoc_product) {
 		foreach ($products as $product) {
-			if ($product->id == $tecdoc_product->articleId) {
-				foreach ($tecdoc_product as $key => $value) {
-					$product->{$key} = $value;
-				}
+			if ($product->id == $tecdoc_product->directArticle->articleId) {
+				$product->directArticle = $tecdoc_product->directArticle;
+				$product->articleThumbnails = $tecdoc_product->articleThumbnails;
 			}
 		}
 	}
@@ -120,7 +128,7 @@ function merge_products_with_tecdoc($products) {
 
 
 /**
- * Palauttaa olioista koostuvan arrayn. 
+ * Palauttaa olioista koostuvan arrayn.
  * Objekteilla attribuutit manuId ja manuName.
  */
 function getManufacturers() {
@@ -132,20 +140,20 @@ function getManufacturers() {
 			'lang' => TECDOC_LANGUAGE,
 			'provider' => TECDOC_PROVIDER
 	];
-	
+
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-	
+
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-	
+
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-	
+
 	return [];
 }
 
@@ -163,20 +171,20 @@ function getChildNodesAllLinkingTarget2 ($carID, $shortCutID) {
 			"shortCutId" => 3,
 			"childNodes" => true
 	];
-	
+
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-	
+
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-	
+
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-		
+
 	return [];
 }
 
@@ -224,19 +232,19 @@ function getArticleIdsWithState($carID, $groupID, $genericArticleIDs, $brandNos)
 			"brandNo" => ['array' => $brandNos],
 			"genericArticleId" => ['array' => $genericArticleIDs]
 	];
-	
+
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-	
+
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-	
+
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-	
+
 	return [];
 }

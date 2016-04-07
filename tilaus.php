@@ -65,7 +65,8 @@ function order_products($products) {
 
 	// Lisätään tilaukseen liittyvät tuotteet
 	foreach ($products as $product) {
-		$product_id = addslashes($product->articleId);
+		$article = $product->directArticle;
+		$product_id = addslashes($article->articleId);
 		$product_price = addslashes($product->hinta);
 		$product_count = addslashes($product->cartCount);
 		$result = mysqli_query($connection, "INSERT INTO tilaus_tuote (tilaus_id, tuote_id, pysyva_hinta, kpl) VALUES ($order_id, $product_id, $product_price, $product_count);");
@@ -94,9 +95,10 @@ if (isset($_GET['vahvista'])) {
         echo '<table>';
         echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Kpl</th></tr>';
         foreach ($products as $product) {
+			$article = $product->directArticle;
             echo '<tr>';
-            echo "<td>$product->articleNo</td>";
-            echo "<td>$product->brandName $product->articleName</td>";
+            echo "<td>$article->articleNo</td>";
+            echo "<td>$article->brandName $article->articleName</td>";
             echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
             echo "<td style=\"text-align: right;\">$product->cartCount</td>";

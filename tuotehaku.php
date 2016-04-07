@@ -478,7 +478,7 @@ if (isset($_SESSION['cart'])) {
 				$("#osat_alalaji option[value=" + osat_alalaji + "]").attr('selected', 'selected');
 			}
 
-		} 
+		}
 	</script>
 <?php
 
@@ -505,7 +505,7 @@ function filter_by_article_no($products, $articleNo) {
 	$filtered = [];
 
 	foreach ($products as $product) {
-		if (preg_match($regexp, $product->articleNo)) {
+		if (preg_match($regexp, $product->directArticle->articleNo)) {
 			array_push($filtered, $product);
 		}
 	}
@@ -544,15 +544,18 @@ if ($number) {
 	$products = search_for_product_in_catalog($number);
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
+		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
+			$article = $product->directArticle;
+			$thumb_url = get_thumbnail_url($product);
 			echo '<tr>';
-			echo "<td>$product->articleNo</td>";
-			echo "<td>$product->brandName $product->articleName</td>";
+			echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
+			echo "<td>$article->articleNo</td>";
+			echo "<td>$article->brandName $article->articleName</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $product->articleId . "\" name=\"maara_" . $product->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($product->articleId)\">Osta</a></td>";
+			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -612,13 +615,14 @@ if(isset($_GET["manuf"])) {
 		echo '<table>';
 		echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
+			$article = $product->directArticle;
 			echo '<tr>';
-			echo "<td>$product->articleNo</td>";
-			echo "<td>$product->brandName $product->articleName</td>";
+			echo "<td>$article->articleNo</td>";
+			echo "<td>$article->brandName $article->articleName</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $product->articleId . "\" name=\"maara_" . $product->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($product->articleId)\">Osta</a></td>";
+			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -632,14 +636,14 @@ if(isset($_GET["manuf"])) {
 
 function print_results2($ids) {
 
-	$products = get_products_by_id($ids);
+	$products = getDirectArticlesByIds4($ids);
 
 	foreach ($products as $product) {
+		$article = $product->directArticle;
 		echo '<tr>';
-		echo "<td>$product->articleNo</td>";
-		echo "<td>$product->brandName $product->articleName</td>";
-		//echo "<td>$product->articleId</td>";
-		echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
+		echo "<td>$article->articleNo</td>";
+		echo "<td>$article->brandName $article->articleName</td>";
+		echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
 		echo '</tr>';
 	}
 }
