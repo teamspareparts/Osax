@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
@@ -71,7 +71,7 @@ function getDirectArticlesByIds4($ids) {
 		'provider' => TECDOC_PROVIDER,
 		'basicData' => true,
 		'articleId' => ['array' => $ids],
-		'thumbnails' => true,
+		'thumbnails' => true
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -127,8 +127,10 @@ function merge_products_with_tecdoc($products) {
 }
 
 
+
+
 /**
- * Palauttaa olioista koostuvan arrayn.
+ * Palauttaa olioista koostuvan arrayn. 
  * Objekteilla attribuutit manuId ja manuName.
  */
 function getManufacturers() {
@@ -140,20 +142,20 @@ function getManufacturers() {
 			'lang' => TECDOC_LANGUAGE,
 			'provider' => TECDOC_PROVIDER
 	];
-
+	
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-
+	
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-
+	
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-
+	
 	return [];
 }
 
@@ -168,30 +170,31 @@ function getChildNodesAllLinkingTarget2 ($carID, $shortCutID) {
 			"linked" => true,
 			"linkingTargetId" => $carID,
 			"linkingTargetType" => "P",
-			"shortCutId" => 3,
-			"childNodes" => true
+			"shortCutId" => $shortCutID,
+			"childNodes" => false
 	];
-
+	
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-
+	
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-
+	
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-
+		
 	return [];
 }
 
 
-//hae kaikki assemblygoupNodeID:t
-function getGenericArticlesByManufacturer6($carID, $groupID) {
-	$function = 'getGenericArticlesByManufacturer6';
+
+
+function getArticleIdsWithState($carID, $groupID) {
+	$function = 'getArticleIdsWithState';
 	$params = [
 			'articleCountry' => TECDOC_COUNTRY,
 			'lang' => TECDOC_LANGUAGE,
@@ -200,51 +203,21 @@ function getGenericArticlesByManufacturer6($carID, $groupID) {
 			"assemblyGroupNodeId" => $groupID,
 			"linkingTargetType" => "P",
 	];
-
+	
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-
+	
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-
+	
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-
+	
 	return [];
 }
 
 
-
-
-function getArticleIdsWithState($carID, $groupID, $genericArticleIDs, $brandNos) {
-	$function = 'getGenericArticlesByManufacturer6';
-	$params = [
-			'articleCountry' => TECDOC_COUNTRY,
-			'lang' => TECDOC_LANGUAGE,
-			'provider' => TECDOC_PROVIDER,
-			"linkingTargetId" => $carID,
-			"assemblyGroupNodeId" => $groupID,
-			"linkingTargetType" => "P",
-			"brandNo" => ['array' => $brandNos],
-			"genericArticleId" => ['array' => $genericArticleIDs]
-	];
-
-	// Lähetetään JSON-pyyntö
-	$request =	[$function => $params];
-	$response = _send_json($request);
-
-	// Pyyntö epäonnistui
-	if ($response->status !== 200) {
-		return [];
-	}
-
-	if (isset($response->data->array)) {
-		return $response->data->array;
-	}
-
-	return [];
-}
