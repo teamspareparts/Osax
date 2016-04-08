@@ -55,7 +55,6 @@
 	//Mode --> Salasanan resetointi
 	elseif ( $mode == "password_reset" ) {
 		$email = trim(strip_tags( $_POST["email"] ));
-		$_SESSION['email']	= $email;		
 		$sql_query = "
 			SELECT	id, sahkoposti
 			FROM	kayttaja
@@ -77,6 +76,8 @@
 			// Lisää data tietokantaan
 			// Tulosta linkki
 			echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
+			sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
+			// Oletan, että jotain outoa aikojen vertailun kanssa. Tämä on nopea (ja ehkä huono) korjaus.
 			header("Location:pw_reset.php?id=$key");
 		}
 		

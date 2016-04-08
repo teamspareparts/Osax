@@ -70,6 +70,24 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			</fieldset>
 		</div>
 <?php
+	} elseif ( $mode == 7 ) {	// Jos moodi == pyyntö vanhentunut
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> Salasanan palautus - Pyyntö vanhentunut </legend>
+				<p>Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan.</p>
+			</fieldset>
+		</div>
+<?php
+	} elseif ( $mode == 8 ) {	// Jos moodi == salasanan uusiminen onnistunut
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> Salasanan palautus - Onnistunut </legend>
+				<p>Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään.</p>
+			</fieldset>
+		</div>
+<?php
 	}
 }
 ?>

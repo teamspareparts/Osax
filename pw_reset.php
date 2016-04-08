@@ -9,33 +9,38 @@
 <h1 style="text-align:center;">
 	<img src="img/rantak_varao-Logo.jpg" alt="Rantakylän Varaosa Oy" style="height:200px;">
 </h1>
+<div id="login_container">
 <?php
-	require 'tietokanta.php';	// Tietokannan tiedot
-	session_start();			// Aloitetaan sessio kayttajan tietoja varten
-	// Yhdista tietokantaan
-	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
-					or die("Connection error:" . mysqli_connect_error());
-
-	
-	
 	if ( !empty($_GET['id']) ) {
+		require 'tietokanta.php';	// Tietokannan tiedot
+		session_start();			// Aloitetaan sessio kayttajan tietoja varten
+		$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
+						or die("Connection error:" . mysqli_connect_error()); // Yhdista tietokantaan
+						
 		$id = $_GET["id"]; // Käyttäjän henkilökohtainen, salattu ID; tallennettu tietokantaan
-		
+		if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
+			$mode = $_GET["redir"];		// Otetaan moodi talteen
+			if ( $mode == 1 ) {			// Jos moodi --> varmistu != salasana ?>
+				<div id="content">
+					<fieldset id=error>
+						<legend> Salasana ja varmistus ei täsmää </legend>
+						<p>Kokeile uudestaan. Varmista, että antamasi salasana ja varmistus täsmäävät</p>
+					</fieldset>
+				</div>
+			<?php
+			}
+		}
 		if ( !empty($_POST['new_password']) ) {		//
 			$salasana 		= $_POST["new_password"];			// Salasana
 			$salasana_varm 	= $_POST["confirm_new_password"];	// Salasanan varmistus
-			$url = "http://localhost/tuoteluettelo_wamp/pw_reset.php?id=$id";
 			
 			if ( $salasana != $salasana_varm ) { // Salasanat ei tasmaa
-				echo ( "
-						<h2>Salasana ja varmistus eivät ole samat. Kokeile uudestaan:<br />
-						<a href='$url'>$url</a><br /><br />
-						</h2>
-						");
+				header("Location:pw_reset.php?id=$id&redir=1");
+						
 			} else { // Salasana ja varmistus tasmaa
 			
 				if ( db_vaihda_salasana($salasana) == TRUE ) {
-					echo "Salasana vaihdettu";
+					header("Location:login.php?redir=8");
 				}
 				
 			}//if salasana == varmistus
@@ -53,11 +58,11 @@
 			$row_count = mysqli_num_rows( $result ); // Kyselyn  tuloksen rivien määrä
 			
 			if ( $row_count > 0 ) { 	// Katsotaan, loytyiko tulos
-				$row = mysqli_fetch_assoc( $result );
-				$_SESSION['email']	= $row['user_id'];			// Otetaan talteen tiedot
-				$mysql_dt			= $row['reset_exp_aika'];	//  Aika, jolloin tieto tallennettiin (kun käyttäjä pyysi uutta salasanaa)
-				$time_then 			= new DateTime( $mysql_dt );//   muunnettuna DateTime-muotoon
-				$time_now			= new DateTime();			//	Aika nyt
+				$row 		= mysqli_fetch_assoc( $result );
+				$email		= $row['user_id'];			// Otetaan talteen tiedot
+				$mysql_dt	= $row['reset_exp_aika'];	//  Aika, jolloin tieto tallennettiin (kun käyttäjä pyysi uutta salasanaa)
+				$time_then 	= new DateTime( $mysql_dt );//   muunnettuna DateTime-muotoon
+				$time_now	= new DateTime();			//	Aika nyt
 				
 				$interval = $time_now -> diff($time_then);
 				
@@ -71,7 +76,7 @@
 				if ( $difference < 1 ) { //Tarkistetaan aika ?>
 					<fieldset><legend>Unohditko salasanasi?</legend>
 						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
-							<?php echo $_SESSION['email']; // Muistutuksena kauttajalle ?>
+							<?php echo $email; // Muistutuksena kauttajalle ?>
 							<br><br>
 							<label>Uusi salasana</label>
 							<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä." required autofocus placeholder="salasana">
@@ -85,12 +90,13 @@
 					</fieldset>
 				<?php
 				}//if difference (pyynto vanhentunut)
-				else { echo "Pyyntö vanhentunut."; }
+				else { echo "Foo";/*header("Location:login.php?redir=7");*/ }
 			}//if account found (ei loytynyt pyyntoa)
+			else { header("Location:login.php"); }
 		}//if POST is empty (ei tullut sivulle uudelleenohjauksella)
 	}//if ID empty (ei tullut sivulle palautuslinkin kautta)
 	
-	else { echo "<h2>Go away.</h2>"; }
+	else { header("Location:login.php"); }
 	
 	function db_vaihda_salasana($asiakas_uusi_salasana){
 		$asiakas_sposti = $_SESSION['email'];
@@ -120,5 +126,6 @@
 		}
 	}
 ?>
+</div>
 </html>
 </body>
