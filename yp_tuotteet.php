@@ -218,32 +218,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
-    
-
-
-    function getDirectArticlesByIds4(ids) {		
-        var functionName = "getDirectArticlesByIds4";
-        params = {
-           		'lang' : TECDOC_LANGUAGE,
-           		'articleCountry' : TECDOC_COUNTRY,
-           		'provider' : TECDOC_PROVIDER,
-           		'basicData' : true,
-           		'articleId' : {'array' : ids}
-        	};
-        params = toJSON(params);
-		tecdocToCatPort[functionName] (params, getVehicleByIds3);
-
-    }
-
-
-    // Create JSON String and put a blank after every ',':
-    function toJSON(obj) {        
-        return JSON.stringify(obj).replace(/,/g,", ");
-    }
-
- 
-
-          
+         
 
       
       
@@ -634,21 +609,6 @@ function print_catalog() {
 	echo '</div>';
 }
 
-function print_results2($ids) {
-
-	$products = getDirectArticlesByIds4($ids);
-
-	foreach ($products as $product) {
-		$article = $product->directArticle;
-		$thumb_url = get_thumbnail_url($product);
-		echo '<tr>';
-		echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
-		echo "<td>$article->articleNo</td>";
-		echo "<td>$article->brandName $article->articleName</td>";
-		echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
-		echo '</tr>';
-	}
-}
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
@@ -700,39 +660,32 @@ if (is_admin()) {
 
 
 		$articleIDs = [];
+		$products = [];
 		$articles = getArticleIdsWithState($selCar, $selPartType);
 
 		//poistetaan duplikaatit
 		foreach ($articles as $article){
 			if(!in_array($article->articleId, $articleIDs)){
+				//haetaan kuvat
+				$product = getArticleThumbnail($article->articleId);
+				$article->thumburl = get_thumbnail_url($product[0]);
 				array_push($articleIDs, $article->articleId);
-
+				array_push($products, $article);
 			}
 		}
 
-		/*
-		 * Jos printattavia tuotteita on ~yli 30, vie niiden kaikkien printtaus
-		 * paljon aikaa (kuten jos käyttäjä haluaa nähdä kaikki autoonsa sopivat
-		 * polttimot). Sen takia kasvatetaan TIMEOUT aikaa vakio 30sekuntista -> 60sek.
-		*/
-		set_time_limit(60);
-
-		//printataan tuotteet 25 kappaleen erissä
 		echo '<div class="tulokset">';
 		echo '<h2>Tulokset:</h2>';
 		if (count($articles) > 0) {
 			echo '<table>';
 			echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th></tr>';
-			$IDarray = [];
-			while(count($articleIDs) > 0){
-				if (count($articleIDs) >= 25){
-					$IDarray = array_slice($articleIDs, 0 , 25);
-					array_splice($articleIDs, 0, 25);
-				} else {
-					$IDarray = array_slice($articleIDs, 0 , count($articleIDs));
-					array_splice($articleIDs, 0, count($articleIDs));
-				}
-				print_results2($IDarray);
+			foreach ($products as $product) {
+				echo '<tr>';
+				echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$product->genericArticleName\"></td>";
+				echo "<td>$product->articleNo</td>";
+				echo "<td>$product->brandName $product->genericArticleName</td>";
+				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
+				echo '</tr>';
 			}
 			echo '</table>';
 		} else {

@@ -183,29 +183,6 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
-    
-
-
-    function getDirectArticlesByIds4(ids) {		
-        var functionName = "getDirectArticlesByIds4";
-        params = {
-           		'lang' : TECDOC_LANGUAGE,
-           		'articleCountry' : TECDOC_COUNTRY,
-           		'provider' : TECDOC_PROVIDER,
-           		'basicData' : true,
-           		'articleId' : {'array' : ids}
-        	};
-        params = toJSON(params);
-		tecdocToCatPort[functionName] (params, getVehicleByIds3);
-
-    }
-
-
-    // Create JSON String and put a blank after every ',':
-    function toJSON(obj) {        
-        return JSON.stringify(obj).replace(/,/g,", ");
-    }
-
  
 
           
@@ -676,19 +653,6 @@ if(isset($_GET["manuf"])) {
 }
 
 
-function print_results2($ids) {
-
-	$products = getDirectArticlesByIds4($ids);
-
-	foreach ($products as $product) {
-		$article = $product->directArticle;
-		echo '<tr>';
-		echo "<td>$article->articleNo</td>";
-		echo "<td>$article->brandName $article->articleName</td>";
-		echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
-		echo '</tr>';
-	}
-}
 
 ?>
 

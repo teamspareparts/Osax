@@ -220,4 +220,27 @@ function getArticleIdsWithState($carID, $groupID) {
 	return [];
 }
 
+function getArticleThumbnail($id) {
+	$function = 'getDirectArticlesByIds4';
+	$params = [
+			'lang' => TECDOC_LANGUAGE,
+			'articleCountry' => TECDOC_COUNTRY,
+			'provider' => TECDOC_PROVIDER,
+			'basicData' => false,
+			'articleId' => ['array' => $id],
+			'thumbnails' => true,
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	return $response->data->array;
+}
+
 
