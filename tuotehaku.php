@@ -183,6 +183,10 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
+ 	// Create JSON String and put a blank after every ',':
+    function toJSON(obj) {        
+        return JSON.stringify(obj).replace(/,/g,", ");
+    }
  
 
           
