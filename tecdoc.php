@@ -71,7 +71,10 @@ function getDirectArticlesByIds4($ids) {
 		'provider' => TECDOC_PROVIDER,
 		'basicData' => true,
 		'articleId' => ['array' => $ids],
-		'thumbnails' => true
+		'thumbnails' => true,
+		'immediateAttributs' => true,
+		'eanNumbers' => true,
+		'oeNumbers' => true
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -121,6 +124,10 @@ function merge_products_with_tecdoc($products) {
 			if ($product->id == $tecdoc_product->directArticle->articleId) {
 				$product->directArticle = $tecdoc_product->directArticle;
 				$product->articleThumbnails = $tecdoc_product->articleThumbnails;
+				$product->ean = get_ean_number($tecdoc_product);
+				$product->infos = get_infos($tecdoc_product);
+				$product->thumburl = get_thumbnail_url($tecdoc_product);
+				$product->oe = get_oe_number($tecdoc_product);
 			}
 		}
 	}
@@ -129,10 +136,7 @@ function merge_products_with_tecdoc($products) {
 
 
 
-/**
- * Palauttaa olioista koostuvan arrayn. 
- * Objekteilla attribuutit manuId ja manuName.
- */
+//hakee kaikki automerkit
 function getManufacturers() {
 	$function = 'getManufacturers';
 	$params = [
@@ -160,39 +164,8 @@ function getManufacturers() {
 }
 
 
-//hae kaikki assemblygoupNodeID:t
-function getChildNodesAllLinkingTarget2 ($carID, $shortCutID) {
-	$function = 'getChildNodesAllLinkingTarget2';
-	$params = [
-			'articleCountry' => TECDOC_COUNTRY,
-			'lang' => TECDOC_LANGUAGE,
-			'provider' => TECDOC_PROVIDER,
-			"linked" => true,
-			"linkingTargetId" => $carID,
-			"linkingTargetType" => "P",
-			"shortCutId" => $shortCutID,
-			"childNodes" => false
-	];
-	
-	// Lähetetään JSON-pyyntö
-	$request =	[$function => $params];
-	$response = _send_json($request);
-	
-	// Pyyntö epäonnistui
-	if ($response->status !== 200) {
-		return [];
-	}
-	
-	if (isset($response->data->array)) {
-		return $response->data->array;
-	}
-		
-	return [];
-}
 
-
-
-
+//hakee tiettyyn autoon ja osaluokkaan linkitetyt tuotteet.
 function getArticleIdsWithState($carID, $groupID) {
 	$function = 'getArticleIdsWithState';
 	$params = [
@@ -220,7 +193,9 @@ function getArticleIdsWithState($carID, $groupID) {
 	return [];
 }
 
-function getArticleThumbnail($id) {
+
+//hakee halutun tuotteen EAN-numeron, infot ja kuvan url:in.
+function getOptionalData($id) {
 	$function = 'getDirectArticlesByIds4';
 	$params = [
 			'lang' => TECDOC_LANGUAGE,
@@ -229,6 +204,10 @@ function getArticleThumbnail($id) {
 			'basicData' => false,
 			'articleId' => ['array' => $id],
 			'thumbnails' => true,
+			'immediateAttributs' => true,
+			'eanNumbers' => true,
+			'oeNumbers' => true
+			
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -243,4 +222,48 @@ function getArticleThumbnail($id) {
 	return $response->data->array;
 }
 
+
+//Funktio yhdistää olemassa olevaan tuotteeseen EAN-numeron, Infot ja 
+//kuvan url:in.
+
+//Huom! Listassa olevilla tuotteilla oltava ominaisuus articleId.
+function merge_products_with_optional_data($articles) {
+	foreach ($articles as $article){
+		$product = getOptionalData($article->articleId);
+		$article->thumburl = get_thumbnail_url($product[0]);
+		$article->ean = get_ean_number($product[0]);
+		$article->infos = get_infos($product[0]);
+		$article->oe = get_oe_number($product[0]);
+	}
+}
+
+
+
+//Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
+//Palauttaa EAN-numeron, jos olemassa. Muuten tyhjä.
+function get_ean_number($product) {
+	if (empty($product->eanNumber)) {
+		return '';
+	}
+	return $product->eanNumber->array[0]->eanNumber;
+	
+}
+
+//Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
+//Palauttaa infot arrayna, jos olemassa. Muuten tyhjä array. 
+function get_infos($product) {
+	if (empty($product->immediateAttributs)) {
+		return array();
+	}
+	return $product->immediateAttributs->array;
+}
+
+//Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
+//Palauttaa numeron, jos olemassa. Muuten tyhjän.
+function get_oe_number($product) {
+	if (empty($product->oenNumbers)) {
+		return '';
+	}
+	return $product->oenNumbers->array[0]->oeNumber;
+}
 

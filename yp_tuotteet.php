@@ -17,6 +17,7 @@
 <body>
 <?php include("header.php");
 require 'tecdoc.php';?>
+
 <h1 class="otsikko">Tuotteet</h1>
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
@@ -61,6 +62,12 @@ require 'tecdoc.php';?>
 	<br>
 
 	<input type="submit" value="HAE" id="ajoneuvohaku">
+</form>
+
+
+<form id='select_file' action='csv_luku.php' method='POST' enctype='multipart/form-data'>
+    <input type='file' name='userFile' accept='.csv' id='file_field'><br>
+    <input type='submit' name='upload_btn' value='Upload'>
 </form>
 
 <script src="js/jsmodal-1.0d.min.js"></script>
@@ -463,9 +470,20 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 			        return false;
 			    }
 			});
+
+			//estetään tiedoston lähetys, jos tiedostoa ei ole valittu.
+			$("#select_file").submit(function(e){
+				if ($('#file_field').get(0).files.length == 0) {
+					e.preventDefault();
+				    alert("Ei valittua tiedostoa.");
+				    return false;
+				}
+				else return true;
+			});
+
+			
 		
 		});
-
 
 
 
@@ -562,15 +580,26 @@ function print_results($number) {
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset:</h2>';
 	$products = getArticleDirectSearchAllNumbersWithState($number);
+	merge_products_with_optional_data($products);
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th></tr>';
+		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
 		foreach ($products as $article) {
-			$thumb_url = get_thumbnail_url($article);
+			//$thumb_url = get_thumbnail_url($article);
 			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
+			echo "<td class=\"thumb\"><img src=\"$article->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName $article->articleName</td>";
+			echo "<td>$article->brandName <br> $article->articleName</td>";
+			echo "<td>";	
+			foreach ($article->infos as $info){
+				if(!empty($info->attrName)) echo $info->attrName . " ";
+				if(!empty($info->attrValue)) echo $info->attrValue . " ";
+				if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
+				echo "<br>";
+			}
+			echo "</td>";
+			echo "<td>$article->ean</td>";
+			echo "<td>$article->oe</td>";
 			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
 			echo '</tr>';
 		}
@@ -665,13 +694,15 @@ if (is_admin()) {
 		$articleIDs = [];
 		$products = [];
 		$articles = getArticleIdsWithState($selCar, $selPartType);
+		merge_products_with_optional_data($articles);
 
 		//poistetaan duplikaatit
 		foreach ($articles as $article){
 			if(!in_array($article->articleId, $articleIDs)){
-				//haetaan kuvat
-				$product = getArticleThumbnail($article->articleId);
+				/* $product = getOptionalData($article->articleId);
 				$article->thumburl = get_thumbnail_url($product[0]);
+				$article->ean = get_ean_number($product[0]);
+				$article->infos = get_infos($product[0]); */
 				array_push($articleIDs, $article->articleId);
 				array_push($products, $article);
 			}
@@ -681,12 +712,25 @@ if (is_admin()) {
 		echo '<h2>Tulokset:</h2>';
 		if (count($articles) > 0) {
 			echo '<table>';
-			echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th></tr>';
+			echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
 			foreach ($products as $product) {
 				echo '<tr>';
 				echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$product->genericArticleName\"></td>";
 				echo "<td>$product->articleNo</td>";
-				echo "<td>$product->brandName $product->genericArticleName</td>";
+				echo "<td>$product->brandName <br> $product->genericArticleName</td>";
+				echo "<td>";
+
+				foreach ($product->infos as $info){
+					if(!empty($info->attrName)) echo $info->attrName . " ";
+					if(!empty($info->attrValue)) echo $info->attrValue . " ";
+					if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
+					echo "<br>";
+				}
+                echo "</td>";	
+				echo "<td>$product->ean</td>";
+				echo "<td>$product->oe</td>";
+				//echo "<td>$product->articleId</td>";
+				
 				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
 				echo '</tr>';
 			}

@@ -560,30 +560,9 @@ handle_shopping_cart_action();
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
 if ($number) {
-	echo '<div class="tulokset">';
-	echo '<h2>Tulokset</h2>';
 	$products = search_for_product_in_catalog($number);
-	if (count($products) > 0) {
-		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
-		foreach ($products as $product) {
-			$article = $product->directArticle;
-			$thumb_url = get_thumbnail_url($product);
-			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
-			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName $article->articleName</td>";
-			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
-			echo '</tr>';
-		}
-		echo '</table>';
-	} else {
-	   echo '<p>Ei tuloksia.</p>';
-	}
-	echo '</div>';
+	
+	print_results($products);
 }
 
 if(isset($_GET["manuf"])) {
@@ -610,7 +589,7 @@ if(isset($_GET["manuf"])) {
 		}
 	}
 
-	//valitaan vain ne jotka lisätty tietokantaan
+	//valitaan vain ne tuotteet jotka lisätty tietokantaan
 
 	global $connection;
 
@@ -623,25 +602,40 @@ if(isset($_GET["manuf"])) {
 				array_push($products, $row);
 			}
 		}
+		//yhdistetään tietokannasta löytyneet tuotteet tecdoc-datan kanssa
 		if (count($products) > 0) {
 			merge_products_with_tecdoc($products);
 		}
 	}
+	print_results($products);
+	
+	
+
+}
 
 
-	//printataan tuotteet 25 kappaleen erissä
+function print_results($products) {
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset:</h2>';
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
+		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
-			$thumb_url = get_thumbnail_url($product);
 			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
+			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName $article->articleName</td>";
+			echo "<td>$article->brandName <br> $article->articleName</td>";
+			echo "<td>";
+			foreach ($product->infos as $info){
+				if(!empty($info->attrName)) echo $info->attrName . " ";
+				if(!empty($info->attrValue)) echo $info->attrValue . " ";
+				if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
+				echo "<br>";
+			}
+			echo "</td>";
+			echo "<td>$product->ean</td>";
+			echo "<td>$product->oe</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
@@ -653,7 +647,6 @@ if(isset($_GET["manuf"])) {
 		echo '<p>Ei tuloksia.</p>';
 	}
 	echo '</div>';
-
 }
 
 
