@@ -41,7 +41,8 @@ function getArticleDirectSearchAllNumbersWithState($number) {
 		'lang' => TECDOC_LANGUAGE,
 		'articleCountry' => TECDOC_COUNTRY,
 		'provider' => TECDOC_PROVIDER,
-		"articleNumber" => $number,
+		'articleNumber' => $number,
+		'numberType' => 10, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -146,20 +147,20 @@ function getManufacturers() {
 			'lang' => TECDOC_LANGUAGE,
 			'provider' => TECDOC_PROVIDER
 	];
-	
+
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-	
+
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-	
+
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-	
+
 	return [];
 }
 
@@ -176,20 +177,20 @@ function getArticleIdsWithState($carID, $groupID) {
 			"assemblyGroupNodeId" => $groupID,
 			"linkingTargetType" => "P",
 	];
-	
+
 	// Lähetetään JSON-pyyntö
 	$request =	[$function => $params];
 	$response = _send_json($request);
-	
+
 	// Pyyntö epäonnistui
 	if ($response->status !== 200) {
 		return [];
 	}
-	
+
 	if (isset($response->data->array)) {
 		return $response->data->array;
 	}
-	
+
 	return [];
 }
 
@@ -207,7 +208,7 @@ function getOptionalData($id) {
 			'immediateAttributs' => true,
 			'eanNumbers' => true,
 			'oeNumbers' => true
-			
+
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -223,7 +224,7 @@ function getOptionalData($id) {
 }
 
 
-//Funktio yhdistää olemassa olevaan tuotteeseen EAN-numeron, Infot ja 
+//Funktio yhdistää olemassa olevaan tuotteeseen EAN-numeron, Infot ja
 //kuvan url:in.
 
 //Huom! Listassa olevilla tuotteilla oltava ominaisuus articleId.
@@ -246,11 +247,11 @@ function get_ean_number($product) {
 		return '';
 	}
 	return $product->eanNumber->array[0]->eanNumber;
-	
+
 }
 
 //Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
-//Palauttaa infot arrayna, jos olemassa. Muuten tyhjä array. 
+//Palauttaa infot arrayna, jos olemassa. Muuten tyhjä array.
 function get_infos($product) {
 	if (empty($product->immediateAttributs)) {
 		return array();
@@ -266,4 +267,3 @@ function get_oe_number($product) {
 	}
 	return $product->oenNumbers->array[0]->oeNumber;
 }
-

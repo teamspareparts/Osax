@@ -120,7 +120,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 <script type="text/javascript">
 
 
-    function getModelSeries(manufacturerID) {		
+    function getModelSeries(manufacturerID) {
         var functionName = "getModelSeries";
         var params = {
                 "favouredList" : 1,
@@ -134,7 +134,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 		tecdocToCatPort[functionName] (params, updateModelList);
     }
 
-    function getVehicleIdsByCriteria(manufacturerID, modelID) {		
+    function getVehicleIdsByCriteria(manufacturerID, modelID) {
         var functionName = "getVehicleIdsByCriteria";
         var params = {
                 "carType" : "P",
@@ -150,7 +150,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
     }
 
-    function getVehicleByIds3(response) {		
+    function getVehicleByIds3(response) {
         var functionName = "getVehicleByIds3";
 		var ids = [];
 		for(var i = 0; i < response.data.array.length; i++) {
@@ -181,10 +181,10 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 			tecdocToCatPort[functionName] (params, updateCarList);
 
 		}
-		
+
     }
 
-    function getShortCuts2(carID) {		
+    function getShortCuts2(carID) {
         var functionName = "getShortCuts2";
         var params = {
                 "linkingTargetId" : carID,
@@ -192,11 +192,11 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
                 "articleCountry" : TECDOC_COUNTRY,
                 "lang" : TECDOC_LANGUAGE,
                 "provider" : TECDOC_MANDATOR
-        };      
+        };
 		tecdocToCatPort[functionName] (params, updatePartTypeList);
     }
 
-    function getPartTypes(carID) {		
+    function getPartTypes(carID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
                 "linked" : true,
@@ -206,11 +206,11 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
                 "lang" : TECDOC_LANGUAGE,
                 "provider" : TECDOC_MANDATOR,
                 "childNodes" : false
-        };      
+        };
 		tecdocToCatPort[functionName] (params, updatePartTypeList);
     }
 
-    function getChildNodes(carID, parentNodeID) {		
+    function getChildNodes(carID, parentNodeID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
         		"linked" : true,
@@ -225,21 +225,21 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
-         
+
  	// Create JSON String and put a blank after every ',':
-    function toJSON(obj) {        
+    function toJSON(obj) {
         return JSON.stringify(obj).replace(/,/g,", ");
     }
-      
-      
+
+
 
       // Callback function to do something with the response:
-      function updateModelList(response) {         
+      function updateModelList(response) {
           response = response.data;
 
         	//uudet tiedot listaan
 			var modelList = document.getElementById("model");
-			
+
 
 		    if (response.array){
 			    var i;
@@ -250,21 +250,21 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 					} else {
 						yearTo = addSlash(yearTo);
 					}
-				    
-				    
+
+
 				    var text = response.array[i].modelname
 				    			+ "\xa0\xa0\xa0\xa0\xa0\xa0"
 				    			+ "Year: " + addSlash(response.array[i].yearOfConstrFrom)
 	    						+ " -> " + yearTo;
-	    						
+
 					var model = new Option(text, response.array[i].modelId);
 					modelList.options.add(model);
 			    }
 		    }
 		    $('#model').removeAttr('disabled');
-	          
+
       }
-      
+
 
 
       // Callback function to do something with the response:
@@ -278,7 +278,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 			    var i;
 			    for (i = 0; i < response.array.length; i++) {
 				    var yearTo = response.array[i].vehicleDetails.yearOfConstrTo;
-				    if(!yearTo){ 
+				    if(!yearTo){
 					    yearTo = "";
 					} else {
 						yearTo = addSlash(yearTo);
@@ -288,15 +288,15 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				    			+ "Year: " + addSlash(response.array[i].vehicleDetails.yearOfConstrFrom)
 	    						+ " -> " + yearTo
 	    						+ "\xa0\xa0\xa0\xa0\xa0\xa0"
-	    						 + response.array[i].vehicleDetails.powerKwFrom + "KW" 
+	    						 + response.array[i].vehicleDetails.powerKwFrom + "KW"
 	    						+ " (" +response.array[i].vehicleDetails.powerHpFrom + "hp)";
-	    						
+
 			    	var car = new Option(text, response.array[i].carId);
 					carList.options.add(car);
 			    }
 		    }
 		    $('#car').removeAttr('disabled');
-	          
+
       }
 
       function updatePartTypeList(response) {
@@ -311,9 +311,9 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 					partTypeList.options.add(partType);
 			    }
 		    }
-		    
+
 		    $('#osaTyyppi').removeAttr('disabled');
-	          
+
       }
 
       function updatePartSubTypeList(response) {
@@ -328,25 +328,25 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 					subPartTypeList.options.add(subPartType);
 			    }
 		    }
-		    
+
 		    $('#osat_alalaji').removeAttr('disabled');
-	          
+
       }
-     
-      
 
 
-	
-		
-	
+
+
+
+
+
 		$(document).ready(function(){
 			$("#manufacturer").on("change", function(){
 				//kun painaa jotain automerkkiä->
-				
+
 				var manuList = document.getElementById("manufacturer");
 				//selManu = manuID
 				var selManu = parseInt(manuList.options[manuList.selectedIndex].value);
-				
+
 				//Poistetaan vanhat tiedot
 				var modelList = document.getElementById("model");
 				var carList = document.getElementById("car");
@@ -354,7 +354,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				var subPartTypeList = document.getElementById("osat_alalaji");
 				while (modelList.options.length - 1) {
 					modelList.remove(1);
-				}	
+				}
 				while (carList.options.length - 1) {
 					carList.remove(1);
 				}
@@ -363,7 +363,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				}
 				while (subPartTypeList.options.length - 1) {
 					subPartTypeList.remove(1);
-				}	
+				}
 
 
 				//väliaikaisesti estetään modelin ja auton valinta
@@ -374,7 +374,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				if(selManu > 0){
 					getModelSeries(selManu);
 				}
-				
+
 			});
 
 
@@ -402,7 +402,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				$('#car').attr('disabled', 'disabled');
 				$('#osaTyyppi').attr('disabled', 'disabled');
 				$('#osat_alalaji').attr('disabled', 'disabled');
-				
+
 				if (selModel > 0 ) {
 					getVehicleIdsByCriteria(selManu, selModel);
 				}
@@ -449,13 +449,13 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				while (subPartTypeList.options.length - 1) {
 					subPartTypeList.remove(1);
 				}
-				
+
 				$('#osat_alalaji').attr('disabled', 'disabled');
 				if (selPartType > 0 ) {
 					getChildNodes(selCar, selPartType);
 				}
 			});
-			
+
 
 
 			//annetaan hakea vain jos kaikki tarvittavat tiedot on annettu
@@ -481,8 +481,8 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 				else return true;
 			});
 
-			
-		
+
+
 		});
 
 
@@ -504,8 +504,8 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 			return (text.substr(0, 4) + "/" + text.substr(4));
 		}
 
-		
-		
+
+
 </script>
 
 <?php
@@ -590,7 +590,7 @@ function print_results($number) {
 			echo "<td class=\"thumb\"><img src=\"$article->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
 			echo "<td>$article->brandName <br> $article->articleName</td>";
-			echo "<td>";	
+			echo "<td>";
 			foreach ($article->infos as $info){
 				if(!empty($info->attrName)) echo $info->attrName . " ";
 				if(!empty($info->attrValue)) echo $info->attrValue . " ";
@@ -617,16 +617,31 @@ function print_catalog() {
 	echo '<div class="tulokset">';
 	echo '<h2>Valikoima</h2>';
 	$products = get_products_in_catalog();
+    /*
+    Debuggausta varten:
+    echo '<pre>';
+    var_dump($products);
+    echo '</pre>';
+    */
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimisaldo</th><th style="text-align: right;">Minimimyyntierä</th></tr>';
+        echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimisaldo</th><th style="text-align: right;">Minimimyyntierä</th></tr>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
-			$thumb_url = get_thumbnail_url($product);
 			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$thumb_url\" alt=\"$article->articleName\"></td>";
+			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
 			echo "<td>$article->brandName $article->articleName</td>";
+            echo "<td>";
+            foreach ($product->infos as $info){
+                if (!empty($info->attrName)) echo $info->attrName . " ";
+                if (!empty($info->attrValue)) echo $info->attrValue . " ";
+                if (!empty($info->attrUnit)) echo $info->attrUnit . " ";
+                echo "<br>";
+            }
+            echo "</td>";
+            echo "<td>$product->ean</td>";
+			echo "<td>$product->oe</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->minimisaldo) . "</td>";
@@ -726,11 +741,10 @@ if (is_admin()) {
 					if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
 					echo "<br>";
 				}
-                echo "</td>";	
+                echo "</td>";
 				echo "<td>$product->ean</td>";
 				echo "<td>$product->oe</td>";
-				//echo "<td>$product->articleId</td>";
-				
+
 				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
 				echo '</tr>';
 			}
