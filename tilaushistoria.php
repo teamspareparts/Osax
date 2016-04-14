@@ -63,7 +63,7 @@
 						'</span><span class="tuotteet_kpl">' . $row["kpl"] . '</span>' . 
 						'</span><span class="sum">' . $row["summa"] . "eur" . '</span>';
 						if ($row["kasitelty"] == 1) echo "OK";
-						else echo "EI";
+						else echo "<span style='color:red'>EI</span>";
 						echo '</a></fieldset>';
 					}
 				} else {

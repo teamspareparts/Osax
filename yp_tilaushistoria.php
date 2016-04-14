@@ -45,7 +45,7 @@
 					if ($row["kasitelty"] == 1) {
 						echo 'OK';
 					} else {
-						echo 'EI';
+						echo '<span style="color:red">EI</span>';
 					}
 					echo '</a></fieldset>';
 				}
