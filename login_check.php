@@ -4,6 +4,7 @@
 <h1>LOADING... Redirecting</h1>
 <?php
 	require 'tietokanta.php';
+	require 'email.php';
 	session_start();	// Aloitetaan sessio kayttajan tietoja varten
 	
 	// Luodaan yhteys
@@ -71,14 +72,21 @@
 					('$key','$email')";
 			
 			$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
-			$row_count = mysqli_num_rows($result);				// Kyselyn  tuloksen rivien määrä
 			// Luo GUID
 			// Lisää data tietokantaan
 			// Tulosta linkki
-			echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
-			sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
+			//echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
+			//sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
 			// Oletan, että jotain outoa aikojen vertailun kanssa. Tämä on nopea (ja ehkä huono) korjaus.
-			header("Location:pw_reset.php?id=$key");
+			//header("Location:pw_reset.php?id=$key");
+			
+			laheta_salasana_linkki($email, $key);
+			header("Location:login.php?redir=9");
+			exit();
+		}
+		else {
+			header("Location:login.php?redir=1");
+			exit();
 		}
 		
 	}

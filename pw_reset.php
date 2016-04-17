@@ -40,6 +40,7 @@
 			} else { // Salasana ja varmistus tasmaa
 			
 				if ( db_vaihda_salasana($salasana) == TRUE ) {
+					unset($_SESSION['sposti']);
 					header("Location:login.php?redir=8");
 				}
 				
@@ -58,25 +59,35 @@
 			$row_count = mysqli_num_rows( $result ); // Kyselyn  tuloksen rivien määrä
 			
 			if ( $row_count > 0 ) { 	// Katsotaan, loytyiko tulos
+				
+				//Varmuuden varalta aikavyöhyke oikeaksi
+				date_default_timezone_set('Europe/Helsinki');
+				
 				$row 		= mysqli_fetch_assoc( $result );
-				$email		= $row['user_id'];			// Otetaan talteen tiedot
+				$_SESSION['sposti']	= $row['user_id'];			// Otetaan talteen tiedot
 				$mysql_dt	= $row['reset_exp_aika'];	//  Aika, jolloin tieto tallennettiin (kun käyttäjä pyysi uutta salasanaa)
+				
+				//OLETETAAN ETTÄ MYSQL TIMEZONE ON TALLENNETTU SUOMEN AIKAAN
 				$time_then 	= new DateTime( $mysql_dt );//   muunnettuna DateTime-muotoon
 				$time_now	= new DateTime();			//	Aika nyt
 				
 				$interval = $time_now -> diff($time_then);
+				
 				
 				$y = $interval->format('%y');
 				$m = $interval->format('%m');
 				$d = $interval->format('%d');
 				$h = $interval->format('%h');
 				
-				$difference = $y + $m + $d + $h; // Lasketaan aikojen erotus
 				
+				$difference = $y + $m + $d + $h; // Lasketaan aikojen erotus
+				/*
+				 * Linkki pysyy aktiivisena vain tunnin.
+				 */
 				if ( $difference < 1 ) { //Tarkistetaan aika ?>
 					<fieldset><legend>Unohditko salasanasi?</legend>
 						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
-							<?php echo $email; // Muistutuksena kauttajalle ?>
+							<?php echo $_SESSION['sposti']; // Muistutuksena kauttajalle ?>
 							<br><br>
 							<label>Uusi salasana</label>
 							<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä." required autofocus placeholder="salasana">
@@ -90,16 +101,16 @@
 					</fieldset>
 				<?php
 				}//if difference (pyynto vanhentunut)
-				else { echo "Foo";/*header("Location:login.php?redir=7");*/ }
+				else { echo header("Location:login.php?redir=7"); exit(); }
 			}//if account found (ei loytynyt pyyntoa)
-			else { header("Location:login.php"); }
+			else { header("Location:login.php"); exit(); }
 		}//if POST is empty (ei tullut sivulle uudelleenohjauksella)
 	}//if ID empty (ei tullut sivulle palautuslinkin kautta)
 	
-	else { header("Location:login.php"); }
+	else { header("Location:login.php"); exit();}
 	
 	function db_vaihda_salasana($asiakas_uusi_salasana){
-		$asiakas_sposti = $_SESSION['email'];
+		$asiakas_sposti = $_SESSION['sposti'];
 		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
 
 		$sql_query = "
