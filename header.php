@@ -29,9 +29,9 @@ if (!is_logged_in()) {
 	<?php
 		echo ('<p class="username">' . $_SESSION['email'] . '</p>');
 	?>
-	<p class="logout">
+	<!-- <p class="logout">
 		<a href="logout.php">Kirjaudu ulos</a>
-	</p>
+	</p> -->
 </div>
 
 <div id="navigationbar">
@@ -44,7 +44,7 @@ if (!is_logged_in()) {
         <li><a href='yp_asiakkaat.php'><span>Asiakkaat</span></a></li>
         <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
         <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
-        <li><a href='yp_raportit.php'><span>Raportit</span></a></li>
+        <!-- <li><a href='yp_raportit.php'><span>Raportit</span></a></li> -->
     <?php
         } else {
     ?>
@@ -52,6 +52,6 @@ if (!is_logged_in()) {
 	<?php
 		}
 	?>
-<!--		<li class="last"><a href="logout.php"><span>Kirjaudu ulos</span></a></li> -->
+	<li class="last"><a href="logout.php"><span>Kirjaudu ulos</span></a></li>
 	</ul>
 </div>

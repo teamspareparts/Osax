@@ -12,6 +12,10 @@
 	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
 					or die("Connection error:" . mysqli_connect_error());
 	
+	if (!isset($_POST["mode"])) {
+		header("Location:login.php");
+		exit();
+	}
 	// Haetaan moodi edelliseltä sivulta
 	$mode = $_POST["mode"];
 
@@ -57,32 +61,39 @@
 	elseif ( $mode == "password_reset" ) {
 		$email = trim(strip_tags( $_POST["email"] ));
 		$sql_query = "
-			SELECT	id, sahkoposti
+			SELECT	id, sahkoposti, aktiivinen
 			FROM	kayttaja
 			WHERE	sahkoposti = '$email'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
 		
 		if ( $result->num_rows > 0 ) {
-			$key = GUID();
-			// SQL-kysely
-			$sql_query = "
-				INSERT INTO pw_reset 
-					(reset_key, user_id)
-				VALUES 
-					('$key','$email')";
-			
-			$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
-			// Luo GUID
-			// Lisää data tietokantaan
-			// Tulosta linkki
-			//echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
-			//sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
-			// Oletan, että jotain outoa aikojen vertailun kanssa. Tämä on nopea (ja ehkä huono) korjaus.
-			//header("Location:pw_reset.php?id=$key");
-			
-			laheta_salasana_linkki($email, $key);
-			header("Location:login.php?redir=9");
-			exit();
+			$row = $result->fetch_assoc();
+			if ($row["aktiivinen"] == 1){
+				$key = GUID();
+				// SQL-kysely
+				$sql_query = "
+					INSERT INTO pw_reset 
+						(reset_key, user_id)
+					VALUES 
+						('$key','$email')";
+				
+				$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
+				// Luo GUID
+				// Lisää data tietokantaan
+				// Tulosta linkki
+				//echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
+				//sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
+				// Oletan, että jotain outoa aikojen vertailun kanssa. Tämä on nopea (ja ehkä huono) korjaus.
+				//header("Location:pw_reset.php?id=$key");
+				
+				laheta_salasana_linkki($email, $key);
+				header("Location:login.php?redir=9");
+				exit();
+			}
+			else {
+				header("Location:login.php?redir=4");
+				exit();
+			}
 		}
 		else {
 			header("Location:login.php?redir=1");

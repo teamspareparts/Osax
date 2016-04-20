@@ -21,6 +21,10 @@
 
 			<?php
 				require 'tietokanta.php';
+				if(!is_admin()){
+					header("Location:login.php");
+					exit();
+				}
 
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 

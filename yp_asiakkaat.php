@@ -23,6 +23,10 @@
 		</fieldset>
 
 			<?php
+				if (!is_admin()) {
+					header("Location:login.php");
+					exit();
+				}
 				require 'tietokanta.php';
 
 				$tbl_name="kayttaja";				// Taulun nimi

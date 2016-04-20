@@ -15,8 +15,14 @@
 	<title>Tuotteet</title>
 </head>
 <body>
-<?php include("header.php");
-require 'tecdoc.php';?>
+<?php 
+	include("header.php");
+	require 'tecdoc.php';
+	if(!is_admin()){
+		header("Location:login.php");
+		exit();
+	}
+?>
 
 <h1 class="otsikko">Tuotteet</h1>
 <form action="yp_tuotteet.php" method="post" class="haku">
@@ -659,7 +665,6 @@ function print_catalog() {
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
-if (is_admin()) {
 	if (isset($_POST['lisaa'])) {
 		$id = intval($_POST['lisaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
@@ -758,9 +763,6 @@ if (is_admin()) {
 
 	print_results($number);
 	print_catalog();
-} else {
-	echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
-}
 
 ?>
 
