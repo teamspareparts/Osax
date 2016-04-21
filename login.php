@@ -88,6 +88,15 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			</fieldset>
 		</div>
 <?php
+	} elseif ( $mode == 9 ) {	// Jos moodi == salasanan uusiminen onnistunut
+?>
+		<div id="content">
+			<fieldset id=error>
+				<legend> Salasanan palautus - Palautuslinkki lähetetty </legend>
+				<p>Salasanan palautuslinkki on lähetetty sähköpostiinne.</p>
+			</fieldset>
+		</div>
+<?php
 	}
 }
 ?>

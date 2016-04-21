@@ -774,7 +774,14 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 	}
 
 	print_results($number);
+<<<<<<< HEAD
 	print_catalog($catalog_products);
+} else {
+	echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
+}
+=======
+	print_catalog();
+>>>>>>> origin/master
 
 ?>
 

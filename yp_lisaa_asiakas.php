@@ -42,7 +42,11 @@
 
 	</form><br><br>
 
-	<?php
+	<?php	
+	if (!is_admin()) {
+		header("Location:login.php");
+		exit();
+	}
 	require 'tietokanta.php';
 
 		if (isset($_POST['sposti'])){
