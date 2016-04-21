@@ -104,10 +104,10 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 
 	<fieldset><legend><b>Sisäänkirjautuminen</b></legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
-			<label>Email:</label><br>
+			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" required autofocus><br>
 			<br>
-			<label>Password:</label><br>
+			<label>Salasana:</label><br>
 			<input type="password" name="password" placeholder="password" required><br>
 			<br>
 			<input type="hidden" name="mode" value="login">
@@ -119,7 +119,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
-			<label>Email:</label><br>
+			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">
