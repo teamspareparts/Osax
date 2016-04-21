@@ -1,4 +1,4 @@
-<form name="ostoskorilomake" method="post">
+<form name="ostoskorilomake" method="post" style="display: none;">
 	<input id="ostoskori_toiminto" type="hidden" name="ostoskori_toiminto" value="">
 	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">
 	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">

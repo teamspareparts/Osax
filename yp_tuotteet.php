@@ -513,6 +513,7 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
+$catalog_products = get_products_in_catalog();
 
 //
 // Lisää uuden tuotteen valikoimaan
@@ -573,9 +574,16 @@ function get_products_in_catalog() {
 // Tulostaa hakutulokset
 //
 function print_results($number) {
+    global $catalog_products;
+
 	if (!$number) {
 		return;
 	}
+
+    $ids_in_catalog = [];
+    foreach ($catalog_products as $product) {
+        array_push($ids_in_catalog, $product->id);
+    }
 
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset:</h2>';
@@ -600,7 +608,12 @@ function print_results($number) {
 			echo "</td>";
 			echo "<td>$article->ean</td>";
 			echo "<td>$article->oe</td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
+            if (in_array($article->articleId, $ids_in_catalog)) {
+                // Tuote on jo valikoimassa
+                echo "<td class=\"toiminnot\"><a class=\"nappi disabled\">Lisää</a></td>";
+            } else {
+                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
+            }
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -613,10 +626,9 @@ function print_results($number) {
 //
 // Tulostaa tuotevalikoiman
 //
-function print_catalog() {
+function print_catalog($products) {
 	echo '<div class="tulokset">';
 	echo '<h2>Valikoima</h2>';
-	$products = get_products_in_catalog();
     /*
     Debuggausta varten:
     echo '<pre>';
@@ -757,7 +769,7 @@ if (is_admin()) {
 	}
 
 	print_results($number);
-	print_catalog();
+	print_catalog($catalog_products);
 } else {
 	echo '<div class="tulokset"><p>Et ole ylläpitäjä!</p></div>';
 }

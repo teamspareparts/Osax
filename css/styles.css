@@ -547,12 +547,19 @@ th {
 	background: #4479BA;
     border-color: #20538D;
 	text-decoration: none;
+    display: inline-block;
+    margin-top: 4px;
 }
 
 .nappi:hover {
     background: #356094;
     border: solid 1px #2A4E77;
     cursor: pointer;
+}
+
+.disabled {
+	opacity: 0.2;
+	cursor: default !important;
 }
 
 #modal-container label {
@@ -593,6 +600,8 @@ th {
 .thumb {
 	width: 64px;
 	height: 64px;
+	padding-top: 2pt;
+	padding-bottom: 2pt;
 	text-align: center;
 }
 
@@ -632,10 +641,3 @@ th {
 	padding-right: 6px;
 	margin-left: 4px;
 }
-
-
-
-
-
-
-

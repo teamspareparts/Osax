@@ -11,10 +11,11 @@
 	<h1 class="otsikko">Tilaus Info</h1>
 	<br>
 </div>
-<div class="tulokset">	
+<div class="tulokset">
 	<?php
 		require 'tietokanta.php';
 		require 'tecdoc.php';
+		require 'apufunktiot.php';
 		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 		$id = $_GET["id"];
@@ -34,7 +35,7 @@
 		echo "<table class='tilaus_info'>";
 		echo "<tr><td>Tilausnumero: " . $row["id"] . "</td><td>Päivämäärä: " .date("d.m.Y", strtotime($row["paivamaara"])) . "</td></tr>";
 		echo "<tr><td>Tilaaja: " .$row["etunimi"] . " " . $row["sukunimi"]. "</td><td>Yritys: " .$row["yritys"]. "</td></tr>";
-		echo "<tr><td>Tuotteet: " .$row["kpl"]. "</td><td>Summa: " .$row["summa"] . "eur</td></tr>";
+		echo "<tr><td>Tuotteet: " .$row["kpl"]. "</td><td>Summa: " . format_euros($row["summa"]) . "</td></tr>";
 		echo "</table>";
 		echo "<br>";
 
@@ -51,7 +52,7 @@
 				echo "<td>$article->articleName</td>";
 				echo "<td>$article->brandName</td>";
 				echo "<td>$article->articleNo</td>";
-				echo "<td>$product->pysyva_hinta</td>";
+				echo "<td>" . format_euros($product->pysyva_hinta) . "</td>";
 				echo "<td>$product->kpl</td>";
 				echo '</tr>';
 			}

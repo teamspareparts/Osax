@@ -482,7 +482,7 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 //
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero/EAN/OE-numero
 //
-function filter_by_article_no($products, $articleNo) {
+function filter_by_article_number($products, $number) {
 	// Korvaa jokerimerkit * ja ? säännöllisen lausekkeen vastineilla
 	// ja jättää muut säännöllisten lausekkeiden merkinnät huomioimatta.
 	function replace_wildcards($string) {
@@ -498,16 +498,17 @@ function filter_by_article_no($products, $articleNo) {
             $product->ean,
             $product->oe,
 		];
-		foreach ($numbers as $number) {
-			if (preg_match($regexp, $number)) {
-				return true;
-			}
-		}
+        foreach ($numbers as $number) {
+            if (preg_match($regexp, $number)) {
+    			return true;
+    		}
+        }
 		return false;
 	}
 
-	$articleNo = replace_wildcards($articleNo);
-	$regexp = '/^' . $articleNo . '$/i';  // kirjainkoolla ei väliä
+	// Muodostetaan säännöllinen lauseke joka tunnistaa minkä tahansa annetuista numeroista
+	$regexp = '/^' . replace_wildcards($number) . '$/i';
+
 	$filtered = [];
 
 	foreach ($products as $product) {
@@ -515,6 +516,7 @@ function filter_by_article_no($products, $articleNo) {
 			array_push($filtered, $product);
 		}
 	}
+
 	return $filtered;
 }
 
@@ -524,7 +526,18 @@ function filter_by_article_no($products, $articleNo) {
 function search_for_product_in_catalog($number) {
 	global $connection;
 
-	$number = addslashes(trim($number));
+    // Haetaan ensin TecDocista tuotteet annetun numeron perusteella
+    $tecdoc_products = getArticleDirectSearchAllNumbersWithState($number);
+
+    // Kerätään tuotteiden ID:t taulukkoon
+    $ids = [];
+	foreach ($tecdoc_products as $tecdoc_product) {
+		array_push($ids, addslashes($tecdoc_product->articleId));
+	}
+
+    // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
+    $id_list = implode(',', $ids);
+    $number = addslashes($number);
 	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote;");
 
 	if ($result) {
@@ -534,16 +547,18 @@ function search_for_product_in_catalog($number) {
 		}
 		if (count($products) > 0) {
 			merge_products_with_tecdoc($products);
-			$products = filter_by_article_no($products, $number);
+            $products = filter_by_article_number($products, $number);
 		}
 		return $products;
 	}
+
 	return [];
 }
 
 handle_shopping_cart_action();
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
+
 if ($number) {
 	$products = search_for_product_in_catalog($number);
 

@@ -81,9 +81,9 @@ function handle_shopping_cart_action() {
 			}
 		} elseif ($cart_action === 'muokkaa') {
 			if (modify_product_in_shopping_cart($cart_product, $cart_amount)) {
-				echo '<p class="success">Tuotetta muokattu.</p>';
+				echo '<p class="success">Ostoskori päivitetty.</p>';
 			} else {
-				echo '<p class="error">Tuotteen muokkaus ei onnistunut.</p>';
+				echo '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 			}
 		}  elseif ($cart_action === 'poista') {
 			if (remove_product_from_shopping_cart($cart_product)) {

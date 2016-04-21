@@ -25,12 +25,13 @@
 
 			<?php
 				require 'tietokanta.php';
+				require 'apufunktiot.php';
 
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 				$query = "SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa
-							FROM tilaus 
-							LEFT JOIN kayttaja 
+							FROM tilaus
+							LEFT JOIN kayttaja
 								ON kayttaja.id=tilaus.kayttaja_id
 							LEFT JOIN tilaus_tuote
 								ON tilaus_tuote.tilaus_id=tilaus.id
@@ -44,12 +45,12 @@
 						'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
 						'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
 						'</span><span class="yritys">' . $row["yritys"] .
-						'</span><span class="sum">' . $row["summa"] . "eur" .
+						'</span><span class="sum">' . format_euros($row["summa"]) .
 						'</span><a>';
 					echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '">';
 					echo '</fieldset>';
 				}
-				
+
 
 
 				mysqli_close($connection);
@@ -67,7 +68,7 @@
 	<?php
 		if (isset($_POST['ids'])){
 			db_merkitse_tilaus($_POST['ids']);
-			
+
 			header("Location:yp_tilaukset.php");
 			exit;
 		}

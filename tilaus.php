@@ -91,21 +91,56 @@ if (isset($_GET['vahvista'])) {
     if (empty($products)) {
         echo '<p class="error">Ostoskorissa ei ole tuotteita.</p>';
     } else {
+        $sum = 0.0;
         echo '<div class="tulokset">';
         echo '<table>';
-        echo '<tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Kpl</th></tr>';
+        echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th></tr>';
         foreach ($products as $product) {
-			$article = $product->directArticle;
+            $article = $product->directArticle;
             echo '<tr>';
+            echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
             echo "<td>$article->articleNo</td>";
-            echo "<td>$article->brandName $article->articleName</td>";
+            echo "<td>$article->brandName <br> $article->articleName</td>";
+            echo "<td>";
+            foreach ($product->infos as $info){
+                if(!empty($info->attrName)) echo $info->attrName . " ";
+                if(!empty($info->attrValue)) echo $info->attrValue . " ";
+                if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
+                echo "<br>";
+            }
+            echo "</td>";
+            echo "<td>$product->ean</td>";
+            echo "<td>$product->oe</td>";
             echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
+            echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
             echo "<td style=\"text-align: right;\">$product->cartCount</td>";
             echo '</tr>';
+
+    		$sum += $product->hinta * $product->cartCount;
         }
         echo '</table>';
-    	echo '<p><a class="nappi" href="tilaus.php?vahvista">Vahvista tilaus</a></p>';
+    	echo '<p>Summa yhteensä: <b>' . format_euros($sum) . '</b></p>';
+
+        // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran
+        $enough_in_stock = true;
+        $enough_ordered = true;
+        foreach ($products as $product) {
+            if ($product->cartCount > $product->varastosaldo) {
+                $enough_in_stock = false;
+            }
+            if ($product->cartCount < $product->minimimyyntiera) {
+                $enough_ordered = false;
+            }
+        }
+        $can_order = $enough_in_stock && $enough_ordered;
+
+        if ($can_order) {
+            echo '<p><a class="nappi" href="tilaus.php?vahvista">Vahvista tilaus</a></p>';
+        } else {
+            echo '<p><a class="nappi disabled">Vahvista tilaus</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p>';
+        }
+
         echo '</div>';
     }
 }
