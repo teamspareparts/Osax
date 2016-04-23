@@ -62,35 +62,5 @@
 		</form>
 	</div>
 </div>
-
-
-	<?php
-		if (isset($_POST['ids'])){
-			db_merkitse_tilaus($_POST['ids']);
-		}
-
-
-
-		function db_merkitse_tilaus($ids){
-			$tbl_name="tilaus";				// Taulun nimi
-
-
-			//Palvelimeen liittyminen
-			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-
-			foreach ($ids as $id) {
-				$query = "UPDATE $tbl_name
-				SET kasitelty = 1
-				WHERE id='$id'";
-				mysqli_query($connection, $query) or die(mysqli_error($connection));
-			}
-			mysqli_close($connection);
-
-			header("Location:yp_tilaukset.php");
-			exit;
-		}
-	?>
-
-
 </body>
 </html>

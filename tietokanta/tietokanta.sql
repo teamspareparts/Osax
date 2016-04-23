@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `etunimi` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
   `sukunimi` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
   `yritys` varchar(50) COLLATE utf8_swedish_ci NOT NULL,
-  `sahkoposti` varchar(255) COLLATE utf8_swedish_ci DEFAULT NULL,
-  `puhelin` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `sahkoposti` varchar(255) COLLATE utf8_swedish_ci NOT NULL,
+  `puhelin` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)

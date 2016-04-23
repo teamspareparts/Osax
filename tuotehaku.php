@@ -77,7 +77,7 @@ if (isset($_SESSION['cart'])) {
 
 <script type="text/javascript">
 
-
+	//hakee tecdocista automallit annetun valmistaja id:n perusteella
     function getModelSeries(manufacturerID) {
         var functionName = "getModelSeries";
         var params = {
@@ -92,6 +92,7 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, updateModelList);
     }
 
+	//hakee autojen id:t valmistajan ja mallin perusteella
     function getVehicleIdsByCriteria(manufacturerID, modelID) {
         var functionName = "getVehicleIdsByCriteria";
         var params = {
@@ -108,6 +109,7 @@ if (isset($_SESSION['cart'])) {
 
     }
 
+  	//hakee lisätietoa autoista id:n perusteella
     function getVehicleByIds3(response) {
         var functionName = "getVehicleByIds3";
 		var ids = [];
@@ -142,18 +144,7 @@ if (isset($_SESSION['cart'])) {
 
     }
 
-    function getShortCuts2(carID) {
-        var functionName = "getShortCuts2";
-        var params = {
-                "linkingTargetId" : carID,
-                "linkingTargetType" : "P",
-                "articleCountry" : TECDOC_COUNTRY,
-                "lang" : TECDOC_LANGUAGE,
-                "provider" : TECDOC_MANDATOR
-        };
-		tecdocToCatPort[functionName] (params, updatePartTypeList);
-    }
-
+  	//hakee autoon linkitetyt osatyypit
     function getPartTypes(carID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
@@ -168,6 +159,7 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, updatePartTypeList);
     }
 
+  	//hakee osatyypin alalajit (kuten jarrut -> jarrulevyt)
     function getChildNodes(carID, parentNodeID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
@@ -184,11 +176,13 @@ if (isset($_SESSION['cart'])) {
     }
 
  	// Create JSON String and put a blank after every ',':
+ 	//Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
     function toJSON(obj) {
         return JSON.stringify(obj).replace(/,/g,", ");
     }
 
       // Callback function to do something with the response:
+      // Päivittää alasvetolistaan uudet tiedot
       function updateModelList(response) {
           response = response.data;
 
@@ -221,6 +215,7 @@ if (isset($_SESSION['cart'])) {
       }
 
       // Callback function to do something with the response:
+      // Päivittää alasvetolistaan uudet tiedot
       function updateCarList(response) {
             response = response.data;
 
@@ -252,7 +247,8 @@ if (isset($_SESSION['cart'])) {
 
       }
 
-      function updatePartTypeList(response) {
+	  // Päivittää alasvetolistaan uudet tiedot
+	  function updatePartTypeList(response) {
           response = response.data;
 
 			//uudet tiedot listaan
@@ -269,6 +265,7 @@ if (isset($_SESSION['cart'])) {
 
       }
 
+	  // Päivittää alasvetolistaan uudet tiedot
       function updatePartSubTypeList(response) {
           response = response.data;
 
@@ -286,6 +283,7 @@ if (isset($_SESSION['cart'])) {
 
       }
 
+	  //jQuery
 		$(document).ready(function(){
 			$("#manufacturer").on("change", function(){
 				//kun painaa jotain automerkkiä->
@@ -424,6 +422,8 @@ if (isset($_SESSION['cart'])) {
 		});
 
 
+	  	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
+	  	//funktion tapaan tietoa
 		var qs = (function(a) {
 		    if (a == "") return {};
 		    var b = {};

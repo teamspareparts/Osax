@@ -628,16 +628,3 @@ th {
 #ajoneuvohaku {
 	margin-left: 5%;
 }
-
-#select_file {
-	position: absolute;
-	top: 270px;
-	right: 5%;
-}
-
-#select_file input[type=submit]{
-	padding: 1px;
-	padding-left: 6px;
-	padding-right: 6px;
-	margin-left: 4px;
-}

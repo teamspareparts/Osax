@@ -85,7 +85,7 @@
 
 		//result:
 		//-1	salasanat ei täsmää
-		//-2	käyttäjätunnus jo olemassa
+		//-2	käyttäjätunnusta ei olemassa
 		//1		lisäys onnistui
 		function db_paivita_tiedot($asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
 			$tbl_name="kayttaja";				// Taulun nimi

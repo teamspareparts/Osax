@@ -70,12 +70,6 @@
 	<input type="submit" value="HAE" id="ajoneuvohaku">
 </form>
 
-
-<form id='select_file' action='csv_luku.php' method='POST' enctype='multipart/form-data'>
-    <input type='file' name='userFile' accept='.csv' id='file_field'><br>
-    <input type='submit' name='upload_btn' value='Upload'>
-</form>
-
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
 
@@ -125,7 +119,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
 <script type="text/javascript">
 
-
+	//hakee tecdocista automallit annetun valmistaja id:n perusteella
     function getModelSeries(manufacturerID) {
         var functionName = "getModelSeries";
         var params = {
@@ -139,7 +133,8 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
         params = toJSON(params);
 		tecdocToCatPort[functionName] (params, updateModelList);
     }
-
+    
+	//hakee autojen id:t valmistajan ja mallin perusteella
     function getVehicleIdsByCriteria(manufacturerID, modelID) {
         var functionName = "getVehicleIdsByCriteria";
         var params = {
@@ -156,6 +151,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
     }
 
+    //hakee lisätietoa autoista id:n perusteella
     function getVehicleByIds3(response) {
         var functionName = "getVehicleByIds3";
 		var ids = [];
@@ -190,18 +186,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
     }
 
-    function getShortCuts2(carID) {
-        var functionName = "getShortCuts2";
-        var params = {
-                "linkingTargetId" : carID,
-                "linkingTargetType" : "P",
-                "articleCountry" : TECDOC_COUNTRY,
-                "lang" : TECDOC_LANGUAGE,
-                "provider" : TECDOC_MANDATOR
-        };
-		tecdocToCatPort[functionName] (params, updatePartTypeList);
-    }
-
+	//hakee autoon linkitetyt osatyypit
     function getPartTypes(carID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
@@ -216,6 +201,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 		tecdocToCatPort[functionName] (params, updatePartTypeList);
     }
 
+	//hakee osatyypin alalajit (kuten jarrut -> jarrulevyt)
     function getChildNodes(carID, parentNodeID) {
         var functionName = "getChildNodesAllLinkingTarget2";
         var params = {
@@ -233,47 +219,48 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
 
  	// Create JSON String and put a blank after every ',':
+ 	//Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
     function toJSON(obj) {
         return JSON.stringify(obj).replace(/,/g,", ");
     }
 
 
+	// Callback function to do something with the response:
+	// Päivittää alasvetolistaan uudet tiedot
+ 	function updateModelList(response) {
+ 	 	response = response.data;
+
+        //uudet tiedot listaan
+		var modelList = document.getElementById("model");
+
+
+		if (response.array){
+			var i;
+			for (i = 0; i < response.array.length; i++) {
+				var yearTo = response.array[i].yearOfConstrTo;
+				if(!yearTo) {
+				    yearTo = "";
+				} else {
+					yearTo = addSlash(yearTo);
+				}
+
+
+				var text = response.array[i].modelname
+							+ "\xa0\xa0\xa0\xa0\xa0\xa0"
+				    		+ "Year: " + addSlash(response.array[i].yearOfConstrFrom)
+	    					+ " -> " + yearTo;
+
+				var model = new Option(text, response.array[i].modelId);
+				modelList.options.add(model);
+			}
+		}
+		$('#model').removeAttr('disabled');
+	}
+
+
 
       // Callback function to do something with the response:
-      function updateModelList(response) {
-          response = response.data;
-
-        	//uudet tiedot listaan
-			var modelList = document.getElementById("model");
-
-
-		    if (response.array){
-			    var i;
-			    for (i = 0; i < response.array.length; i++) {
-			    	var yearTo = response.array[i].yearOfConstrTo;
-				    if(!yearTo) {
-					    yearTo = "";
-					} else {
-						yearTo = addSlash(yearTo);
-					}
-
-
-				    var text = response.array[i].modelname
-				    			+ "\xa0\xa0\xa0\xa0\xa0\xa0"
-				    			+ "Year: " + addSlash(response.array[i].yearOfConstrFrom)
-	    						+ " -> " + yearTo;
-
-					var model = new Option(text, response.array[i].modelId);
-					modelList.options.add(model);
-			    }
-		    }
-		    $('#model').removeAttr('disabled');
-
-      }
-
-
-
-      // Callback function to do something with the response:
+      // Päivittää alasvetolistaan uudet tiedot
       function updateCarList(response) {
             response = response.data;
 
@@ -305,6 +292,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
       }
 
+      // Päivittää alasvetolistaan uudet tiedot
       function updatePartTypeList(response) {
           response = response.data;
 
@@ -322,6 +310,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
       }
 
+      // Päivittää alasvetolistaan uudet tiedot
       function updatePartSubTypeList(response) {
           response = response.data;
 
@@ -344,7 +333,7 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 
 
 
-
+		//jQuery
 		$(document).ready(function(){
 			$("#manufacturer").on("change", function(){
 				//kun painaa jotain automerkkiä->
@@ -477,18 +466,6 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 			    }
 			});
 
-			//estetään tiedoston lähetys, jos tiedostoa ei ole valittu.
-			$("#select_file").submit(function(e){
-				if ($('#file_field').get(0).files.length == 0) {
-					e.preventDefault();
-				    alert("Ei valittua tiedostoa.");
-				    return false;
-				}
-				else return true;
-			});
-
-
-
 		});
 
 
@@ -599,7 +576,6 @@ function print_results($number) {
 		echo '<table>';
 		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
 		foreach ($products as $article) {
-			//$thumb_url = get_thumbnail_url($article);
 			echo '<tr>';
 			echo "<td class=\"thumb\"><img src=\"$article->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
@@ -731,10 +707,6 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		//poistetaan duplikaatit
 		foreach ($articles as $article){
 			if(!in_array($article->articleId, $articleIDs)){
-				/* $product = getOptionalData($article->articleId);
-				$article->thumburl = get_thumbnail_url($product[0]);
-				$article->ean = get_ean_number($product[0]);
-				$article->infos = get_infos($product[0]); */
 				array_push($articleIDs, $article->articleId);
 				array_push($products, $article);
 			}
