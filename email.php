@@ -6,12 +6,14 @@
  * (Viittaus esim: curl.cainfo = "C:\__polku__tähän__\cacert.pem.txt")
  */
 
+$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
+
 
 function send_email($email, $subject, $message){
 	// SendGrid:n tunnarit
 	// ei yleiseen jakeluun kiitos
 	$url = 'https://api.sendgrid.com/';
-	$user = 'azure_4477d243090deff5da12ff391b078d6f@azure.com';
+	$user = 'tuoteluettelonsposti';
 	$pass = 'KettujenKevat123';
 
 	
@@ -43,7 +45,7 @@ function send_email($email, $subject, $message){
 
 
 	
-	// debuggaukseen
+	/* // debuggaukseen
 	if (curl_errno($session)) {
 		print "Error: " . curl_error($session);
 	} else {
@@ -51,7 +53,7 @@ function send_email($email, $subject, $message){
 		var_dump($response);
 		curl_close($session);
 	}
-	print_r($response);
+	print_r($response); */
 }
 
 
@@ -61,9 +63,88 @@ function laheta_salasana_linkki($email, $key){
 	send_email($email, $subject, $message);
 }
 
-function laheta_tilausvahvistus(){
+
+
+
+function laheta_tilausvahvistus($email, $products, $tilausnro){
 	$subject = "Tilausvahvistus";
-	$message = '';
-	//send_email($email, $subject, $message);
+	$summa = 0.00;
+	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
+	if (empty($products)) return false;
+	foreach ($products as $product) {
+		$article = $product->directArticle;
+		$productTable .= "<tr><td>$article->articleNo</td><td>$article->brandName $article->articleName</td><td style='text-align: right;'>" . format_euros($product->hinta) . "</td><td style='text-align: right;'>$product->cartCount</td></tr>";
+		$summa += $product->hinta * $product->cartCount;
+	}
+	$productTable .= "</table><br><br><br>";
+	$contactinfo = 'Yhteystiedot:<br>
+					Rantakylän AD Varaosamaailma<br>
+					Jukolankatu 20 80100 Joensuu<br>		
+					Puh. 044-7835005<br>
+					Fax. 013-2544171';
+	$message = 'Tilaaja: ' . $email . '<br>Tilausnumero: ' . $tilausnro. '<br>Summa: ' . format_euros($summa) . '<br> Tilatut tuotteet:<br>' . $productTable . $contactinfo;
+	send_email($email, $subject, $message);
+	return true;
 }
+
+
+
+
+function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
+	//haetaan ylläpitäjän sposti ja asiakkaan tiedot
+	//(tai voidaan määritellä erikseen sähköposti, johon tilaukset lähetetään)
+	global $connection;
+	
+	//yllapitajan sposti
+	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja = 1";
+	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+	if (!$result) return false;
+	
+	$row = mysqli_fetch_object($result);
+	$yp_email = $row->sahkoposti;
+
+	//haetaan käyttäjän tiedot
+	$sposti = $_SESSION["email"];
+	$query = "SELECT * FROM kayttaja WHERE sahkoposti= '$sposti'";
+	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+	if (!$result) return false;
+	
+	$row = mysqli_fetch_object($result);
+	$enimi = $row->etunimi;
+	$snimi = $row->sukunimi;
+	$yritys = $row->yritys;
+	$puhelin = $row->puhelin;
+	
+	
+	
+	$subject = 'Tilaus';
+	$summa = 0.00;
+	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
+	if (empty($products)) return false;
+	foreach ($products as $product) {
+		$article = $product->directArticle;
+		$productTable .= "<tr><td>$article->articleNo</td><td>$article->brandName $article->articleName</td><td style='text-align: right;'>" . format_euros($product->hinta) . "</td><td style='text-align: right;'>$product->cartCount</td></tr>";
+		$summa += $product->hinta * $product->cartCount;
+	}
+	$productTable .= "</table><br><br><br>";
+	$message = 'Tilaaja: ' . $enimi . " " . $snimi . '<br>
+				Yritys: ' . $yritys . '<br>
+				S-posti: ' . $email .  '<br>
+				Puh: ' . $puhelin . '<br><br>
+				Tilausnumero: ' . $tilausnro. '<br>
+				Summa: ' . format_euros($summa) . '<br>
+				Tilatut tuotteet:<br>
+				'. $productTable;
+	
+	
+	send_email($yp_email, $subject, $message);
+	return true;
+}
+
+
+
+
+
+
+
 ?>

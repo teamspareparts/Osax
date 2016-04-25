@@ -14,6 +14,7 @@
 require 'tecdoc.php';
 require 'tietokanta.php';
 require 'apufunktiot.php';
+require 'email.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
 
@@ -75,6 +76,13 @@ function order_products($products) {
 		}
 	}
 
+	/**
+	 * Laitan sähköpostin lähetyksen kommentiksi niin kukaan ei lähettele vahingossa sähköpostia
+	 */
+	//lähetetään tilausvahvistus asiakkaalle
+	//laheta_tilausvahvistus($_SESSION["email"], $products, $order_id);
+	//lähetetään tilaus ylläpidolle
+	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $order_id);
 	return true;
 }
 
