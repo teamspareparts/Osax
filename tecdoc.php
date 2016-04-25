@@ -117,7 +117,12 @@ function merge_products_with_tecdoc($products) {
 	}
 
 	// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
-	$tecdoc_products = getDirectArticlesByIds4($ids);
+	$id_chunks = array_chunk($ids, 25);
+	//25 kpl erissä
+	$tecdoc_products = [];
+	foreach ($id_chunks as $id_chunk) {
+		$tecdoc_products = array_merge($tecdoc_products, getDirectArticlesByIds4($id_chunk));
+	}
 
 	// Yhdistetään TecDocista saatu data $products-taulukkoon
 	foreach ($tecdoc_products as $tecdoc_product) {
@@ -247,7 +252,6 @@ function get_ean_number($product) {
 		return '';
 	}
 	return $product->eanNumber->array[0]->eanNumber;
-
 }
 
 //Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
