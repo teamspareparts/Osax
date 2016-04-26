@@ -3,7 +3,7 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
 	<meta charset="UTF-8">
-	<title>Login</title> 
+	<title>Login</title>
 </head>
 <body>
 <h1 style="text-align:center;">
@@ -12,7 +12,7 @@
 
 <!-- -->
 <div id="login_container">
-<?php 
+<?php
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
 	if ( $mode == 1 ) {			// Jos moodi == väärä sähköposti
@@ -102,7 +102,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 ?>
 
 
-	<fieldset><legend><b>Sisäänkirjautuminen</b></legend>
+	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" required autofocus><br>
@@ -114,9 +114,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			<input type="submit" value="Kirjaudu sisään">
 		</form>
 	</fieldset>
-	
-	<br><br>
-	
+
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
@@ -127,7 +125,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 		</form>
 	</fieldset>
 </div>
-	
+
 
 
 </body>

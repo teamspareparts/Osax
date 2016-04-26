@@ -1,4 +1,4 @@
-/********************************************	
+/********************************************
 	Kirjautumissivu
 *********************************************/
 body	{
@@ -7,31 +7,29 @@ body	{
 
 fieldset	{
 	background-color:lightgrey;
-	padding: 1.4em
+	padding: 15pt;
+	margin-bottom: 20pt;
 }
 
 legend	{
+	font-size: 110%;
 	font-weight: bold;
+	background-color: lightgrey;
+	border: 2px groove threedface;
+	padding: 4pt 6pt;
 }
 
 input {
-	padding: 0.4em;
+	margin: 0;
+	padding: 5pt;
 	font-size: 1em;
-	width: 300px;
-}
-
-input.submit	{
-	width: 0.1em;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 #login_container	{
 	margin: auto;
-    width: 400px;
-	/*display: inline-block;
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);*/
+	width: 400px;
 }
 #error	{
 	color: red;
