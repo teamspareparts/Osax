@@ -7,10 +7,11 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script>
-		var TECDOC_MANDATOR = 149;
-		var TECDOC_DEBUG = false;
-		var TECDOC_COUNTRY = 'FI';
-		var TECDOC_LANGUAGE = 'FI';
+	    <?php require_once 'tecdoc_asetukset.php'; ?>
+	    var TECDOC_MANDATOR = <?php echo TECDOC_PROVIDER; ?>;
+	    var TECDOC_DEBUG = <?php echo TECDOC_DEBUG; ?>;
+	    var TECDOC_COUNTRY = <?php echo TECDOC_COUNTRY; ?>;
+	    var TECDOC_LANGUAGE = <?php echo TECDOC_LANGUAGE; ?>;
 	</script>
 	<title>Tuotehaku</title>
 </head>

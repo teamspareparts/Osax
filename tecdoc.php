@@ -4,7 +4,7 @@
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
 //
 
-require 'tecdoc_asetukset.php';
+require_once 'tecdoc_asetukset.php';
 
 //
 // Lähettää JSON-pyynnön TecDoc-palvelimelle ja palauttaa vastauksen taulukkomuodossa
