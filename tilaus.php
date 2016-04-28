@@ -74,6 +74,12 @@ function order_products($products) {
 		if (!$result) {
 			return false;
 		}
+		//päivitetään varastosaldo
+		$uusi_varastosaldo = $product->varastosaldo - $product_count;
+		$query = "UPDATE tuote
+					SET varastosaldo = '$uusi_varastosaldo'
+					WHERE id = '$product_id'";
+		$result = mysqli_query($connection, $query);
 	}
 
 	/**

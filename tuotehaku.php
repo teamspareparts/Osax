@@ -17,20 +17,11 @@
 </head>
 <body>
 <?php include('header.php');
-	require 'tecdoc.php';?>
-<h1 class="otsikko">Tuotehaku</h1>
-<?php
-$cart_contents = '0 tuotetta';
-if (isset($_SESSION['cart'])) {
-	$cart_count = count($_SESSION['cart']);
-	if ($cart_count === 1) {
-		$cart_contents = '1 tuote';
-	} else {
-		$cart_contents = $cart_count . ' tuotetta';
-	}
-}
-?>
-<div id="ostoskori-linkki"><a href="ostoskori.php">Ostoskori (<?php echo $cart_contents; ?>)</a></div>
+	require 'tecdoc.php';
+	require 'apufunktiot.php';?>
+<h1 class="otsikko">Tuotehaku <span class="question">?</span></h1>
+
+<div id="ostoskori-linkki"></div>
 <form action="tuotehaku.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
@@ -75,6 +66,21 @@ if (isset($_SESSION['cart'])) {
 
 	<input type="submit" value="HAE" id="ajoneuvohaku">
 </form>
+
+<?php 
+//ostoskorin päivitys ja ostoskorin sisällön määrittäminen
+handle_shopping_cart_action();
+
+$cart_contents = '0 tuotetta';
+if (isset($_SESSION['cart'])) {
+	$cart_count = count($_SESSION['cart']);
+	if ($cart_count === 1) {
+		$cart_contents = '1 tuote';
+	} else {
+		$cart_contents = $cart_count . ' tuotetta';
+	}
+}
+?>
 
 <script type="text/javascript">
 
@@ -419,9 +425,23 @@ if (isset($_SESSION['cart'])) {
 
 
 
+			//info-nappulan sisältö
+			$("span.question").hover(function () {
+			    $(this).append('<div class="tooltip"><p>? vastaa yhtä merkkiä</p><p>* vastaa merkkijonoa</p></div>');
+			  	}, function () {
+			    $("div.tooltip").remove();
+			});
+
+
 
 		});
 
+	  	
+		//päivitetään ostoskorilinkki
+		var cart_contents = <?php echo json_encode($cart_contents); ?>;
+		$("#ostoskori-linkki").append('<a href="ostoskori.php">Ostoskori (' + cart_contents + ') </a>');
+
+		
 
 	  	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
 	  	//funktion tapaan tietoa
@@ -476,7 +496,6 @@ if (isset($_SESSION['cart'])) {
 <?php
 
 require 'tietokanta.php';
-require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
 
@@ -555,8 +574,6 @@ function search_for_product_in_catalog($number) {
 
 	return [];
 }
-
-handle_shopping_cart_action();
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
 
