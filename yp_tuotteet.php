@@ -8,10 +8,10 @@
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script>
     <?php require_once 'tecdoc_asetukset.php'; ?>
-    var TECDOC_MANDATOR = <?php echo TECDOC_PROVIDER; ?>;
-    var TECDOC_DEBUG = <?php echo TECDOC_DEBUG; ?>;
-    var TECDOC_COUNTRY = <?php echo TECDOC_COUNTRY; ?>;
-    var TECDOC_LANGUAGE = <?php echo TECDOC_LANGUAGE; ?>;
+    var TECDOC_MANDATOR = <?php echo json_encode(TECDOC_PROVIDER); ?>;
+    var TECDOC_DEBUG = <?php echo json_encode(TECDOC_DEBUG); ?>;
+    var TECDOC_COUNTRY = <?php echo json_encode(TECDOC_COUNTRY); ?>;
+    var TECDOC_LANGUAGE = <?php echo json_encode(TECDOC_LANGUAGE); ?>;
 	</script>
 	<title>Tuotteet</title>
 </head>
@@ -626,7 +626,7 @@ function print_catalog($products) {
 			echo '<tr>';
 			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName $article->articleName</td>";
+			echo "<td>$article->brandName <br> $article->articleName</td>";
             echo "<td>";
             foreach ($product->infos as $info){
                 if (!empty($info->attrName)) echo $info->attrName . " ";

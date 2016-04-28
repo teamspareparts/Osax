@@ -8,10 +8,10 @@
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script>
 	    <?php require_once 'tecdoc_asetukset.php'; ?>
-	    var TECDOC_MANDATOR = <?php echo TECDOC_PROVIDER; ?>;
-	    var TECDOC_DEBUG = <?php echo TECDOC_DEBUG; ?>;
-	    var TECDOC_COUNTRY = <?php echo TECDOC_COUNTRY; ?>;
-	    var TECDOC_LANGUAGE = <?php echo TECDOC_LANGUAGE; ?>;
+	    var TECDOC_MANDATOR = <?php echo json_encode(TECDOC_PROVIDER); ?>;
+	    var TECDOC_DEBUG = <?php echo json_encode(TECDOC_DEBUG); ?>;
+	    var TECDOC_COUNTRY = <?php echo json_encode(TECDOC_COUNTRY); ?>;
+	    var TECDOC_LANGUAGE = <?php echo json_encode(TECDOC_LANGUAGE); ?>;
 	</script>
 	<title>Tuotehaku</title>
 </head>
