@@ -10,11 +10,10 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 
 
 function send_email($email, $subject, $message){
-	// SendGrid:n tunnarit
-	// ei yleiseen jakeluun kiitos
+
 	$url = 'https://api.sendgrid.com/';
-	$user = 'tuoteluettelonsposti';
-	$pass = 'KettujenKevat123';
+	$user = '';	/** Tähän kohtaan SendGrid käyttäjätunnus **/
+	$pass = ''; /** Tähän kohtaan SendGrid salasana **/
 
 	
 	//sähköpostin parametrit
