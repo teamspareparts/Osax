@@ -6,8 +6,8 @@
 // Voit halutessasi muokata käyttäjätunnusta ja salasanaa alla olevilla muuttujilla.
 //
 
-$yllapitajan_tunnus = 'admin@example.com';
-$yllapitajan_salasana = 'admin';
+define('ADMIN_USERNAME', 'admin@admin.admin');
+define('ADMIN_PASSWORD', 'admin');
 
 //
 // Älä muokkaa tästä eteenpäin!
@@ -30,8 +30,8 @@ if (mysqli_multi_query($yhteys, file_get_contents('tietokanta.sql'))) {
 }
 
 // Luodaan ylläpitäjälle käyttäjä
-$yllapitajan_tunnus = addslashes($yllapitajan_tunnus);
-$hajautettu_salasana = password_hash($yllapitajan_salasana, PASSWORD_DEFAULT);
+$yllapitajan_tunnus = addslashes(ADMIN_USERNAME);
+$hajautettu_salasana = password_hash(ADMIN_PASSWORD, PASSWORD_DEFAULT);
 $kysely = "INSERT INTO kayttaja (sahkoposti, salasana_hajautus, yllapitaja) VALUES ('$yllapitajan_tunnus', '$hajautettu_salasana', 1);";
 
 while (mysqli_more_results($yhteys)) {
@@ -40,8 +40,8 @@ while (mysqli_more_results($yhteys)) {
         $tulos->free();
 }
 
-if (!mysqli_query($yhteys, $kysely)) {
-    echo 'Ylläpitäjä luotu.';
+if (mysqli_query($yhteys, $kysely)) {
+    echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';
 } else {
     echo 'Ylläpitäjän luonti ei onnistunut!<br>Virhe: ' . mysqli_error($yhteys);
 }
