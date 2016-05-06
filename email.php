@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 /**
  * curl.cainfo osoitettava certifikaatteihin php.ini tiedostossa.
@@ -58,7 +58,7 @@ function send_email($email, $subject, $message){
 
 function laheta_salasana_linkki($email, $key){
 	$subject = "Slasanan vaihtaminen";
-	$message = 'Salasanan vaihto onnistuu osoitteessa: http://localhost/Tuoteluettelo/pw_reset.php?id=' . $key;
+	$message = 'Salasanan vaihto onnistuu osoitteessa: http://__sivuston__julkinen__osoite__/pw_reset.php?id=' . $key;	/** Sivun julkinen osoite tähän. **/
 	send_email($email, $subject, $message);
 }
 
