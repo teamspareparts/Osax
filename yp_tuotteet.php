@@ -80,7 +80,8 @@ function showAddDialog(id) {
     	content: '\
 			<div class="dialogi-otsikko">Lisää tuote</div> \
 			<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
-			<label for="hinta">Hinta:</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
+			<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
+			<label for="alv">ALV-taso:</label><span class="dialogi-kentta"><input class="eur" name="alv" placeholder="0"></span><br> \
 			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 			<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
 			<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
@@ -101,12 +102,13 @@ function showRemoveDialog(id) {
 }
 
 // Valikoimaan lisätyn tuotteen muokkaus
-function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
+function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount) {
 	Modal.open({
     	content: '\
 			<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
 			<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
-			<label for="hinta">Hinta:</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
+			<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
+			<label for="alv">ALV-taso:</label><span class="dialogi-kentta"><input class="eur" name="alv" placeholder="0" value="' + alv + '"></span><br> \
 			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
 			<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0" value="' + minimumCount + '"> kpl</span><br> \
 			<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="' + minimumSaleCount + '"> kpl</span><br> \
@@ -470,17 +472,6 @@ function showModifyDialog(id, price, count, minimumCount, minimumSaleCount) {
 		});
 
 
-
-
-
-
-
-
-
-
-
-
-
 		//apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun
 		//vuosiluvut parempaan muotoon
 		function addSlash(text) {
@@ -502,14 +493,20 @@ $catalog_products = get_products_in_catalog();
 //
 // Lisää uuden tuotteen valikoimaan
 //
-function add_product_to_catalog($id, $price, $count, $minimum_count, $minimum_sale_count) {
+function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
+	$alv = intval($alv);
+	$price_with_alv = (float)$price * (1 + hae_ALV_prosentti($alv));
 	$count = intval($count);
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
-	$result = mysqli_query($connection, "INSERT INTO tuote (id, hinta, varastosaldo, minimisaldo, minimimyyntiera) VALUES ($id, $price, $count, $minimum_count, $minimum_sale_count);");
+	$result = mysqli_query($connection, "
+		INSERT INTO tuote 
+			(id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera) 
+		VALUES 
+			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count');");
 	return $result;
 }
 
@@ -519,21 +516,29 @@ function add_product_to_catalog($id, $price, $count, $minimum_count, $minimum_sa
 function remove_product_from_catalog($id) {
 	global $connection;
 	$id = intval($id);
-	mysqli_query($connection, "DELETE FROM tuote WHERE id=$id;");
+	mysqli_query($connection, "
+		DELETE 
+		FROM tuote 
+		WHERE id=$id;");
 	return mysqli_affected_rows($connection) > 0;
 }
 
 //
 // Muokkaa valikoimaan lisättyä tuotetta
 //
-function modify_product_in_catalog($id, $price, $count, $minimum_count, $minimum_sale_count) {
+function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
+	$alv = intval($alv);
+	$price_with_alv = $price * (1 + hae_ALV_prosentti($alv));
 	$count = intval($count);
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
-	$result = mysqli_query($connection, "UPDATE tuote SET hinta=$price, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count WHERE id=$id;");
+	$result = mysqli_query($connection, "
+		UPDATE	tuote 
+		SET		hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count 
+		WHERE	id=$id;");
 	return mysqli_affected_rows($connection) >= 0;
 }
 
@@ -542,7 +547,9 @@ function modify_product_in_catalog($id, $price, $count, $minimum_count, $minimum
 //
 function get_products_in_catalog() {
 	global $connection;
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo, minimimyyntiera FROM tuote;");
+	$result = mysqli_query($connection, "
+		SELECT	id, hinta, varastosaldo, minimisaldo, minimimyyntiera 
+		FROM	tuote;");
 	if ($result) {
 		$products = [];
 		while ($row = mysqli_fetch_object($result)) {
@@ -651,16 +658,27 @@ function print_catalog($products) {
 	echo '</div>';
 }
 
+function hae_ALV_prosentti($ALV_taso) {
+	global $connection;
+	$sql_query = "
+			SELECT	prosentti
+			FROM	ALV_taso
+			WHERE	taso = '$ALV_taso'";
+	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
+	$prosentti = mysqli_fetch_assoc($result)['prosentti'];
+	return $prosentti;
+}
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if (isset($_POST['lisaa'])) {
 		$id = intval($_POST['lisaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
+		$alv = intval($_POST['alv']);
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
-		$success = add_product_to_catalog($id, $hinta, $varastosaldo, $minimisaldo, $minimimyyntiera);
+		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
@@ -676,10 +694,11 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 	} elseif (isset($_POST['muokkaa'])) {
 		$id = intval($_POST['muokkaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
+		$alv = intval($_POST['alv']);
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
-		$success = modify_product_in_catalog($id, $hinta, $varastosaldo, $minimisaldo, $minimimyyntiera);
+		$success = modify_product_in_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera);
 		if ($success) {
 			echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
 		} else {

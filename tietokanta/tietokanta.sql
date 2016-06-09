@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) NOT NULL,
   `hinta` decimal(11,2) NOT NULL,
+  `hinta_ilman_ALV` decimal(11,2) NOT NULL,
+  `ALV_taso` tinyint(1) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0',
   `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
+  `osoite_id` tinyint(2) NOT NULL
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -42,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tilaus_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
   `pysyva_hinta` decimal(11,2) NOT NULL,
+  `alv` decimal(3,2) NOT NULL,
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -51,5 +55,25 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
   `reset_key` varchar(100) NOT NULL,
   `user_id` varchar(255) COLLATE utf8_swedish_ci NOT NULL,
   `reset_exp_aika` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `ALV_taso` (
+  `taso` tinyint(1) NOT NULL,
+  `prosentti` decimal(3,2) NOT NULL,
+  PRIMARY KEY (`taso`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `toimitusosoite` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `kayttaja_id` int(11) NOT NULL,
+  `osoite_id` tinyint(2) NOT NULL AUTO_INCREMENT,
+  `sahkoposti` varchar(255) NOT NULL,
+  `puhelin` varchar(20) NOT NULL,
+  `yritys` varchar(50) NOT NULL,
+  `katuosoite` varchar(255) NOT NULL,
+  `postinumero` smallint(6) NOT NULL,
+  `postitoimipaikka` varchar(255) NOT NULL,
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;

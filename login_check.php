@@ -5,10 +5,9 @@
 <?php
 	require 'tietokanta.php';
 	require 'email.php';
-	session_start();	// Aloitetaan sessio kayttajan tietoja varten
+	session_start();
 	
 	// Luodaan yhteys
-	// TODO: try-catch ( or die() -tapaa ei pitäisi käyttää )
 	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
 					or die("Connection error:" . mysqli_connect_error());
 	
@@ -16,7 +15,7 @@
 		header("Location:login.php");
 		exit();
 	}
-	// Haetaan moodi edelliseltä sivulta
+	
 	$mode = $_POST["mode"];
 
 	//Mode --> Sisääkirjautuminen
@@ -77,14 +76,7 @@
 					VALUES 
 						('$key','$email')";
 				
-				$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
-				// Luo GUID
-				// Lisää data tietokantaan
-				// Tulosta linkki
-				//echo ( "<br /><br /><h2>Odota hetki, ohjataan uudelleen...<br /></h2>");
-				//sleep(2); //Jotain outoa ajoituksen kanssa. Jos sen lähettää heti, niin se valitaa pyyntöä vanhentuneeksi.
-				// Oletan, että jotain outoa aikojen vertailun kanssa. Tämä on nopea (ja ehkä huono) korjaus.
-				//header("Location:pw_reset.php?id=$key");
+				$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 				
 				laheta_salasana_linkki($email, $key);
 				header("Location:login.php?redir=9");

@@ -88,7 +88,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			</fieldset>
 		</div>
 <?php
-	} elseif ( $mode == 9 ) {	// Jos moodi == salasanan uusiminen onnistunut
+	} elseif ( $mode == 9 ) {	// Jos moodi == salasanan palautuslinkin lähteys
 ?>
 		<div id="content">
 			<fieldset id=error>
