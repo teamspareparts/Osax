@@ -51,14 +51,16 @@
 			merge_products_with_tecdoc($products);
 
 			echo '<table>';
-			echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>tilattu kpl</th></tr>';
+			echo '<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>|ilman ALV</th><th>ALV-%</th><th>tilattu kpl</th></tr>';
 			foreach ($products as $product) {
 				$article = $product->directArticle;
 				echo '<tr>';
 				echo "<td>$article->articleName</td>";
 				echo "<td>$article->brandName</td>";
 				echo "<td>$article->articleNo</td>";
+				echo "<td>" . format_euros(($product->pysyva_hinta)*(1+($product->pysyva_alv))) . "</td>";
 				echo "<td>" . format_euros($product->pysyva_hinta) . "</td>";
+				echo "<td>" . $product->pysyva_alv . "</td>";
 				echo "<td>$product->kpl</td>";
 				echo '</tr>';
 			}
@@ -80,11 +82,12 @@
 		//
 		function get_products_in_tilaus($id) {
 			global $connection;
-			$query = "SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.kpl
-						FROM tilaus
-					LEFT JOIN tilaus_tuote
-						ON tilaus_tuote.tilaus_id=tilaus.id
-					WHERE tilaus.id = '$id'";
+			$query = "
+				SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.kpl
+				FROM tilaus
+				LEFT JOIN tilaus_tuote
+					ON tilaus_tuote.tilaus_id=tilaus.id
+				WHERE tilaus.id = '$id'";
 			$result = mysqli_query($connection, $query);
 			if ($result) {
 				$products = [];

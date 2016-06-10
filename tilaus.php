@@ -30,7 +30,10 @@ function get_products_in_shopping_cart() {
     }
 
     $ids = addslashes(implode(', ', array_keys($cart)));
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo, minimimyyntiera FROM tuote WHERE id in ($ids);");
+	$result = mysqli_query($connection, "
+		SELECT	id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
+		FROM	tuote 
+		WHERE 	id in ($ids);");
 
 	if ($result) {
 		$products = [];
@@ -68,17 +71,24 @@ function order_products($products) {
 	foreach ($products as $product) {
 		$article = $product->directArticle;
 		$product_id = addslashes($article->articleId);
-		$product_price = addslashes($product->hinta);
+		$product_price = addslashes($product->hinta_ilman_ALV);
+		$alv_prosentti = addslashes($product->ALV_taso);
+		$alv_prosentti = hae_ALV_prosentti($alv_prosentti);
 		$product_count = addslashes($product->cartCount);
-		$result = mysqli_query($connection, "INSERT INTO tilaus_tuote (tilaus_id, tuote_id, pysyva_hinta, kpl) VALUES ($order_id, $product_id, $product_price, $product_count);");
+		$result = mysqli_query($connection, "
+			INSERT INTO tilaus_tuote 
+				(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, kpl) 
+			VALUES 
+				($order_id, $product_id, $product_price, $alv_prosentti, $product_count);");
 		if (!$result) {
 			return false;
 		}
 		//päivitetään varastosaldo
 		$uusi_varastosaldo = $product->varastosaldo - $product_count;
-		$query = "UPDATE tuote
-					SET varastosaldo = '$uusi_varastosaldo'
-					WHERE id = '$product_id'";
+		$query = "
+			UPDATE	tuote
+			SET		varastosaldo = '$uusi_varastosaldo'
+			WHERE 	id = '$product_id'";
 		$result = mysqli_query($connection, $query);
 	}
 

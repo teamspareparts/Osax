@@ -531,7 +531,7 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 	$id = intval($id);
 	$price = doubleval($price);
 	$alv = intval($alv);
-	$price_with_alv = $price * (1 + hae_ALV_prosentti($alv));
+	$price_with_alv = $price * (1.00 + hae_ALV_prosentti($alv));
 	$count = intval($count);
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
@@ -548,7 +548,7 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 function get_products_in_catalog() {
 	global $connection;
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta, varastosaldo, minimisaldo, minimimyyntiera 
+		SELECT	id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
 		FROM	tuote;");
 	if ($result) {
 		$products = [];
@@ -648,7 +648,15 @@ function print_catalog($products) {
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->minimisaldo) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showModifyDialog($product->id, '" . str_replace('.', ',', $product->hinta) . "', $product->varastosaldo, $product->minimisaldo, $product->minimimyyntiera)\">Muokkaa</a> <a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista</a></td>";
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" 
+				onclick=\"showModifyDialog(
+					$product->id,
+					'" . str_replace('.', ',', $product->hinta_ilman_ALV) . "', 
+					$product->ALV_taso,
+					$product->varastosaldo, 
+					$product->minimisaldo, 
+					$product->minimimyyntiera)
+					\">Muokkaa</a> <a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -656,17 +664,6 @@ function print_catalog($products) {
 		echo '<p>Ei tuotteita valikoimassa.</p>';
 	}
 	echo '</div>';
-}
-
-function hae_ALV_prosentti($ALV_taso) {
-	global $connection;
-	$sql_query = "
-			SELECT	prosentti
-			FROM	ALV_taso
-			WHERE	taso = '$ALV_taso'";
-	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
-	$prosentti = mysqli_fetch_assoc($result)['prosentti'];
-	return $prosentti;
 }
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;

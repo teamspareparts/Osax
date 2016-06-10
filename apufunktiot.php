@@ -100,3 +100,18 @@ function handle_shopping_cart_action() {
 		}
 	}
 }
+
+/*
+Hakee annetun ALV-tason prosentin tietokannasta
+*/
+function hae_ALV_prosentti($ALV_taso) {
+	global $connection;
+	$sql_query = "
+			SELECT	prosentti
+			FROM	ALV_taso
+			WHERE	taso = '$ALV_taso'";
+	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+	$prosentti = mysqli_fetch_assoc($result)['prosentti'];
+	//$prosentti = str_replace('.', ',', $prosentti);
+	return $prosentti;
+}
