@@ -15,92 +15,45 @@
 <?php
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
-	if ( $mode == 1 ) {			// Jos moodi == väärä sähköposti
+	$modes_array = [
+		1 => array(
+			"otsikko" => " Väärä sähköposti ",
+			"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein."),
+		2 => array(
+			"otsikko" => " Väärä salasana ",
+			"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein."),
+		3 => array(
+			"otsikko" => " Käyttäjätili poistettu ",
+			"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun."),
+		4 => array(
+			"otsikko" => " Et ole kirjautunut sisään ",
+			"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa."),
+		5 => array(
+			"otsikko" => " :( ",
+			"teksti" => "Olet onnistuneesti kirjautunut ulos."),
+		6 => array(
+			"otsikko" => " Salasanan palautus ",
+			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen."),
+		7 => array(
+			"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
+			"teksti" => "Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan."),
+		8 => array(
+			"otsikko" => " Salasanan palautus - Onnistunut ",
+			"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
+		9 => array(
+			"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty ",
+			"teksti" => "Salasanan palautuslinkki on lähetetty sähköpostiinne."),
+		];
 ?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Väärä sähköposti </legend>
-				<p>Sähköposti on väärä. Varmista, että kirjoitit tiedot oikein.</p>
-			</fieldset>
-		</div>
+	<div id="content">
+		<fieldset id=error>
+			<legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
+			<p> <?= $modes_array[$mode]['teksti'] ?> </p>
+		</fieldset>
+	</div>
 <?php
-	} elseif ( $mode == 3 ) {	// Jos moodi == väärä salasana
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Väärä salasana </legend>
-				<p>Väärä salasana. Varmista, että kirjoitit tiedot oikein.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 4 ) {	// Jos moodi == käyttäjätili poistettu
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Käyttäjätili poistettu </legend>
-				<p>Ylläpitäjä on poistanut käyttöoikeutesi palveluun.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 5 ) {	// Jos moodi == ei ole kirjautunut sisään
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Et ole kirjautunut sisään </legend>
-				<p>Ole hyvä, ja kirjaudu sisään.
-				Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 6 ) {	// Jos moodi == uloskirjautuminen
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> :( </legend>
-				<p>Olet onnistuneesti kirjautunut ulos.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 2 ) {	// Jos moodi == salasanan palautus
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Salasanan palautus </legend>
-				<p>Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 7 ) {	// Jos moodi == pyyntö vanhentunut
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Salasanan palautus - Pyyntö vanhentunut </legend>
-				<p>Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 8 ) {	// Jos moodi == salasanan uusiminen onnistunut
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Salasanan palautus - Onnistunut </legend>
-				<p>Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään.</p>
-			</fieldset>
-		</div>
-<?php
-	} elseif ( $mode == 9 ) {	// Jos moodi == salasanan palautuslinkin lähteys
-?>
-		<div id="content">
-			<fieldset id=error>
-				<legend> Salasanan palautus - Palautuslinkki lähetetty </legend>
-				<p>Salasanan palautuslinkki on lähetetty sähköpostiinne.</p>
-			</fieldset>
-		</div>
-<?php
-	}
 }
 ?>
-
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
@@ -124,9 +77,8 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
+	
 </div>
-
-
 
 </body>
 </html>

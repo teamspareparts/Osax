@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `ALV_taso` (
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
-  `osoite_id` tinyint(2) NOT NULL AUTO_INCREMENT,
+  `osoite_id` tinyint(2) NOT NULL,
   `sahkoposti` varchar(255) NOT NULL,
   `puhelin` varchar(20) NOT NULL,
   `yritys` varchar(50) NOT NULL,
