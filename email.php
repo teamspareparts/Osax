@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 /**
  * curl.cainfo osoitettava certifikaatteihin php.ini tiedostossa.
@@ -12,8 +12,8 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 function send_email($email, $subject, $message){
 
 	$url = 'https://api.sendgrid.com/';
-	$user = '';	/** Tähän kohtaan SendGrid käyttäjätunnus **/
-	$pass = ''; /** Tähän kohtaan SendGrid salasana **/
+	$user = 'tuoteluettelonsposti';	/** Tähän kohtaan SendGrid käyttäjätunnus **/
+	$pass = 'KettujenKevat123'; /** Tähän kohtaan SendGrid salasana **/
 
 	
 	//sähköpostin parametrit
@@ -58,7 +58,7 @@ function send_email($email, $subject, $message){
 
 function laheta_salasana_linkki($email, $key){
 	$subject = "Slasanan vaihtaminen";
-	$message = 'Salasanan vaihto onnistuu osoitteessa: http://__sivuston__julkinen__osoite__/pw_reset.php?id=' . $key;	/** Sivun julkinen osoite tähän. **/
+	$message = 'Salasanan vaihto onnistuu osoitteessa: http://localhost/Tuoteluettelo/pw_reset.php?id=' . $key;
 	send_email($email, $subject, $message);
 }
 
@@ -77,10 +77,10 @@ function laheta_tilausvahvistus($email, $products, $tilausnro){
 	}
 	$productTable .= "</table><br><br><br>";
 	$contactinfo = 'Yhteystiedot:<br>
-					Rantakylän AD Varaosamaailma<br>
-					Jukolankatu 20 80100 Joensuu<br>		
-					Puh. 044-7835005<br>
-					Fax. 013-2544171';
+					Rantakylän Varaosa Oy<br>
+					Jukolankatu 19 80100 Joensuu<br>		
+					puh. 010 5485200<br>
+					toimisto@rantakylanvaraosa.fi';
 	$message = 'Tilaaja: ' . $email . '<br>Tilausnumero: ' . $tilausnro. '<br>Summa: ' . format_euros($summa) . '<br> Tilatut tuotteet:<br>' . $productTable . $contactinfo;
 	send_email($email, $subject, $message);
 	return true;
@@ -95,7 +95,7 @@ function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
 	global $connection;
 	
 	//yllapitajan sposti
-	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja = 1";
+	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja=1";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	if (!$result) return false;
 	
@@ -103,8 +103,7 @@ function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
 	$yp_email = $row->sahkoposti;
 
 	//haetaan käyttäjän tiedot
-	$sposti = $_SESSION["email"];
-	$query = "SELECT * FROM kayttaja WHERE sahkoposti= '$sposti'";
+	$query = "SELECT * FROM kayttaja WHERE sahkoposti='$email'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	if (!$result) return false;
 	
@@ -140,7 +139,28 @@ function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
 	return true;
 }
 
-
+function laheta_ilmoitus_epailyttava_IP($email, $vanha_sijainti, $uusi_sijainti){
+	
+	global $connection;
+	//haetaan yllapitajan sposti
+	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja=1";
+	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+	if (!$result) return false;
+	$row = mysqli_fetch_object($result);
+	$yp_email = $row->sahkoposti;
+	
+	//emailin sisältö
+	$subject = "Epäilyttävää käytöstä";
+	$message = "Asiakas ...tiedot tähän..... <br>" .
+				"Vanha sijainti:" . $vanha_sijainti . "<br>" .
+				"Uusi sijainti:" . $uusi_sijainti;
+			
+	
+	;
+	
+	
+	send_email($yp_email, $subject, $message);
+}
 
 
 

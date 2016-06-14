@@ -1,14 +1,19 @@
+
+
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `salasana_hajautus` varchar(100) COLLATE utf8_swedish_ci NOT NULL,
-  `salasana_aika` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `etunimi` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
-  `sukunimi` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
-  `yritys` varchar(50) COLLATE utf8_swedish_ci NOT NULL,
-  `sahkoposti` varchar(255) COLLATE utf8_swedish_ci NOT NULL,
-  `puhelin` varchar(20) COLLATE utf8_swedish_ci NOT NULL,
+  `salasana_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `etunimi` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `sukunimi` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `yritys` varchar(50) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `sahkoposti` varchar(255) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `puhelin` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
+  `viime_sijainti` varchar(100) COLLATE utf8_swedish_ci DEFAULT '',
+  `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `voimassaolopvm` timestamp NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -20,6 +25,10 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0',
   `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
+  `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
+  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0',
+  `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -34,9 +43,9 @@ CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
-  `osoite_id` tinyint(2) NOT NULL
+  `osoite_id` tinyint(2) NOT NULL,
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
-  `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -54,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `reset_key` varchar(100) NOT NULL,
   `user_id` varchar(255) COLLATE utf8_swedish_ci NOT NULL,
-  `reset_exp_aika` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 

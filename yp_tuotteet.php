@@ -24,8 +24,10 @@
 		exit();
 	}
 ?>
-
 <h1 class="otsikko">Tuotteet</h1>
+<div id="painikkeet">
+	<a href="lue_tiedostosta.php"><span class="nappi">Lisää tiedostosta</span></a>
+</div>
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
@@ -464,12 +466,14 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount)
 			    }
 			    else {
 			        e.preventDefault();
-			        alert("Täytä kaikki kohdat ennen hakua! tms.....");
+			        alert("Täytä kaikki kohdat ennen hakua!");
 			        return false;
 			    }
 			});
-
+			
 		});
+
+
 
 
 		//apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun
@@ -488,7 +492,7 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-$catalog_products = get_products_in_catalog();
+//$catalog_products = get_products_in_catalog();
 
 //
 // Lisää uuden tuotteen valikoimaan
@@ -506,19 +510,21 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 		INSERT INTO tuote 
 			(id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera) 
 		VALUES 
-			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count');");
+			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count')
+		ON DUPLICATE KEY 
+			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count, aktiivinen=1;");
 	return $result;
 }
 
 //
-// Poistaa tuotteen valikoimasta
+// Deaktivoi tuotteen valikoimasta
 //
 function remove_product_from_catalog($id) {
 	global $connection;
 	$id = intval($id);
 	mysqli_query($connection, "
-		DELETE 
-		FROM tuote 
+		UPDATE tuote 
+		SET aktiivinen=0 
 		WHERE id=$id;");
 	return mysqli_affected_rows($connection) > 0;
 }
@@ -536,9 +542,9 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
 	$result = mysqli_query($connection, "
-		UPDATE	tuote 
-		SET		hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count 
-		WHERE	id=$id;");
+		UPDATE 	tuote 
+		SET 	hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count 
+		WHERE 	id=$id;");
 	return mysqli_affected_rows($connection) >= 0;
 }
 
@@ -548,8 +554,9 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 function get_products_in_catalog() {
 	global $connection;
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
-		FROM	tuote;");
+		SELECT id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
+		FROM tuote 
+		WHERE aktiivinen=1;");
 	if ($result) {
 		$products = [];
 		while ($row = mysqli_fetch_object($result)) {
@@ -651,10 +658,10 @@ function print_catalog($products) {
 			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" 
 				onclick=\"showModifyDialog(
 					$product->id,
-					'" . str_replace('.', ',', $product->hinta_ilman_ALV) . "', 
+					'" . str_replace('.', ',', $product->hinta_ilman_ALV) . "',
 					$product->ALV_taso,
-					$product->varastosaldo, 
-					$product->minimisaldo, 
+					$product->varastosaldo,
+					$product->minimisaldo,
 					$product->minimimyyntiera)
 					\">Muokkaa</a> <a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showRemoveDialog($product->id)\">Poista</a></td>";
 			echo '</tr>';
@@ -665,6 +672,8 @@ function print_catalog($products) {
 	}
 	echo '</div>';
 }
+
+
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
@@ -761,7 +770,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		echo '</div>';
 
 	}
-
+	$catalog_products = get_products_in_catalog();
 	print_results($number);
 	print_catalog($catalog_products);
 

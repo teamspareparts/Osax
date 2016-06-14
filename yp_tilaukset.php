@@ -6,11 +6,13 @@
 	<title>Tilaukset</title>
 </head>
 <body>
-<?php 	include 'header.php';?>
+<?php 	
+include 'header.php';
+?>
 <div id=tilaukset>
 	<h1 class="otsikko">Tilaukset</h1>
 	<div id="painikkeet">
-		<a href="yp_tilaushistoria.php"><span class="tilaushistoria_painike">Tilaushistoria</span></a>
+		<a href="yp_tilaushistoria.php"><span class="nappi">Tilaushistoria</span></a>
 	</div>
 	<br><br>
 </div>
@@ -51,8 +53,8 @@
 						'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
 						'</span><span class="yritys">' . $row["yritys"] .
 						'</span><span class="sum">' . format_euros($row["summa"]) .
-						'</span><a>';
-					echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '">';
+						'</span></a>';
+					echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '/">';
 					echo '</fieldset>';
 				}
 
@@ -70,34 +72,32 @@
 </div>
 
 
-	<?php
-		if (isset($_POST['ids'])){
-			db_merkitse_tilaus($_POST['ids']);
+<?php
 
-			header("Location:yp_tilaukset.php");
-			exit;
+if (isset($_POST['ids'])){
+	db_merkitse_tilaus($_POST['ids']);
+	header("Location:yp_tilaukset.php");
+	exit();
+}
+
+	function db_merkitse_tilaus($ids){
+		$tbl_name="tilaus";				// Taulun nimi
+
+
+		//Palvelimeen liittyminen
+		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+
+		foreach ($ids as $id) {
+			$query = "UPDATE $tbl_name
+			SET kasitelty = 1
+			WHERE id='$id'";
+			mysqli_query($connection, $query) or die(mysqli_error($connection));
 		}
+		mysqli_close($connection);
 
-
-
-		function db_merkitse_tilaus($ids){
-			$tbl_name="tilaus";				// Taulun nimi
-
-
-			//Palvelimeen liittyminen
-			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-
-			foreach ($ids as $id) {
-				$query = "UPDATE $tbl_name
-				SET kasitelty = 1
-				WHERE id='$id'";
-				mysqli_query($connection, $query) or die(mysqli_error($connection));
-			}
-			mysqli_close($connection);
-
-			return;
-		}
-	?>
+		return;
+	}
+?>
 
 
 </body>

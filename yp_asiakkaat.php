@@ -10,7 +10,7 @@
 <div id=asiakas>
 	<h1 class="otsikko">Asiakkaat</h1>
 	<div id="painikkeet">
-		<a href="yp_lisaa_asiakas.php"><span class="lisaa_asiakas_painike">Lisää uusi asiakas</span></a>
+		<a href="yp_lisaa_asiakas.php"><span class="nappi">Lisää uusi asiakas</span></a>
 	</div>
 	<br><br><br>
 
@@ -51,8 +51,6 @@
 						echo '</fieldset>';
 					}
 				}
-
-
 				mysqli_close($connection);
 
 			?>

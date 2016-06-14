@@ -1,4 +1,4 @@
-@CHARSET "ISO-8859-1";
+@CHARSET "UTF-8";
 
 /*Varmuuden varalle...*/
 html, body {
@@ -11,7 +11,7 @@ input {
 
 /***************************************
 
-	Menu palkin tyylittely�
+	Menu palkin tyylittelyï¿½
 
 ***************************************/
 
@@ -38,7 +38,7 @@ input {
 }
 
 
-/*	T�ytyy olla, jotta KIRJAUDU ULOS -painike pysyy
+/*	Tï¿½ytyy olla, jotta KIRJAUDU ULOS -painike pysyy
 	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
 #navigationbar ul:after {
 	content: " ";
@@ -153,8 +153,8 @@ input {
 ********************************************/
 
 .nappi,
-#asiakas .lisaa_asiakas_painike, #lista #submit input[type=submit],
-#lomake #submit input[type=submit], #tilaukset .tilaushistoria_painike {
+#lista #submit input[type=submit],
+#lomake #submit input[type=submit] {
     padding: 8px 15px;
     color: #FFF;
     -webkit-border-radius: 4px;
@@ -181,40 +181,9 @@ input {
 
 /********************************************
 
-	Yll�pit�j�n asiakas sivun tyylittely
+	Yllï¿½pitï¿½jï¿½n asiakas sivun tyylittely
 
 *********************************************/
-
-#asiakas {
-	width: 100%;
-}
-
-
-#asiakas #painikkeet {
-	width: 44%;
-	text-align: right;
-	display: inline-block;
-}
-
-#asiakas #painikkeet a {
-	text-align: right;
-	text-decoration: none;
-}
-
-
-
-#asiakas .lisaa_asiakas_painike {
-    background: #4479BA;
-    border-color: #20538D;
-}
-
-
-
-#asiakas .lisaa_asiakas_painike:HOVER {
-    background: #356094;
-    border: solid 1px #2A4E77;
-    cursor: pointer;
-}
 
 
 
@@ -245,7 +214,7 @@ input {
 
 /********************************************
 
-	Yll�pit�j�n asiakas tiluashistoria sivu
+	Yllï¿½pitï¿½jï¿½n asiakas tiluashistoria sivu
 
 *********************************************/
 
@@ -269,41 +238,10 @@ input {
 
 /********************************************
 
-	Yll�pit�j�n tilaukset sivu
+	Yllï¿½pitï¿½jï¿½n tilaukset sivu
 
 *********************************************/
 
-
-#tilaukset {
-	width: 100%;
-}
-
-
-#tilaukset #painikkeet {
-	width: 44%;
-	text-align: right;
-	display: inline-block;
-}
-
-#tilaukset #painikkeet a {
-	text-align: right;
-	text-decoration: none;
-}
-
-
-
-#tilaukset .tilaushistoria_painike {
-    background: #4479BA;
-    border-color: #20538D;
-}
-
-
-
-#tilaukset .tilaushistoria_painike:HOVER {
-    background: #356094;
-    border: solid 1px #2A4E77;
-    cursor: pointer;
-}
 
 
 #tilaukset #lista #submit input[type=submit] {
@@ -356,7 +294,7 @@ input {
 
 
 
-/* keskitet��n form */
+/* keskitetï¿½ï¿½n form */
 #lomake {
 	display: block;
 	text-align: center;
@@ -423,7 +361,7 @@ input {
 
 /*************************************************
 
-	Listojen tyylittely (joissa k�ytet��n checkbox)
+	Listojen tyylittely (joissa kï¿½ytetï¿½ï¿½n checkbox)
 
 **************************************************/
 
@@ -627,6 +565,20 @@ th {
 
 #ajoneuvohaku {
 	margin-left: 5%;
+}
+
+
+
+/** Otsikon vasemmalla puolella olevat napit */
+#painikkeet {
+	width: 44%;
+	text-align: right;
+	display: inline-block;
+}
+
+#painikkeet a {
+	text-align: right;
+	text-decoration: none;
 }
 
 

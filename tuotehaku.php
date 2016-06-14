@@ -503,6 +503,7 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero/EAN/OE-numero
 //
 function filter_by_article_number($products, $number) {
+	
 	// Korvaa jokerimerkit * ja ? säännöllisen lausekkeen vastineilla
 	// ja jättää muut säännöllisten lausekkeiden merkinnät huomioimatta.
 	function replace_wildcards($string) {
@@ -514,7 +515,7 @@ function filter_by_article_number($products, $number) {
 
 	function matches_any_number($regexp, $product) {
 		$numbers = [
-			$product->directArticle->articleNo,
+			str_replace(" ", "", $product->directArticle->articleNo),
             $product->ean,
             $product->oe,
 		];
@@ -526,8 +527,10 @@ function filter_by_article_number($products, $number) {
 		return false;
 	}
 
+	//Poistetaan välilyönnit
+	$number = str_replace(" ", "", $number);
 	// Muodostetaan säännöllinen lauseke joka tunnistaa minkä tahansa annetuista numeroista
-	$regexp = '/^' . replace_wildcards($number) . '$/i';
+	$regexp = '@^' . replace_wildcards($number) . '$@i';
 
 	$filtered = [];
 
@@ -558,7 +561,7 @@ function search_for_product_in_catalog($number) {
     // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
     $id_list = implode(',', $ids);
     $number = addslashes($number);
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote;");
+	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote WHERE aktiivinen=1;");
 
 	if ($result) {
 		$products = [];
