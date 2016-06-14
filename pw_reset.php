@@ -20,14 +20,15 @@
 		$id = $_GET["id"]; // Käyttäjän henkilökohtainen, salattu ID; tallennettu tietokantaan
 		if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			$mode = $_GET["redir"];		// Otetaan moodi talteen
-			if ( $mode == 1 ) {			// Jos moodi --> varmistu != salasana ?>
+			if ( $mode == 1 ) {			// Jos moodi --> varmistu != salasana 
+?>
 				<div id="content">
 					<fieldset id=error>
 						<legend> Salasana ja varmistus ei täsmää </legend>
 						<p>Kokeile uudestaan. Varmista, että antamasi salasana ja varmistus täsmäävät</p>
 					</fieldset>
 				</div>
-			<?php
+<?php
 			}
 		}
 		if ( !empty($_POST['new_password']) ) {		//
@@ -41,6 +42,7 @@
 			
 				if ( db_vaihda_salasana($salasana) == TRUE ) {
 					unset($_SESSION['sposti']);
+					//salasanan vaihto onnistui
 					header("Location:login.php?redir=8");
 				}
 				
@@ -84,7 +86,14 @@
 				/*
 				 * Linkki pysyy aktiivisena vain tunnin.
 				 */
-				if ( $difference < 1 ) { //Tarkistetaan aika ?>
+				
+				/****************************************
+				 * 										*
+				 * HUOM! Allaolevaa lukua pitää 		*
+				 * muutta tietokannan asetusten mukaan	*
+				 * 										*
+				 ****************************************/
+				if ( $difference < 4 ) { //Tarkistetaan aika ?>
 					<fieldset><legend>Unohditko salasanasi?</legend>
 						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
 							<?php echo $_SESSION['sposti']; // Muistutuksena kauttajalle ?>
@@ -129,7 +138,7 @@
 			//päivitetään uusi salasana tietokantaan
 			$query = "
 				UPDATE	kayttaja 
-				SET 	salasana_hajautus='$hajautettu_uusi_salasana'
+				SET 	salasana_hajautus='$hajautettu_uusi_salasana', salasana_aika=now()
 				WHERE	sahkoposti='$asiakas_sposti'";
 			mysqli_query($connection, $query) or die(mysqli_error($connection));
 

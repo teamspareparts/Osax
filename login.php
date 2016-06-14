@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
@@ -11,39 +11,45 @@
 </h1>
 
 <!-- -->
-<div id="login_container">
+<div id="login_container"><a></a>
 <?php
+
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
+	/**
+	 * Mikäli halutaan poistaa urlissa oleva get
+	 * ?>  
+	 *	<script type="text/javascript">
+	 *	window.history.pushState('login', 'Title', 'login.php');
+	 *	</script> 
+	 * <?php
+	**/
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
 	$modes_array = [
 		1 => array(
-			"otsikko" => " Väärä sähköposti ",
-			"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein."),
+				"otsikko" => " Väärä sähköposti ",
+				"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein."),
 		2 => array(
-			"otsikko" => " Väärä salasana ",
-			"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein."),
+				"otsikko" => " Käyttäjätili poistettu ",
+				"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun."),
 		3 => array(
-			"otsikko" => " Käyttäjätili poistettu ",
-			"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun."),
+				"otsikko" => " Väärä salasana ",
+				"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein."),
 		4 => array(
-			"otsikko" => " Et ole kirjautunut sisään ",
-			"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa."),
+				"otsikko" => " Et ole kirjautunut sisään ",
+				"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa."),
 		5 => array(
-			"otsikko" => " :( ",
-			"teksti" => "Olet onnistuneesti kirjautunut ulos."),
+				"otsikko" => " :( ",
+				"teksti" => "Olet onnistuneesti kirjautunut ulos."),
 		6 => array(
-			"otsikko" => " Salasanan palautus ",
-			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen."),
+				"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
+				"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen."),
 		7 => array(
-			"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
-			"teksti" => "Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan."),
+				"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
+				"teksti" => "Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan."),
 		8 => array(
-			"otsikko" => " Salasanan palautus - Onnistunut ",
-			"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
-		9 => array(
-			"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty ",
-			"teksti" => "Salasanan palautuslinkki on lähetetty sähköpostiinne."),
-		];
+				"otsikko" => " Salasanan palautus - Onnistunut ",
+				"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
+	];
 ?>
 	<div id="content">
 		<fieldset id=error>
@@ -54,6 +60,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 <?php
 }
 ?>
+
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
@@ -79,6 +86,8 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	</fieldset>
 	
 </div>
+
+
 
 </body>
 </html>
