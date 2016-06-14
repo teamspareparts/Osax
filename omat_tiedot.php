@@ -141,12 +141,12 @@
 			<label><span>Katuosoite</span></label><?= $row['katuosoite']?><br>
 			<label><span>Postinumero</span></label><?= $row['postinumero']?><br>
 			<label><span>Postitoimipaikka</span></label><?= $row['postitoimipaikka']?><br><br>
-			<!--
+			
 			<form action="_toimitusosoite-test.php" name="testilomake" method="post">
 				<input type=hidden name=muokkaa value="<?= $i ?>">
 				<input type=submit value="Muokkaa">
 			</form> 
-			-->
+			
 			</p><hr>
 			<?php $i++;
 		}

@@ -7,80 +7,77 @@
 </head>
 <body>
 
+	<!-- 
+TODO: Incorporate this page into Omat_tiedot.php-page
+... yes, that would very good indeed.
+	-->
+	
 <?php
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)
 				or die("Connection error:" . mysqli_connect_error());
 				
-function hae_kaikki_toimitusosoitteet_ja_tulosta($kayttaja_id) {
+$id = $_SESSION['id']; //Tarvitaan funktioissa
+
+/* 
+Hakee kirjautuneen kayttajan toimitusosoitteen,
+ ja palauttaa sen arrayna.
+Param: 
+	$osoite_id : int, muokattavan t.o.:n ID
+Return:	Array, jossa toimitusosoitteen tiedot
+*/
+function hae_toimitusosoite($osoite_id) {
 	global $connection;
+	global $id;
+	
 	$sql_query = "
 			SELECT	*
 			FROM	toimitusosoite
-			WHERE	kayttaja_id = '$kayttaja_id'";
-	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-	$i = 1;
-	while ($row = $result->fetch_assoc()) {
-        /*HTML-tulostus*/?>
-		<p> Osoite <?= $i ?><br>
-		Sähköposti: <?= $row['sahkoposti']?><br>
-		Puhelin:  <?= $row['puhelin']?><br>
-		Yritys:  <?= $row['yritys']?><br>
-		Katuosoite:  <?= $row['katuosoite']?><br>
-		Postinumero:  <?= $row['postinumero']?><br>
-		Postitoimipaikka:  <?= $row['postitoimipaikka']?><br><br>
-		<form action="_toimitusosoite-test.php" name="testilomake" method="post">
-			<input type=hidden name=muokkaa value="<?= $i ?>">
-			<input type=submit value="Muokkaa">
-		</form>
-		</p><hr>
-		<?php $i++;
-    }
-}
-function hae_toimitusosoite($kayttaja_id, $osoite_id) {
-	global $connection;
-	$sql_query = "
-			SELECT	*
-			FROM	toimitusosoite
-			WHERE	kayttaja_id = '$kayttaja_id' 
+			WHERE	kayttaja_id = '$id' 
 				AND osoite_id = '$osoite_id'";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-	
 	$row = $result->fetch_assoc();
 	return $row;
 }
 
+/* 
+Tallentaa uudet tiedot tietokantaan.
+ Tallennettavat tiedot $_POST-muuttujan kautta.
+ Funktio on tarkoitus kutsua vain lomakkeen lähetyksen jälkeen.
+Param: ---
+Return:	Boolean, true/false
+*/
 function tallenna_uudet_tiedot() {
+	global $id;
 	global $connection;
+	
 	$osoite_id = $_POST['osoite_id'];
-	$a = $_POST['email'];
+	$a = $_POST['email'];		//Olin laiska kun nimesin nama muuttujat
 	$b = $_POST['puhelin'];
 	$c = $_POST['yritys'];
 	$d = $_POST['katuosoite'];
 	$e = $_POST['postinumero'];
 	$f = $_POST['postitoimipaikka'];
+	
 	$sql_query = "
 			UPDATE	toimitusosoite
 			SET		sahkoposti='$a', puhelin='$b', yritys='$c', katuosoite='$d', postinumero='$e', postitoimipaikka='$f'
-			WHERE	kayttaja_id = '2' 
+			WHERE	kayttaja_id = '$id' 
 				AND osoite_id = '$osoite_id'";
 				
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-	
-	echo $result;
+	return $result;
 }
 
-if ( empty($_POST["muokkaa"]) && empty($_POST["tallenna"])) {
-	hae_kaikki_toimitusosoitteet_ja_tulosta(2);
-} elseif ( empty($_POST["tallenna"]) ) {
+if ( !empty($_POST["muokkaa"]) ) {
 	$osoite_id = $_POST["muokkaa"];
-	$row = hae_toimitusosoite(2, $osoite_id); 
+	$row = hae_toimitusosoite($id, $osoite_id); 
 	$email 		= $row['sahkoposti'];
 	$puhelin 	= $row['puhelin'];
 	$yritys		= $row['yritys'];
 	$katuosoite	= $row['katuosoite'];
 	$postinumero = $row['postinumero'];
 	$postitoimipaikka = $row['postitoimipaikka']?>
-	
+	<!-- HTML -->
 	<div>Muokkaa toimitusosoitteita</div>
 	<br>
 	<form action=_toimitusosoite-test.php name=testilomake method=post>
@@ -105,7 +102,7 @@ if ( empty($_POST["muokkaa"]) && empty($_POST["tallenna"])) {
 		<br><br>
 		<input type=submit name=tallenna value="Tallenna muutokset">
 		<br>
-	</form> <?php
+	</form> <!-- HTML --><?php
 } elseif ( !empty($_POST["tallenna"]) ) {
 	tallenna_uudet_tiedot();
 }
