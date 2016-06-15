@@ -20,7 +20,7 @@
 	include("header.php");
 	require 'tecdoc.php';
 	if(!is_admin()){
-		header("Location:login.php");
+		header("Location:tuotehaku.php");
 		exit();
 	}
 ?>
@@ -569,6 +569,8 @@ function print_results($number) {
 
 	if (!$number) {
 		return;
+	} else {
+		$number = trim(addslashes($number));
 	}
 
     $ids_in_catalog = [];

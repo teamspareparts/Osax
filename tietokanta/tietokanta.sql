@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tilaus_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
   `pysyva_hinta` decimal(11,2) NOT NULL,
-  `alv` decimal(3,2) NOT NULL,
+  `pysyva_alv` decimal(3,2) NOT NULL,
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;

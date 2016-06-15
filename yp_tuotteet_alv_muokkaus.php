@@ -1,19 +1,5 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-	<meta charset="UTF-8">
-	<title>ALV-testi</title>
-	<?php require 'tietokanta.php';?>
-	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<script src="js/jsmodal-1.0d.min.js"></script>
-</head>
-<body>
-
 <?php
-
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)
-				or die("Connection error:" . mysqli_connect_error());
-/* hae_kaikki_ALV_tasot_ja_tulosta()
+/*
 Hake kaikki tietokannassa olevat ALV-tasot, ja tulostaa ne näkyville.
 Param: ---
 Return: ---
@@ -34,7 +20,7 @@ function hae_kaikki_ALV_tasot_ja_tulosta() {
     }
 }
 
-/* hae_ALV_indeksi()
+/*
 Laskee ALV-tasojen maaran tietokannassa, ja palauttaa kokonaislukuna indeksin.
  Kaytossa lomakkeen numerointia varten js.lisaa_uusi_ALV()-funktiossa. 
  Kyseinen funktio pitaa ylla indeksista jotta ALV-tasot voidaan numeroida kayttajalle,
@@ -95,7 +81,7 @@ function paivita_alv_tietokantaan($key, $alv) {
 function avaaModal() {
   Modal.open( {
     content:  '\
-		<form action=_alv-test.php name=testilomake method=post>\
+		<form action=yp_tuotteet.php.php name=testilomake method=post>\
 			<div id=alv_form_container>\
 				<?php hae_kaikki_ALV_tasot_ja_tulosta() ?> \
 			</div>\
@@ -125,7 +111,6 @@ function lisaa_uusi_ALV() {
 
 <!-- HTML -->
 <input class="button" type="button" value="Muokkaa ALV-tasoja" onClick=avaaModal()>
-<br><br>
 <!-- HTML END -->
 
 <?php
@@ -133,6 +118,3 @@ if ( !empty($_POST["muokkaa_ALV"]) ) {
 	tallenna_uudet_ALV_tiedot($_POST["alv"]);
 }
 ?>
-
-</body>
-</html>

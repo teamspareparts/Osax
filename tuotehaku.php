@@ -557,7 +557,7 @@ function search_for_product_in_catalog($number) {
 
     // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
     $id_list = implode(',', $ids);
-    $number = addslashes($number);
+    $number = trim(addslashes($number));
 	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote;");
 
 	if ($result) {
