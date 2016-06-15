@@ -5,7 +5,7 @@
 	<meta charset="UTF-8">
 	<title>Login</title>
 </head>
-<body>
+<body class=login>
 <h1 style="text-align:center;">
 	<img src="img/rantak_varao-Logo.jpg" alt="Rantakylän Varaosa Oy" style="height:200px;">
 </h1>

@@ -19,15 +19,18 @@
 		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 		$id = $_GET["id"];
-		$query = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa, SUM(tilaus_tuote.kpl) AS kpl
-					FROM tilaus
-					LEFT JOIN kayttaja
-						ON kayttaja.id=tilaus.kayttaja_id
-					LEFT JOIN tilaus_tuote
-						ON tilaus_tuote.tilaus_id=tilaus.id
-					LEFT JOIN tuote
-						ON tuote.id=tilaus_tuote.tuote_id
-					WHERE tilaus.id = '$id'";
+		$query = "
+			SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
+				SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa, 
+				SUM(tilaus_tuote.kpl) AS kpl
+			FROM tilaus
+			LEFT JOIN kayttaja
+				ON kayttaja.id=tilaus.kayttaja_id
+			LEFT JOIN tilaus_tuote
+				ON tilaus_tuote.tilaus_id=tilaus.id
+			LEFT JOIN tuote
+				ON tuote.id=tilaus_tuote.tuote_id
+			WHERE tilaus.id = '$id'";
 		$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 		$row = mysqli_fetch_assoc($result);
 		

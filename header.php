@@ -24,14 +24,10 @@ if (!is_logged_in()) {
 ?>
 <div id="header">
 	<img alt="Logo" src="img/rantak_varao-Logo.jpg" height="100" width="300" align="left">
-	<!-- <h1>Logo</h1> -->
 	<p class="kirjautuneena">Kirjautuneena:</p>
 	<?php
 		echo ('<p class="username">' . $_SESSION['email'] . '</p>');
 	?>
-	<!-- <p class="logout">
-		<a href="logout.php">Kirjaudu ulos</a>
-	</p> -->
 </div>
 
 <div id="navigationbar">

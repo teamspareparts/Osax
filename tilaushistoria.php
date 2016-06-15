@@ -40,37 +40,40 @@
 	<div id="lista">
 		<form>
 		<?php		
-				$tbl_name = "tilaus";
-				$query = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, SUM(tilaus_tuote.kpl) AS kpl, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa 
-							FROM $tbl_name 
-							LEFT JOIN tilaus_tuote
-								ON tilaus_tuote.tilaus_id=tilaus.id
-							WHERE kayttaja_id='$id'
-							GROUP BY tilaus.id";
-				
-				$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-				
-				if (mysqli_num_rows($result) > 0) {
-					echo 	'<fieldset class="lista_info">
-								<p><span class="tilausnumero">Tilausnumero</span><span class="pvm">Päivämäärä</span><span class="tuotteet_kpl">Tuotteet (kpl)</span><span class="sum">Summa</span>Käsitelty</p>
-							</fieldset>';
-					
-					while($row = mysqli_fetch_assoc($result)){
+			$tbl_name = "tilaus";
+			$query = "
+				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
+					SUM(tilaus_tuote.kpl) AS kpl, 
+					SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa 
+				FROM $tbl_name 
+				LEFT JOIN tilaus_tuote
+					ON tilaus_tuote.tilaus_id=tilaus.id
+				WHERE kayttaja_id='$id'
+				GROUP BY tilaus.id";
 			
-						echo '<fieldset>';
-						echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
-						'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
-						'</span><span class="tuotteet_kpl">' . $row["kpl"] . '</span>' . 
-						'</span><span class="sum">' . $row["summa"] . "eur" . '</span>';
-						if ($row["kasitelty"] == 1) echo "OK";
-						else echo "<span style='color:red'>EI</span>";
-						echo '</a></fieldset>';
-					}
-				} else {
-					echo 'Ei tehtyjä tilauksia.';
-				}
+			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+			
+			if (mysqli_num_rows($result) > 0) {
+				echo 	'<fieldset class="lista_info">
+							<p><span class="tilausnumero">Tilausnumero</span><span class="pvm">Päivämäärä</span><span class="tuotteet_kpl">Tuotteet (kpl)</span><span class="sum">Summa</span>Käsitelty</p>
+						</fieldset>';
 				
-				mysqli_close($connection);
+				while($row = mysqli_fetch_assoc($result)){
+		
+					echo '<fieldset>';
+					echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
+					'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
+					'</span><span class="tuotteet_kpl">' . $row["kpl"] . '</span>' . 
+					'</span><span class="sum">' . $row["summa"] . "eur" . '</span>';
+					if ($row["kasitelty"] == 1) echo "OK";
+					else echo "<span style='color:red'>EI</span>";
+					echo '</a></fieldset>';
+				}
+			} else {
+				echo 'Ei tehtyjä tilauksia.';
+			}
+			
+			mysqli_close($connection);
 	
 			?>
 			<br>

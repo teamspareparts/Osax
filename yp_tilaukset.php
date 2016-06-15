@@ -30,7 +30,7 @@ include 'header.php';
 				require 'apufunktiot.php';
 				
 				if (!is_admin()) {
-					header("Location:login.php");
+					header("Location:tuotehaku.php");
 					exit();
 				}
 
