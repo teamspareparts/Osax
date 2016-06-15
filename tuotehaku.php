@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
@@ -528,7 +528,7 @@ function filter_by_article_number($products, $number) {
 	}
 
 	//Poistetaan välilyönnit
-	$number = str_replace(" ", "", $number);
+	//$number = str_replace(" ", "", $number);
 	// Muodostetaan säännöllinen lauseke joka tunnistaa minkä tahansa annetuista numeroista
 	$regexp = '@^' . replace_wildcards($number) . '$@i';
 
@@ -560,13 +560,9 @@ function search_for_product_in_catalog($number) {
 
     // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
     $id_list = implode(',', $ids);
-<<<<<<< HEAD
-    $number = addslashes($number);
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote WHERE aktiivinen=1;");
-=======
+    
     $number = trim(addslashes($number));
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote;");
->>>>>>> origin/master
+	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote WHERE aktiivinen=1;");
 
 	if ($result) {
 		$products = [];
