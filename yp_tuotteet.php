@@ -19,6 +19,8 @@
 <?php
 	include("header.php");
 	require 'tecdoc.php';
+	require 'tietokanta.php';
+	require 'apufunktiot.php';
 	if(!is_admin()){
 		header("Location:tuotehaku.php");
 		exit();
@@ -27,6 +29,7 @@
 <h1 class="otsikko">Tuotteet</h1>
 <div id="painikkeet">
 	<a href="lue_tiedostosta.php"><span class="nappi">Lisää tiedostosta</span></a>
+	<?php include("yp_tuotteet_alv_muokkaus.php"); //Sisaltaa toiminnallisuuden ALV:ien muokkaamiseen ?>
 </div>
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
@@ -488,10 +491,6 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount)
 </script>
 
 <?php
-require 'tietokanta.php';
-require 'apufunktiot.php';
-
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
 //$catalog_products = get_products_in_catalog();
 
 //
