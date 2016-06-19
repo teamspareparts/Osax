@@ -179,28 +179,11 @@ input {
 }
 
 
-/********************************************
-
-	Yllï¿½pitï¿½jï¿½n asiakas sivun tyylittely
-
-*********************************************/
 
 
 
-#asiakas .puhelin, #asiakas .nimi {
-	display: inline-block;
-	width: 18%;
-}
 
-#asiakas .sposti, #asiakas .yritys {
-	display: inline-block;
-	width: 28%;
-}
 
-#asiakas #lista input[type=checkbox] {
-	position: relative;
-	left: 17px;
-}
 
 #asiakas #lista #submit input[type=submit] {
 	background: #e60005;
@@ -211,6 +194,21 @@ input {
 	background: #b70004;
 	border: solid 1px #750003;
 }
+
+
+
+
+
+#tilaukset #lista #submit input[type=submit] {
+	background: #00cc1f;
+	border-color: #008013;
+}
+
+#tilaukset #lista #submit input[type=submit]:HOVER {
+	background: #008013;
+	border: solid 1px #005e0e;
+}
+
 
 /********************************************
 
@@ -242,17 +240,6 @@ input {
 
 *********************************************/
 
-
-
-#tilaukset #lista #submit input[type=submit] {
-	background: #00cc1f;
-	border-color: #008013;
-}
-
-#tilaukset #lista #submit input[type=submit]:HOVER {
-	background: #008013;
-	border: solid 1px #005e0e;
-}
 
 
 #tilaukset .tilausnumero, #tilaukset .sum,
@@ -336,7 +323,8 @@ input {
 	color: red;
 }
 
-#lomake input {}
+#lomake input {
+}
 
 
 
@@ -636,3 +624,46 @@ div.tooltip p {
   margin: 10px;
   color: White;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+.hidden{
+	display: none;
+}
+
+#paivat{
+	position: relative;
+	width: 50px;
+	margin-bottom: -5px;
+	
+	
+}
+
+#inner_label{
+	padding-left: 20px;
+	font-weight: bold;
+}
+
+.asiakas_lista {
+	
+	table-layout: fixed;
+	width: 100%;
+}
+
+.smaller_cell {
+	text-align: center;
+	width: 10%;
+}
+
+
+

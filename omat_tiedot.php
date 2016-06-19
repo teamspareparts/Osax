@@ -8,32 +8,53 @@
 <body>
 <?php include("header.php");?>
 
-<h1 class="otsikko">Omat Tiedot</h1>
 
 <?php
 	require 'tietokanta.php';
 	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
 	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 	$tbl_name = 'kayttaja';
+	
+	//Jos ylläpitäjä muuttaa asiakkaan tietoja
+	if (is_admin() && isset($_GET['muokkaa_asiakasta'])){
+		$id = $_GET['id'];
+		$query = "SELECT * FROM $tbl_name WHERE id='$id'";
+		echo '<h1 class="otsikko">Muokkaa asiakasta</h1>';
+	}
+	else {
+		$email = $_SESSION['email'];
+		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
+		echo '<h1 class="otsikko">Omat Tiedot</h1>';
+	}
 
-	$email = $_SESSION['email'];
-	$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	$row = mysqli_fetch_assoc($result);
+	$email = $row['sahkoposti'];
 	$enimi = $row['etunimi'];
 	$snimi = $row['sukunimi'];
 	$puhelin = $row['puhelin'];
 	$ynimi = $row['yritys'];
+	$demo = $row['demo'];
+	$voimassaolopvm = $row['voimassaolopvm'];
 ?>
 
 <div id="lomake">
-	<form action="omat_tiedot.php" name="uusi_asiakas" method="post" accept-charset="utf-8">
+	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Nykyiset tiedot</legend>
 			<br>
 			<label><span>Sähköposti</span></label>
 			<p style="display: inline; font-size: 16px;">
-				<?= $_SESSION['email']; ?>
+				<?= $email; ?>
 			</p>
+			<input type="hidden" name="email" value="<?= $email;?>" />
+			
+			<?php if ($demo){
+				echo '
+			<br><br><label><span>Voimassa</span></label>
+			<p style="display: inline; font-size: 16px;">' . 
+			(new DateTime($voimassaolopvm))->format("d.m.Y H:i:s")
+			. '</p>';
+			}?>
 			<br><br>
 			<label><span>Etunimi</span></label>
 			<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?= $enimi; ?>" title="Vain aakkosia.">
@@ -76,10 +97,10 @@
 	}
 
 	if (isset($_POST['etunimi'])) {
-		$result = db_paivita_tiedot($_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi'],
+		$result = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi'],
 									$_POST['new_password'], $_POST['confirm_new_password']);
 		$_SESSION['result'] = $result;
-		header("Location:omat_tiedot.php");
+		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 		exit;
 	}
 
@@ -87,9 +108,9 @@
 	//-1	salasanat ei täsmää
 	//-2	käyttäjätunnusta ei olemassa
 	//1		lisäys onnistui
-	function db_paivita_tiedot($asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
+	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
 		$tbl_name="kayttaja";				// Taulun nimi
-		$asiakas_sposti = $_SESSION['email'];
+		$asiakas_sposti = $email;
 		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
 
 		//Palvelimeen liittyminen

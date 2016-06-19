@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<title>Asiakkaat</title>
 </head>
 <body>
@@ -34,6 +35,13 @@
 			<label><span>Vahvista salasana<span class="required">*</span></span></label>
 			<input name="confirm_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä." required="required">
 			<br><br><br>
+			<label><span>Testiasiakas</span></label>
+			<input name="demo_user" type="checkbox" title="Asiakas aktiivinen vain määräajan." id="demo">
+			
+			<span id=inner_label class="hidden">Päivät:</span>
+			<input name="paivat" type="number" value="7" class="hidden" min="1" pattern="[0-9]" id="paivat">
+			
+			<br><br><br>
 
 			<div id="submit">
 				<input name="submit" value="Lisää asiakas" type="submit">
@@ -50,8 +58,17 @@
 	require 'tietokanta.php';
 
 		if (isset($_POST['sposti'])){
+			//jos ei demokäyttäjä, niin aktiiviset paivat 
+			if (isset($_POST['demo_user'])){
+				$demo = 1;
+				$paivat = $_POST['paivat'];
+			} else {
+				$demo = 0;
+				$paivat = 0;
+			}
+				
 			$result = db_lisaa_asiakas($_POST['etunimi'], $_POST['sukunimi'], $_POST['sposti'], $_POST['puh'],
-										$_POST['yritysnimi'], $_POST['password'], $_POST['confirm_password']);
+										$_POST['yritysnimi'], $_POST['password'], $_POST['confirm_password'], $demo, $paivat);
 			if($result == -1){
 				echo "Sähköposti varattu.";
 			}
@@ -72,7 +89,7 @@
 		//1		lisäys onnistui
 		//2		kayttaja aktivoitu uudelleen
 		function db_lisaa_asiakas($asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
-				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana){
+				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana, $demo, $paivat){
 
 					$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
 
@@ -91,27 +108,50 @@
 						$result = mysqli_query($connection, $query);
 						$count = mysqli_num_rows($result);
 						$row = mysqli_fetch_assoc($result);
+						
+
+						
 						if($count != 0 && $row["aktiivinen"] == 1) {
-							return -1; //talletetaan tulos sessioniin: käyttäjänimi varattu
+							return -1; //käyttäjänimi varattu
 						}
 						elseif ($count != 0 && $row["aktiivinen"] == 0){
 							$query = "UPDATE $tbl_name 
 										SET aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', yritys='$asiakas_yritysnimi',
-											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana'
+											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY
 										WHERE sahkoposti='$asiakas_sposti'";
-							$result = mysqli_query($connection, $query);
-							return 2;
+							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
+							return 2;	//kayttaja aktivoitu
 						}
 						else {
 							//lisätään tietokantaan
-							$query = "INSERT INTO $tbl_name (salasana_hajautus, etunimi, sukunimi, yritys, sahkoposti, puhelin)
-							VALUES ('$asiakas_hajautettu_salasana', '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh')";
-							$result = mysqli_query($connection, $query);
-							return 1;	//talletetaan tulos sessioniin
+							$query = "INSERT INTO $tbl_name (salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, yritys, sahkoposti, puhelin, demo, voimassaolopvm)
+							VALUES ('$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY)";
+							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));;
+							return 1;	//kaikki ok
 						}
 					}
 		}
 	?>
 	</div>
+	
+	<script type="text/javascript">
+
+	$(document).ready(function(){
+
+			$("#demo").change(function(){
+
+				if(this.checked){
+					$("#paivat").removeClass('hidden');
+					$("#inner_label").removeClass('hidden');
+				}else{
+					$("#paivat").addClass('hidden');
+					$("#inner_label").addClass('hidden');
+				}
+			});
+
+		
+	});
+
+	</script>
 </body>
 </html>

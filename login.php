@@ -49,6 +49,10 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 		8 => array(
 				"otsikko" => " Salasanan palautus - Onnistunut ",
 				"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
+		9 => array(
+				"otsikko" => " Käyttöoikeus vanhentunut ",
+				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä Rantakylän Varaosa Oy:hyn."
+	),
 	];
 ?>
 	<div id="content">

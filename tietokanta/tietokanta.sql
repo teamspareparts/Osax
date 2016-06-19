@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `salasana_hajautus` varchar(100) COLLATE utf8_swedish_ci NOT NULL,
-  `salasana_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `salasana_vaihdettu` datetime DEFAULT NULL,
   `etunimi` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
   `sukunimi` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
   `yritys` varchar(50) COLLATE utf8_swedish_ci DEFAULT NULL,
@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `puhelin` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
+  `demo` tinyint(1) NOT NULL DEFAULT '0',
   `viime_sijainti` varchar(100) COLLATE utf8_swedish_ci DEFAULT '',
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `voimassaolopvm` timestamp NOT NULL,
+  `voimassaolopvm` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -43,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
-  `osoite_id` tinyint(2) NOT NULL,
+  `osoite_id` tinyint(2) DEFAULT NULL,
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
   `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

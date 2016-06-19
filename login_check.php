@@ -9,18 +9,21 @@ body {
 </head>
 <body>
 <h1>Redirecting...</h1>
+<?php session_start();?>
 
 <!-- Jotta ilmoitus vanhentuneesta salasanasta saadaan lähetettyä -->
 <form action="login_check.php" method="post" id="hidden_form">
     <input type="hidden" name="mode" value="password_expired">
-    <input type="hidden" name="email" value=" <?php if (isset($_SESSION['email'])) echo $_SESSION['email']; ?> ">
+    <input type="hidden" name="email" value="<?php if (isset($_SESSION['email'])) echo $_SESSION['email']; ?>">
 </form>
    					
 <?php
 	require 'tietokanta.php';
 	require 'email.php';
 	require 'IP.php';
-	session_start();
+	
+	$salasanan_voimassaoloaika = 180;
+	date_default_timezone_set("Europe/Helsinki");
 	
 	// Luodaan yhteys
 	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
@@ -58,6 +61,18 @@ body {
 		   		$_SESSION['admin']	= $row['yllapitaja'];
 		   		$_SESSION['id']		= $row['id'];
 		   		
+		   		
+		   		//DEMO asiakkaan tarkistusta...
+		   		if ($row['demo'] == 1) {
+		   			
+		   			//tarkastetaan onko kokeilujakso loppunut
+		   			if (new DateTime($row['voimassaolopvm']) < new DateTime()) {
+		   				header("Location:login.php?redir=9"); exit();
+		   			}
+		   		}
+		   		
+		   		
+		   		//IP osoitteen tarkistusta...
 		   		$id=$row['id'];
 		   		//Haetaan asiakkaan oikea ip osoite
 		   		$remoteaddr = new RemoteAddress();
@@ -108,14 +123,15 @@ body {
 		   		
 		   		
 		   		
-		   		/** Tarkastetaan onko salasana vanhentunut */
-		   		//180päivän välein
-		   		$time_then 	= new DateTime( $row['salasana_aika'] );//   muunnettuna DateTime-muotoon
+		   		/** Tarkastetaan onko salasana vanhentunut */		   		
+		   		$time_then 	= new DateTime( $row['salasana_vaihdettu'] );//   muunnettuna DateTime-muotoon
 				$time_now	= new DateTime();
-		   		if ($time_then->modify('+180 days') < $time_now) {
-		   			
-		   			//echo $time_then->format('Y-m-d H:i:s');
-		   			//echo $time_now->format('Y-m-d H:i:s');	   			
+				
+				//echo $time_then->modify("+{$salasanan_voimassaoloaika} days")->format('Y-m-d H:i:s');
+				//echo "<br>";
+				//echo $time_now->format('Y-m-d H:i:s');
+				
+		   		if ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) {
 		   			?> 		
 		   				
 		   			<script type="text/javascript">
@@ -126,9 +142,9 @@ body {
 		   		}
 		   		
 		   		else {
-		   		//JOS KAIKKI OK->
-		   		header("Location:tuotehaku.php");
-		   		exit;
+		   			//JOS KAIKKI OK->
+		   			header("Location:tuotehaku.php");
+		   			exit;
 		   		}
 			}
 			else {	//väärä salasana
@@ -150,6 +166,7 @@ body {
 			FROM	kayttaja
 			WHERE	sahkoposti = '$email'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
+		
 		
 		if ( $result->num_rows > 0 ) {
 			$row = $result->fetch_assoc();

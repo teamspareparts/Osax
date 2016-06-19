@@ -510,6 +510,7 @@ function filter_by_article_number($products, $number) {
 		$replaced = preg_quote($string);
 		$replaced = str_replace('\*', '.*', $replaced);
 		$replaced = str_replace('\?', '.', $replaced);
+		$replaced = str_replace(' ', '', $replaced);
 		return $replaced;
 	}
 
@@ -517,7 +518,11 @@ function filter_by_article_number($products, $number) {
 		$numbers = [
 			str_replace(" ", "", $product->directArticle->articleNo),
             $product->ean,
-            $product->oe,
+			$product->oe,
+			//str_replace(" ", "", $product->articleNo),
+			//str_replace(" ", "", $product->articleSearchNo),
+			
+			
 		];
         foreach ($numbers as $number) {
             if (preg_match($regexp, $number)) {
@@ -548,15 +553,50 @@ function filter_by_article_number($products, $number) {
 //
 function search_for_product_in_catalog($number) {
 	global $connection;
+	
 
     // Haetaan ensin TecDocista tuotteet annetun numeron perusteella
     $tecdoc_products = getArticleDirectSearchAllNumbersWithState($number);
+    
+    
+    
+    /**
+      KESKENERÄINEN! Jatkan tuotehaun tekoa vertailunumerolla ensi viikolla
+     
+    $number = trim(addslashes($number));
+    
+    echo count($tecdoc_products);
+    $correct_products = filter_by_article_number($tecdoc_products, $number);
 
+    
+    $ids = [];
+    foreach ($correct_products as $product) {
+    	array_push($ids, addslashes($product->articleId));
+    }
+    
+    $query = "SELECT * FROM tuote WHERE id IN (".implode(',',$ids).")";
+    //$result = mysqli_query($connection, $query) or die(mysqli_error($connection));;
+    
+    if ($result) {
+    	$products = [];
+    	while ($row = mysqli_fetch_object($result)) {
+    		array_push($products, $row);
+    	}
+    	if (count($products) > 0) {
+    		merge_products_with_tecdoc($products);
+    			
+    		return $products;
+    	
+    	}
+    }
+    return []; */
+    
     // Kerätään tuotteiden ID:t taulukkoon
     $ids = [];
 	foreach ($tecdoc_products as $tecdoc_product) {
 		array_push($ids, addslashes($tecdoc_product->articleId));
 	}
+	
 
     // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
     $id_list = implode(',', $ids);
@@ -571,12 +611,15 @@ function search_for_product_in_catalog($number) {
 		}
 		if (count($products) > 0) {
 			merge_products_with_tecdoc($products);
+			
             $products = filter_by_article_number($products, $number);
+            
 		}
 		return $products;
 	}
 
 	return [];
+	
 }
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;

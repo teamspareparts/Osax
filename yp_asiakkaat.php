@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<title>Asiakkaat</title>
 </head>
 <body>
@@ -18,9 +19,12 @@
 	<div id="lista">
 
 		<form action="yp_asiakkaat.php" method="post">
+		<table class="asiakas_lista">
+			<tr><th>Nimi</th><th>Puhelin</th><th>Yritys</th><th>Sähköposti</th><th class=smaller_cell>Poista</th><th class=smaller_cell></th></tr>
+		<!-- 
 		<fieldset class="lista_info">
 			<p><span class="nimi">Nimi</span><span class="puhelin">Puhelin</span><span class="yritys">Yritys</span><span class="sposti">Sähköposti</span><span>Poista</span></p>
-		</fieldset>
+		</fieldset> -->
 
 			<?php
 				if (!is_admin()) {
@@ -34,23 +38,35 @@
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 				$query = "SELECT * FROM $tbl_name";
-				$result = mysqli_query($connection, $query);
-
+				$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 
 				//listataan kaikki tietokannasta löytyvät asiakkaat ja luodaan
 				//niihin linkit, jotka vievät asiakkaan tilaushistoriaan.
 				//Linkin mukana välitetään asiakkaan tietokanta id.
 				while($row = mysqli_fetch_assoc($result)){
 					if ($row["yllapitaja"] == 0 && $row["aktiivinen"] == 1){	//listataan vain asiakkaat
-						echo '<fieldset>';
-						echo '<a href="tilaushistoria.php?id=' . $row["id"] . '"><span class="nimi">' . $row["etunimi"] . " " . $row["sukunimi"] .
-							'</span><span class="puhelin">' . $row["puhelin"] .
-							'</span><span class="yritys">' . $row["yritys"] .
-							'</span><span class="sposti">' . $row["sahkoposti"] . '</span><a>';
-						echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '"><br>';
-						echo '</fieldset>';
+						
+						echo '<tr data-val="'. $row['id'] .'">';
+						echo '<td class="cell">' . $row["etunimi"] . " " . $row["sukunimi"] .
+						'</td><td class="cell">' . $row["puhelin"] .
+						'</td><td class="cell">' . $row["yritys"] .
+						'</td><td class="cell">' . $row["sahkoposti"] . 
+						'</td><td class="smaller_cell">' . 
+						'<input type="checkbox" name="ids[]" value="' . $row["id"] . '">' .
+						'</td><td class="smaller_cell"><a href="omat_tiedot.php?id=' . $row['id'] .'&muokkaa_asiakasta=true"><span class="nappi">Muokkaa</span></a></td>';
+						
+						echo '</tr>';
+						
+						//echo '<fieldset>';
+						//echo '<a href="tilaushistoria.php?id=' . $row["id"] . '"><span class="nimi">' . $row["etunimi"] . " " . $row["sukunimi"] .
+						//	'</span><span class="puhelin">' . $row["puhelin"] .
+						//	'</span><span class="yritys">' . $row["yritys"] .
+						//	'</span><span class="sposti">' . $row["sahkoposti"] . '</span><a>';
+						//echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '"><br>';
+						//echo '</fieldset>';
 					}
 				}
+				echo '</table>';
 				mysqli_close($connection);
 
 			?>
@@ -91,6 +107,24 @@
 		}
 	?>
 
+
+<script type="text/javascript">
+	$(document).ready(function(){
+
+
+		//painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
+		$('.cell').click(function(){
+			$('tr').click(function(){
+				var id = $(this).attr('data-val');
+				window.document.location = 'tilaushistoria.php?id='+id;		
+			});
+		});
+
+		$('.cell').css('cursor', 'pointer');
+
+	});
+
+</script>
 
 </body>
 </html>
