@@ -27,10 +27,12 @@
 	}
 ?>
 <h1 class="otsikko">Tuotteet</h1>
+
 <div id="painikkeet">
 	<a href="lue_tiedostosta.php"><span class="nappi">Lisää tiedostosta</span></a>
-	<?php include("yp_tuotteet_alv_muokkaus.php"); //Sisaltaa toiminnallisuuden ALV:ien muokkaamiseen ?>
+	<?php include("yp_tuotteet_alv_muokkaus.php"); //Sisaltaa kaiken toiminnallisuuden ALV:ien muokkaamiseen ?>
 </div>
+
 <form action="yp_tuotteet.php" method="post" class="haku">
 	<input type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
@@ -78,20 +80,21 @@
 
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
-
 // Tuotteen lisäys valikoimaan
 function showAddDialog(id) {
 	Modal.open({
     	content: '\
 			<div class="dialogi-otsikko">Lisää tuote</div> \
 			<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
-			<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
-			<label for="alv">ALV-taso:</label><span class="dialogi-kentta"><input class="eur" name="alv" placeholder="0"></span><br> \
-			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
-			<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
-			<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
-			<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
-			<input type="hidden" name="lisaa" value="' + id + '"> \
+				<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
+				<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
+					<?php hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() ?> \
+				</span><br> \
+				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
+				<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
+				<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
+				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
+				<input type="hidden" name="lisaa" value="' + id + '"> \
 			</form>'
 	});
 }
@@ -113,7 +116,10 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount)
 			<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
 			<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
 			<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
-			<label for="alv">ALV-taso:</label><span class="dialogi-kentta"><input class="eur" name="alv" placeholder="0" value="' + alv + '"></span><br> \
+			<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
+				<?php hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() ?> \
+			</span><br> \
+			<span class="dialogi-kentta">Nykyinen verokanta:"' + alv + '"</span><br>\
 			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
 			<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0" value="' + minimumCount + '"> kpl</span><br> \
 			<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="' + minimumSaleCount + '"> kpl</span><br> \
@@ -674,14 +680,30 @@ function print_catalog($products) {
 	echo '</div>';
 }
 
-
+function hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() {
+	global $connection;
+	$sql_query = "	SELECT	*
+					FROM	ALV_taso;";
+	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+	
+	//$result->fetch_assoc();   //En halua ensimmaista tulosta, joka on (0, 0.00).
+	
+	echo "<select name=\"alv_lista\">";
+	while ( $row = ($result->fetch_assoc()) ) {
+		$prosentti = str_replace( '.', ',', $row['prosentti'] );
+        printf (
+			"<option name=alv value=\"%s\">%s; %s</option>", 
+			$row['taso'], $row['taso'], $prosentti);
+    }
+	echo "</select>";
+}
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if (isset($_POST['lisaa'])) {
 		$id = intval($_POST['lisaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
-		$alv = intval($_POST['alv']);
+		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
@@ -701,7 +723,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 	} elseif (isset($_POST['muokkaa'])) {
 		$id = intval($_POST['muokkaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
-		$alv = intval($_POST['alv']);
+		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);

@@ -35,8 +35,8 @@ body {
 
 	//Mode --> Sisääkirjautuminen
 	if ( $mode == "login" ) {
-		$email 			= trim(strip_tags( $_POST["email"] ));			// Sähköposti
-		$password 		= trim(strip_tags( $_POST["password"] ));		// Salasana
+		$email 			= trim(strip_tags( $_POST["email"] ));
+		$password 		= trim(strip_tags( $_POST["password"] ));
 		
 		// SQL-kysely
 		$sql_query = "
