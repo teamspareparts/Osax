@@ -151,31 +151,35 @@
 				FROM	toimitusosoite
 				WHERE	kayttaja_id = '$kayttaja_id'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-		$i = 1;
 		while ($row = $result->fetch_assoc()) {
-			/*HTML-tulostus*/?>
-			<p> Osoite <?= $i ?><br>
+			?><!--  HTML  -->
+			<p> Osoite <?= $row['osoite_id'] ?><br>
 			<br>
-			<label><span>Sähköposti</span></label> <?= $row['sahkoposti']?><br>
+			<label><span>Sähköposti</span></label><?= $row['sahkoposti']?><br>
 			<label><span>Puhelin</span></label><?= $row['puhelin']?><br>
 			<label><span>Yritys</span></label><?= $row['yritys']?><br>
 			<label><span>Katuosoite</span></label><?= $row['katuosoite']?><br>
 			<label><span>Postinumero</span></label><?= $row['postinumero']?><br>
 			<label><span>Postitoimipaikka</span></label><?= $row['postitoimipaikka']?><br><br>
 			
-			<form action="_toimitusosoite-test.php" name="testilomake" method="post">
-				<input type=hidden name=muokkaa value="<?= $i ?>">
+			<form action="_toimitusosoite-test.php" method="post">
+				<input type=hidden name=muokkaa value="<?= $row['osoite_id'] ?>">
 				<input type=submit value="Muokkaa">
 			</form> 
-			
+			<form action="_toimitusosoite-test.php" method="post">
+				<input type=hidden name=poista value="<?= $row['osoite_id'] ?>">
+				<input type=submit value="Poista osoite">
+			</form> 
 			</p><hr>
-			<?php $i++;
+			<!--  HTML  --><?php
 		}
 	}?>
 	<fieldset>
 		<Legend>Osoitekirja</legend>
 		<?= hae_kaikki_toimitusosoitteet_ja_tulosta($_SESSION['id']); ?>
-		<input type=submit value="Lisää uusi osoite">
+		<form action="_toimitusosoite-test.php" method="post">
+			<input type=submit name=uusi_osoite value="Lisää uusi osoite">
+		</form> 
 	</fieldset>
 </div>
 
