@@ -99,10 +99,10 @@ function paivita_alv_tietokanta($key, $alv) {
 
 <script>
 var alv_indeksi = <?= hae_ALV_indeksi() ?>;
-alv_indeksi++; //Kasvatetaan yhdella, koska numerointi aloitetaan ensimm‰isesti uudesta ALV:sta
+alv_indeksi++; //Kasvatetaan yhdella, koska numerointi aloitetaan ensimm√§isesti uudesta ALV:sta
 var alv_i_laskuri = alv_indeksi; //Muistissa aito alv:ien lukumaara, laskuri jatkuvaan numerointiin
 
-function avaaModal() {
+function avaa_Modal_alv_muokkaa() {
 	alv_i_laskuri = alv_indeksi; //Resetetaan laskuri, muuten se jatkaa kasvamista aina kun avaat popupin
 	Modal.open( {
 		content:  '\
@@ -134,7 +134,7 @@ function lisaa_uusi_ALV() {
 </script>
 
 <!-- HTML -->
-<input class="nappi" type="button" value="Muokkaa ALV-tasoja" onClick=avaaModal()>
+<input class="nappi" type="button" value="Muokkaa ALV-tasoja" onClick=avaa_Modal_alv_muokkaa()>
 <!-- HTML END -->
 
 <?php

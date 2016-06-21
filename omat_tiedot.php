@@ -2,12 +2,12 @@
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<meta charset="UTF-8">
 	<title>Omat Tiedot</title>
 </head>
 <body>
 <?php include("header.php");?>
-
 
 <?php
 	require 'tietokanta.php';
@@ -143,44 +143,9 @@
 			}
 		}
 	}
-
-	function hae_kaikki_toimitusosoitteet_ja_tulosta($kayttaja_id) {
-		global $connection;
-		$sql_query = "
-				SELECT	*
-				FROM	toimitusosoite
-				WHERE	kayttaja_id = '$kayttaja_id'";
-		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-		while ($row = $result->fetch_assoc()) {
-			?><!--  HTML  -->
-			<p> Osoite <?= $row['osoite_id'] ?><br>
-			<br>
-			<label><span>Sähköposti</span></label><?= $row['sahkoposti']?><br>
-			<label><span>Puhelin</span></label><?= $row['puhelin']?><br>
-			<label><span>Yritys</span></label><?= $row['yritys']?><br>
-			<label><span>Katuosoite</span></label><?= $row['katuosoite']?><br>
-			<label><span>Postinumero</span></label><?= $row['postinumero']?><br>
-			<label><span>Postitoimipaikka</span></label><?= $row['postitoimipaikka']?><br><br>
-			
-			<form action="_toimitusosoite-test.php" method="post">
-				<input type=hidden name=muokkaa value="<?= $row['osoite_id'] ?>">
-				<input type=submit value="Muokkaa">
-			</form> 
-			<form action="_toimitusosoite-test.php" method="post">
-				<input type=hidden name=poista value="<?= $row['osoite_id'] ?>">
-				<input type=submit value="Poista osoite">
-			</form> 
-			</p><hr>
-			<!--  HTML  --><?php
-		}
-	}?>
-	<fieldset>
-		<Legend>Osoitekirja</legend>
-		<?= hae_kaikki_toimitusosoitteet_ja_tulosta($_SESSION['id']); ?>
-		<form action="_toimitusosoite-test.php" method="post">
-			<input type=submit name=uusi_osoite value="Lisää uusi osoite">
-		</form> 
-	</fieldset>
+	
+	include 'omat_tiedot_osoitekirja.php'; //Sisältää kaiken toiminnallisuuden osoitekirjaa varten
+?>
 </div>
 
 </body>
