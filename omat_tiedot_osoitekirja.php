@@ -188,19 +188,19 @@ function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 			<br>\
 			<form action="#" method=post>\
 				<label>Sähköposti</label>\
-					<input name=email type=email pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
+					<input name=email type=email pattern=".{3,50}" placeholder="Edellinen sähköposti" required><br>\
 				<label>Puhelin</label>\
-					<input name=puhelin type=tel pattern=".{1,20}" placeholder="000 1234 789" required><br>\
+					<input name=puhelin type=tel pattern=".{1,20}" placeholder="Edellinen puhelinumero" required><br>\
 				<label>Yritys</label>\
-					<input name=yritys type=text pattern=".{3,50}" placeholder="Yritys Oy" required><br>\
+					<input name=yritys type=text pattern=".{3,50}" placeholder="Edellinen yritys" required><br>\
 				<label>Katuosoite</label>\
-					<input name=katuosoite type=text pattern=".{3,50}" placeholder="Katu 42" required><br>\
+					<input name=katuosoite type=text pattern=".{3,50}" placeholder="Edellinen katuosoite" required><br>\
 				<label>Postinumero</label>\
-					<input name=postinumero type=number pattern=".{3,50}" placeholder="00001" required><br>\
+					<input name=postinumero type=number pattern=".{3,50}" placeholder="Edellinen postinumero" required><br>\
 				<label>Postitoimipaikka</label>\
-					<input name=postitoimipaikka type=text pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required>\
+					<input name=postitoimipaikka type=text pattern="[a-öA-Ö]{3,50}" placeholder="Edellinen postitoimipaikka" required>\
 				<br><br>\
-				<input type=submit name=tallenna_uusi value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">\
+				//<input type=submit name=tallenna_uusi value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">\
 				<br>\
 			</form>\
 			',

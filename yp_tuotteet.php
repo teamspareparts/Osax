@@ -82,7 +82,7 @@
 <script>
 // Tuotteen lisäys valikoimaan
 function showAddDialog(id) {
-	Modal.open({
+	Modal.open( {
     	content: '\
 			<div class="dialogi-otsikko">Lisää tuote</div> \
 			<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
@@ -93,25 +93,29 @@ function showAddDialog(id) {
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
-				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
+				<label for="eraraja">Eräraja:</label><span class="dialogi-kentta"><input class="kpl" name="eraraja" placeholder="0"> kpl</span><br> \
+				<label for="eraalennus">Eräalennus:</label><span class="dialogi-kentta"><input class="eur" name="eraalennus" placeholder="0,00"></span><br> \
+				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
+					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 				<input type="hidden" name="lisaa" value="' + id + '"> \
 			</form>'
-	});
+	} );
 }
 
 // Tuotteen poisto valikoimasta
 function showRemoveDialog(id) {
-	Modal.open({
+	Modal.open( {
     	content: '\
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
-		<p style="margin-top: 20pt;"><a class="nappi" href="yp_tuotteet.php?poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p>'
-	});
+		<p style="margin-top: 20pt;"><a class="nappi" href="yp_tuotteet.php?poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
+			onclick="Modal.close()">Peruuta</a></p>'
+	} );
 }
 
 // Valikoimaan lisätyn tuotteen muokkaus
-function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount) {
-	Modal.open({
+function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount, eräraja, eräalennus) {
+	Modal.open( {
     	content: '\
 			<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
 			<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
@@ -123,10 +127,13 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount)
 			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
 			<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0" value="' + minimumCount + '"> kpl</span><br> \
 			<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="' + minimumSaleCount + '"> kpl</span><br> \
-			<p><input class="nappi" type="submit" name="tallenna" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
+			<label for="eraraja">Eräraja:</label><span class="dialogi-kentta"><input class="kpl" name="eraraja" placeholder="0" value="' + eräraja + '"> kpl</span><br> \
+			<label for="eraalennus">Eräalennus:</label><span class="dialogi-kentta"><input class="eur" name="eraalennus" placeholder="0,00" value="' + eräalennus + '"></span><br> \
+			<p><input class="nappi" type="submit" name="tallenna" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
+				href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 			<input type="hidden" name="muokkaa" value="' + id + '"> \
 			</form>'
-	});
+	} );
 }
 
 </script>
@@ -502,7 +509,7 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount)
 //
 // Lisää uuden tuotteen valikoimaan
 //
-function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count) {
+function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count, $eraraja, $eraalennus) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
@@ -513,11 +520,12 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 	$minimum_sale_count = intval($minimum_sale_count);
 	$result = mysqli_query($connection, "
 		INSERT INTO tuote 
-			(id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera) 
+			(id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera, eraraja, eraalennus) 
 		VALUES 
-			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count')
+			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count', '$eraraja', '$eraalennus')
 		ON DUPLICATE KEY 
-			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count, aktiivinen=1;");
+			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
+				minimimyyntiera=$minimum_sale_count, eraraja=$eraraja, eraalennus=$eraalennus, aktiivinen=1;");
 	return $result;
 }
 
@@ -641,7 +649,8 @@ function print_catalog($products) {
     */
 	if (count($products) > 0) {
 		echo '<table>';
-        echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimisaldo</th><th style="text-align: right;">Minimimyyntierä</th></tr>';
+        echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th>
+			<th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimisaldo</th><th style="text-align: right;">Minimimyyntierä</th></tr>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
 			echo '<tr>';
@@ -686,8 +695,6 @@ function hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() {
 					FROM	ALV_taso;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	
-	//$result->fetch_assoc();   //En halua ensimmaista tulosta, joka on (0, 0.00).
-	
 	echo "<select name=\"alv_lista\">";
 	while ( $row = ($result->fetch_assoc()) ) {
 		$prosentti = str_replace( '.', ',', $row['prosentti'] );
@@ -707,7 +714,9 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
-		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera);
+		$eraraja = intval($_POST['eraraja']);
+		$eraalennus = doubleval($_POST['eraalennus']);
+		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $eraraja, $eraalennus);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
