@@ -40,9 +40,9 @@ function hae_ALV_indeksi(){
 					FROM	ALV_taso;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$row_count = mysqli_num_rows($result);
-	if ( $row_count == 0 ) {
-		$row_count++;
-	}
+	//if ( $row_count == 0 ) {
+		//$row_count++;
+	//}
 	return $row_count;
 }
 
@@ -81,8 +81,7 @@ Return: Boolean
 */
 function paivita_alv_tietokanta($key, $alv) {
 	global $connection;
-	global $row_count;
-	
+	global $row_count;	
 	if ( $key <= $row_count ) {
 		$sql_query = "	UPDATE	ALV_taso
 						SET		prosentti = '$alv'
@@ -101,6 +100,7 @@ function paivita_alv_tietokanta($key, $alv) {
 var alv_indeksi = <?= hae_ALV_indeksi() ?>;
 alv_indeksi++; //Kasvatetaan yhdella, koska numerointi aloitetaan ensimmäisesti uudesta ALV:sta
 var alv_i_laskuri = alv_indeksi; //Muistissa aito alv:ien lukumaara, laskuri jatkuvaan numerointiin
+
 
 function avaa_Modal_alv_muokkaa() {
 	alv_i_laskuri = alv_indeksi; //Resetetaan laskuri, muuten se jatkaa kasvamista aina kun avaat popupin
@@ -134,7 +134,7 @@ function lisaa_uusi_ALV() {
 </script>
 
 <!-- HTML -->
-<input class="nappi" type="button" value="Muokkaa ALV-tasoja" onClick=avaa_Modal_alv_muokkaa()>
+<input class="nappi" type="button" value="Muokkaa ALV-tasoja" onClick="avaa_Modal_alv_muokkaa()">
 <!-- HTML END -->
 
 <?php

@@ -497,9 +497,65 @@ if (isset($_SESSION['cart'])) {
 
 require 'tietokanta.php';
 
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
+//$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
 
-//
+function filter_by_article_number($number) {
+
+	// Korvaa jokerimerkit * ja ? merkeillä % ja _ ,joita käytetään
+	// MySQL LIKE-käskyssä
+	function replace_wildcards($string) {
+		$replaced = str_replace('*', '%', $string);
+		$replaced = str_replace('?', '_', $replaced);
+		$replaced = str_replace(' ', '', $replaced);
+		return $replaced;
+	}
+
+	function matches_search_no($number) {
+		global $connection;
+		$number = replace_wildcards($number);
+		$query = "SELECT * FROM tuote_search WHERE search_no LIKE '$number';";
+		$result = mysqli_query($connection, $query) or die($connection);
+		$numbers = array();
+		while ($row = mysqli_fetch_object($result)) {
+			array_push($numbers, $row->tuote_id);
+		}
+		//echo count($numbers) . " ";
+		return $numbers;
+	}
+
+	function get_only_catalog_products($filtered) {
+		global $connection;
+		$filtered = implode("','", $filtered);
+		$query = "SELECT * FROM tuote WHERE id IN('$filtered') AND aktiivinen=1";
+		$result = mysqli_query($connection, $query) or die("Error: " . mysqli_error($connection));
+		$products = array();
+		while ($row = mysqli_fetch_object($result)) {
+			array_push($products, $row);
+		}
+		//echo count($ids);
+		return $products;
+
+	}
+
+
+	$filtered_ids = array();
+	
+	//etsitään kaikki linkitettyjen tuotteiden id:t
+	$filtered_ids = matches_search_no($number);
+	
+	//etsitään vain ne tuotteet, joiden id:t ovat catalogissa
+	$searched_products = get_only_catalog_products($filtered_ids);
+	
+	//merge with tecdoc
+	merge_products_with_tecdoc($searched_products);
+	
+
+	//$unique_ids = array_unique($searched_ids);
+
+	return $searched_products;
+}
+
+/* //
 // Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero/EAN/OE-numero
 //
 function filter_by_article_number($products, $number) {
@@ -557,13 +613,8 @@ function search_for_product_in_catalog($number) {
 
     // Haetaan ensin TecDocista tuotteet annetun numeron perusteella
     $tecdoc_products = getArticleDirectSearchAllNumbersWithState($number);
-    
-    
-    
-    /**
-      KESKENERÄINEN! Jatkan tuotehaun tekoa vertailunumerolla ensi viikolla
      
-    $number = trim(addslashes($number));
+    /* $number = trim(addslashes($number));
     
     echo count($tecdoc_products);
     $correct_products = filter_by_article_number($tecdoc_products, $number);
@@ -589,9 +640,9 @@ function search_for_product_in_catalog($number) {
     	
     	}
     }
-    return []; */
+    return [];
     
-    // Kerätään tuotteiden ID:t taulukkoon
+     // Kerätään tuotteiden ID:t taulukkoon
     $ids = [];
 	foreach ($tecdoc_products as $tecdoc_product) {
 		array_push($ids, addslashes($tecdoc_product->articleId));
@@ -618,14 +669,23 @@ function search_for_product_in_catalog($number) {
 		return $products;
 	}
 
-	return [];
+	return []; 
 	
-}
+} 
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
 
 if ($number) {
 	$products = search_for_product_in_catalog($number);
+
+	print_results($products);
+}
+*/
+
+$number = isset($_POST['haku']) ? $_POST['haku'] : null;
+
+if ($number) {
+	$products = filter_by_article_number($number);
 
 	print_results($products);
 }
@@ -700,7 +760,13 @@ function print_results($products) {
 			}
 			echo "</td>";
 			echo "<td>$product->ean</td>";
-			echo "<td>$product->oe</td>";
+			//echo "<td>$product->oe</td>";
+			echo "<td>";
+			foreach ($product->oe as $oe){
+				echo $oe;
+				echo "<br>";
+			}
+			echo "</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";

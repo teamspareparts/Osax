@@ -117,15 +117,15 @@
 						elseif ($count != 0 && $row["aktiivinen"] == 0){
 							$query = "UPDATE $tbl_name 
 										SET aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', yritys='$asiakas_yritysnimi',
-											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY
+											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY, salasana_uusittava=1
 										WHERE sahkoposti='$asiakas_sposti'";
 							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
 							return 2;	//kayttaja aktivoitu
 						}
 						else {
 							//lisätään tietokantaan
-							$query = "INSERT INTO $tbl_name (salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, yritys, sahkoposti, puhelin, demo, voimassaolopvm)
-							VALUES ('$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY)";
+							$query = "INSERT INTO $tbl_name (salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, yritys, sahkoposti, puhelin, demo, voimassaolopvm, salasana_uusittava)
+							VALUES ('$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY, 1)";
 							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));;
 							return 1;	//kaikki ok
 						}

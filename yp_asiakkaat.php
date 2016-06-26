@@ -53,7 +53,7 @@
 						'</td><td class="cell">' . $row["sahkoposti"] . 
 						'</td><td class="smaller_cell">' . 
 						'<input type="checkbox" name="ids[]" value="' . $row["id"] . '">' .
-						'</td><td class="smaller_cell"><a href="omat_tiedot.php?id=' . $row['id'] .'&muokkaa_asiakasta=true"><span class="nappi">Muokkaa</span></a></td>';
+						'</td><td class="smaller_cell"><a href="yp_muokkaa_asiakasta.php?id=' . $row['id'] . '"><span class="nappi">Muokkaa</span></a></td>';
 						
 						echo '</tr>';
 						

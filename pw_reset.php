@@ -94,7 +94,7 @@
 				 * 										*
 				 ****************************************/
 				if ( $difference < 4 ) { //Tarkistetaan aika ?>
-					<fieldset><legend>Unohditko salasanasi?</legend>
+					<fieldset><legend>Vaihda salasanasi</legend>
 						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
 							<?php echo $_SESSION['sposti']; // Muistutuksena kauttajalle ?>
 							<br><br>
@@ -138,7 +138,7 @@
 			//päivitetään uusi salasana tietokantaan
 			$query = "
 				UPDATE	kayttaja 
-				SET 	salasana_hajautus='$hajautettu_uusi_salasana', salasana_aika=now()
+				SET 	salasana_hajautus='$hajautettu_uusi_salasana', salasana_vaihdettu=NOW(), salasana_uusittava=0
 				WHERE	sahkoposti='$asiakas_sposti'";
 			mysqli_query($connection, $query) or die(mysqli_error($connection));
 

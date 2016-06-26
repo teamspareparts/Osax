@@ -10,12 +10,6 @@ body {
 <body>
 <h1>Redirecting...</h1>
 <?php session_start();?>
-
-<!-- Jotta ilmoitus vanhentuneesta salasanasta saadaan lähetettyä -->
-<form action="login_check.php" method="post" id="hidden_form">
-    <input type="hidden" name="mode" value="password_expired">
-    <input type="hidden" name="email" value="<?php if (isset($_SESSION['email'])) echo $_SESSION['email']; ?>">
-</form>
    					
 <?php
 	require 'tietokanta.php';
@@ -36,12 +30,18 @@ body {
 	
 	$mode = $_POST["mode"];
 
+	
+	
+	/*************************
+	 *  Sisäänkirjautuminen  *
+	 *************************/
+	
 	//Mode --> Sisääkirjautuminen
 	if ( $mode == "login" ) {
 		$email 			= trim(strip_tags( $_POST["email"] ));
 		$password 		= trim(strip_tags( $_POST["password"] ));
 		
-		// SQL-kysely
+		// Haetaan käyttäjän tiedot
 		$sql_query = "
 			SELECT 	*
 			FROM 	kayttaja
@@ -49,20 +49,22 @@ body {
 		
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
 		$row_count = mysqli_num_rows($result);				// Kyselyn  tuloksen rivien määrä
-	
+		
 		if ( $row_count > 0 ) {
 			$row = mysqli_fetch_assoc($result);
+			//Onko käyttäjä aktiivinen
 			if ($row["aktiivinen"] == 0){
 				header("Location:login.php?redir=2");
 				exit;
 			}
+			//Onko salasanat samat
 			else if ( password_verify($password, $row['salasana_hajautus']) ) {
 		   		$_SESSION['email']	= $row['sahkoposti'];
 		   		$_SESSION['admin']	= $row['yllapitaja'];
 		   		$_SESSION['id']		= $row['id'];
 		   		
 		   		
-		   		//DEMO asiakkaan tarkistusta...
+		   		//Onko käyttäjätunnus väliaikainen
 		   		if ($row['demo'] == 1) {
 		   			
 		   			//tarkastetaan onko kokeilujakso loppunut
@@ -123,7 +125,7 @@ body {
 		   		
 		   		
 		   		
-		   		/** Tarkastetaan onko salasana vanhentunut */		   		
+		   		//Onko salasana vanhentunut   		
 		   		$time_then 	= new DateTime( $row['salasana_vaihdettu'] );//   muunnettuna DateTime-muotoon
 				$time_now	= new DateTime();
 				
@@ -131,9 +133,18 @@ body {
 				//echo "<br>";
 				//echo $time_now->format('Y-m-d H:i:s');
 				
-		   		if ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) {
+				//Jos salasana vanhentunut tai salasana on uusittava
+		   		if (($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) || $row['salasana_uusittava']) {
 		   			?> 		
-		   				
+		   			
+		   			
+		   			<!-- Jotta ilmoitus vanhentuneesta salasanasta saadaan lähetettyä -->
+					<!-- Postataan samalle sivulle mode ja email -->
+					<form action="" method="post" id="hidden_form">
+    					<input type="hidden" name="mode" value="password_expired">
+    					<input type="hidden" name="email" value="<?php if (isset($_SESSION['email'])){ echo $_SESSION['email']; }?>">
+					</form>
+					
 		   			<script type="text/javascript">
 		   				document.getElementById('hidden_form').submit();
   					</script>
@@ -158,18 +169,24 @@ body {
 		}
 	}
 
+	
+	
+	/***************************
+	 *  Salasanan vaihtaminen  *
+	 ***************************/
+	
 	//Mode --> Salasanan resetointi TAI salasana vanhentunut
 	elseif ( $mode == "password_reset" || $mode == "password_expired") {
-		$email = trim(strip_tags( $_POST["email"] ));
+		$email = trim(strip_tags( $_POST['email'] ));
 		$sql_query = "
 			SELECT	id, sahkoposti, aktiivinen
 			FROM	kayttaja
 			WHERE	sahkoposti = '$email'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));	// Kyselyn tulos
 		
-		
 		if ( $result->num_rows > 0 ) {
 			$row = $result->fetch_assoc();
+			//Onko käyttäjä aktiivinen
 			if ($row["aktiivinen"] == 1){
 				$key = GUID();
 				// SQL-kysely
@@ -181,7 +198,7 @@ body {
 				
 				$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 				
-				//Jos salasana vanhentunut, ohjataan suoraan sivulle
+				//Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
 				if ($mode == "password_expired"){
 					header("Location:pw_reset.php?id=".$key);
 					
@@ -201,6 +218,7 @@ body {
 			}
 		}
 		else {
+			//sähköpostia ei löytynyt tietokannasta
 			header("Location:login.php?redir=1");
 			exit();
 		}

@@ -62,6 +62,36 @@ function getArticleDirectSearchAllNumbersWithState($number) {
 }
 
 //
+// Hakee vain tuotteet, jotka ovat täsmälleen halutun numeron mukaisia
+//
+function getArticleDirectSearchAllNumbersWithState2($number) {
+	$function = 'getArticleDirectSearchAllNumbersWithState';
+	$params = [
+			'lang' => TECDOC_LANGUAGE,
+			'articleCountry' => TECDOC_COUNTRY,
+			'provider' => TECDOC_PROVIDER,
+			'articleNumber' => $number,
+			'searchExact' => true,
+			'numberType' => 10, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	if (isset($response->data->array)) {
+		return $response->data->array;
+	}
+
+	return [];
+}
+
+//
 // Hakee tuotteet annettujen tunnisteiden (articleId) perusteella
 //
 function getDirectArticlesByIds4($ids) {
@@ -243,6 +273,13 @@ function merge_products_with_optional_data($articles) {
 	}
 }
 
+function get_oe_and_ean_by_id($id){
+	$product = $product = getOptionalData($id);
+	$ean = get_ean_number($product[0]);
+	$oe = get_oe_number($product[0]);
+	return array($oe, $ean);
+}
+
 
 
 //Saa parametrina getDirectArticlesByIds4 funktiosta saadun tuotteen
@@ -267,7 +304,12 @@ function get_infos($product) {
 //Palauttaa numeron, jos olemassa. Muuten tyhjän.
 function get_oe_number($product) {
 	if (empty($product->oenNumbers)) {
-		return '';
+		return array();
 	}
-	return $product->oenNumbers->array[0]->oeNumber;
+	$oeNumbers = array();
+	for ($i=0; $i < count($product->oenNumbers->array); $i++){
+		array_push($oeNumbers, strval($product->oenNumbers->array[$i]->oeNumber));
+	}
+	//return $product->oenNumbers->array[0]->oeNumber;
+	return array_unique($oeNumbers);
 }

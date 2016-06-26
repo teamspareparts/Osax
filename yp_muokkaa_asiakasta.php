@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<meta charset="UTF-8">
-	<title>Omat Tiedot</title>
+	<title></title>
 </head>
 <body>
 <?php include("header.php");?>
@@ -12,13 +12,14 @@
 <?php
 	require 'tietokanta.php';
 	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
-	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+	global $connection;
 	$tbl_name = 'kayttaja';
+	$id = $_GET['id'];
 	
-	$email = $_SESSION['email'];
-	$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
+	$query = "SELECT * FROM $tbl_name WHERE id='$id'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	$row = mysqli_fetch_assoc($result);
+	$id = $row['id'];
 	$email = $row['sahkoposti'];
 	$enimi = $row['etunimi'];
 	$snimi = $row['sukunimi'];
@@ -28,10 +29,10 @@
 	$voimassaolopvm = $row['voimassaolopvm'];
 ?>
 
-<h1 class="otsikko">Omat Tiedot</h1>
+<h1 class="otsikko">Muokkaa asiakasta</h1>
 <div id="lomake">
 	<form action="" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
-		<fieldset><legend>Nykyiset tiedot</legend>
+		<fieldset><legend>Asiakkaan tiedot</legend>
 			<br>
 			<label><span>Sähköposti</span></label>
 			<p style="display: inline; font-size: 16px;">
@@ -62,42 +63,35 @@
 			<label><span>Yrityksen nimi</span></label>
 			<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?= $ynimi; ?>">
 			<br><br><br>
-
 			<div id="submit">
 				<input name="submit" value="Päivitä tiedot" type="submit">
 			</div>
 		</fieldset>
-	</form><br>
-
-	<br>
-	<form action="" name="uusi_salasana" method="post" accept-charset="utf-8">
-	<fieldset><legend>Vaihda salasana</legend>	
-	<label><span>Uusi salasana</span></label>
-			<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-			<br><br>
-			<label><span>Vahvista salasana</span></label>
-			<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-			<br><br><br>
-			<div id="submit">
-				<input name="submit" value="Vaihda salasana" type="submit">
-			</div>
+	</form><br><br>
+	
+	<form action="" name="resetoi_salasana" method="post">
+	<fieldset>
+	<legend>Salasanan vaihto</legend>
+	<label><span>Nollaa salasana:</span></label>
+		<input name="reset_password" value="Resetoi salasana" type="submit">
+		<input name="id" value="<?= $id?>" type="hidden"/>
+	
 	</fieldset>
 	</form>
-	<br><br>
-
-	<?php
+	
+	<?php 
+	
 	if (isset($_SESSION['result'])){
 		if($_SESSION['result'] == -1){
-			echo "Sähköpostia ei löytynyt.";
-		}
-		elseif ($_SESSION['result'] == -2){
-			echo "Salasanat eivät täsmää.";
+			echo "<p>Sähköpostia ei löytynyt.</p>";
 		}
 		elseif ($_SESSION['result'] == 1) {
-			echo "Tiedot päivitetty.";
+			echo "<p>Tiedot päivitetty.</p>";
 		}
 		elseif ($_SESSION['result'] == 2) {
-			echo "Salasana vaihdettu.";
+			echo "
+				<h4>Salasana nollattu.</h4>
+				<p>Asiakas joutuu vaihtamaan salasanansa sisäänkirjautuessaan.";
 		}
 		unset($_SESSION['result']);
 	}
@@ -105,51 +99,27 @@
 	elseif (isset($_POST['etunimi'])) {
 		$result = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi']);
 		$_SESSION['result'] = $result;
+		//Ladataan sivu uudelleen, jotta kenttien tiedot päivittyvät
 		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 		exit;
 	}
-	
-	elseif (isset($_POST['new_password'])) {
-		$result = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
+	elseif (isset($_POST['reset_password'])) {
+		$result = pakota_salasanan_vaihto($_POST['id']);
 		$_SESSION['result'] = $result;
+		//Ladataan sivu uudelleen, jotta kenttien tiedot päivittyvät
 		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 		exit;
 	}
-	
-	
-	//result:
-
-	//-2	Salasanat eivät täsmää
-	//2		Salasana vaihdettu
-	function vaihda_salasana($id, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
-		global $connection;
-		$tbl_name="kayttaja";				// Taulun nimi
-		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
-		
-		if ($asiakas_uusi_salasana != $asiakas_varmista_uusi_salasana){
-			return -2; // salasanat eivät täsmää
-		}
-		else {
-			if ($asiakas_uusi_salasana != "" && $asiakas_varmista_uusi_salasana != ""){
-				$query = "UPDATE $tbl_name SET salasana_hajautus='$hajautettu_uusi_salasana'
-				WHERE id='$id'";
-				mysqli_query($connection, $query) or die(mysqli_error($connection));
-			}
-		}
-		return 2;
-	}
-	
 
 	//result:
-
-	//-1	käyttäjätunnusta ei olemassa
-	//1		tiedot päivitetty
+	//-1	salasanat ei täsmää
+	//-2	käyttäjätunnusta ei olemassa
+	//1		lisäys onnistui
 	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi){
+		global $connection;
 		$tbl_name="kayttaja";				// Taulun nimi
 		$asiakas_sposti = $email;
 
-		//Palvelimeen liittyminen
-		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 		//Tarkastetaan löytyykö käyttäjätunnusta
 		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
@@ -166,11 +136,17 @@
 			return 1;	//talletetaan tulos sessioniin
 		}
 	}
-
 	
-	include 'omat_tiedot_osoitekirja.php'; //Sisältää kaiken toiminnallisuuden osoitekirjaa varten
+	function pakota_salasanan_vaihto($id){
+		global $connection;
+		$query = "UPDATE kayttaja SET salasana_uusittava=1 WHERE id=$id";
+		mysqli_query($connection, $query) or die(mysqli_error($connection));
+		return 2;
+	}
+
 ?>
 </div>
 
 </body>
 </html>
+

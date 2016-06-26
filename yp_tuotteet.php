@@ -81,7 +81,7 @@
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
 // Tuotteen lisäys valikoimaan
-function showAddDialog(id) {
+function showAddDialog(id, articleNo) {
 	Modal.open( {
     	content: '\
 			<div class="dialogi-otsikko">Lisää tuote</div> \
@@ -98,6 +98,7 @@ function showAddDialog(id) {
 				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 				<input type="hidden" name="lisaa" value="' + id + '"> \
+				<input type="hidden" name="articleNo" value="' + articleNo + '"> \
 			</form>'
 	} );
 }
@@ -504,12 +505,12 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount,
 </script>
 
 <?php
-//$catalog_products = get_products_in_catalog();
+
 
 //
 // Lisää uuden tuotteen valikoimaan
 //
-function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count, $eraraja, $eraalennus) {
+function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count, $eraraja, $eraalennus, $articleNo) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
@@ -526,6 +527,17 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 		ON DUPLICATE KEY 
 			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
 				minimimyyntiera=$minimum_sale_count, eraraja=$eraraja, eraalennus=$eraalennus, aktiivinen=1;");
+	
+	//lisätään tietokantaan kaikki linkitetyt tuotteet
+	add_related_search_nos($id, $articleNo);
+	
+	$oe_and_ean = [];
+	$oe_and_ean = get_oe_and_ean_by_id($id);
+	$oe = $oe_and_ean[0];
+	$ean = $oe_and_ean[1];
+	
+	//TÄHÄN VÄLIIN OE:LLA HAKU
+	
 	return $result;
 }
 
@@ -534,6 +546,7 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 //
 function remove_product_from_catalog($id) {
 	global $connection;
+	remove_related_search_nos($id);
 	$id = intval($id);
 	mysqli_query($connection, "
 		UPDATE tuote 
@@ -561,6 +574,31 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 	return mysqli_affected_rows($connection) >= 0;
 }
 
+//linkitetyt tuotteet tietokantaan
+function add_related_search_nos($articleId, $search_no){
+	global $connection;
+	//haetaan lisättävään tuotteeseen linkitetyt tuotteet
+	$products = getArticleDirectSearchAllNumbersWithState2($search_no);
+	//echo count($products);
+	$query = "INSERT IGNORE INTO tuote_search (tuote_id, search_no)
+						VALUES";
+	foreach ($products as $product){
+		$product->articleNo = str_replace(" ", "", $product->articleNo);
+		$query .="($articleId, '$product->articleNo'),";
+	}
+	$query = substr_replace($query, "", -1);
+	$query .= ";";
+	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
+	return mysqli_affected_rows($connection) > 0; 
+}
+
+//poistetaan linkitetyt tuotteet tietokannasta
+function remove_related_search_nos($articleId){
+	global $connection;
+	$query = "DELETE FROM tuote_search WHERE tuote_id=$articleId";
+	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
+	return mysqli_affected_rows($connection) > 0;
+}
 //
 // Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet
 //
@@ -619,12 +657,18 @@ function print_results($number) {
 			}
 			echo "</td>";
 			echo "<td>$article->ean</td>";
-			echo "<td>$article->oe</td>";
+			//echo "<td>$article->oe</td>";
+			echo "<td>";
+			foreach ($article->oe as $oe){
+				echo $oe;
+				echo "<br>";
+			}
+			echo "</td>";
             if (in_array($article->articleId, $ids_in_catalog)) {
                 // Tuote on jo valikoimassa
                 echo "<td class=\"toiminnot\"><a class=\"nappi disabled\">Lisää</a></td>";
             } else {
-                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
+                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId, '$article->articleNo')\">Lisää</a></td>";
             }
 			echo '</tr>';
 		}
@@ -666,7 +710,13 @@ function print_catalog($products) {
             }
             echo "</td>";
             echo "<td>$product->ean</td>";
-			echo "<td>$product->oe</td>";
+			//echo "<td>$product->oe</td>";
+			echo "<td>";
+			foreach ($product->oe as $oe){
+				echo $oe;
+				echo "<br>";
+			}
+			echo "</td>";
 			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"text-align: right;\">" . format_integer($product->minimisaldo) . "</td>";
@@ -689,6 +739,7 @@ function print_catalog($products) {
 	echo '</div>';
 }
 
+
 function hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() {
 	global $connection;
 	$sql_query = "	SELECT	*
@@ -709,6 +760,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if (isset($_POST['lisaa'])) {
 		$id = intval($_POST['lisaa']);
+		$articleNo = strval($_POST['articleNo']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
@@ -716,7 +768,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$eraraja = intval($_POST['eraraja']);
 		$eraalennus = doubleval($_POST['eraalennus']);
-		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $eraraja, $eraalennus);
+		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $eraraja, $eraalennus, $articleNo);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
@@ -790,9 +842,15 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 				}
                 echo "</td>";
 				echo "<td>$product->ean</td>";
-				echo "<td>$product->oe</td>";
+				//echo "<td>$product->oe</td>";
+				echo "<td>";
+				foreach ($product->oe as $oe){
+					echo $oe;
+					echo "<br>";
+				}
+				echo "</td>";
 
-				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
+				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId, '$product->articleNo')\">Lisää</a></td>";
 				echo '</tr>';
 			}
 			echo '</table>';
