@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) NOT NULL,
   `hinta` decimal(11,2) NOT NULL,
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
-  `ALV_taso` tinyint(1) NOT NULL,
+  `ALV_kanta` tinyint(1) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0',
   `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
