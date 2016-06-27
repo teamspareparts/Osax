@@ -135,7 +135,7 @@ function lisaa_uusi_ALV() {
 </script>
 
 <!-- HTML -->
-<input class="nappi" type="button" value="Muokkaa ALV-tasoja" onClick="avaa_Modal_alv_muokkaa()">
+<input class="nappi" type="button" value="Muokkaa ALV-kantoja" onClick="avaa_Modal_alv_muokkaa()">
 <!-- HTML END -->
 
 <?php

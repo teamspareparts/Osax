@@ -31,7 +31,7 @@ function get_products_in_shopping_cart() {
 
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
+		SELECT	id, hinta, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera 
 		FROM	tuote 
 		WHERE 	id in ($ids);");
 
@@ -72,7 +72,7 @@ function order_products($products) {
 		$article = $product->directArticle;
 		$product_id = addslashes($article->articleId);
 		$product_price = addslashes($product->hinta_ilman_ALV);
-		$alv_prosentti = addslashes($product->ALV_taso);
+		$alv_prosentti = addslashes($product->ALV_kanta);
 		$alv_prosentti = hae_ALV_prosentti($alv_prosentti);
 		$product_count = addslashes($product->cartCount);
 		$result = mysqli_query($connection, "

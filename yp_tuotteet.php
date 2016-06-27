@@ -88,7 +88,7 @@ function showAddDialog(id, articleNo) {
 			<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
 				<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
 				<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-					<?php hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() ?> \
+					<?php hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() ?> \
 				</span><br> \
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
@@ -122,7 +122,7 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount,
 			<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
 			<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
 			<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-				<?php hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() ?> \
+				<?php hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() ?> \
 			</span><br> \
 			<span class="dialogi-kentta">Nykyinen verokanta:"' + alv + '"</span><br>\
 			<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
@@ -521,11 +521,11 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 	$minimum_sale_count = intval($minimum_sale_count);
 	$result = mysqli_query($connection, "
 		INSERT INTO tuote 
-			(id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera, eraraja, eraalennus) 
+			(id, hinta, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, eraraja, eraalennus) 
 		VALUES 
 			('$id', '$price_with_alv', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count', '$eraraja', '$eraalennus')
 		ON DUPLICATE KEY 
-			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
+			UPDATE hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_kanta=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
 				minimimyyntiera=$minimum_sale_count, eraraja=$eraraja, eraalennus=$eraalennus, aktiivinen=1;");
 	
 	//lisätään tietokantaan kaikki linkitetyt tuotteet
@@ -569,7 +569,7 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 	$minimum_sale_count = intval($minimum_sale_count);
 	$result = mysqli_query($connection, "
 		UPDATE 	tuote 
-		SET 	hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_taso=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count 
+		SET 	hinta=$price_with_alv, hinta_ilman_ALV=$price, ALV_kanta=$alv, varastosaldo=$count, minimisaldo=$minimum_count, minimimyyntiera=$minimum_sale_count 
 		WHERE 	id=$id;");
 	return mysqli_affected_rows($connection) >= 0;
 }
@@ -605,7 +605,7 @@ function remove_related_search_nos($articleId){
 function get_products_in_catalog() {
 	global $connection;
 	$result = mysqli_query($connection, "
-		SELECT id, hinta, hinta_ilman_ALV, ALV_taso, varastosaldo, minimisaldo, minimimyyntiera 
+		SELECT id, hinta, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera 
 		FROM tuote 
 		WHERE aktiivinen=1;");
 	if ($result) {
@@ -725,7 +725,7 @@ function print_catalog($products) {
 				onclick=\"showModifyDialog(
 					$product->id,
 					'" . str_replace('.', ',', $product->hinta_ilman_ALV) . "',
-					$product->ALV_taso,
+					$product->ALV_kanta,
 					$product->varastosaldo,
 					$product->minimisaldo,
 					$product->minimimyyntiera)
@@ -740,10 +740,10 @@ function print_catalog($products) {
 }
 
 
-function hae_kaikki_ALV_tasot_ja_lisaa_alasvetovalikko() {
+function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() {
 	global $connection;
 	$sql_query = "	SELECT	*
-					FROM	ALV_taso;";
+					FROM	ALV_kanta;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	
 	echo "<select name=\"alv_lista\">";
