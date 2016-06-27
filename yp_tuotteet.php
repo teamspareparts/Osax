@@ -743,7 +743,8 @@ function print_catalog($products) {
 function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() {
 	global $connection;
 	$sql_query = "	SELECT	*
-					FROM	ALV_kanta;";
+					FROM	ALV_kanta
+	                ORDER BY kanta ASC;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	
 	echo "<select name=\"alv_lista\">";

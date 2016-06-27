@@ -1,13 +1,14 @@
 <?php
 /* hae_kaikki_ALV_kannat_ja_tulosta()
-Hake kaikki tietokannassa olevat ALV-kannat, ja tulostaa ne näkyville lomakkeeseen 0,00 muodossa.
-Param: ---
-Return: ---
-*/
+ * Hake kaikki tietokannassa olevat ALV-kannat, ja tulostaa ne näkyville lomakkeeseen 0,00 muodossa.
+ * Param: ---
+ * Return: ---
+ */
 function hae_kaikki_ALV_kannat_ja_tulosta() {
 	global $connection;
 	$sql_query = "	SELECT	*
-					FROM	ALV_kanta;";
+					FROM	ALV_kanta
+					ORDER BY kanta ASC;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 
 	$row_count = mysqli_num_rows($result);
@@ -26,10 +27,10 @@ function hae_kaikki_ALV_kannat_ja_tulosta() {
 }
 
 /* hae_ALV_indeksi()
-Laskee ALV-kantojen maaran tietokannassa, ja palauttaa kokonaislukuna indeksin.
-Param: ---
-Return: kokonaisluku, SQL-haun rivien maara (ALV-kantojen maara)
-*/
+ * Laskee ALV-kantojen maaran tietokannassa, ja palauttaa kokonaislukuna indeksin.
+ * Param: ---
+ * Return: kokonaisluku, SQL-haun rivien maara (ALV-kantojen maara)
+ */
 function hae_ALV_indeksi(){
 	global $connection;
 	global $row_count; //Muuttujaa tarvitaan paivita_alv_tietokanta()-funktiossa
@@ -41,13 +42,13 @@ function hae_ALV_indeksi(){
 }
 
 /* tallenna_uudet_ALV_tiedot()
-Ottaa parametrina listan ALV-arvoista lomakkeen kautta, muokkaa ne 0.00 muotoon,
- ja tallentaa tietokantaan paivita_alv_tietokanta()-funktion kautta.
- Sen jalkeen paivittaa sivun.
- //TODO: Tyhjien kasittely
-Param: lista uusista ALV-arvoista
-Return:
-*/
+ * Ottaa parametrina listan ALV-arvoista lomakkeen kautta, muokkaa ne 0.00 muotoon,
+ *  ja tallentaa tietokantaan paivita_alv_tietokanta()-funktion kautta.
+ *  Sen jalkeen paivittaa sivun.
+ *  //TODO: Tyhjien kasittely
+ * Param: lista uusista ALV-arvoista
+ * Return:
+ */
 function tallenna_uudet_ALV_tiedot($alv_array) {
 	$index = 1;
 	$poistettavat = 0;

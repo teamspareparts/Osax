@@ -69,26 +69,28 @@ function tallenna_uudet_tiedot() {
 	$osoite_id = $_POST['osoite_id'];
 	
 	$possible_fields = array('sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka');
-	$i = 2;
+	$i = 0;
 	$cleaned_array = array_filter($_POST); //Poistaa tyhjat
-	$len = count($_POST);
-
-	$sql_query = "UPDATE toimitusosoite SET ";
+	$len = count($cleaned_array);
 	
-	foreach($cleaned_array as $key => $value){
-		$k = htmlspecialchars( $key );
-		$v = htmlspecialchars( $value );
-		if ( in_array( $k, $possible_fields ) ) {
-			$sql_query .= $k . " = '" . $value . "'";
-			if ( $i < ($len-1) ) { $sql_query .= ', '; }
-			$i++;
+	if ( $len >= 3 ) {	// Onko päivitettäviä tietoja? Ei turhia sql-hakuja.
+		$sql_query = "UPDATE toimitusosoite SET "; //Aloitusosa
+		
+		foreach ( $cleaned_array as $key => $value ) {		//Täytetään hakuun päivitettävät osat
+			$k = htmlspecialchars( $key );
+			$v = htmlspecialchars( $value );
+			if ( in_array( $k, $possible_fields ) ) {
+				$sql_query .= $k . " = '" . $value . "'";
+				if ( $i < ($len-3) ) { $sql_query .= ', '; } //Jos vielä osia, lisätään erotin
+				$i++;
+			}
 		}
+		
+		$sql_query .= " WHERE kayttaja_id = '" . $id . "' AND osoite_id = '" . $osoite_id . "';"; //Loppuosa
+		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+		return $result;
 	}
-	
-	$sql_query .= " WHERE kayttaja_id = '" . $id . "' AND osoite_id = '" . $osoite_id . "';";
-	
-	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-	return $result;
+	return false; //Jos ei yhtään päivitettävää osaa
 }
 
 /* lisaa_uusi_osoite()

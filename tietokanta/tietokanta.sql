@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
   `yhteensa_kpl` int(11) NOT NULL DEFAULT '0',
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
-  `Eraraja` int(11) NOT NULL DEFAULT '0',
-  `Eraalennus` decimal(3,2) NOT NULL default '0.00',
+  `alennusera_kpl` int(11) NOT NULL DEFAULT '0',
+  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -75,11 +75,10 @@ CREATE TABLE IF NOT EXISTS `ALV_kanta` (
   `kanta` tinyint(1) NOT NULL,
   `prosentti` decimal(3,2) NOT NULL,
   PRIMARY KEY (`kanta`),
-  UNIQUE KEY (`kanta`,`prosentti`)
+  UNIQUE KEY (`prosentti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
   `osoite_id` tinyint(2) NOT NULL,
   `sahkoposti` varchar(255) NOT NULL,
@@ -89,15 +88,14 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   `postinumero` smallint(6) NOT NULL,
   `postitoimipaikka` varchar(255) NOT NULL,
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `asiakas_hinta` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
   `tuote_id` int(11) NOT NULL,
   `hinta` decimal(11,2) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`kayttaja_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `tuote_search` (
