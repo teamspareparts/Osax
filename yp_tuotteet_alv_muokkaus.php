@@ -34,7 +34,7 @@ function hae_ALV_indeksi(){
 	global $connection;
 	global $row_count; //Muuttujaa tarvitaan paivita_alv_tietokanta()-funktiossa
 	$sql_query = "	SELECT	*
-					FROM	ALV_taso;";
+					FROM	ALV_kanta;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$row_count = mysqli_num_rows($result);
 	return $row_count;
@@ -66,24 +66,22 @@ function tallenna_uudet_ALV_tiedot($alv_array) {
 }
 
 /* paivita_alv_tietokantaan()
-Ottaa parametrina kannan ja prosentin. Paivittaa tietokannan tiedot.
- Tarkistaa lisaksi, onko ALV-kanta olemassa vai ei.
-Parametrit: 
-	$key : halutun ALV-kannan numero, avain
-	$alv : haluttu ALV-prosentti
-Return: Boolean
-*/
+ * Ottaa parametrina kannan ja prosentin. Paivittaa tietokannan tiedot.
+ *  Tarkistaa lisaksi, onko k.o. ALV-kanta olemassa vai ei.
+ * Parametrit: 
+ * 	$key : halutun ALV-kannan numero, avain
+ * 	$alv : haluttu ALV-prosentti
+ * Return: Boolean
+ */
 function paivita_alv_tietokanta($key, $alv) {
 	global $connection;
-	global $row_count;	
-	if ( $key <= $row_count ) {
-		$sql_query = "	UPDATE	ALV_kanta
-						SET		prosentti = '$alv'
-						WHERE	kanta = '$key';";
-	} else {
-		$sql_query = "	INSERT INTO ALV_kanta
-						VALUES ('$key','$alv');";
-	}
+	global $row_count;
+
+	$sql_query = "	INSERT INTO ALV_kanta 
+						(kanta, prosentti)
+					VALUES ('$key', '$alv')
+					ON DUPLICATE KEY 
+						UPDATE prosentti = '$alv';";
 				
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	return $result;
@@ -102,10 +100,11 @@ function avaa_Modal_alv_muokkaa() {
 		content:  '\
 			<form action="#" method="post">\
 				<div id="alv_form_container">\
-					<?php hae_kaikki_ALV_tasot_ja_tulosta() ?> \
+					<?php hae_kaikki_ALV_kannat_ja_tulosta() ?> \
 				</div>\
-				<input type="button" name="add_New_ALV_button" value="+ uusi ALV-taso" onclick="lisaa_uusi_ALV()"><br>\
-				<br>\
+				<input type="button" id="btnALVadd" name="add_New_ALV_button" value="+ uusi ALV-kanta" onclick="lisaa_uusi_ALV()"> \
+				Maksimi viisi (5) due to arbitary reasons \
+				<br><br>\
 				<input type="submit" name="muokkaa_ALV" value="Tallenna muutokset">\
 			</form>\
 			',
@@ -114,20 +113,17 @@ function avaa_Modal_alv_muokkaa() {
 }
 
 /*
-Lisaa uuden ALV-tason ALV-lomakkeeseen, joka on modal-ikkunassa (avaaModal()-funktio suoraan ylapuolella).
+Lisaa uuden ALV-kannan ALV-lomakkeeseen, joka on modal-ikkunassa (avaaModal()-funktio suoraan ylapuolella).
 Param: ---
 Return: ---
 */
 function lisaa_uusi_ALV() {
-	if ( alv_i_laskuri >= 5 ) {
+	if ( alv_i_laskuri <= 5 ) {
 		var newdiv = document.createElement('div');
-		newdiv.innerHTML = "<label>ALV-taso " + alv_i_laskuri + ":</label>" 
+		newdiv.innerHTML = "<label>ALV-kanta " + alv_i_laskuri + ":</label>" 
 			+ "<input type=\"text\" name=\"alv[]\" placeholder=\"0,00\"><br>\ ";
 		document.getElementById('alv_form_container').appendChild(newdiv);
 		alv_i_laskuri++;
-	} else {
-		document.add_new_ALV_button.disabled = true;
-		document.add_new_ALV_button.value = "Maksmimi viisi (5)";
 	}
 		
 }

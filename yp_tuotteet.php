@@ -751,7 +751,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() {
 		$prosentti = str_replace( '.', ',', $row['prosentti'] );
         printf (
 			"<option name=alv value=\"%s\">%s; %s</option>", 
-			$row['taso'], $row['taso'], $prosentti);
+			$row['kanta'], $row['kanta'], $prosentti);
     }
 	echo "</select>";
 }

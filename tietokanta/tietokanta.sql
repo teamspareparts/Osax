@@ -74,7 +74,8 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (
   `kanta` tinyint(1) NOT NULL,
   `prosentti` decimal(3,2) NOT NULL,
-  PRIMARY KEY (`kanta`, `prosentti`)
+  PRIMARY KEY (`kanta`),
+  UNIQUE KEY (`kanta`,`prosentti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
