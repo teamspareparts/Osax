@@ -94,7 +94,6 @@ function paivita_alv_tietokanta($key, $alv) {
 var alv_indeksi = <?= hae_ALV_indeksi() ?>;
 alv_indeksi++; //Kasvatetaan yhdella, koska numerointi aloitetaan ensimmäisesti uudesta ALV:sta
 var alv_i_laskuri = alv_indeksi; //Muistissa aito alv:ien lukumaara, laskuri jatkuvaan numerointiin
-var 
 
 
 function avaa_Modal_alv_muokkaa() {

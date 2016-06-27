@@ -132,22 +132,22 @@ function poista_osoite() {
 	$osoite_id_viimeinen = hae_osoitteet_indeksi();
 	$osoite_id_viimeinen = --$osoite_id_viimeinen;
 
-
+	//Tarkistetaan onko yhtään tilausta kyseisellä toimitusosoitteella
 	$sql_query = "	SELECT	id
-	FROM 	tilaus
-	WHERE 	osoite_id = '$osoite_id'";
+					FROM 	tilaus
+					WHERE 	osoite_id = '$osoite_id'";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	if ( mysqli_num_rows($result) < 1 ) {
 		$sql_query = "	DELETE
-		FROM 	toimitusosoite
-		WHERE 	osoite_id = '$osoite_id'";
+						FROM 	toimitusosoite
+						WHERE 	osoite_id = '$osoite_id'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 
 		if ( mysqli_affected_rows($connection) > 0 ) {
 			$sql_query = "	UPDATE	toimitusosoite
-			SET		osoite_id='$osoite_id'
-			WHERE	kayttaja_id = '$id'
-			AND osoite_id = '$osoite_id_viimeinen'";
+							SET		osoite_id='$osoite_id'
+							WHERE	kayttaja_id = '$id'
+								AND osoite_id = '$osoite_id_viimeinen'";
 			$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 		}
 	}

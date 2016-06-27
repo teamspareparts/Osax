@@ -11,7 +11,7 @@ require '../tietokanta.php';
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)
 				or die("Connection error:" . mysqli_connect_error());
 
-/* Asiakkaan lisäys*/
+/* Asiakkaan lisäys */
 $asiakas = "asiakas@asiakas";
 $salasana = password_hash("asiakas", PASSWORD_DEFAULT);/*
 $sql_query = "
@@ -30,13 +30,13 @@ $row = $result->fetch_assoc();
 $asiakas_id = $row['id'];
 
 
-/* ALV-tasojen lisäys
+/* ALV-tasojen lisäys */
 $pros1 = 0.24;
 $pros2 = 0.20;
 $pros3 = 0.10;
 $sql_query = "
 	INSERT
-	INTO	ALV-taso (taso, prosentti) 
+	INTO	ALV_kanta (kanta, prosentti) 
 	VALUES ('1', '$pros1'),
 			('2', '$pros2'),
 			('3', '$pros3');";

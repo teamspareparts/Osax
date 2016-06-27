@@ -6,7 +6,7 @@
 // Voit halutessasi muokata käyttäjätunnusta ja salasanaa alla olevilla muuttujilla.
 //
 
-define('ADMIN_USERNAME', 'admin@admin.admin');
+define('ADMIN_USERNAME', 'admin@admin');
 define('ADMIN_PASSWORD', 'admin');
 
 //
