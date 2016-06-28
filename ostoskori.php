@@ -15,21 +15,22 @@ require 'tecdoc.php';
 require 'tietokanta.php';
 require 'apufunktiot.php';
 
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
 //
 // Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet
 //
 function get_products_in_shopping_cart() {
 	global $connection;
-
     $cart = get_shopping_cart();
     if (empty($cart)) {
         return [];
     }
-
     $ids = addslashes(implode(', ', array_keys($cart)));
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo, minimimyyntiera FROM tuote WHERE id in ($ids);");
+	$result = mysqli_query($connection, "
+			SELECT	id, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta, varastosaldo, minimisaldo, minimimyyntiera
+			FROM	tuote 
+			JOIN	alv_kanta
+			ON		tuote.alv_kanta = alv_kanta.kanta
+			WHERE	id in ($ids);");
 
 	if ($result) {
 		$products = [];
@@ -43,6 +44,16 @@ function get_products_in_shopping_cart() {
 	return [];
 }
 
+function tulosta_taulukko ( $array ) {
+	$tulostus = "";
+	foreach ($array as $data) {
+		$tulostus .= $data . " | ";
+	}
+	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (10 tässä tapauksessa)
+	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap
+	return $tulostus;
+}
+
 handle_shopping_cart_action();
 
 $products = get_products_in_shopping_cart();
@@ -51,9 +62,13 @@ if (empty($products)) {
     echo '<div class="tulokset"><p>Ostoskorissa ei ole tuotteita.</p></div>';
 } else {
 	$sum = 0.0;
-    echo '<div class="tulokset">';
-    echo '<table>';
-    echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th></tr>';
+	?><!-- HTML -->
+    <div class="tulokset">
+    <table>
+    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th>
+    	<th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th>
+    	<th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th></tr>
+    <?php
     foreach ($products as $product) {
         $article = $product->directArticle;
         echo '<tr>';
@@ -69,7 +84,7 @@ if (empty($products)) {
         }
         echo "</td>";
         echo "<td>$product->ean</td>";
-        echo "<td>$product->oe</td>";
+        echo "<td>" . tulosta_taulukko($product->oe) . "</td>";
         echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
         echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
         echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
@@ -96,12 +111,12 @@ if (empty($products)) {
     $can_order = $enough_in_stock && $enough_ordered;
 
     if ($can_order) {
-        echo '<p><a class="nappi" href="tilaus.php">Tilaa tuotteet</a></p>';
+    	?><p><a class="nappi" href="tilaus.php">Tilaa tuotteet</a></p><?php 
     } else {
-        echo '<p><a class="nappi disabled">Tilaa tuotteet</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p>';
+        ?><p><a class="nappi disabled">Tilaa tuotteet</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p><?php 
     }
 
-    echo '</div>';
+    ?></div><?php 
 }
 
 ?>

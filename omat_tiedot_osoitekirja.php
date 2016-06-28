@@ -1,7 +1,7 @@
 <?php 
 $id = $_SESSION['id'];
 /*
- * Hakee kaikki toimitusosoitteet ja tulostaa, plus kaki nappia; toinen muokkaamista
+ * Hakee kaikki toimitusosoitteet ja tulostaa, plus kaksi nappia; toinen muokkaamista
  *  ja toinen poistamista varten.
  */
 function hae_kaikki_toimitusosoitteet_ja_tulosta() {
@@ -24,7 +24,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 		
 		<input class="nappi" type="button" value="Muokkaa" 
 			onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row['osoite_id'] ?>);">
-		<input class="nappi" type="button" value="Poista" 
+		<input class="nappi" type="button" value="Poista" style="background:rgb(255, 0, 6);border-color: #b70004;"
 			onClick="vahvista_Osoitteen_Poistaminen(<?= $row['osoite_id'] ?>);">
 			
 		<?php $form_id = "poista_Osoite_Form_" . $row['osoite_id'];?>
@@ -109,7 +109,8 @@ function lisaa_uusi_osoite() {
 	$d = $_POST['katuosoite'];
 	$e = $_POST['postinumero'];
 	$f = $_POST['postitoimipaikka'];
-	$uusi_osoite_id = hae_osoitteet_indeksi();
+	$uusi_osoite_id = hae_osoitteet_viimeinen_indeksi();
+	$uusi_osoite_id = ++$osoite_id_viimeinen;
 	
 	$sql_query = "	INSERT 
 					INTO	toimitusosoite
@@ -131,8 +132,7 @@ function poista_osoite() {
 	global $id;
 	global $connection;
 	$osoite_id = $_POST["poista"];
-	$osoite_id_viimeinen = hae_osoitteet_indeksi();
-	$osoite_id_viimeinen = --$osoite_id_viimeinen;
+	$osoite_id_viimeinen = hae_osoitteet_viimeinen_indeksi();
 
 	//Tarkistetaan onko yhtään tilausta kyseisellä toimitusosoitteella
 	$sql_query = "	SELECT	id
@@ -161,17 +161,17 @@ function poista_osoite() {
  * Param: ---
  * Return:	int, indeksi+1
  */
-function hae_osoitteet_indeksi(){
+function hae_osoitteet_viimeinen_indeksi(){
 	global $connection;
 	global $id;
 	
-	$sql_query = "	SELECT	*
+	$sql_query = "	SELECT	osoite_id
 					FROM	toimitusosoite
 					Where	kayttaja_id = '$id';";
 	
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$row_count = mysqli_num_rows($result);
-	return ++$row_count;
+	return $row_count;
 }
 
 if ( !empty($_POST["muokkaa_vanha"]) ) {
@@ -261,10 +261,12 @@ function vahvista_Osoitteen_Poistaminen(osoite_id) {
 }
 </script>
 
-
-<fieldset>
+<fieldset style="display:inline-block; text-align:left;">
 	<Legend>Osoitekirja</legend>
 	<?= hae_kaikki_toimitusosoitteet_ja_tulosta(); ?>
-	<input class="nappi" type="button" value="Lisää uusi toimitusosoite" 
-		onClick="avaa_Modal_toimitusosoite_lisaa_uusi();">
+	
+	<div id="submit">
+		<input class="nappi" type="button" value="Lisää uusi toimitusosoite" 
+			onClick="avaa_Modal_toimitusosoite_lisaa_uusi();">
+	</div>
 </fieldset>

@@ -11,7 +11,7 @@ input {
 
 /***************************************
 
-	Menu palkin tyylittelyï¿½
+	Menu palkin tyylittelyä
 
 ***************************************/
 
@@ -38,7 +38,7 @@ input {
 }
 
 
-/*	Tï¿½ytyy olla, jotta KIRJAUDU ULOS -painike pysyy
+/*	Täytyy olla, jotta KIRJAUDU ULOS -painike pysyy
 	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
 #navigationbar ul:after {
 	content: " ";
@@ -212,7 +212,7 @@ input {
 
 /********************************************
 
-	Yllï¿½pitï¿½jï¿½n asiakas tiluashistoria sivu
+	Ylläpitäjän asiakas tiluashistoria sivu
 
 *********************************************/
 
@@ -236,15 +236,12 @@ input {
 
 /********************************************
 
-	Yllï¿½pitï¿½jï¿½n tilaukset sivu
+	Ylläpitäjän tilaukset sivu
 
 *********************************************/
 
-
-
 #tilaukset .tilausnumero, #tilaukset .sum,
 #tilaukset .pvm {
-
 	display: inline-block;
 	width: 14%;
 }
@@ -277,11 +274,7 @@ input {
 
 *********************************************/
 
-
-
-
-
-/* keskitetï¿½ï¿½n form */
+/* keskitetään form */
 #lomake {
 	display: block;
 	text-align: center;
@@ -326,20 +319,16 @@ input {
 #lomake input {
 }
 
-
-
 /* Asetellaan "submit"-painike */
 #lomake #submit {
 	display: block;
 	text-align: center;
 }
 
-
 #lomake #submit input[type=submit] {
     background: #4479BA;
     border-color: #20538D;
 }
-
 
 #lomake #submit input[type=submit]:HOVER {
     background: #356094;
@@ -347,12 +336,12 @@ input {
     cursor: pointer;
 }
 
+
 /*************************************************
 
-	Listojen tyylittely (joissa kï¿½ytetï¿½ï¿½n checkbox)
+	Listojen tyylittely (joissa käytetään checkbox)
 
 **************************************************/
-
 
 #lista {
 	text-align: center;
@@ -386,7 +375,6 @@ input {
 	color: black;
 }
 
-
 #lista #submit {
 	text-align: right;
 }
@@ -398,7 +386,7 @@ input {
 
 /*************************************************
 
-
+	//TODO: selitä mikä tämä on
 
 **************************************************/
 

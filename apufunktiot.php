@@ -102,8 +102,8 @@ function handle_shopping_cart_action() {
 }
 
 /*
-Hakee annetun ALV-tason prosentin tietokannasta
-*/
+ * Hakee annetun ALV-tason prosentin tietokannasta
+ */
 function hae_ALV_prosentti($ALV_kanta) {
 	global $connection;
 	$sql_query = "
