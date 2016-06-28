@@ -10,7 +10,6 @@
 <h1 class="otsikko">Tilaushistoria</h1>
 <br><br>
 
-
 <div id="tilaukset">
 	<div id="lista">
 
@@ -26,10 +25,9 @@
 				exit();
 			}
 
-			$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-
 			$query = "
-				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, SUM(tilaus_tuote.kpl * tilaus_tuote.pysyva_hinta) AS summa 
+				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, 
+					SUM( tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pyvyva_alv) ) AS summa 
 				FROM tilaus 
 				LEFT JOIN kayttaja 
 					ON kayttaja.id=tilaus.kayttaja_id
@@ -55,10 +53,7 @@
 				echo '</a></fieldset>';
 			}
 			
-
-
 			mysqli_close($connection);
-
 			?>
 		</form>
 	</div>
