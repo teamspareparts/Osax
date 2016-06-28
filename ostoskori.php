@@ -49,8 +49,8 @@ function tulosta_taulukko ( $array ) {
 	foreach ($array as $data) {
 		$tulostus .= $data . " | ";
 	}
-	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (10 tässä tapauksessa)
-	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap
+	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (35 tässä tapauksessa)
+	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä
 	return $tulostus;
 }
 
@@ -82,16 +82,17 @@ if (empty($products)) {
             if(!empty($info->attrUnit)) echo $info->attrUnit . " ";
             echo "<br>";
         }
-        echo "</td>";
-        echo "<td>$product->ean</td>";
-        echo "<td>" . tulosta_taulukko($product->oe) . "</td>";
-        echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-        echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-        echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
-        echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"" . $product->cartCount . "\" min=\"0\"></td>";
-        echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"modifyShoppingCart($article->articleId)\">Päivitä</a></td>";
-        echo '</tr>';
-
+        ?><!-- HTML -->
+        </td>
+        <td><?= $product->ean ?></td>
+        <td><?= tulosta_taulukko($product->oe)?></td>
+        <td style="text-align: right;"><?= format_euros($product->hinta) ?></td>
+        <td style="text-align: right;"><?= format_integer($product->varastosaldo) ?></td>
+        <td style="text-align: right;"><?= format_integer($product->minimimyyntiera) ?></td>
+        <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number" value="<?= $product->cartCount ?>" min="0"></td>
+        <td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
+        </tr><!-- HTML END -->
+        <?php 
 		$sum += $product->hinta * $product->cartCount;
     }
     echo '</table>';

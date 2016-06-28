@@ -16,8 +16,6 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 require 'email.php';
 
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
 //
 // Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet
 //
@@ -31,8 +29,12 @@ function get_products_in_shopping_cart() {
 
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera 
-		FROM	tuote 
+		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera,
+			(hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta,
+			alv_kanta.prosentti AS alv_prosentti
+		FROM	tuote  
+		JOIN	alv_kanta
+		ON		tuote.alv_kanta = alv_kanta.kanta
 		WHERE 	id in ($ids);");
 
 	if ($result) {
@@ -72,8 +74,7 @@ function order_products($products) {
 		$article = $product->directArticle;
 		$product_id = addslashes($article->articleId);
 		$product_price = addslashes($product->hinta_ilman_ALV);
-		$alv_prosentti = addslashes($product->ALV_kanta);
-		$alv_prosentti = hae_ALV_prosentti($alv_prosentti);
+		$alv_prosentti = addslashes($product->alv_prosentti);
 		$product_count = addslashes($product->cartCount);
 		$result = mysqli_query($connection, "
 			INSERT INTO tilaus_tuote 
