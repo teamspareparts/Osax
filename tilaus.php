@@ -33,7 +33,7 @@ function get_products_in_shopping_cart() {
 			(hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta,
 			alv_kanta.prosentti AS alv_prosentti
 		FROM	tuote  
-		JOIN	alv_kanta
+		LEFT JOIN	alv_kanta
 		ON		tuote.alv_kanta = alv_kanta.kanta
 		WHERE 	id in ($ids);");
 

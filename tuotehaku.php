@@ -497,8 +497,6 @@ if (isset($_SESSION['cart'])) {
 
 require 'tietokanta.php';
 
-//$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
 function filter_by_article_number($number) {
 
 	// Korvaa jokerimerkit * ja ? merkeillä % ja _ ,joita käytetään
@@ -526,7 +524,11 @@ function filter_by_article_number($number) {
 	function get_only_catalog_products($filtered) {
 		global $connection;
 		$filtered = implode("','", $filtered);
-		$query = "SELECT * FROM tuote WHERE id IN('$filtered') AND aktiivinen=1";
+		$query = "	SELECT 	*, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta
+					FROM 	tuote 
+					WHERE 	id IN('$filtered') AND aktiivinen=1
+					JOIN	alv_kanta
+						ON	tuote.alv_kanta = alv_kanta.kanta;";
 		$result = mysqli_query($connection, $query) or die("Error: " . mysqli_error($connection));
 		$products = array();
 		while ($row = mysqli_fetch_object($result)) {
@@ -534,21 +536,15 @@ function filter_by_article_number($number) {
 		}
 		//echo count($ids);
 		return $products;
-
 	}
-
 
 	$filtered_ids = array();
 	
-	//etsitään kaikki linkitettyjen tuotteiden id:t
-	$filtered_ids = matches_search_no($number);
+	$filtered_ids = matches_search_no($number); //etsitään kaikki linkitettyjen tuotteiden id:t
 	
-	//etsitään vain ne tuotteet, joiden id:t ovat catalogissa
-	$searched_products = get_only_catalog_products($filtered_ids);
-	
-	//merge with tecdoc
+	$searched_products = get_only_catalog_products($filtered_ids); //etsitään vain ne tuotteet, joiden id:t ovat catalogissa
+
 	merge_products_with_tecdoc($searched_products);
-	
 
 	//$unique_ids = array_unique($searched_ids);
 
@@ -718,7 +714,12 @@ if(isset($_GET["manuf"])) {
 
 	global $connection;
 
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote;");
+	$result = mysqli_query($connection, "
+			SELECT id, varastosaldo, minimisaldo,
+				( hinta_ilman_alv * (1+alv_kanta.prosentti) ) AS hinta
+			LEFT JOIN alv_kanta
+				ON tuote.alv_kanta = alv_kanta.kanta
+			FROM tuote;");
 
 	if ($result) {
 		$products = [];
@@ -733,9 +734,6 @@ if(isset($_GET["manuf"])) {
 		}
 	}
 	print_results($products);
-
-
-
 }
 
 
@@ -780,12 +778,6 @@ function print_results($products) {
 	echo '</div>';
 }
 
-
-
 ?>
-
-</body>
-
-
 </body>
 </html>
