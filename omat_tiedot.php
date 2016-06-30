@@ -88,16 +88,16 @@
 	<?php
 	if (isset($_SESSION['result'])){
 		if($_SESSION['result'] == -1){
-			echo "Sähköpostia ei löytynyt.";
+			echo "<p>Sähköpostia ei löytynyt.</p>";
 		}
 		elseif ($_SESSION['result'] == -2){
-			echo "Salasanat eivät täsmää.";
+			echo "<p>Salasanat eivät täsmää.</p>";
 		}
 		elseif ($_SESSION['result'] == 1) {
-			echo "Tiedot päivitetty.";
+			echo "<p>Tiedot päivitetty.</p>";
 		}
 		elseif ($_SESSION['result'] == 2) {
-			echo "Salasana vaihdettu.";
+			echo "<p>Salasana vaihdettu.</p>";
 		}
 		unset($_SESSION['result']);
 	}

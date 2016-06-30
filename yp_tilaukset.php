@@ -50,7 +50,7 @@ include 'header.php';
 				while($row = mysqli_fetch_assoc($result)){
 					?>
 					<fieldset>
-						<a href="tilaus_info.php?id=<?= $row["id"]?>>
+						<a href="tilaus_info.php?id=<?= $row["id"]?>">
 							<span class="tilausnumero"><?= $row["id"]?></span>
 							<span class="pvm"><?= date("d.m.Y", strtotime($row["paivamaara"]))?></span>
 							<span class="tilaaja"><?= $row["etunimi"] . " " . $row["sukunimi"]?></span>
@@ -61,15 +61,15 @@ include 'header.php';
 					</fieldset>
 					<?php 
 					
-					echo '<fieldset>';
-					echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
-						'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
-						'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
-						'</span><span class="yritys">' . $row["yritys"] .
-						'</span><span class="sum">' . format_euros($row["summa"]) .
-						'</span></a>';
-					echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '/">';
-					echo '</fieldset>';
+					//echo '<fieldset>';
+					//echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
+					//	'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
+					//	'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
+					//	'</span><span class="yritys">' . $row["yritys"] .
+					//	'</span><span class="sum">' . format_euros($row["summa"]) .
+					//	'</span></a>';
+					//echo '<input type="checkbox" name="ids[]" value="' . $row["id"] . '/">';
+					//echo '</fieldset>';
 				}
 
 				mysqli_close($connection);

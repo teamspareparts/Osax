@@ -29,7 +29,7 @@ function get_products_in_shopping_cart() {
 
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera,
+		SELECT	id, hinta_ilman_ALV, varastosaldo, minimisaldo, minimimyyntiera,
 			(hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta,
 			alv_kanta.prosentti AS alv_prosentti
 		FROM	tuote  
@@ -135,7 +135,12 @@ if (isset($_GET['vahvista'])) {
             }
             echo "</td>";
             echo "<td>$product->ean</td>";
-            echo "<td>$product->oe</td>";
+            echo "<td>";
+			foreach ($product->oe as $oe){
+				echo $oe;
+				echo "<br>";
+			}
+			echo "</td>";
             echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
