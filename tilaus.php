@@ -73,7 +73,7 @@ function order_products($products) {
 	foreach ($products as $product) {
 		$article = $product->directArticle;
 		$product_id = addslashes($article->articleId);
-		$product_price = addslashes($product->hinta_ilman_ALV);
+		$product_price = addslashes($product->hinta_ilman_alv);
 		$alv_prosentti = addslashes($product->alv_prosentti);
 		$product_count = addslashes($product->cartCount);
 		$result = mysqli_query($connection, "
@@ -154,7 +154,6 @@ if (isset($_GET['vahvista'])) {
     		$sum += $product->hinta * $product->cartCount;
         }
         echo '</table>';
-    	echo '<p>Summa yhteensä: <b>' . format_euros($sum) . '</b></p>';
 		echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
 		echo '<p>Rahtimaksu: <b>';
 	    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; }

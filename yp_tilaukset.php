@@ -19,11 +19,10 @@ include 'header.php';
 
 <div id="tilaukset">
 	<div id="lista">
-
 		<form action="yp_tilaukset.php" method="post">
-		<fieldset class="lista_info">
-			<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="yritys">Yritys</span><span class="sum">Summa</span>Käsitelty</p>
-		</fieldset>
+			<fieldset class="lista_info">
+				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="yritys">Yritys</span><span class="sum">Summa</span>Käsitelty</p>
+			</fieldset>
 
 			<?php
 				require 'tietokanta.php';
@@ -73,7 +72,6 @@ include 'header.php';
 				}
 
 				mysqli_close($connection);
-
 			?>
 			<br>
 			<div id=submit>
