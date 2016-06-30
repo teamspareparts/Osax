@@ -6,10 +6,12 @@
 *********************************************/
 body	{
 	background-color:#3399CC;
+	font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+	letter-spacing: -0.01em;
 }
 
 fieldset	{
-	background-color:lightgrey;
+	background-color: lightgrey;
 	padding: 15pt;
 	margin-bottom: 20pt;
 }
@@ -17,8 +19,9 @@ fieldset	{
 legend	{
 	font-size: 110%;
 	font-weight: bold;
-	background-color: lightgrey;
-	border: 2px groove threedface;
+	background-color: #bdbdbd;
+	border: 0px groove threedface;
+	border-radius: 25px;
 	padding: 4pt 6pt;
 }
 

@@ -26,7 +26,7 @@ function get_products_in_shopping_cart() {
     }
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-			SELECT	id, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta, varastosaldo, minimisaldo, minimimyyntiera
+			SELECT	id, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti
 			FROM	tuote 
 			JOIN	alv_kanta
 			ON		tuote.alv_kanta = alv_kanta.kanta
@@ -50,7 +50,7 @@ function tulosta_taulukko ( $array ) {
 		$tulostus .= $data . " | ";
 	}
 	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (35 tässä tapauksessa)
-	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä
+	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä korissa
 	return $tulostus;
 }
 
@@ -67,7 +67,7 @@ if (empty($products)) {
     <table>
     <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th>
     	<th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th>
-    	<th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th></tr>
+    	<th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
     <?php
     foreach ($products as $product) {
         $article = $product->directArticle;
@@ -89,14 +89,26 @@ if (empty($products)) {
         <td style="text-align: right;"><?= format_euros($product->hinta) ?></td>
         <td style="text-align: right;"><?= format_integer($product->varastosaldo) ?></td>
         <td style="text-align: right;"><?= format_integer($product->minimimyyntiera) ?></td>
-        <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number" value="<?= $product->cartCount ?>" min="0"></td>
+        <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number"value="<?= $product->cartCount ?>" min="0"></td>
+        <td style="padding-top: 0; padding-bottom: 0;">
+        <?php //Alennuserän laskeminen, ja huomautuksen tulostus:
+        $jakotulos =  $product->cartCount / $product->alennusera_kpl;
+        if ( $jakotulos > 0.75 && $jakotulos < 1 && $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 ) { 
+        	$puuttuva_kpl_maara = $product->alennusera_kpl - $product->cartCount;      $alennus_prosentti = round((float)$product->alennusera_prosentti * 100 ) . '%'; 
+        	echo "Lisää $puuttuva_kpl_maara kpl saadaksesi $alennus_prosentti alennusta!"; 
+        } else { echo "---"; } ?>
+		</td>
         <td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
         </tr><!-- HTML END -->
         <?php 
 		$sum += $product->hinta * $product->cartCount;
     }
     echo '</table>';
-	echo '<p>Summa yhteensä: <b>' . format_euros($sum) . '</b></p>';
+	echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
+	echo '<p>Rahtimaksu: <b>'; $rahtimaksu = 15;
+    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; $rahtimaksu = 0; }
+	else { echo '15€ </b></p>'; }
+	echo '<p>Summa yhteensä: <b>' . format_euros($sum+$rahtimaksu) . '</b></p>';
 
     // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran
     $enough_in_stock = true;
@@ -116,8 +128,8 @@ if (empty($products)) {
     } else {
         ?><p><a class="nappi disabled">Tilaa tuotteet</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p><?php 
     }
-
-    ?></div><?php 
+    ?><p><a class="nappi" href="tuotehaku.php" style="background:rgb(200, 70, 70);border-color: #b70004;">Palaa takaisin</a></p>
+    </div><?php 
 }
 
 ?>

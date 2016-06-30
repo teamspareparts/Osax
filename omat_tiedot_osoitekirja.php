@@ -24,7 +24,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 		
 		<input class="nappi" type="button" value="Muokkaa" 
 			onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row['osoite_id'] ?>);">
-		<input class="nappi" type="button" value="Poista" style="background:rgb(255, 0, 6);border-color: #b70004;"
+		<input class="nappi" type="button" value="Poista" style="background:rgb(210, 0, 6);border-color: #b70004;"
 			onClick="vahvista_Osoitteen_Poistaminen(<?= $row['osoite_id'] ?>);">
 			
 		<?php $form_id = "poista_Osoite_Form_" . $row['osoite_id'];?>

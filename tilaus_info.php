@@ -13,38 +13,39 @@
 </div>
 <div class="tulokset">
 	<?php
-		require 'tietokanta.php';
-		require 'tecdoc.php';
-		require 'apufunktiot.php';
+	require 'tietokanta.php';
+	require 'tecdoc.php';
+	require 'apufunktiot.php';
+
+	$id = $_GET["id"];
+	$query = "
+		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
+			SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa, 
+			SUM(tilaus_tuote.kpl) AS kpl
+		FROM tilaus
+		LEFT JOIN kayttaja
+			ON kayttaja.id=tilaus.kayttaja_id
+		LEFT JOIN tilaus_tuote
+			ON tilaus_tuote.tilaus_id=tilaus.id
+		LEFT JOIN tuote
+			ON tuote.id=tilaus_tuote.tuote_id
+		WHERE tilaus.id = '$id'";
+	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+	$row = mysqli_fetch_assoc($result);
 	
-		$id = $_GET["id"];
-		$query = "
-			SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
-				SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa, 
-				SUM(tilaus_tuote.kpl) AS kpl
-			FROM tilaus
-			LEFT JOIN kayttaja
-				ON kayttaja.id=tilaus.kayttaja_id
-			LEFT JOIN tilaus_tuote
-				ON tilaus_tuote.tilaus_id=tilaus.id
-			LEFT JOIN tuote
-				ON tuote.id=tilaus_tuote.tuote_id
-			WHERE tilaus.id = '$id'";
-		$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-		$row = mysqli_fetch_assoc($result);
-		
-		//Päästetään vain oikeat käyttäjät katsomaan tilaushistorioita
-		//(Eli asiakas ei pääse muiden asiakkaiden tilaushistoria sivulle
-		// vaihtamalla URLia esim. tilaus_info.php?id=4)
-		if (is_admin() || ($row["sahkoposti"] == $_SESSION["email"])){
-		
-		if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
+	//Päästetään vain oikeat käyttäjät katsomaan tilaushistorioita
+	//(Eli asiakas ei pääse muiden asiakkaiden tilaushistoria sivulle
+	// vaihtamalla URLia esim. tilaus_info.php?id=4)
+	if (is_admin() || ($row["sahkoposti"] == $_SESSION["email"])){
 	
-		?><!-- HTML -->
+	if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
+
+	$rahtimaksu = 15; if ( $row["summa"] > 200 ) { $rahtimaksu = 0; }
+	?><!-- HTML -->
 	<table class='tilaus_info'>
 	<tr><td>Tilausnumero: <?= $row["id"]?></td><td>Päivämäärä: <?= date("d.m.Y", strtotime($row["paivamaara"]))?></td></tr>
 	<tr><td>Tilaaja: <?= $row["etunimi"] . " " . $row["sukunimi"]?></td><td>Yritys: <?= $row["yritys"]?></td></tr>
-	<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?></td></tr>
+	<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?> ( + rahtimaksu: <?= format_euros($rahtimaksu)?> = <?= format_euros($row["summa"]+$rahtimaksu)?>)</td></tr>
 	</table>
 	<br>
 	<?php 
@@ -63,7 +64,7 @@
 			echo "<td>$article->articleNo</td>";
 			echo "<td>" . format_euros( ($product->pysyva_hinta)*(1+($product->pysyva_alv)) ) . "</td>";
 			echo "<td>" . format_euros( $product->pysyva_hinta ) . "</td>";
-			echo "<td>" . $product->pysyva_alv . "</td>";
+			echo "<td>" . round((float)$product->pysyva_alv * 100 ) . "%</td>";
 			echo "<td>$product->kpl</td>";
 			echo '</tr>';
 		}

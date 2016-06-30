@@ -40,12 +40,12 @@
 			$query = "
 				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
 					SUM(tilaus_tuote.kpl) AS kpl, 
-					SUM( tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pyvyva_alv) ) AS summa
+					SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))) AS summa
 				FROM $tbl_name 
 				LEFT JOIN tilaus_tuote
-					ON tilaus_tuote.tilaus_id=tilaus.id
+					ON tilaus_tuote.tilaus_id = tilaus.id
 				WHERE kayttaja_id='$id'
-				GROUP BY tilaus.id";
+				GROUP BY tilaus.id;";
 			
 			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 			

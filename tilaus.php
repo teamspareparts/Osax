@@ -102,6 +102,15 @@ function order_products($products) {
 	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $order_id);
 	return true;
 }
+function tulosta_taulukko ( $array ) {
+	$tulostus = "";
+	foreach ($array as $data) {
+		$tulostus .= $data . " | ";
+	}
+	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (35 tässä tapauksessa)
+	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä korissa
+	return $tulostus;
+}
 
 $products = get_products_in_shopping_cart();
 
@@ -135,7 +144,7 @@ if (isset($_GET['vahvista'])) {
             }
             echo "</td>";
             echo "<td>$product->ean</td>";
-            echo "<td>$product->oe</td>";
+            echo "<td>" . tulosta_taulukko($product->oe) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
@@ -146,6 +155,11 @@ if (isset($_GET['vahvista'])) {
         }
         echo '</table>';
     	echo '<p>Summa yhteensä: <b>' . format_euros($sum) . '</b></p>';
+		echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
+		echo '<p>Rahtimaksu: <b>';
+	    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; }
+		else { echo '15€ </b></p>'; }
+    	echo '<p>Summa yhteensä: <b>' . format_euros($sum+15) . '</b></p>';
 
         // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran
         $enough_in_stock = true;
@@ -166,6 +180,7 @@ if (isset($_GET['vahvista'])) {
             echo '<p><a class="nappi disabled">Vahvista tilaus</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p>';
         }
 
+        echo '<p><a class="nappi" href="ostoskori.php" style="background:rgb(180, 0, 6);border-color: #b70004;">Peruuta</a></p>';
         echo '</div>';
     }
 }

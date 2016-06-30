@@ -12,7 +12,7 @@
 <?php
 	require 'tietokanta.php';
 	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
-	$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+	global $connection;
 	$tbl_name = 'kayttaja';
 	
 	$email = $_SESSION['email'];
@@ -72,15 +72,15 @@
 	<br>
 	<form action="" name="uusi_salasana" method="post" accept-charset="utf-8">
 	<fieldset><legend>Vaihda salasana</legend>	
-	<label><span>Uusi salasana</span></label>
-			<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-			<br><br>
-			<label><span>Vahvista salasana</span></label>
-			<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-			<br><br><br>
-			<div id="submit">
-				<input name="submit" value="Vaihda salasana" type="submit">
-			</div>
+		<label><span>Uusi salasana</span></label>
+		<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
+		<br><br>
+		<label><span>Vahvista salasana</span></label>
+		<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
+		<br><br><br>
+		<div id="submit">
+			<input name="submit" value="Vaihda salasana" type="submit">
+		</div>
 	</fieldset>
 	</form>
 	<br><br>
@@ -116,9 +116,7 @@
 		exit;
 	}
 	
-	
 	//result:
-
 	//-2	Salasanat eivät täsmää
 	//2		Salasana vaihdettu
 	function vaihda_salasana($id, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
@@ -141,7 +139,6 @@
 	
 
 	//result:
-
 	//-1	käyttäjätunnusta ei olemassa
 	//1		tiedot päivitetty
 	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi){
@@ -166,7 +163,6 @@
 			return 1;	//talletetaan tulos sessioniin
 		}
 	}
-
 	
 	include 'omat_tiedot_osoitekirja.php'; //Sisältää kaiken toiminnallisuuden osoitekirjaa varten
 ?>

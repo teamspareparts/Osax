@@ -51,20 +51,16 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 				"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
-				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä Rantakylän Varaosa Oy:hyn."
-	),
+				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä Rantakylän Varaosa Oy:hyn."),
 	];
 ?>
 	<div id="content">
-		<fieldset id=error>
-			<legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
+		<fieldset id=error><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
 			<p> <?= $modes_array[$mode]['teksti'] ?> </p>
 		</fieldset>
 	</div>
 <?php
-}
-?>
-
+}?>
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
@@ -88,11 +84,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
-	
 </div>
-
-
-
 </body>
 </html>
 <!-- EOF -->

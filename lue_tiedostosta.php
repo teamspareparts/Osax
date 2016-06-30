@@ -13,7 +13,6 @@ if (!is_admin()) {
 	exit();
 }
 ?>
-
 <h1>Lisää tuotteita tiedostosta</h1>
 <p>Tällä sivulla voi valita tiedoston, josta kaikki tuotteet lisätään sivuston valikoimaan...</p>
 
@@ -52,5 +51,6 @@ if(isset($_FILES['file']['name'])) {
 
 ?>
 
+<?php include 'footer.php';?>
 </body>
 </html>
