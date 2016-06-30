@@ -273,11 +273,10 @@ function merge_products_with_optional_data($articles) {
 	}
 }
 
-function get_oe_and_ean_by_id($id){
+function get_oe_by_id($id){
 	$product = $product = getOptionalData($id);
-	$ean = get_ean_number($product[0]);
 	$oe = get_oe_number($product[0]);
-	return array($oe, $ean);
+	return $oe;
 }
 
 
@@ -310,6 +309,5 @@ function get_oe_number($product) {
 	for ($i=0; $i < count($product->oenNumbers->array); $i++){
 		array_push($oeNumbers, strval($product->oenNumbers->array[$i]->oeNumber));
 	}
-	//return $product->oenNumbers->array[0]->oeNumber;
 	return array_unique($oeNumbers);
 }

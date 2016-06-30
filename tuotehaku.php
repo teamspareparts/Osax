@@ -508,16 +508,24 @@ function filter_by_article_number($number) {
 		return $replaced;
 	}
 
-	function matches_search_no($number) {
+	function matches_any_number($number) {
 		global $connection;
 		$number = replace_wildcards($number);
+		//search number
 		$query = "SELECT * FROM tuote_search WHERE search_no LIKE '$number';";
-		$result = mysqli_query($connection, $query) or die($connection);
+		$result = mysqli_query($connection, $query) or die("ERROR1: " . mysqli_error($connection));
 		$numbers = array();
 		while ($row = mysqli_fetch_object($result)) {
 			array_push($numbers, $row->tuote_id);
 		}
-		//echo count($numbers) . " ";
+		//oe
+		$query = "SELECT * FROM tuote_oe WHERE oe_number LIKE '$number';";
+		$result = mysqli_query($connection, $query) or die("ERROR2: " . mysqli_error($connection));
+		while ($row = mysqli_fetch_object($result)) {
+			array_push($numbers, $row->tuote_id);
+		}
+		//voitaisiin hakea myös EAN-tunnuksella, mutta jätän tekemättä,
+		//koska EAN numerolla hakua ei juuri käytetä ja se syö tuotehaun tehokkuutta
 		return $numbers;
 	}
 
@@ -529,7 +537,7 @@ function filter_by_article_number($number) {
 					JOIN	alv_kanta
 						ON	tuote.alv_kanta = alv_kanta.kanta
 					WHERE 	id IN('$filtered') AND aktiivinen=1;";
-		$result = mysqli_query($connection, $query) or die("Error: " . mysqli_error($connection));
+		$result = mysqli_query($connection, $query) or die("Error3: " . mysqli_error($connection));
 		$products = array();
 		while ($row = mysqli_fetch_object($result)) {
 			array_push($products, $row);
@@ -540,7 +548,7 @@ function filter_by_article_number($number) {
 
 	$filtered_ids = array();
 	
-	$filtered_ids = matches_search_no($number); //etsitään kaikki linkitettyjen tuotteiden id:t
+	$filtered_ids = matches_any_number($number); //etsitään kaikki linkitettyjen tuotteiden id:t
 	
 	$searched_products = get_only_catalog_products($filtered_ids); //etsitään vain ne tuotteet, joiden id:t ovat catalogissa
 
