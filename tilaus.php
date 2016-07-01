@@ -102,6 +102,13 @@ function order_products($products) {
 	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $order_id);
 	return true;
 }
+
+/*
+ * Ottaa taulukon, lyhentää sen, ja pistää wordwrapin.
+ * Tarkoitettu OE-koodien tulostukseen, mutta melko yleiskäyttöinen.
+ * Param: $array, tulostettava taulukko.
+ * Return: Merkkijono, jonka voi suoraan tulostaa
+ */
 function tulosta_taulukko ( $array ) {
 	$tulostus = "";
 	foreach ($array as $data) {
@@ -112,13 +119,21 @@ function tulosta_taulukko ( $array ) {
 	return $tulostus;
 }
 
+/*
+ * Tulostaa rahtimaksun. Laskee onko tilauksen summa >200€, ja sen mukaan tulostaa joko
+ * 0€ tai $rahtimaksu € rahtimaksuksi.
+ * Param: ---
+ * Return: --- (Tulostaa suoraan funktion sisällä)
+ */
 function tulosta_rahtimaksu () {
 	global $sum;
+	global $rahtimaksu;
 	
 	if ($sum > 200) {  //Ilmainen toimitus tilauksille yli 200€
-		echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; 
+		echo "<b><s>" . $rahtimaksu . "€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b>"; 
+		$rahtimaksu = 0;
 	} else { 
-		echo '15€ </b></p>'; }
+		echo "<b>" . $rahtimaksu . "€</b>"; }
 }
 
 $products = get_products_in_shopping_cart();
@@ -161,6 +176,7 @@ if (isset($_GET['vahvista'])) {
             echo '</tr>';
 
     		$sum += $product->hinta * $product->cartCount;
+    		$rahtimaksu = 15;
         }
         echo '</table>';
         /*
@@ -172,17 +188,36 @@ if (isset($_GET['vahvista'])) {
 */
     	?>
     	
-    	<div id=tilausvahvistus_tilaustiedot_container >
-	    	<div id=tilausvahvistus_maksutiedot >
+    	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; border:1px solid;">
+	    	<div id=tilausvahvistus_maksutiedot style="width:20em; height:7em; border:1px solid;">
 		    	<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
-		    	<p>Rahtimaksu: <b> <?= tulosta_rahtimaksu() ?>
-		    	<p>Summa yhteensä: <b><?= format_euros($sum+15)?></b></p>
+		    	<p>Rahtimaksu: <?= tulosta_rahtimaksu() ?></p>
+		    	<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu)?></b></p>
 	    	</div>
-	    	<div id=tilausvahvistus_toimitusosoite >
+	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:10em; height:7em; border:1px solid;">
+				<div style="margin:2%;
+    background-color:#888888;
+    width:30%;
+    padding-bottom:30%; /* relative size and position on page */
+    float: left;
+    position:relative;  /* coord system stop */
+    top:0px;">
+					<div style="position: absolute;
+    text-align: center;
+    padding-top:100%;
+    -webkit-transform: translateY(-50%); /* child now centers itself relative to the midline based on own contents */
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);">This text</div>
+				</div>
 		    	<!-- Osoitteen valinta 
-		    	Dropdown valikko, josta voi valita osoitteen.
-		    	Tulee tähän. Hintatietojen vieressä, tilausnapista ylös.
-		    	Vaatii hieman CSS-taikuutta, so no promises  -->
+				Nappi tähän, josta aukeaa Modal-ikkuna, jossa listaus. -->
+	    	</div>
+	    	<div id=tilausvahvistus_toimitusosoite_nappi style="flex-grow:1; border:1px solid; margin:1px;">
+		    	<p>OSOITTEEN TULOSTUS</p>
+		    	<!-- Osoitteen valinta 
+				Nappi tähän, josta aukeaa Modal-ikkuna, jossa listaus. -->
 	    	</div>
     	</div>
     	<?php 
