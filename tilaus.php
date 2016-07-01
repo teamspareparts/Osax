@@ -112,6 +112,15 @@ function tulosta_taulukko ( $array ) {
 	return $tulostus;
 }
 
+function tulosta_rahtimaksu () {
+	global $sum;
+	
+	if ($sum > 200) {  //Ilmainen toimitus tilauksille yli 200€
+		echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; 
+	} else { 
+		echo '15€ </b></p>'; }
+}
+
 $products = get_products_in_shopping_cart();
 
 if (isset($_GET['vahvista'])) {
@@ -154,12 +163,30 @@ if (isset($_GET['vahvista'])) {
     		$sum += $product->hinta * $product->cartCount;
         }
         echo '</table>';
+        /*
 		echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
 		echo '<p>Rahtimaksu: <b>';
 	    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; }
 		else { echo '15€ </b></p>'; }
     	echo '<p>Summa yhteensä: <b>' . format_euros($sum+15) . '</b></p>';
-
+*/
+    	?>
+    	
+    	<div id=tilausvahvistus_tilaustiedot_container >
+	    	<div id=tilausvahvistus_maksutiedot >
+		    	<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
+		    	<p>Rahtimaksu: <b> <?= tulosta_rahtimaksu() ?>
+		    	<p>Summa yhteensä: <b><?= format_euros($sum+15)?></b></p>
+	    	</div>
+	    	<div id=tilausvahvistus_toimitusosoite >
+		    	<!-- Osoitteen valinta 
+		    	Dropdown valikko, josta voi valita osoitteen.
+		    	Tulee tähän. Hintatietojen vieressä, tilausnapista ylös.
+		    	Vaatii hieman CSS-taikuutta, so no promises  -->
+	    	</div>
+    	</div>
+    	<?php 
+    	
         // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran
         $enough_in_stock = true;
         $enough_ordered = true;
