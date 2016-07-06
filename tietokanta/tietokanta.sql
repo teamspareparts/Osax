@@ -1,5 +1,3 @@
-
-
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `salasana_hajautus` varchar(100) COLLATE utf8_swedish_ci NOT NULL,
@@ -16,6 +14,10 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `voimassaolopvm` datetime DEFAULT NULL,
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
+  /* Minä en ole ollenkaan varma tästä. Älä päivitä tätä sivulle, kunnes varmistan
+		miten tämä rahtimaksu oikein toimii. */
+  `rahtimaksu` decimal(11,2) NOT NULL,		
+  `ilmainen_toimitus_kpl_raja` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -46,7 +48,6 @@ CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `kayttaja_id` int(11) NOT NULL,
-  `osoite_id` tinyint(2) DEFAULT NULL,
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
   `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -58,9 +59,21 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tuote_id` int(11) NOT NULL,
   `pysyva_hinta` decimal(11,2) NOT NULL,
   `pysyva_alv` decimal(3,2) NOT NULL,
+  `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT '0.00',
   `kpl` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
+
+CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
+  `tilaus_id` int(11) NOT NULL AUTO_INCREMENT,
+  `pysyva_sahkoposti` varchar(255) NOT NULL,
+  `pysyva_puhelin` varchar(20) NOT NULL,
+  `pysyva_yritys` varchar(50) NOT NULL,
+  `pysyva_katuosoite` varchar(255) NOT NULL,
+  `pysyva_postinumero` smallint(6) NOT NULL,
+  `pysyva_postitoimipaikka` varchar(255) NOT NULL,
+  PRIMARY KEY (`tilaus_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `pw_reset` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
