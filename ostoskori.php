@@ -50,8 +50,39 @@ function tulosta_taulukko ( $array ) {
 		$tulostus .= $data . " | ";
 	}
 	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (35 tässä tapauksessa)
-	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä korissa
+	$tulostus = wordwrap($tulostus, 10, "<br />\n", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä korissa
 	return $tulostus;
+}
+
+function laske_era_alennus_tulosta_huomautus ( $product ) {
+	$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
+	
+	$tulosta_huomautus = ( $jakotulos >= 0.75 && $jakotulos < 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
+	//Jos: kpl-määrä 75% alennuserä kpl-rajasta, mutta alle 100%. Lisäksi tuotteella on eräalennus asetettu (kpl-raja ei ole nolla, ja prosentti ei ole nolla).
+	$tulosta_alennus = ( $jakotulos >= 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
+	//Jos: kpl-määrä yli 100%. Lisäksi tuotteella on eräalennus asetettu.
+	
+	if ( $tulosta_huomautus ) {
+		$puuttuva_kpl_maara = $product->alennusera_kpl - $product->cartCount;
+		$alennus_prosentti = round((float)$product->alennusera_prosentti * 100 ) . ' %';
+		echo "Lisää $puuttuva_kpl_maara kpl saadaksesi $alennus_prosentti alennusta!";
+		
+	} elseif ( $tulosta_alennus ) { 
+		$alennus_prosentti = round((float)$product->alennusera_prosentti * 100 ) . ' %';
+		echo "Eräalennus ($alennus_prosentti) asetettu."; 
+		
+	} else { echo "---"; }
+}
+
+function tarkista_hinta_era_alennus ( $product ) {
+	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
+	if ( $jakotulos >= 1 ) {
+		echo "Woo! Alennus!";
+		$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
+		$product->hinta = ($product->hinta * $alennus_prosentti);
+		return $product->hinta;
+	
+	} else { return $product->hinta; }
 }
 
 handle_shopping_cart_action();
@@ -65,9 +96,8 @@ if (empty($products)) {
 	?><!-- HTML -->
     <div class="tulokset">
     <table>
-    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th>
-    	<th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th>
-    	<th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
+    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th>
+    	<th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
     <?php
     foreach ($products as $product) {
         $article = $product->directArticle;
@@ -86,18 +116,11 @@ if (empty($products)) {
         </td>
         <td><?= $product->ean ?></td>
         <td><?= tulosta_taulukko($product->oe)?></td>
-        <td style="text-align: right;"><?= format_euros($product->hinta) ?></td>
+        <td style="text-align: right;"><?= format_euros(tarkista_hinta_era_alennus( $product )) ?></td>
         <td style="text-align: right;"><?= format_integer($product->varastosaldo) ?></td>
         <td style="text-align: right;"><?= format_integer($product->minimimyyntiera) ?></td>
         <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number"value="<?= $product->cartCount ?>" min="0"></td>
-        <td style="padding-top: 0; padding-bottom: 0;">
-        <?php //Alennuserän laskeminen, ja huomautuksen tulostus:
-        $jakotulos =  $product->cartCount / $product->alennusera_kpl;
-        if ( $jakotulos > 0.75 && $jakotulos < 1 && $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 ) { 
-        	$puuttuva_kpl_maara = $product->alennusera_kpl - $product->cartCount;      $alennus_prosentti = round((float)$product->alennusera_prosentti * 100 ) . '%'; 
-        	echo "Lisää $puuttuva_kpl_maara kpl saadaksesi $alennus_prosentti alennusta!"; 
-        } else { echo "---"; } ?>
-		</td>
+        <td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_tulosta_huomautus( $product )?></td>
         <td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
         </tr><!-- HTML END -->
         <?php 
@@ -106,8 +129,8 @@ if (empty($products)) {
     echo '</table>';
 	echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
 	echo '<p>Rahtimaksu: <b>'; $rahtimaksu = 15;
-    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; $rahtimaksu = 0; }
-	else { echo '15€ </b></p>'; }
+    if ($sum > 200) { echo '<s>15 €</s> <ins>Yli 200 € tilauksille ilmainen toimitus!</ins></b></p>'; $rahtimaksu = 0; }
+	else { echo '15 € </b></p>'; }
 	echo '<p>Summa yhteensä: <b>' . format_euros($sum+$rahtimaksu) . '</b></p>';
 
     // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran

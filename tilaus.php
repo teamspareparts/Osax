@@ -32,7 +32,7 @@ function get_products_in_shopping_cart() {
 
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera,
+		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta,
 			alv_kanta.prosentti AS alv_prosentti
 		FROM	tuote  
@@ -160,7 +160,7 @@ function hae_kaikki_toimitusosoitteet_JSON_array() {
 	if ( count($osoitekirja_array) > 0 ) {
 		return true;
 	} else return false;
-} echo hae_kaikki_toimitusosoitteet_JSON_array();
+} hae_kaikki_toimitusosoitteet_JSON_array();
 
 function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal() {
 	global $osoitekirja_array;
@@ -178,6 +178,27 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal() {
 		<hr> \
 		";
 	}
+}
+
+function tarkista_disabled_ja_tulosta_tmo_valinta_nappi() {
+	global $osoitekirja_array;
+	$nappi_html_toimiva = '<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
+	$nappi_html_disabled = '<a class="nappi disabled" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
+	
+	if ( count($osoitekirja_array) > 0 ) {
+		return $nappi_html_toimiva;
+	} else return $nappi_html_disabled;
+}
+
+function tarkista_hinta_era_alennus ( $product ) {
+	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
+	
+	if ( $jakotulos >= 1 ) {
+		$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
+		$product->hinta = ($product->hinta * $alennus_prosentti);
+		return $product->hinta;
+	
+	} else { return $product->hinta; }
 }
 
 $products = get_products_in_shopping_cart();
@@ -213,7 +234,7 @@ if (isset($_GET['vahvista'])) {
             echo "</td>";
             echo "<td>$product->ean</td>";
             echo "<td>" . tulosta_taulukko($product->oe) . "</td>";
-            echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
+            echo "<td style=\"text-align: right;\">" . tarkista_hinta_era_alennus( $product ) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
             echo "<td style=\"text-align: right;\">$product->cartCount</td>";
@@ -223,29 +244,23 @@ if (isset($_GET['vahvista'])) {
     		$rahtimaksu = 15;
         }
         echo '</table>';
-        /*
-		echo '<p>Tuotteiden kokonaissumma: <b>' . format_euros($sum) . '</b></p>';
-		echo '<p>Rahtimaksu: <b>';
-	    if ($sum > 200) { echo '<s>15€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b></p>'; }
-		else { echo '15€ </b></p>'; }
-    	echo '<p>Summa yhteensä: <b>' . format_euros($sum+15) . '</b></p>';
-*/
     	?>
-    	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; border:1px solid;">
-	    	<div id=tilausvahvistus_maksutiedot style="width:20em; height:7em; border:1px solid; margin:1px;">
+  
+    	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
+	    	<div id=tilausvahvistus_maksutiedot style="width:20em;">
 		    	<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
 		    	<p>Rahtimaksu: <?= tulosta_rahtimaksu() ?></p>
 		    	<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu)?></b></p>
 	    	</div>
-	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:10em; height:7em; border:1px solid; margin:1px;">
-				<a id="a_M_tmo_nappi" class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>
+	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; padding-bottom:1em; padding-top:1em;">
+	    		<?= tarkista_disabled_ja_tulosta_tmo_valinta_nappi() ?>
 	    	</div>
-	    	<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1; border:1px solid; margin:1px;">
+	    	<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">
 		    	<!-- Osoitteen tulostus -->
 	    	</div>
     	</div>
-    	<?php 
     	
+    	<?php 
         // Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran
         $enough_in_stock = true;
         $enough_ordered = true;
@@ -276,8 +291,9 @@ if (isset($_GET['vahvista'])) {
 var osoitekirja = <?= json_encode($osoitekirja_array)?>;
 console.log(JSON.stringify(osoitekirja));
 if ( osoitekirja.length == 0 ) {
-	console.log("foo");
-	document.getElementById('a_M_tmo_nappi').disabled = true;
+	var toimitusosoitteen_valinta = document.getElementById("tilausvahvistus_toimitusosoite_nappi");
+	var huomautus_teksti = document.createTextNode("Sinulla ei ole yhtään toimitusosoitetta profiilissa!");
+	toimitusosoitteen_valinta.appendChild(huomautus_teksti);
 }
 
 function avaa_Modal_valitse_toimitusosoite() {
@@ -290,7 +306,6 @@ function avaa_Modal_valitse_toimitusosoite() {
 }
 function valitse_toimitusosoite(osoite_id) {
 	var osoite_array = osoitekirja[osoite_id];
-	console.log(JSON.stringify(osoite_array));
 	//Muuta tempate literal muotoon heti kuun saan päivitettyä tämän EMACS2015
 	var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
 	html_osoite.innerHTML = "Toimitusosoite " + osoite_id + "<br>"
@@ -298,7 +313,6 @@ function valitse_toimitusosoite(osoite_id) {
 		+ "Katuosoite: " + osoite_array['katuosoite'] + "<br>"
 		+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
 		+ "Puhelinnumero: " + osoite_array['puhelin'];
-	console.log(html_osoite);
 }
 </script>
 
