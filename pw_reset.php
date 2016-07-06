@@ -17,7 +17,7 @@
 		$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
 						or die("Connection error:" . mysqli_connect_error()); // Yhdista tietokantaan
 						
-		$id = $_GET["id"]; // Käyttäjän henkilökohtainen, salattu ID; tallennettu tietokantaan
+		$user_id = $_GET["id"]; // Käyttäjän henkilökohtainen, salattu ID; tallennettu tietokantaan
 		if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			$mode = $_GET["redir"];		// Otetaan moodi talteen
 			if ( $mode == 1 ) {			// Jos moodi --> varmistu != salasana 
@@ -36,7 +36,7 @@
 			$salasana_varm 	= $_POST["confirm_new_password"];	// Salasanan varmistus
 			
 			if ( $salasana != $salasana_varm ) { // Salasanat ei tasmaa
-				header("Location:pw_reset.php?id=$id&redir=1");
+				header("Location:pw_reset.php?id=$user_id&redir=1");
 						
 			} else { // Salasana ja varmistus tasmaa
 			
@@ -54,7 +54,7 @@
 			$sql_query = " 
 				SELECT 	*
 				FROM 	pw_reset
-				WHERE 	reset_key = '$id'";
+				WHERE 	reset_key = '$user_id'";
 			
 			$result = mysqli_query( $connection, $sql_query ) 
 						or die( mysqli_error($connection) ); // Kyselyn tulos
@@ -95,7 +95,7 @@
 				 ****************************************/
 				if ( $difference < 4 ) { //Tarkistetaan aika ?>
 					<fieldset><legend>Vaihda salasanasi</legend>
-						<form name="reset" action="pw_reset.php<?php echo "?id=$id";?>" method="post" accept-charset="utf-8">
+						<form name="reset" action="pw_reset.php<?php echo "?id=$user_id";?>" method="post" accept-charset="utf-8">
 							<?php echo $_SESSION['sposti']; // Muistutuksena kauttajalle ?>
 							<br><br>
 							<label>Uusi salasana</label>

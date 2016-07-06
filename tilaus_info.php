@@ -17,7 +17,7 @@
 	require 'tecdoc.php';
 	require 'apufunktiot.php';
 
-	$id = $_GET["id"];
+	$user_id = $_GET["id"];
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
 			SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa, 
@@ -29,7 +29,7 @@
 			ON tilaus_tuote.tilaus_id=tilaus.id
 		LEFT JOIN tuote
 			ON tuote.id=tilaus_tuote.tuote_id
-		WHERE tilaus.id = '$id'";
+		WHERE tilaus.id = '$user_id'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	$row = mysqli_fetch_assoc($result);
 	
@@ -50,7 +50,7 @@
 	<br>
 	<?php 
 	//tuotelista
-	$products = get_products_in_tilaus($id);
+	$products = get_products_in_tilaus($user_id);
 	if (count($products) > 0) {
 		merge_products_with_tecdoc($products);
 	

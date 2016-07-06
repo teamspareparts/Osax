@@ -794,7 +794,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() {
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if (isset($_POST['lisaa'])) {
-		$id = intval($_POST['lisaa']);
+		$user_id = intval($_POST['lisaa']);
 		$articleNo = strval($_POST['articleNo']);
 		$ean = intval($_POST['ean']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
@@ -804,7 +804,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
-		$success = add_product_to_catalog($id, $ean, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti, $articleNo);
+		$success = add_product_to_catalog($user_id, $ean, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti, $articleNo);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
@@ -818,7 +818,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
 		}
 	} elseif (isset($_POST['muokkaa'])) {
-		$id = intval($_POST['muokkaa']);
+		$user_id = intval($_POST['muokkaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
@@ -826,7 +826,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
-		$success = modify_product_in_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
+		$success = modify_product_in_catalog($user_id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
 		} else {

@@ -65,10 +65,10 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" required autofocus><br>
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus><br>
 			<br>
 			<label>Salasana:</label><br>
-			<input type="password" name="password" placeholder="password" required><br>
+			<input type="password" name="password" placeholder="password" pattern="^{3,255}$" required><br>
 			<br>
 			<input type="hidden" name="mode" value="login">
 			<input type="submit" value="Kirjaudu sisään">
@@ -78,12 +78,13 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" required autofocus ><br>
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
+	
 </div>
 </body>
 </html>

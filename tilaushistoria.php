@@ -15,10 +15,10 @@
 		
 		if (is_admin()){
 			//haetaan kyseisen asiakkaan tiedot
-			$id = $_GET['id'];
+			$user_id = $_GET['id'];
 			
 			$tbl_name="kayttaja";				// Taulun nimi
-			$query = "SELECT * FROM $tbl_name WHERE id='$id'";
+			$query = "SELECT * FROM $tbl_name WHERE id='$user_id'";
 			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 			$row = mysqli_fetch_assoc($result);
 			
@@ -29,7 +29,7 @@
 			echo '<p class="asiakas_info">Tilaaja: ' . $enimi . ' ' . $snimi . '<p>';
 			echo '<p class="asiakas_info">Yritys: ' . $ynimi . '<p>';
 		} else {
-			$id = $_SESSION["id"];
+			$user_id = $_SESSION["id"];
 		}
 	?>
 	
@@ -44,7 +44,7 @@
 				FROM $tbl_name 
 				LEFT JOIN tilaus_tuote
 					ON tilaus_tuote.tilaus_id = tilaus.id
-				WHERE kayttaja_id='$id'
+				WHERE kayttaja_id='$user_id'
 				GROUP BY tilaus.id;";
 			
 			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
