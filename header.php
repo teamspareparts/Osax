@@ -17,7 +17,7 @@ function is_admin() {
 // Tarkistetaan, onko käyttäjä kirjautunut sisään;
 // jos ei, niin ohjataan suoraan kirjautumissivulle.
 if (!is_logged_in()) {
-    header('Location: login.php?redir=5');
+    header('Location: index.php?redir=5');
     exit;
 }
 

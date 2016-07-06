@@ -1,5 +1,5 @@
 <?php
 	session_start();
 	session_destroy();
-	header("location:login.php?redir=5")
+	header("location:index.php?redir=5")
 ?>

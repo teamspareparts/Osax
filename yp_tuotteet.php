@@ -583,7 +583,7 @@ function add_related_search_nos($articleId, $search_no){
 	}
 	$query = substr_replace($query, "", -1);
 	$query .= ";";
-	$result = mysqli_multi_query($connection, $query) or die("Error1:" . mysqli_error($connection));
+	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	return mysqli_affected_rows($connection) > 0; 
 }
 
@@ -607,7 +607,7 @@ function add_related_oes($oes, $articleId){
 	}
 	$query = substr_replace($query, "", -1);
 	$query .= ";";
-	$result = mysqli_multi_query($connection, $query) or die("Error2:" . mysqli_error($connection));
+	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	return mysqli_affected_rows($connection) > 0;
 }
 
@@ -628,10 +628,10 @@ function get_products_in_catalog() {
 	global $connection;
 	$result = mysqli_query($connection, "
 		SELECT id, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
-			(hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta
+			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 		FROM tuote
-		JOIN alv_kanta
-			ON alv_kanta = alv_kanta.kanta 
+		JOIN ALV_kanta
+			ON ALV_kanta = ALV_kanta.kanta 
 		WHERE aktiivinen=1;");
 	if ($result) {
 		$products = [];

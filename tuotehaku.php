@@ -616,10 +616,10 @@ function get_catalog_products_by_number($number){
 		array_push($product_ids, $product->articleId);
 	}
 	$product_ids = implode("','", $product_ids);
-	$query = "	SELECT 	*, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta
+	$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 				FROM 	tuote 
-				JOIN 	alv_kanta
-					ON	tuote.alv_kanta = alv_kanta.kanta
+				JOIN 	ALV_kanta
+					ON	tuote.ALV_kanta = ALV_kanta.kanta
 				WHERE 	id IN ('$product_ids')";
 	$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	$products = array();
@@ -668,10 +668,10 @@ if(isset($_GET["manuf"])) {
 
 	$result = mysqli_query($connection, "
 			SELECT id, varastosaldo, minimisaldo,
-				( hinta_ilman_alv * (1+alv_kanta.prosentti) ) AS hinta
+				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
-			JOIN alv_kanta
-				ON alv_kanta = alv_kanta.kanta;");
+			JOIN ALV_kanta
+				ON ALV_kanta = ALV_kanta.kanta;");
 
 	if ($result) {
 		$products = [];

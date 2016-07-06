@@ -24,7 +24,7 @@ body {
 					or die("Connection error:" . mysqli_connect_error());
 	
 	if (!isset($_POST["mode"])) {
-		header("Location:login.php?redir=4");
+		header("Location:index.php?redir=4");
 		exit();
 	}
 	
@@ -54,7 +54,7 @@ body {
 			$row = mysqli_fetch_assoc($result);
 			//Onko käyttäjä aktiivinen
 			if ($row["aktiivinen"] == 0){
-				header("Location:login.php?redir=2");
+				header("Location:index.php?redir=2");
 				exit;
 			}
 			//Onko salasanat samat
@@ -69,7 +69,7 @@ body {
 		   			
 		   			//tarkastetaan onko kokeilujakso loppunut
 		   			if (new DateTime($row['voimassaolopvm']) < new DateTime()) {
-		   				header("Location:login.php?redir=9"); exit();
+		   				header("Location:index.php?redir=9"); exit();
 		   			}
 		   		}
 		   		
@@ -159,12 +159,12 @@ body {
 		   		}
 			}
 			else {	//väärä salasana
-				header("Location:login.php?redir=3");
+				header("Location:index.php?redir=3");
 				exit;
 			}
 		   
 		} else { //Ei tuloksia == väärä käyttäjätunnus --> lähetä takaisin
-			header("Location:login.php?redir=1");
+			header("Location:index.php?redir=1");
 			exit;
 		}
 	}
@@ -207,19 +207,19 @@ body {
 				//jos salasanaa pyydetty sähköpostiin, lähetetään linkki
 				else{ 
 					laheta_salasana_linkki($email, $key);
-					header("Location:login.php?redir=6");
+					header("Location:index.php?redir=6");
 					exit();
 				}
 			}
 			else {
 				//käyttäjätili deaktivoitu
-				header("Location:login.php?redir=2");
+				header("Location:index.php?redir=2");
 				exit();
 			}
 		}
 		else {
 			//sähköpostia ei löytynyt tietokannasta
-			header("Location:login.php?redir=1");
+			header("Location:index.php?redir=1");
 			exit();
 		}
 	}

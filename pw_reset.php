@@ -43,7 +43,7 @@
 				if ( db_vaihda_salasana($salasana) == TRUE ) {
 					unset($_SESSION['sposti']);
 					//salasanan vaihto onnistui
-					header("Location:login.php?redir=8");
+					header("Location:index.php?redir=8");
 				}
 				
 			}//if salasana == varmistus
@@ -110,13 +110,13 @@
 					</fieldset>
 				<?php
 				}//if difference (pyynto vanhentunut)
-				else { echo header("Location:login.php?redir=7"); exit(); }
+				else { echo header("Location:index.php?redir=7"); exit(); }
 			}//if account found (ei loytynyt pyyntoa)
-			else { header("Location:login.php"); exit(); }
+			else { header("Location:index.php"); exit(); }
 		}//if POST is empty (ei tullut sivulle uudelleenohjauksella)
 	}//if ID empty (ei tullut sivulle palautuslinkin kautta)
 	
-	else { header("Location:login.php"); exit();}
+	else { header("Location:index.php"); exit();}
 	
 	function db_vaihda_salasana($asiakas_uusi_salasana){
 		$asiakas_sposti = $_SESSION['sposti'];

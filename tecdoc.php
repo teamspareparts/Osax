@@ -61,35 +61,6 @@ function getArticleDirectSearchAllNumbersWithState($number) {
 	return [];
 }
 
-//
-// Hakee vain tuotteet, jotka ovat täsmälleen halutun numeron mukaisia
-//
-function getArticleDirectSearchAllNumbersWithState2($number) {
-	$function = 'getArticleDirectSearchAllNumbersWithState';
-	$params = [
-			'lang' => TECDOC_LANGUAGE,
-			'articleCountry' => TECDOC_COUNTRY,
-			'provider' => TECDOC_PROVIDER,
-			'articleNumber' => $number,
-			'searchExact' => true,
-			'numberType' => 10, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
-	];
-
-	// Lähetetään JSON-pyyntö
-	$request =	[$function => $params];
-	$response = _send_json($request);
-
-	// Pyyntö epäonnistui
-	if ($response->status !== 200) {
-		return [];
-	}
-
-	if (isset($response->data->array)) {
-		return $response->data->array;
-	}
-
-	return [];
-}
 
 //
 // Hakee tuotteet annettujen tunnisteiden (articleId) perusteella
