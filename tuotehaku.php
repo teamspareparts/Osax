@@ -2,10 +2,12 @@
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<meta charset="UTF-8">
 	<meta name="description" content="Asiakkaalle näkyvä pohja">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
+	<script src="js/jsmodal-1.0d.min.js"></script>
 	<script>
 	    <?php require_once 'tecdoc_asetukset.php'; ?>
 	    var TECDOC_MANDATOR = <?php echo json_encode(TECDOC_PROVIDER); ?>;
@@ -182,6 +184,23 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
+  	//haetaan tuotteen tarkemmat tiedot
+    function getDirectArticlesByIds6(ids) {
+        var functionName = "getDirectArticlesByIds6";
+        var params = {
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR,
+        		"basicData" : true,
+        		"articleId" : {"array" : ids},
+        		"thumbnails" : true,
+        		"immediateAttributs" : true,
+        		"eanNumbers" : true,
+        		"oeNumbers" : true
+        };
+		tecdocToCatPort[functionName] (params, showProductInfoOnModal);
+    }
+
  	// Create JSON String and put a blank after every ',':
  	//Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
     function toJSON(obj) {
@@ -269,7 +288,6 @@ if (isset($_SESSION['cart'])) {
 		    }
 
 		    $('#osaTyyppi').removeAttr('disabled');
-
       }
 
 	  // Päivittää alasvetolistaan uudet tiedot
@@ -282,15 +300,28 @@ if (isset($_SESSION['cart'])) {
 			    var i;
 			    for (i = 0; i < response.array.length; i++) {
 			    	var subPartType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
-					subPartTypeList.options.add(subPartType);
-			    }
-		    }
+			    	subPartTypeList.options.add(subPartType);
+			  	}
+		  	}
 
-		    $('#osat_alalaji').removeAttr('disabled');
+			$('#osat_alalaji').removeAttr('disabled');
+    }
 
-      }
+	//Näytetään tuotteen tarkemmat tiedot
+	function showProductInfoOnModal(response){
+		response = response.data.array[0];
+		id = response.directArticle.articleId;
+		Modal.open( {
+			content:  '\
+				<p>Tuotteen '+ id +' tiedot haettu.</p> \
+				<p>Tähän kaikki mahdollinen muu tieto tuotteesta...</p> \
+				',
+			draggable: true
+		} );
+		
+	}
 
-	  //jQuery
+	//jQuery
 		$(document).ready(function(){
 			$("#manufacturer").on("change", function(){
 				//kun painaa jotain automerkkiä->
@@ -427,10 +458,22 @@ if (isset($_SESSION['cart'])) {
 
 			//info-nappulan sisältö
 			$("span.question").hover(function () {
-			    $(this).append('<div class="tooltip"><p>? vastaa yhtä merkkiä</p><p>* vastaa merkkijonoa</p></div>');
+			    $(this).append('<div class="tooltip"><p>Mahdollista infoa käyttäjälle...</p></div>');
 			  	}, function () {
 			    $("div.tooltip").remove();
 			});
+
+			$('.clickable').click(function(){
+				$('tr').unbind().click(function(){
+					//haetaan tuotteen id
+					var articleId = $(this).attr('data-val');
+					//haetaan tuotteen tiedot tecdocista
+					getDirectArticlesByIds6(articleId);
+					
+				});
+			});
+
+			$('.clickable').css('cursor', 'pointer');
 
 
 
@@ -497,7 +540,7 @@ if (isset($_SESSION['cart'])) {
 
 require 'tietokanta.php';
 
-function filter_by_article_number($number) {
+/* function filter_by_article_number($number) {
 
 	// Korvaa jokerimerkit * ja ? merkeillä % ja _ ,joita käytetään
 	// MySQL LIKE-käskyssä
@@ -558,138 +601,39 @@ function filter_by_article_number($number) {
 
 	return $searched_products;
 }
+ */
 
-/* //
-// Hakee tuotteista vain sellaiset, joilla on haluttu tuotenumero/EAN/OE-numero
-//
-function filter_by_article_number($products, $number) {
-	
-	// Korvaa jokerimerkit * ja ? säännöllisen lausekkeen vastineilla
-	// ja jättää muut säännöllisten lausekkeiden merkinnät huomioimatta.
-	function replace_wildcards($string) {
-		$replaced = preg_quote($string);
-		$replaced = str_replace('\*', '.*', $replaced);
-		$replaced = str_replace('\?', '.', $replaced);
-		$replaced = str_replace(' ', '', $replaced);
-		return $replaced;
-	}
-
-	function matches_any_number($regexp, $product) {
-		$numbers = [
-			str_replace(" ", "", $product->directArticle->articleNo),
-            $product->ean,
-			$product->oe,
-			//str_replace(" ", "", $product->articleNo),
-			//str_replace(" ", "", $product->articleSearchNo),
-			
-			
-		];
-        foreach ($numbers as $number) {
-            if (preg_match($regexp, $number)) {
-    			return true;
-    		}
-        }
-		return false;
-	}
-
-	//Poistetaan välilyönnit
-	//$number = str_replace(" ", "", $number);
-	// Muodostetaan säännöllinen lauseke joka tunnistaa minkä tahansa annetuista numeroista
-	$regexp = '@^' . replace_wildcards($number) . '$@i';
-
-	$filtered = [];
-
-	foreach ($products as $product) {
-		if (matches_any_number($regexp, $product)) {
-			array_push($filtered, $product);
-		}
-	}
-
-	return $filtered;
-}
-
-//
-// Hakee tuotevalikoimasta tuotteet tuotenumeron/EAN:n/OE-numeron perusteella
-//
-function search_for_product_in_catalog($number) {
+function get_catalog_products_by_number($number){
 	global $connection;
+	$number = trim(addslashes(str_replace(" ", "", $number)));
+	//haetaan kaikki linkitetyt tuotteet
+	$products = getArticleDirectSearchAllNumbersWithState($number);
 	
-
-    // Haetaan ensin TecDocista tuotteet annetun numeron perusteella
-    $tecdoc_products = getArticleDirectSearchAllNumbersWithState($number);
-     
-    /* $number = trim(addslashes($number));
-    
-    echo count($tecdoc_products);
-    $correct_products = filter_by_article_number($tecdoc_products, $number);
-
-    
-    $ids = [];
-    foreach ($correct_products as $product) {
-    	array_push($ids, addslashes($product->articleId));
-    }
-    
-    $query = "SELECT * FROM tuote WHERE id IN (".implode(',',$ids).")";
-    //$result = mysqli_query($connection, $query) or die(mysqli_error($connection));;
-    
-    if ($result) {
-    	$products = [];
-    	while ($row = mysqli_fetch_object($result)) {
-    		array_push($products, $row);
-    	}
-    	if (count($products) > 0) {
-    		merge_products_with_tecdoc($products);
-    			
-    		return $products;
-    	
-    	}
-    }
-    return [];
-    
-     // Kerätään tuotteiden ID:t taulukkoon
-    $ids = [];
-	foreach ($tecdoc_products as $tecdoc_product) {
-		array_push($ids, addslashes($tecdoc_product->articleId));
+	//Etsitään omasta catalogista
+	$product_ids = array();
+	//ID:t listaan
+	foreach ($products as $product) {
+		array_push($product_ids, $product->articleId);
 	}
-	
-
-    // Haetaan tuotevalikoimasta vastaavat tuotteet, mikäli ne on sinne lisätty
-    $id_list = implode(',', $ids);
-    
-    $number = trim(addslashes($number));
-	$result = mysqli_query($connection, "SELECT id, hinta, varastosaldo, minimisaldo FROM tuote WHERE aktiivinen=1;");
-
-	if ($result) {
-		$products = [];
-		while ($row = mysqli_fetch_object($result)) {
-			array_push($products, $row);
-		}
-		if (count($products) > 0) {
-			merge_products_with_tecdoc($products);
-			
-            $products = filter_by_article_number($products, $number);
-            
-		}
-		return $products;
+	$product_ids = implode("','", $product_ids);
+	$query = "	SELECT 	*, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta
+				FROM 	tuote 
+				JOIN 	alv_kanta
+					ON	tuote.alv_kanta = alv_kanta.kanta
+				WHERE 	id IN ('$product_ids')";
+	$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
+	$products = array();
+	while ($row = mysqli_fetch_object($result)) {
+		array_push($products, $row);
 	}
-
-	return []; 
-	
-} 
-
-$number = isset($_POST['haku']) ? $_POST['haku'] : null;
-
-if ($number) {
-	$products = search_for_product_in_catalog($number);
-
-	print_results($products);
+	merge_products_with_tecdoc($products);
+	return $products;
 }
-*/
 
 $number = isset($_POST['haku']) ? $_POST['haku'] : null;
 
 if ($number) {
-	$products = filter_by_article_number($number);
+	$products = get_catalog_products_by_number($number);
 
 	print_results($products);
 }
@@ -753,11 +697,11 @@ function print_results($products) {
 		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
-			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
-			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName <br> $article->articleName</td>";
-			echo "<td>";
+			echo '<tr data-val="'. $article->articleId .'">';
+			echo "<td class=\"clickable\" \"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
+			echo "<td class=\"clickable\">$article->articleNo</td>";
+			echo "<td class=\"clickable\">$article->brandName <br> $article->articleName</td>";
+			echo "<td class=\"clickable\">";
 			foreach ($product->infos as $info){
 				if(!empty($info->attrName)) echo $info->attrName . " ";
 				if(!empty($info->attrValue)) echo $info->attrValue . " ";
@@ -765,16 +709,16 @@ function print_results($products) {
 				echo "<br>";
 			}
 			echo "</td>";
-			echo "<td>$product->ean</td>";
+			echo "<td class=\"clickable\">$product->ean</td>";
 			//echo "<td>$product->oe</td>";
-			echo "<td>";
+			echo "<td class=\"clickable\">";
 			foreach ($product->oe as $oe){
 				echo $oe;
 				echo "<br>";
 			}
 			echo "</td>";
-			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
+			echo "<td class=\"clickable\" style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
+			echo "<td class=\"clickable\" style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
 			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
 			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
 			echo '</tr>';

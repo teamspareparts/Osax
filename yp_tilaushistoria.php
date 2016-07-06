@@ -8,7 +8,6 @@
 <body>
 <?php 	
 include 'header.php';
-include 'apufunktiot.php';
 ?>
 <h1 class="otsikko">Tilaushistoria</h1>
 <br><br>

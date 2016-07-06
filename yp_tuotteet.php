@@ -81,7 +81,7 @@
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
 // Tuotteen lisäys valikoimaan
-function showAddDialog(id, articleNo, EAN) {
+function showAddDialog(id) {
 	Modal.open( {
     	content: '\
 			<div class="dialogi-otsikko">Lisää tuote</div> \
@@ -98,8 +98,6 @@ function showAddDialog(id, articleNo, EAN) {
 				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 				<input type="hidden" name="lisaa" value="' + id + '"> \
-				<input type="hidden" name="articleNo" value="' + articleNo + '"> \
-				<input type="hidden" name="ean" value="' + EAN + '"> \
 			</form>'
 	} );
 }
@@ -488,6 +486,8 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount,
 			        return false;
 			    }
 			});
+
+			
 			
 		});
 
@@ -511,7 +511,7 @@ function showModifyDialog(id, price, alv, count, minimumCount, minimumSaleCount,
 //
 // Lisää uuden tuotteen valikoimaan
 //
-function add_product_to_catalog($id, $EAN, $price, $alv, $count, $minimum_count, $minimum_sale_count, $alennusera_kpl, $alennusera_prosentti, $articleNo) {
+function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $minimum_sale_count, $alennusera_kpl, $alennusera_prosentti) {
 	global $connection;
 	$id = intval($id);
 	$price = doubleval($price);
@@ -523,18 +523,12 @@ function add_product_to_catalog($id, $EAN, $price, $alv, $count, $minimum_count,
 	$alennusera_prosentti = doubleval($alennusera_prosentti);
 	$result = mysqli_query($connection, "
 		INSERT INTO tuote 
-			(id, EAN, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti) 
+			(id, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti) 
 		VALUES 
-			('$id', '$EAN', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count', '$alennusera_kpl', '$alennusera_prosentti')
+			('$id', '$price', '$alv', '$count', '$minimum_count', '$minimum_sale_count', '$alennusera_kpl', '$alennusera_prosentti')
 		ON DUPLICATE KEY 
 			UPDATE hinta_ilman_ALV=$price, ALV_kanta=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
 				minimimyyntiera=$minimum_sale_count, alennusera_kpl=$alennusera_kpl, alennusera_prosentti=$alennusera_prosentti, aktiivinen=1;");
-	
-	add_related_search_nos($id, $articleNo); //lisätään tietokantaan kaikki linkitetyt tuotteet
-	
-	if(count($oe = get_oe_by_id($id)) > 0){
-		add_related_oes($oe, $id);
-	}
 	
 	return $result;
 }
@@ -575,7 +569,7 @@ function modify_product_in_catalog($id, $price, $alv, $count, $minimum_count, $m
 	return mysqli_affected_rows($connection) >= 0;
 }
 
-//linkitetyt tuotteet tietokantaan erilliseen tauluun
+/* //linkitetyt tuotteet tietokantaan erilliseen tauluun
 function add_related_search_nos($articleId, $search_no){
 	global $connection;
 	//haetaan lisättävään tuotteeseen linkitetyt tuotteet
@@ -605,6 +599,7 @@ function remove_related_search_nos($articleId){
 //tuotteen oe numerot tietokantaan erilliseen tauluun
 function add_related_oes($oes, $articleId){
 	global $connection;
+	if(count($oes < 1)) return false;
 	$query = "INSERT IGNORE INTO tuote_oe (tuote_id, oe_number) VALUES";
 	foreach ($oes as $oe){
 		$oe = str_replace(" ", "", $oe);
@@ -622,7 +617,7 @@ function remove_related_oe($articleId){
 	$query = "DELETE FROM tuote_oe WHERE tuote_id=$articleId";
 	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	return mysqli_affected_rows($connection) > 0;
-}
+} */
 
 
 
@@ -698,7 +693,7 @@ function print_results($number) {
                 // Tuote on jo valikoimassa
                 echo "<td class=\"toiminnot\"><a class=\"nappi disabled\">Lisää</a></td>";
             } else {
-                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId, '$article->articleNo', $article->ean)\">Lisää</a></td>";
+                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($article->articleId)\">Lisää</a></td>";
             }
 			echo '</tr>';
 		}
@@ -794,9 +789,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko() {
 $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 
 	if (isset($_POST['lisaa'])) {
-		$user_id = intval($_POST['lisaa']);
-		$articleNo = strval($_POST['articleNo']);
-		$ean = intval($_POST['ean']);
+		$id = intval($_POST['lisaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
@@ -804,7 +797,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
-		$success = add_product_to_catalog($user_id, $ean, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti, $articleNo);
+		$success = add_product_to_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
@@ -818,7 +811,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
 		}
 	} elseif (isset($_POST['muokkaa'])) {
-		$user_id = intval($_POST['muokkaa']);
+		$id = intval($_POST['muokkaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
@@ -826,7 +819,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
-		$success = modify_product_in_catalog($user_id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
+		$success = modify_product_in_catalog($id, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
 		} else {
@@ -888,7 +881,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 				}
 				echo "</td>";
 
-				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId, '$product->articleNo')\">Lisää</a></td>";
+				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
 				echo '</tr>';
 			}
 			echo '</table>';

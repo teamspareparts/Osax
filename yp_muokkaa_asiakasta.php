@@ -11,6 +11,11 @@
 
 <?php
 	require 'tietokanta.php';
+	if (!is_admin() || !isset($_GET['id'])) {
+		header("Location:tuotehaku.php");
+		exit();
+	}
+	
 	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
 	global $connection;
 	$tbl_name = 'kayttaja';

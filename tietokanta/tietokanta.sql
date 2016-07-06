@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) NOT NULL,
-  `EAN` int(11) NOT NULL,
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
   `ALV_kanta` tinyint(1) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
