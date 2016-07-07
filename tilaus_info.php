@@ -17,7 +17,7 @@
 	require 'tecdoc.php';
 	require 'apufunktiot.php';
 
-	$user_id = $_GET["id"];
+	$tilaus_id = $_GET["id"];
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
 			kayttaja.rahtimaksu, kayttaja.ilmainen_toimitus_summa_raja,
@@ -31,7 +31,7 @@
 			ON tilaus_tuote.tilaus_id=tilaus.id
 		LEFT JOIN tuote
 			ON tuote.id=tilaus_tuote.tuote_id
-		WHERE tilaus.id = '$user_id'";
+		WHERE tilaus.id = '$tilaus_id'";
 	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 	$row = mysqli_fetch_assoc($result);
 	
@@ -42,7 +42,7 @@
 	
 		if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
 	
-		$rahtimaksu = $row["rahtimaksu"]; if ( $row["summa"] > 200 ) { $rahtimaksu = 0; } // Asetetaan rahtimaksu
+		$rahtimaksu = $row["rahtimaksu"]; if ( $row["summa"] > $row["ilmainen_toimitus_summa_raja"] ) { $rahtimaksu = 0; } // Asetetaan rahtimaksu
 		
 		?><!-- HTML -->
 		<table class='tilaus_info'>
@@ -53,7 +53,7 @@
 		<br>
 		<?php 
 		//tuotelista
-		$products = get_products_in_tilaus($user_id);
+		$products = get_products_in_tilaus($tilaus_id);
 		if (count($products) > 0) {
 			merge_products_with_tecdoc($products);
 		
@@ -108,7 +108,7 @@ function get_products_in_tilaus($id) {
 	global $connection;
 	$query = "
 		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl
-			( tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
+			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
 		FROM tilaus
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id

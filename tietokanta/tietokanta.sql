@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
   /* Minä en ole ollenkaan varma tästä... */
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',		
-  `ilmainen_toimitus_kpl_raja` int(11) NOT NULL DEFAULT '0',
+  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
