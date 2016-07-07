@@ -37,7 +37,7 @@ function get_products_in_shopping_cart() {
 			alv_kanta.prosentti AS alv_prosentti
 		FROM	tuote  
 		LEFT JOIN	alv_kanta
-		ON		tuote.alv_kanta = alv_kanta.kanta
+			ON		tuote.alv_kanta = alv_kanta.kanta
 		WHERE 	id in ($ids);");
 
 	if ($result) {
@@ -78,12 +78,13 @@ function order_products($products) {
 		$product_id = addslashes($article->articleId);
 		$product_price = addslashes($product->hinta_ilman_alv);
 		$alv_prosentti = addslashes($product->alv_prosentti);
+		$alennus_prosentti = addslashes($product->alennusera_prosentti);
 		$product_count = addslashes($product->cartCount);
 		$result = mysqli_query($connection, "
 			INSERT INTO tilaus_tuote 
-				(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, kpl) 
+				(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl) 
 			VALUES 
-				($order_id, $product_id, $product_price, $alv_prosentti, $product_count);");
+				($order_id, $product_id, $product_price, $alv_prosentti, $alennus_prosentti, $product_count);");
 		if (!$result) {
 			return false;
 		}
@@ -133,57 +134,61 @@ function tulosta_rahtimaksu () {
 	global $rahtimaksu;
 	
 	if ($sum > 200) {  //Ilmainen toimitus tilauksille yli 200€
-		echo "<b><s>" . $rahtimaksu . "€</s> <ins>Yli 200€ tilauksille ilmainen toimitus!</ins></b>"; 
+		echo "<b><s>" . $rahtimaksu . " €</s> <ins>Yli 200 € tilauksille ilmainen toimitus!</ins></b>"; 
 		$rahtimaksu = 0;
 	} else { 
-		echo "<b>" . $rahtimaksu . "€</b>"; }
+		echo "<b>" . $rahtimaksu . " €</b>"; }
 }
 
-function hae_kaikki_toimitusosoitteet_JSON_array() {
+function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array() {
 	global $connection;
 	global $user_id;
 	global $osoitekirja_array;
 	$osoitekirja_array = array();
-	$sql_query = "	SELECT	*
+	$sql_query = "	SELECT	sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 					FROM	toimitusosoite
 					WHERE	kayttaja_id = '$user_id'
 					ORDER BY osoite_id;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+	$i = 0;
 	while ( $row = $result->fetch_assoc() ) {
-		$user_id = $row['osoite_id'];
-
+		$i++;
 		foreach ( $row as $key => $value ) {
-			$osoitekirja_array[$user_id][$key] = $value;
+			$osoitekirja_array[$i][$key] = $value;
 		}
 	}
 	
 	if ( count($osoitekirja_array) > 0 ) {
 		return true;
 	} else return false;
-} hae_kaikki_toimitusosoitteet_JSON_array();
+} hae_kaikki_toimitusosoitteet_ja_luo_JSON_array();
 
 function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal() {
 	global $osoitekirja_array;
 
-	foreach ( $osoitekirja_array as $osoite ) {
-		echo "<div id=\"osoite_id_" . $osoite["osoite_id"] . "\"> Osoite " . $osoite["osoite_id"] . "<br><br> \\";
-
+	foreach ( $osoitekirja_array as $index => $osoite ) {
+		echo '<div> Osoite ' . $index . '<br><br> \\';
+		
+		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']);
+		
 		foreach ( $osoite as $key => $value ) {
-			echo "<label><span>" . $key . "</span></label>" . $value . "<br> \\";
+			echo '<label><span>' . ucfirst($key) . '</span></label>' . $value . '<br> \\';
 		}
-		echo "
+		echo '
 			<br> \
-			<input class=\"nappi\" type=\"button\" value=\"Valitse\" onClick=\"valitse_toimitusosoite(" . $osoite["osoite_id"] . ");\"> \
+			<input class="nappi" type="button" value="Valitse" onClick="valitse_toimitusosoite(' . $index . ');"> \
 		</div>\
 		<hr> \
-		";
+		';
 	}
 }
 
-function tarkista_disabled_ja_tulosta_tmo_valinta_nappi() {
+function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled() {
 	global $osoitekirja_array;
 	$nappi_html_toimiva = '<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
-	$nappi_html_disabled = '<a class="nappi disabled" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
+	$nappi_html_disabled = '
+					<a class="nappi disabled" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>
+					<p>Sinulla ei ole yhtään toimitusosoitetta profiilissa!</p>';
 	
 	if ( count($osoitekirja_array) > 0 ) {
 		return $nappi_html_toimiva;
@@ -234,7 +239,7 @@ if (isset($_GET['vahvista'])) {
             echo "</td>";
             echo "<td>$product->ean</td>";
             echo "<td>" . tulosta_taulukko($product->oe) . "</td>";
-            echo "<td style=\"text-align: right;\">" . tarkista_hinta_era_alennus( $product ) . "</td>";
+            echo "<td style=\"text-align: right;\">" . format_euros(tarkista_hinta_era_alennus( $product )) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
             echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
             echo "<td style=\"text-align: right;\">$product->cartCount</td>";
@@ -245,7 +250,7 @@ if (isset($_GET['vahvista'])) {
         }
         echo '</table>';
     	?>
-  
+    	
     	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
 	    	<div id=tilausvahvistus_maksutiedot style="width:20em;">
 		    	<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
@@ -253,7 +258,7 @@ if (isset($_GET['vahvista'])) {
 		    	<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu)?></b></p>
 	    	</div>
 	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; padding-bottom:1em; padding-top:1em;">
-	    		<?= tarkista_disabled_ja_tulosta_tmo_valinta_nappi() ?>
+	    		<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled() ?>
 	    	</div>
 	    	<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">
 		    	<!-- Osoitteen tulostus -->
@@ -289,12 +294,6 @@ if (isset($_GET['vahvista'])) {
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
 var osoitekirja = <?= json_encode($osoitekirja_array)?>;
-console.log(JSON.stringify(osoitekirja));
-if ( osoitekirja.length == 0 ) {
-	var toimitusosoitteen_valinta = document.getElementById("tilausvahvistus_toimitusosoite_nappi");
-	var huomautus_teksti = document.createTextNode("Sinulla ei ole yhtään toimitusosoitetta profiilissa!");
-	toimitusosoitteen_valinta.appendChild(huomautus_teksti);
-}
 
 function avaa_Modal_valitse_toimitusosoite() {
 	Modal.open({

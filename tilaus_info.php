@@ -20,7 +20,9 @@
 	$user_id = $_GET["id"];
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, 
-			SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa, 
+			kayttaja.rahtimaksu, kayttaja.ilmainen_toimitus_summa_raja,
+			SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
+				AS summa,
 			SUM(tilaus_tuote.kpl) AS kpl
 		FROM tilaus
 		LEFT JOIN kayttaja
@@ -36,50 +38,68 @@
 	//Päästetään vain oikeat käyttäjät katsomaan tilaushistorioita
 	//(Eli asiakas ei pääse muiden asiakkaiden tilaushistoria sivulle
 	// vaihtamalla URLia esim. tilaus_info.php?id=4)
-	if (is_admin() || ($row["sahkoposti"] == $_SESSION["email"])){
+	if ( is_admin() || ($row["sahkoposti"] == $_SESSION["email"]) ) {
 	
-	if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
-
-	$rahtimaksu = 15; if ( $row["summa"] > 200 ) { $rahtimaksu = 0; }
-	?><!-- HTML -->
-	<table class='tilaus_info'>
-	<tr><td>Tilausnumero: <?= $row["id"]?></td><td>Päivämäärä: <?= date("d.m.Y", strtotime($row["paivamaara"]))?></td></tr>
-	<tr><td>Tilaaja: <?= $row["etunimi"] . " " . $row["sukunimi"]?></td><td>Yritys: <?= $row["yritys"]?></td></tr>
-	<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?> ( + rahtimaksu: <?= format_euros($rahtimaksu)?> = <?= format_euros($row["summa"]+$rahtimaksu)?>)</td></tr>
-	</table>
-	<br>
-	<?php 
-	//tuotelista
-	$products = get_products_in_tilaus($user_id);
-	if (count($products) > 0) {
-		merge_products_with_tecdoc($products);
+		if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
 	
-		?><!-- HTML --><table>
-		<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>|ilman ALV</th><th>ALV-%</th><th>tilattu kpl</th></tr><?php 
-		foreach ($products as $product) {
-			$article = $product->directArticle;
-			echo '<tr>';
-			echo "<td>$article->articleName</td>";
-			echo "<td>$article->brandName</td>";
-			echo "<td>$article->articleNo</td>";
-			echo "<td>" . format_euros( ($product->pysyva_hinta)*(1+($product->pysyva_alv)) ) . "</td>";
-			echo "<td>" . format_euros( $product->pysyva_hinta ) . "</td>";
-			echo "<td>" . round((float)$product->pysyva_alv * 100 ) . "%</td>";
-			echo "<td>$product->kpl</td>";
-			echo '</tr>';
+		$rahtimaksu = $row["rahtimaksu"]; if ( $row["summa"] > 200 ) { $rahtimaksu = 0; } // Asetetaan rahtimaksu
+		
+		?><!-- HTML -->
+		<table class='tilaus_info'>
+		<tr><td>Tilausnumero: <?= $row["id"]?></td><td>Päivämäärä: <?= date("d.m.Y", strtotime($row["paivamaara"]))?></td></tr>
+		<tr><td>Tilaaja: <?= $row["etunimi"] . " " . $row["sukunimi"]?></td><td>Yritys: <?= $row["yritys"]?></td></tr>
+		<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?> ( + rahtimaksu: <?= format_euros($rahtimaksu)?> = <?= format_euros($row["summa"]+$rahtimaksu)?>)</td></tr>
+		</table>
+		<br>
+		<?php 
+		//tuotelista
+		$products = get_products_in_tilaus($user_id);
+		if (count($products) > 0) {
+			merge_products_with_tecdoc($products);
+		
+			?><!-- HTML -->
+			<table>
+				<tr><th>Tuote</th><th>Valmistaja</th><th>Tuotenumero</th><th>Hinta</th><th>|ilman ALV</th><th>ALV-%</th><th>Alennus</th><th>tilattu kpl</th></tr><?php 
+				foreach ($products as $product) {
+					$article = $product->directArticle;
+					echo '<tr>';
+					echo "<td>$article->articleName</td>";
+					echo "<td>$article->brandName</td>";
+					echo "<td>$article->articleNo</td>";
+					echo "<td>" . format_euros( $product->maksettu_hinta ) . "</td>";
+					echo "<td>" . format_euros( $product->pysyva_hinta ) . "</td>";
+					echo "<td>" . round((float)$product->pysyva_alv * 100 ) . " %</td>";
+					echo "<td>" . round((float)$product->pysyva_alennus * 100 ) . " %</td>";
+					echo "<td>$product->kpl</td>";
+					echo '</tr>';
+				}
+				tulosta_rahtimaksu_tuotelistaan()?><!-- HTML -->
+			</table><?php 
+		} else {
+			echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>';
 		}
-		echo '</table>';
-	} else {
-		echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>';
-	}
-	echo '</div>';
+		echo '</div>';
 	
 	} else{
 		header("Location:tilaushistoria.php");
 		exit();
 	}
 
-
+function tulosta_rahtimaksu_tuotelistaan() {
+	global $rahtimaksu;
+	?><!-- HTML -->
+	<tr>
+	<td>Rahtimaksu</td>
+	<td>Posti / Itella</td>
+	<td>---</td>
+	<td><?= format_euros($rahtimaksu)?></td>
+	<td>---</td>
+	<td>0 %</td>
+	<td>---</td>
+	<td>1</td>
+	</tr>
+	<?php
+}
 
 //
 // Hakee tietokannasta kaikki tietyn tilauksen tuotteet
@@ -87,7 +107,8 @@
 function get_products_in_tilaus($id) {
 	global $connection;
 	$query = "
-		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.kpl
+		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl
+			( tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
 		FROM tilaus
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id

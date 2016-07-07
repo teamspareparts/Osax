@@ -26,10 +26,10 @@ function get_products_in_shopping_cart() {
     }
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
-			SELECT	id, (hinta_ilman_alv * (1+alv_kanta.prosentti)) AS hinta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti
+			SELECT	id, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti
 			FROM	tuote 
-			JOIN	alv_kanta
-			ON		tuote.alv_kanta = alv_kanta.kanta
+			JOIN	ALV_kanta
+			ON		tuote.ALV_kanta = ALV_kanta.kanta
 			WHERE	id in ($ids);");
 
 	if ($result) {

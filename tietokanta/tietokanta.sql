@@ -14,9 +14,8 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `voimassaolopvm` datetime DEFAULT NULL,
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
-  /* Minä en ole ollenkaan varma tästä. Älä päivitä tätä sivulle, kunnes varmistan
-		miten tämä rahtimaksu oikein toimii. */
-  `rahtimaksu` decimal(11,2) NOT NULL,		
+  /* Minä en ole ollenkaan varma tästä... */
+  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',		
   `ilmainen_toimitus_kpl_raja` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
