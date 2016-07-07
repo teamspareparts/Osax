@@ -42,13 +42,13 @@
 	
 		if ($row["kasitelty"] == 0) echo "<h4 style='color:red;'>Odottaa käsittelyä.</h4>";
 	
-		$rahtimaksu = $row["rahtimaksu"]; if ( $row["summa"] > $row["ilmainen_toimitus_summa_raja"] ) { $rahtimaksu = 0; } // Asetetaan rahtimaksu
+		$rahtimaksu = laske_rahtimaksu();
 		
 		?><!-- HTML -->
 		<table class='tilaus_info'>
 		<tr><td>Tilausnumero: <?= $row["id"]?></td><td>Päivämäärä: <?= date("d.m.Y", strtotime($row["paivamaara"]))?></td></tr>
 		<tr><td>Tilaaja: <?= $row["etunimi"] . " " . $row["sukunimi"]?></td><td>Yritys: <?= $row["yritys"]?></td></tr>
-		<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?> ( + rahtimaksu: <?= format_euros($rahtimaksu)?> = <?= format_euros($row["summa"]+$rahtimaksu)?>)</td></tr>
+		<tr><td>Tuotteet: <?= $row["kpl"]?></td><td>Summa: <?= format_euros($row["summa"])?> ( ml. rahtimaksu: <?= format_euros($rahtimaksu)?> )</td></tr>
 		</table>
 		<br>
 		<?php 
@@ -68,8 +68,9 @@
 					echo "<td>$article->articleNo</td>";
 					echo "<td>" . format_euros( $product->maksettu_hinta ) . "</td>";
 					echo "<td>" . format_euros( $product->pysyva_hinta ) . "</td>";
-					echo "<td>" . round((float)$product->pysyva_alv * 100 ) . " %</td>";
-					echo "<td>" . round((float)$product->pysyva_alennus * 100 ) . " %</td>";
+					echo "<td>" . round( (float)$product->pysyva_alv * 100 ) . " %</td>";
+// 					echo "<td>" . round( (float)$product->pysyva_alennus * 100 ) . " %</td>";
+					echo "<td>" . tulosta_alennus_tuotelistaan($product->pysyva_alennus) . " %</td>";
 					echo "<td>$product->kpl</td>";
 					echo '</tr>';
 				}
@@ -88,17 +89,44 @@
 function tulosta_rahtimaksu_tuotelistaan() {
 	global $rahtimaksu;
 	?><!-- HTML -->
-	<tr>
-	<td>Rahtimaksu</td>
-	<td>Posti / Itella</td>
-	<td>---</td>
-	<td><?= format_euros($rahtimaksu)?></td>
-	<td>---</td>
-	<td>0 %</td>
-	<td>---</td>
-	<td>1</td>
+	<tr style="background-color:#cecece;">
+		<td>Rahtimaksu</td>
+		<td>Posti / Itella</td>
+		<td>---</td>
+		<td><?= format_euros($rahtimaksu)?></td>
+		<td>---</td>
+		<td>0 %</td>
+		<td>---</td>
+		<td>1</td>
 	</tr>
 	<?php
+}
+
+function tulosta_alennus_tuotelistaan( $alennus ) {
+	if ( $alennus === 0 ) {
+		$alennus = round( (float)$alennus * 100 );
+	} else {
+		$alennus = "---";
+	}
+	return $alennus;
+}
+
+function laske_rahtimaksu() {
+	global $row; //tarvitaan pari muuttujaa asiakaskohtaiseen rahtimaksuun liittyen
+	
+	$rahtimaksu = 15;
+	$ilmaisen_toimituksen_raja = 200; // Default summa, jonka jälkeen saa ilmaisen toimituksen
+	
+	if ( $row["rahtimaksu"] !== 0 ) {//Asiakkaalla on asetettu rahtimaksu
+		$rahtimaksu = $row["rahtimaksu"]; }
+	
+	if ( $row["ilmainen_toimitus_summa_raja"] !== 0 ) {	//Asiakkaalla on asetettu yksilöllinen ilmaisen toimituksen raja.
+		$ilmaisen_toimituksen_raja = $row["ilmainen_toimitus_summa_raja"]; }
+		
+	if ( $row["summa"] > $ilmaisen_toimituksen_raja ) { //Onko tilaus-summa rajan yli?
+			$rahtimaksu = 0; }
+	
+	return $rahtimaksu;
 }
 
 //
@@ -107,7 +135,7 @@ function tulosta_rahtimaksu_tuotelistaan() {
 function get_products_in_tilaus($id) {
 	global $connection;
 	$query = "
-		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl
+		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
 			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
 		FROM tilaus
 		LEFT JOIN tilaus_tuote
