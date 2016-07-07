@@ -119,9 +119,6 @@ function get_products_in_tilaus($id) {
 		while ($row = mysqli_fetch_object($result)) {
 			array_push($products, $row);
 		}
-		// TODO: Onko tämä tärkeää?? No seriosly, mikä tämän tarkoitus on? Tämä on ollut täällä jo aika pitkään. Pitäisikö sille tedä mitään?
-		//		En minä yritä hoputtaa, minä vain olen utelias. The mystery is killing me! >:(
-		// TODO: Hae TecDocista kukin tuote ID:n perusteella ja palauta ne!
 		return $products;
 	}
 	return [];
