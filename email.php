@@ -12,8 +12,6 @@ $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die(
 function send_email($email, $subject, $message){
 
 	$url = 'https://api.sendgrid.com/';
-	$user = 'tuoteluettelonsposti';	/** Tähän kohtaan SendGrid käyttäjätunnus **/
-	$pass = 'KettujenKevat123'; /** Tähän kohtaan SendGrid salasana **/
 
 	
 	//sähköpostin parametrit
