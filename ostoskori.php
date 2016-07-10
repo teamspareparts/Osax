@@ -86,25 +86,22 @@ function tarkista_hinta_era_alennus ( $product ) {
 }
 
 function laske_rahtimaksu() {
-	global $row; //tarvitaan pari muuttujaa asiakaskohtaiseen rahtimaksuun liittyen
 	global $connection;
 	global $sum;
+	global $rahtimaksu; // array( rahtimaksu, ilmaisen toimituksen raja ), default: 15, 200
 	
 	$id = $_SESSION['id']; //Haetaan asiakkaan tiedot mahdollisesta yksilöllisestä rahtimaksusta
 	$result = mysqli_query($connection, "SELECT	rahtimaksu, ilmainen_toimitus_summa_raja FROM kayttaja WHERE id = '$id';");
 	$row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
-	
-	$rahtimaksu = 15;
-	$ilmaisen_toimituksen_raja = 200; // Default summa, jonka jälkeen saa ilmaisen toimituksen
 
-	if ( $row["rahtimaksu"] !== 0.00 ) {//Asiakkaalla on asetettu rahtimaksu
-		$rahtimaksu = $row["rahtimaksu"]; }
+	if ( $row["rahtimaksu"] !== 0 ) {//Asiakkaalla on asetettu rahtimaksu
+		$rahtimaksu[0] = $row["rahtimaksu"]; }
 
-	if ( $row["ilmainen_toimitus_summa_raja"] !== 0.00 ) {	//Asiakkaalla on asetettu yksilöllinen ilmaisen toimituksen raja.
-		$ilmaisen_toimituksen_raja = $row["ilmainen_toimitus_summa_raja"]; }
+	if ( $row["ilmainen_toimitus_summa_raja"] !== 0 ) {	//Asiakkaalla on asetettu yksilöllinen ilmaisen toimituksen raja.
+		$rahtimaksu[1] = $row["ilmainen_toimitus_summa_raja"]; }
 
-	if ( $sum > $ilmaisen_toimituksen_raja ) { //Onko tilaus-summa rajan yli?
-		$rahtimaksu = 0; }
+	if ( $sum > $rahtimaksu[1] ) { //Onko tilaus-summa ilm. toim. rajan yli?
+		$rahtimaksu[0] = 0; }
 
 	return $rahtimaksu;
 }
@@ -145,8 +142,12 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi($products) {
 
 function tulosta_rahtimaksu_tuotelistaan() {
 	global $rahtimaksu;
+	
 	$rahtimaksu = laske_rahtimaksu();
-	if ( $rahtimaksu === 0 ) { $alennus = "Ilmainen toimitus"; } else { $alennus = "---"; }
+	
+	if ( $rahtimaksu[0] === 0 ) { 
+		$alennus = "Ilmainen toimitus"; 
+	} else { $alennus = "Ilmainen toimitus " . format_euros($rahtimaksu[1]) . ":n jälkeen."; }
 	
 	?><!-- HTML -->
 	<tr style="background-color:#cecece; height: 1em;">
@@ -156,7 +157,7 @@ function tulosta_rahtimaksu_tuotelistaan() {
 		<td>Posti / Itella</td>
 		<td>---</td>
 		<td>---</td>
-		<td style="text-align: right;"><?= format_euros($rahtimaksu)?></td>
+		<td style="text-align: right; white-space: nowrap;"><?= format_euros($rahtimaksu[0])?></td>
 		<td style="text-align: right;">---</td>
 		<td style="text-align: right;">---</td>
 		<td style="text-align: right;">1</td>
@@ -170,12 +171,12 @@ $products = get_products_in_shopping_cart();
 
 if ( $products ) {
 	$sum = 0.0;
-	$rahtimaksu = 15;?>
+	$rahtimaksu = [15, 200]; //sisältää sekä rahtimaksun, että ilmaisen toimituksen rajan. Varsinaiset arvot lasketaan myöhemmin.?>
 	
 	<!-- HTML -->
     <div class="tulokset">
 	    <table>
-		    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
+		    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right; ">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
 		    <?php
 		    foreach ($products as $product) {
 		        $article = $product->directArticle;
@@ -188,10 +189,10 @@ if ( $products ) {
 			        <td><?= tulosta_product_infos_part($product->infos)?></td>
 			        <td><?= $product->ean ?></td>
 			        <td><?= tulosta_taulukko($product->oe)?></td>
-			        <td style="text-align: right;"><?= format_euros(tarkista_hinta_era_alennus( $product )) ?></td>
+			        <td style="text-align: right; white-space: nowrap;"><?= format_euros(tarkista_hinta_era_alennus( $product )) ?></td>
 			        <td style="text-align: right;"><?= format_integer($product->varastosaldo) ?></td>
 			        <td style="text-align: right;"><?= format_integer($product->minimimyyntiera) ?></td>
-			        <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number"value="<?= $product->cartCount ?>" min="0"></td>
+			        <td style="padding-top: 0; padding-bottom: 0;"><input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara" type="number"value="<?= $product->cartCount ?>" min="0" style="text-align: right;"></td>
 			        <td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_tulosta_huomautus( $product )?></td>
 			        <td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
 		        </tr>
@@ -202,7 +203,7 @@ if ( $products ) {
 	    </table>
 	    <div id=tilausvahvistus_maksutiedot style="width:20em;">
 			<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
-			<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu)?></b> ( ml. toimitus )</p>
+			<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu[0])?></b> ( ml. toimitus )</p>
 	    </div>
 	    <?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi($products)?>
 	    <p><a class="nappi" href="tuotehaku.php" style="background:rgb(200, 70, 70);border-color: #b70004;">Palaa takaisin</a></p>
