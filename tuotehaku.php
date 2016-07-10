@@ -14,6 +14,7 @@
 	    var TECDOC_DEBUG = <?php echo json_encode(TECDOC_DEBUG); ?>;
 	    var TECDOC_COUNTRY = <?php echo json_encode(TECDOC_COUNTRY); ?>;
 	    var TECDOC_LANGUAGE = <?php echo json_encode(TECDOC_LANGUAGE); ?>;
+	    var TECDOC_THUMB_URL = <?php echo json_encode(TECDOC_THUMB_URL); ?>;
 	</script>
 	<title>Tuotehaku</title>
 </head>
@@ -65,9 +66,11 @@
 	<option value="">-- Osien alalaji --</option>
 	</select>
 	<br>
-
+	
 	<input type="submit" value="HAE" id="ajoneuvohaku">
-</form>
+
+</form> 
+ 
 
 <?php 
 //ostoskorin päivitys ja ostoskorin sisällön määrittäminen
@@ -194,9 +197,10 @@ if (isset($_SESSION['cart'])) {
         		"basicData" : true,
         		"articleId" : {"array" : ids},
         		"thumbnails" : true,
-        		"immediateAttributs" : true,
+        		"attributs" : true,
         		"eanNumbers" : true,
-        		"oeNumbers" : true
+        		"oeNumbers" : true,
+        		"documents" : true
         };
 		tecdocToCatPort[functionName] (params, showProductInfoOnModal);
     }
@@ -309,17 +313,129 @@ if (isset($_SESSION['cart'])) {
 
 	//Näytetään tuotteen tarkemmat tiedot
 	function showProductInfoOnModal(response){
+
+		function makeTableHTML(array) {
+			if(array.length==0) return "";
+			array=array.array;
+		    var result = "<table class='center'><th colspan='2' class='text-center'>OE</th>";
+		    for(var i=0; i<array.length; i++) {
+		        result += "<tr>";
+		        result += "<td style='font-size:14px'>"+array[i].brandName+"</td><td style='font-size:14px'>"+array[i].oeNumber+"</td>";
+		        result += "</tr>";
+		    }
+		    result += "</table>";
+
+		    return result;
+		}
+
+		function imgsToHTML(response) {
+			if(response.articleThumbnails.length==0) return "<img src='img/ei-kuvaa.png' class='no-image' />";
+			var imgs = "";
+			for(var i=0; i<response.articleThumbnails.array.length; i++) {
+				thumb_id = response.articleThumbnails.array[i].thumbDocId;
+				img = TECDOC_THUMB_URL +thumb_id + '/';
+				imgs += '<img src='+ img +' border="1" class="tuote_img" /><br>';
+			}
+			return imgs;
+		}
+
+		function infosToHTML(response) {
+			var infos = "";
+			//pakkaustiedot
+			if (typeof response.directArticle.packingUnit != 'undefined') {
+				  infos += "Pakkauksia: " + response.directArticle.packingUnit + "<br>";
+			}
+			if (typeof response.directArticle.quantityPerPackingUnit != 'undefined') {
+				  infos += "Kpl/pakkaus: " + response.directArticle.quantityPerPackingUnit + "<br><br>";
+			}
+
+			//infot
+			if (response.articleAttributes == "") {
+				  return infos;
+			}
+			for(var i = 0; i < response.articleAttributes.array.length; i++) {
+				if (typeof response.articleAttributes.array[i].attrShortName != 'undefined') {
+					  infos += response.articleAttributes.array[i].attrShortName;
+				}
+				if (typeof response.articleAttributes.array[i].attrValue != 'undefined') {
+					  infos += ": " + response.articleAttributes.array[i].attrValue + " ";
+				}
+				if (typeof response.articleAttributes.array[i].attrUnit != 'undefined') {
+					  infos += response.articleAttributes.array[i].attrUnit;
+				}
+				infos += "<br>";
+			}
+			return infos;
+		}
+
+		
+		function getDocuments(response){
+			if (response.articleDocuments == "") {
+				return "";
+			}
+			var documentlink = "";
+			for(var i = 0; i < response.articleDocuments.array.length; i++) {
+				//asennusohjeet
+				if(response.articleDocuments.array[i].docTypeId == 4) {
+					//alert(response.articleDocuments.array[i].docTypeId);
+					doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
+					docName = response.articleDocuments.array[i].docFileName;
+					documentlink += '<img src="img/pdficon.png" style="margin-right:5px"><a href="'+doc+'" download="'+docName+'" id="asennusohje">Asennusohje (PDF)</a>';
+				}
+			}			
+			return documentlink;
+		}
+
+		
 		response = response.data.array[0];
 		id = response.directArticle.articleId;
+
+		imgs = imgsToHTML(response);
+		OEtable = makeTableHTML(response.oenNumbers);
+		name = response.directArticle.articleName;
+		articleNo = response.directArticle.articleNo;
+		brand = response.directArticle.brandName;
+		infos = infosToHTML(response);
+		documents = getDocuments(response);
+		
+
 		Modal.open( {
 			content:  '\
-				<p>Tuotteen '+ id +' tiedot haettu.</p> \
-				<p>Tähän kaikki mahdollinen muu tieto tuotteesta...</p> \
+				<div class="left">'+imgs+'</div> \
+				<div class="middle">\
+					<div id="perus_infot"> \
+						<span style="font-weight:bold">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
+					</div> \
+					<br>'+infos+'<br><hr><br>'+documents+' \
+				</div> \
+				<div class="right"> \
+				'+OEtable+' \
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				\
+				</div> \
+				<div style="width:25px;float:left"></div>\
+				\
+				\
+				\
+				\
+				\
+				\
 				',
 			draggable: true
 		} );
 		
 	}
+
 
 	//jQuery
 		$(document).ready(function(){
@@ -464,20 +580,44 @@ if (isset($_SESSION['cart'])) {
 			});
 
 			$('.clickable').click(function(){
-				$('tr').unbind().click(function(){
 					//haetaan tuotteen id
-					var articleId = $(this).attr('data-val');
+					var articleId = $(this).closest('tr').attr('data-val');
 					//haetaan tuotteen tiedot tecdocista
 					getDirectArticlesByIds6(articleId);
 					
-				});
 			});
+
 
 			$('.clickable').css('cursor', 'pointer');
 
 
 
 		});
+
+
+		  
+		//Käytetään eri muotoilua, koska dynaaminen content
+		
+		$(document.body).on('mouseover', '#asennusohje', function(){
+			$(this).css("text-decoration", "underline");	
+		});
+		$(document.body).on('mouseout', '#asennusohje', function(){
+			$(this).css("text-decoration", "none");	
+		});
+
+		
+		//avaa tuotteen kuvan isona uuteen ikkunaan
+		$(document.body).on('click', '.tuote_img', function(){
+			var src = this.src;
+			var w = this.naturalWidth;
+			var h = this.naturalHeight;
+
+			var left = (screen.width/2)-(w/2);
+			var top = (screen.height/2)-(h/2);
+			myWindow = window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+			
+		}); //close click
+
 
 	  	
 		//päivitetään ostoskorilinkki

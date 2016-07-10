@@ -14,6 +14,7 @@ input {
 	padding: 3pt;
 }
 
+
 /***************************************
 
 	Menu palkin tyylittelyä
@@ -606,10 +607,10 @@ div.tooltip p {
 
 
 
-.hidden{
-	display: none;
-}
 
+/*********************
+Muokkaa asiakasta form
+**********************/
 #paivat{
 	position: relative;
 	width: 50px;
@@ -621,6 +622,13 @@ div.tooltip p {
 	font-weight: bold;
 }
 
+.hidden{
+	display: none;
+}
+
+/*********************
+Asiakaslista
+**********************/
 .asiakas_lista {
 	
 	table-layout: fixed;
@@ -631,3 +639,63 @@ div.tooltip p {
 	text-align: center;
 	width: 10%;
 }
+
+
+
+
+
+/*****************************
+MODAL-ikkuna (tuotteen tiedot)
+******************************/
+
+.left {
+	float:left;
+	min-width: 100px;
+}
+
+.middle {
+	float:left;
+	min-width: 270px;
+	font-size: 14px;
+	margin-right: 20px;
+	min-height: 300px;
+}
+
+.right {
+	float:left;
+	max-width: 300px;
+}
+
+.center {
+	margin-left: auto;;
+	margin-right: auto;
+}
+
+.text-center {
+	text-align: center;
+}
+
+#perus_infot {
+	font-size: 20px
+}
+
+.tuote_img {
+	max-width: 200px;
+	max-height: 200px;
+	cursor: pointer;
+	margin-right: 20px;
+}
+
+.no-image {
+	margin-right: 20px;
+}
+
+#asennusohje {
+	text-decoration: none;
+	font-family: sans-serif;
+	color: black;
+}
+
+
+
+
