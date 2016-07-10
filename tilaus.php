@@ -17,7 +17,7 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 require 'email.php';
 global $osoitekirja_array;
-$tilaus_id = addslashes($_SESSION['id']);
+$kayttaja_id = addslashes($_SESSION['id']);
 
 //
 // Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet
@@ -57,14 +57,14 @@ function get_products_in_shopping_cart() {
 //
 function order_products($products) {
 	global $connection;
-	global $tilaus_id;
+	global $kayttaja_id;
 
 	if (empty($products)) {
 		return false;
 	}
 
 	// Lisätään uusi tilaus
-	$result = mysqli_query($connection, "INSERT INTO tilaus (kayttaja_id) VALUES ($tilaus_id);");
+	$result = mysqli_query($connection, "INSERT INTO tilaus (kayttaja_id) VALUES ($kayttaja_id);");
 
 	if (!$result) {
 		return false;
@@ -142,12 +142,12 @@ function tulosta_rahtimaksu () {
 
 function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array() {
 	global $connection;
-	global $tilaus_id;
+	global $kayttaja_id;
 	global $osoitekirja_array;
 	$osoitekirja_array = array();
 	$sql_query = "	SELECT	sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 					FROM	toimitusosoite
-					WHERE	kayttaja_id = '$tilaus_id'
+					WHERE	kayttaja_id = '$kayttaja_id'
 					ORDER BY osoite_id;";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$i = 0;

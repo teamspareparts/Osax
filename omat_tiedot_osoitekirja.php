@@ -1,15 +1,15 @@
 <?php 
-$tilaus_id = $_SESSION['id'];
+$kayttaja_id = $_SESSION['id'];
 /*
  * Hakee kaikki toimitusosoitteet ja tulostaa, plus kaksi nappia; toinen muokkaamista
  *  ja toinen poistamista varten.
  */
 function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 	global $connection;
-	global $tilaus_id;
+	global $kayttaja_id;
 	$sql_query = "	SELECT	*
 					FROM	toimitusosoite
-					WHERE	kayttaja_id = '$tilaus_id'";
+					WHERE	kayttaja_id = '$kayttaja_id'";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	while ($row = $result->fetch_assoc()) {
 		?><!--  HTML  -->
@@ -45,11 +45,11 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
  */
 function hae_toimitusosoite($osoite_id) {
 	global $connection;
-	global $tilaus_id;
+	global $kayttaja_id;
 
 	$sql_query = "	SELECT	*
 					FROM	toimitusosoite
-					WHERE	kayttaja_id = '$tilaus_id'
+					WHERE	kayttaja_id = '$kayttaja_id'
 						AND osoite_id = '$osoite_id'";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$row = $result->fetch_assoc();
@@ -64,7 +64,7 @@ function hae_toimitusosoite($osoite_id) {
  * Return:	Boolean, true/false
  */
 function tallenna_uudet_tiedot() {
-	global $tilaus_id;
+	global $kayttaja_id;
 	global $connection;
 	$osoite_id = $_POST['osoite_id'];
 	
@@ -86,7 +86,7 @@ function tallenna_uudet_tiedot() {
 			}
 		}
 		
-		$sql_query .= " WHERE kayttaja_id = '" . $tilaus_id . "' AND osoite_id = '" . $osoite_id . "';"; //Loppuosa
+		$sql_query .= " WHERE kayttaja_id = '" . $kayttaja_id . "' AND osoite_id = '" . $osoite_id . "';"; //Loppuosa
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 		return $result;
 	}
@@ -100,7 +100,7 @@ function tallenna_uudet_tiedot() {
  * Return:	Boolean, true/false
  */
 function lisaa_uusi_osoite() {
-	global $tilaus_id;
+	global $kayttaja_id;
 	global $connection;
 
 	$a = $_POST['email'];		//Olin laiska kun nimesin nama muuttujat
@@ -109,13 +109,13 @@ function lisaa_uusi_osoite() {
 	$d = $_POST['katuosoite'];
 	$e = $_POST['postinumero'];
 	$f = $_POST['postitoimipaikka'];
-	$uusi_osoite_id = hae_osoitteet_viimeinen_indeksi();
+	$osoite_id_viimeinen = hae_osoitteet_viimeinen_indeksi();
 	$uusi_osoite_id = ++$osoite_id_viimeinen;
 	
 	$sql_query = "	INSERT 
 					INTO	toimitusosoite
 						(kayttaja_id, osoite_id, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka)
-					VALUES 	('$tilaus_id', '$uusi_osoite_id', '$a', '$b', '$c', '$d', '$e', '$f');";
+					VALUES 	('$kayttaja_id', '$uusi_osoite_id', '$a', '$b', '$c', '$d', '$e', '$f');";
 	
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	return $result;
@@ -129,7 +129,7 @@ function lisaa_uusi_osoite() {
  * Return:	Boolean, true/false
  */
 function poista_osoite() {
-	global $tilaus_id;
+	global $kayttaja_id;
 	global $connection;
 	$osoite_id = $_POST["poista"];
 	$osoite_id_viimeinen = hae_osoitteet_viimeinen_indeksi();
@@ -142,7 +142,7 @@ function poista_osoite() {
 	if ( mysqli_affected_rows($connection) > 0 ) {
 		$sql_query = "	UPDATE	toimitusosoite
 						SET		osoite_id='$osoite_id'
-						WHERE	kayttaja_id = '$tilaus_id'
+						WHERE	kayttaja_id = '$kayttaja_id'
 							AND osoite_id = '$osoite_id_viimeinen'";
 		$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	}
@@ -157,11 +157,11 @@ function poista_osoite() {
  */
 function hae_osoitteet_viimeinen_indeksi(){
 	global $connection;
-	global $tilaus_id;
+	global $kayttaja_id;
 	
 	$sql_query = "	SELECT	osoite_id
 					FROM	toimitusosoite
-					Where	kayttaja_id = '$tilaus_id';";
+					Where	kayttaja_id = '$kayttaja_id';";
 	
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	$row_count = mysqli_num_rows($result);
