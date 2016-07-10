@@ -88,6 +88,7 @@
 
 function tulosta_rahtimaksu_tuotelistaan() {
 	global $rahtimaksu;
+	if ( $rahtimaksu === 0 ) { $alennus = "Ilmainen toimitus"; } else { $alennus = "---"; }
 	?><!-- HTML -->
 	<tr style="background-color:#cecece;">
 		<td>Rahtimaksu</td>
@@ -96,7 +97,7 @@ function tulosta_rahtimaksu_tuotelistaan() {
 		<td><?= format_euros($rahtimaksu)?></td>
 		<td>---</td>
 		<td>0 %</td>
-		<td>---</td>
+		<td><?= $alennus?></td>
 		<td>1</td>
 	</tr>
 	<?php
@@ -124,7 +125,7 @@ function laske_rahtimaksu() {
 		$ilmaisen_toimituksen_raja = $row["ilmainen_toimitus_summa_raja"]; }
 		
 	if ( $row["summa"] > $ilmaisen_toimituksen_raja ) { //Onko tilaus-summa rajan yli?
-			$rahtimaksu = 0; }
+		$rahtimaksu = 0; }
 	
 	return $rahtimaksu;
 }

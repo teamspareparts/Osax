@@ -32,11 +32,13 @@
 	$ynimi = $row['yritys'];
 	$demo = $row['demo'];
 	$voimassaolopvm = $row['voimassaolopvm'];
+	$rahtimaksu = $row['rahtimaksu'];
+	$ilmainen_toimitus = $row['ilmainen_toimitus_summa_raja'];
 ?>
 
 <h1 class="otsikko">Muokkaa asiakasta</h1>
 <div id="lomake">
-	<form action="" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
+	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
 		<fieldset><legend>Asiakkaan tiedot</legend>
 			<br>
 			<label><span>Sähköposti</span></label>
@@ -74,16 +76,25 @@
 		</fieldset>
 	</form><br><br>
 	
-	<form action="" name="resetoi_salasana" method="post">
-	<fieldset>
-	<legend>Salasanan vaihto</legend>
-	<label><span>Nollaa salasana:</span></label>
-		<input name="reset_password" value="Resetoi salasana" type="submit">
-		<input name="id" value="<?= $id?>" type="hidden"/>
-	
-	</fieldset>
+	<form action="#" name="resetoi_salasana" method="post">
+		<fieldset><legend>Salasanan vaihto</legend>
+			<label><span>Nollaa salasana:</span></label>
+				<input name="reset_password" value="Resetoi salasana" type="submit">
+				<input name="id" value="<?= $id?>" type="hidden"/>
+		</fieldset>
 	</form>
 	
+	<form action="#" method="post">
+		<fieldset><legend>Asiakkaan rahtimaksu</legend>
+			<label>Kumpikin arvo euroina (€). Nollan kohdalla sovellus käyttää default-arvoja.</label><br><br>
+			<label><span>Rahtimaksu:</span></label>
+				<input name="rahtimaksu" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $rahtimaksu; ?>" title="Anna käyttäjäkohtainen rahtimaksu euroina (€).">
+			<label><span>Ilmaisen toimituksen raja:</span></label>
+				<input name="ilmainen_toimitus" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $ilmainen_toimitus; ?>" title="Ilmaisen toimituksen raja euroina (€).">
+			<input name="muokkaa_rahtimaksu" value="Muokkaa asiakaskohtaista rahtimaksua" type="submit">
+			<input name="id" value="<?= $id?>" type="hidden"/>
+		</fieldset>
+	</form>
 	<?php 
 	
 	if (isset($_SESSION['result'])){
@@ -115,6 +126,13 @@
 		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
 		exit;
 	}
+	elseif (isset($_POST['muokkaa_rahtimaksu'])) {
+		$result = muuta_rahtimaksu($_POST['rahtimaksu'], $_POST['ilmainen_toimitus']);
+		$_SESSION['result'] = $result;
+		//Ladataan sivu uudelleen, jotta kenttien tiedot päivittyvät
+		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
+		exit;
+	}
 
 	//result:
 	//-1	salasanat ei täsmää
@@ -127,7 +145,7 @@
 
 
 		//Tarkastetaan löytyykö käyttäjätunnusta
-		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
+		$query = "SELECT id FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
 		$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 		$count = mysqli_num_rows($result);
 		if($count != 1){
@@ -149,6 +167,15 @@
 		return 2;
 	}
 
+	function muuta_rahtimaksu($rahtimaksu, $ilmainen_toimitus){
+		global $connection;
+		global $id;
+		$query = "	UPDATE	kayttaja 
+					SET 	rahtimaksu = '$rahtimaksu', ilmainen_toimitus_summa_raja = '$ilmainen_toimitus'
+					WHERE	id='$id';";
+		mysqli_query($connection, $query) or die(mysqli_error($connection));
+		return 1;
+	}
 ?>
 </div>
 
