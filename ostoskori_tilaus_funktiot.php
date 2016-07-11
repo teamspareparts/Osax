@@ -1,10 +1,17 @@
 <?php
-global $osoitekirja_array;
+/**
+ * Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten.
+ */
+
+global $osoitekirja_array; //Helpottaa osoitekirjan käsittelyä parin funktion, ja yhden js-muuttujan välillä.
 $kayttaja_id = addslashes($_SESSION['id']);
 
-//
-// Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet
-//
+/**
+ * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
+ * 
+ * @param ---
+ * @return Array( ostoskorin tuotteet || Empty )
+ */
 function get_products_in_shopping_cart () {
 	global $connection;
 
@@ -35,9 +42,13 @@ function get_products_in_shopping_cart () {
 	return [];
 }
 
-//
-// Tilaa ostoskorissa olevat tuotteet
-//
+
+/**
+ * Tilaa ostoskorissa olevat tuotteet
+ * 
+ * @param Array $products
+ * @return Boolean, onnistuiko tilaaminen
+ */
 function order_products ( $products ) {
 	global $connection;
 	global $kayttaja_id;
@@ -53,7 +64,7 @@ function order_products ( $products ) {
 		return false;
 	}
 
-	$kayttaja_id = mysqli_insert_id($connection);
+	$tilaus_id = mysqli_insert_id($connection);
 
 	// Lisätään tilaukseen liittyvät tuotteet
 	foreach ($products as $product) {
@@ -67,7 +78,7 @@ function order_products ( $products ) {
 			INSERT INTO tilaus_tuote 
 				(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl) 
 			VALUES 
-				($kayttaja_id, $product_id, $product_price, $alv_prosentti, $alennus_prosentti, $product_count);");
+				($tilaus_id, $product_id, $product_price, $alv_prosentti, $alennus_prosentti, $product_count);");
 		if (!$result) {
 			return false;
 		}
@@ -90,11 +101,12 @@ function order_products ( $products ) {
 	return true;
 }
 
-/*
- * Ottaa taulukon, lyhentää sen, ja pistää wordwrapin.
+/**
+ * Ottaa taulukon, lyhentää sen, ja pistää wordwrapin. Palauttaa merkkijonon.
  * Tarkoitettu OE-koodien tulostukseen, mutta melko yleiskäyttöinen.
- * Param: $array, tulostettava taulukko.
- * Return: Merkkijono, jonka voi suoraan tulostaa
+ * 
+ * @param Array, tulostettava taulukko.
+ * @return Merkkijono, jonka voi suoraan tulostaa
  */
 function tulosta_taulukko ( $array ) {
 	$tulostus = "";
@@ -107,12 +119,12 @@ function tulosta_taulukko ( $array ) {
 }
 
 /**
- * Laskee sillä hetkellä sisäänkirjautuneen käyttäjän rahtimaksun.
- * Hakee tietokannasta käyttäjän tiedot (rahtimaksu, ja ilmaisen toimituksen rajan), jos ne on asetettu
- * asettaa uuden hinnan, ja sen jälkeen tarkistaa onko tilauksen summa yli ilm. toim. rajan.
+ * Laskee sillä hetkellä sisäänkirjautuneen käyttäjän ostoskorin/tilauksen rahtimaksun.
+ * Hakee tietokannasta käyttäjän tiedot (rahtimaksu, ja ilmaisen toimituksen rajan), jos ne on asetettu.
+ * Asettaa uuden hinnan, ja sen jälkeen tarkistaa, onko tilauksen summa yli ilm. toim. rajan.
  * 
- * Param: ---
- * Return: Array(rahtimaksu, ilmaisen toimituksen raja), indekseillä 0 ja 1. Kumpikin float
+ * @param ---
+ * @return Array(rahtimaksu, ilmaisen toimituksen raja), indekseillä 0 ja 1. Kumpikin float
  */
 function laske_rahtimaksu () {
 	global $connection;
@@ -135,6 +147,10 @@ function laske_rahtimaksu () {
 	return $rahtimaksu;
 }
 
+/**
+ * Tulostaa rahtimaksun tuotelistaan, hieman eri tyylillä
+ * @param unknown $ostoskori
+ */
 function tulosta_rahtimaksu_tuotelistaan ( $ostoskori ) {
 	global $rahtimaksu;
 

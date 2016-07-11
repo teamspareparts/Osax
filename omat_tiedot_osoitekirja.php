@@ -200,7 +200,7 @@ function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 				<label>Katuosoite</label>\
 					<input name="katuosoite" type="text" pattern=".{3,50}" placeholder="Edellinen katuosoite"><br>\
 				<label>Postinumero</label>\
-					<input name="postinumero" type="text" pattern=".{3,50}" placeholder="Edellinen postinumero"><br>\
+					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="Edellinen postinumero"><br>\
 				<label>Postitoimipaikka</label>\
 					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Edellinen postitoimipaikka">\
 				<br><br>\
@@ -230,7 +230,7 @@ function avaa_Modal_toimitusosoite_lisaa_uusi() {
 				<label>Katuosoite</label>\
 					<input name="katuosoite" type="text" pattern=".{3,50}" placeholder="Katu 42" required><br>\
 				<label>Postinumero</label>\
-					<input name="postinumero" type="text" pattern=".{3,50}" placeholder="00001" required><br>\
+					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>\
 				<label>Postitoimipaikka</label>\
 					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required>\
 				<br><br>\
@@ -246,7 +246,8 @@ function vahvista_Osoitteen_Poistaminen(osoite_id) {
 	var form_ID = "poista_Osoite_Form_" + osoite_id;
 	var vahvistus = confirm( "Oletko varma, että haluat poistaa osoitteen?\n"
 							+ "Tätä toimintoa ei voi perua jälkeenpäin.\n"
-							+ "Jos painat OK, osoite poistetaan, ja sivu latautuu uudelleen.");
+							+ "Jos painat OK, osoite poistetaan, ja sivu latautuu uudelleen.\n"
+							+ "(Huom. Osoitetietoja ei poisteta mahdollisista tilaustiedoista.)");
 	if ( vahvistus == true ) {
 		document.getElementById(form_ID).submit();
 	} else {

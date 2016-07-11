@@ -14,8 +14,6 @@
 	if ( !empty($_GET['id']) ) {
 		require 'tietokanta.php';	// Tietokannan tiedot
 		session_start();			// Aloitetaan sessio kayttajan tietoja varten
-		$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
-						or die("Connection error:" . mysqli_connect_error()); // Yhdista tietokantaan
 						
 		$user_id = $_GET["id"]; // Käyttäjän henkilökohtainen, salattu ID; tallennettu tietokantaan
 		if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
