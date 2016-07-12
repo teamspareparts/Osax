@@ -86,7 +86,7 @@
 	
 	<form action="#" method="post">
 		<fieldset><legend>Asiakkaan rahtimaksu</legend>
-			<label>Kumpikin arvo euroina (€). Nollan kohdalla sovellus käyttää default-arvoja.</label><br><br>
+			<label>Kumpikin arvo euroina (€). Nollan kohdalla ilmainen toimitus aina. Default-arvot: 15 €; 1000 €. (Testausta varten 15 €; 50 €)</label><br><br>
 			<label><span>Rahtimaksu:</span></label>
 				<input name="rahtimaksu" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $rahtimaksu; ?>" title="Anna käyttäjäkohtainen rahtimaksu euroina (€).">
 			<label><span>Ilmaisen toimituksen raja:</span></label>

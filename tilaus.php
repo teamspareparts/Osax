@@ -34,7 +34,7 @@ if (isset($_GET['vahvista'])) {
 	<!-- HTML -->
     <div class="tulokset">
 	    <table>
-		    <tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right; ">Hinta</th><th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th><th>Kpl</th><th>Muuta</th></tr>
+		    <tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th style="text-align: right; ">Hinta</th><th style="text-align: right; ">Kpl-hinta (sis. ALV)</th><th>Kpl</th><th>Info</th></tr>
 		    <?php
 			foreach ($products as $product) {
 				$article = $product->directArticle;
@@ -42,15 +42,11 @@ if (isset($_GET['vahvista'])) {
 				$sum += $product->hinta * $product->cartCount;?>
 				<!-- HTML -->
 		       	<tr>
-			        <td class="thumb"><img src="<?= $product->thumburl?>" alt="<?= $article->articleName?>"></td>
-			        <td><?= $article->articleNo?></td>
-			        <td><?= $article->brandName?> <br> <?= $article->articleName?></td>
-			        <td><?= tulosta_product_infos_part($product->infos)?></td>
-			        <td><?= $product->ean?></td>
-			        <td><?= tulosta_taulukko($product->oe)?></td>
-			        <td style="text-align: right; white-space: nowrap;"><?= format_euros( $product->hinta ) ?></td>
-			        <td style="text-align: right;"><?= format_integer($product->varastosaldo) ?></td>
-			        <td style="text-align: right;"><?= format_integer($product->minimimyyntiera) ?></td>
+			        <td><?= $article->articleNo?></td><!-- Tuotenumero -->
+			        <td><?= $article->articleName?></td><!-- Tuotteen nimi -->
+			        <td><?= $article->brandName?></td><!-- Tuotteen valmistaja -->
+			        <td style="text-align: right; white-space: nowrap;"><?= format_euros( $sum ) ?></td><!-- Hinta yhteensä -->
+			        <td style="text-align: right; white-space: nowrap;"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 					<td style="text-align: right;"><?= $product->cartCount?></td>
 					<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_tulosta_huomautus( $product, FALSE )?></td>
 				</tr><?php

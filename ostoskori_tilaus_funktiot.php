@@ -102,44 +102,24 @@ function order_products ( $products ) {
 }
 
 /**
- * Ottaa taulukon, lyhentää sen, ja pistää wordwrapin. Palauttaa merkkijonon.
- * Tarkoitettu OE-koodien tulostukseen, mutta melko yleiskäyttöinen.
- * 
- * @param Array, tulostettava taulukko.
- * @return Merkkijono, jonka voi suoraan tulostaa
- */
-function tulosta_taulukko ( $array ) {
-	$tulostus = "";
-	foreach ($array as $data) {
-		$tulostus .= $data . " | ";
-	}
-	$tulostus = mb_strimwidth($tulostus, 0, 35, "..."); //Lyhentää tulostuksen tiettyyn mittaan (35 tässä tapauksessa)
-	$tulostus = wordwrap($tulostus, 10, " ", true); //... ja wordwrap, 10 merkkiä pisin OE sillä hetkellä korissa
-	return $tulostus;
-}
-
-/**
- * Laskee sillä hetkellä sisäänkirjautuneen käyttäjän ostoskorin/tilauksen rahtimaksun.
- * Hakee tietokannasta käyttäjän tiedot (rahtimaksu, ja ilmaisen toimituksen rajan), jos ne on asetettu.
+ * Hakee sillä hetkellä sisäänkirjautuneen käyttäjän ostoskorin/tilauksen rahtimaksun.
+ * Hakee tietokannasta käyttäjän tiedot (rahtimaksu, ja ilmaisen toimituksen rajan).
  * Asettaa uuden hinnan, ja sen jälkeen tarkistaa, onko tilauksen summa yli ilm. toim. rajan.
  * 
  * @param ---
  * @return Array(rahtimaksu, ilmaisen toimituksen raja), indekseillä 0 ja 1. Kumpikin float
  */
-function laske_rahtimaksu () {
+function hae_rahtimaksu () {
 	global $connection;
 	global $sum;
-	global $rahtimaksu; // array( rahtimaksu, ilmaisen toimituksen raja ), default: 15, 200
+	global $rahtimaksu; // array( rahtimaksu, ilmaisen toimituksen raja ), default: 15, 1000
 
 	$id = $_SESSION['id']; //Haetaan asiakkaan tiedot mahdollisesta yksilöllisestä rahtimaksusta
 	$result = mysqli_query($connection, "SELECT	rahtimaksu, ilmainen_toimitus_summa_raja FROM kayttaja WHERE id = '$id';");
 	$row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
-	if ( $row["rahtimaksu"] !== 0 ) {//Asiakkaalla on asetettu rahtimaksu
-		$rahtimaksu[0] = $row["rahtimaksu"]; }
-
-	if ( $row["ilmainen_toimitus_summa_raja"] !== 0 ) {	//Asiakkaalla on asetettu yksilöllinen ilmaisen toimituksen raja.
-		$rahtimaksu[1] = $row["ilmainen_toimitus_summa_raja"]; }
+	$rahtimaksu[0] = $row["rahtimaksu"];
+	$rahtimaksu[1] = $row["ilmainen_toimitus_summa_raja"];
 
 	if ( $sum > $rahtimaksu[1] ) { //Onko tilaus-summa ilm. toim. rajan yli?
 		$rahtimaksu[0] = 0; }
@@ -154,7 +134,7 @@ function laske_rahtimaksu () {
 function tulosta_rahtimaksu_tuotelistaan ( $ostoskori ) {
 	global $rahtimaksu;
 
-	$rahtimaksu = laske_rahtimaksu();
+	$rahtimaksu = hae_rahtimaksu();
 
 	if ( $rahtimaksu[0] === 0 ) { $alennus = "Ilmainen toimitus";
 	} elseif ( $ostoskori ) { $alennus = "Ilmainen toimitus " . format_euros($rahtimaksu[1]) . ":n jälkeen.";
@@ -163,14 +143,10 @@ function tulosta_rahtimaksu_tuotelistaan ( $ostoskori ) {
 	?><!-- HTML -->
 	<tr style="background-color:#cecece; height: 1em;">
 		<td>---</td>
-		<td>RAHTIMAKSU</td>
 		<td>Rahtimaksu</td>
-		<td>Posti / Itella</td>
-		<td>---</td>
 		<td>---</td>
 		<td style="text-align: right; white-space: nowrap;"><?= format_euros($rahtimaksu[0])?></td>
-		<td style="text-align: right;">---</td>
-		<td style="text-align: right;">---</td>
+		<td style="text-align: right; white-space: nowrap;">---</td>
 		<td style="text-align: right;">1</td>
 		<td><?= $alennus?></td>
 	</tr>
@@ -261,21 +237,6 @@ function laske_era_alennus_tulosta_huomautus ( $product, $ostoskori ) {
 		echo "Eräalennus ($alennus_prosentti) asetettu.";
 
 	} else { echo "---"; }
-}
-
-function tulosta_product_infos_part ( $infos ) {
-	foreach ( $infos as $info ) {
-		if ( !empty($info->attrName) ) {
-			echo $info->attrName . " "; }
-
-		if ( !empty($info->attrValue) ) {
-			echo $info->attrValue . " "; }
-				
-		if ( !empty($info->attrUnit) ) {
-			echo $info->attrUnit . " "; }
-				
-		echo "<br>";
-	}
 }
 
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( $products, $ostoskori ) {
