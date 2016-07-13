@@ -24,6 +24,7 @@
 	$snimi = $row['sukunimi'];
 	$puhelin = $row['puhelin'];
 	$ynimi = $row['yritys'];
+	$ytunnus = $row['y_tunnus'];
 	$demo = $row['demo'];
 	$voimassaolopvm = $row['voimassaolopvm'];
 ?>
@@ -61,6 +62,9 @@
 			<br><br>
 			<label><span>Yrityksen nimi</span></label>
 			<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?= $ynimi; ?>">
+			<br><br>
+			<label><span>Y-tunnus</span></label>
+			<input name="y_tunnus" type="text" pattern=".{8,10}" value="<?= $ytunnus; ?>">
 			<br><br><br>
 
 			<div id="submit">
@@ -141,7 +145,7 @@
 	//result:
 	//-1	käyttäjätunnusta ei olemassa
 	//1		tiedot päivitetty
-	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi){
+	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi, $asiakas_ytunnus){
 		$tbl_name="kayttaja";				// Taulun nimi
 		$asiakas_sposti = $email;
 
@@ -156,7 +160,7 @@
 			return -1; //käyttäjänimeä ei löytynyt
 		}else {
 			//päivitetään tietokantaan
-			$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh', yritys='$asiakas_yritysnimi'
+			$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh', yritys='$asiakas_yritysnimi', y_tunnus='$asiakas_ytunnus'
 			WHERE sahkoposti='$asiakas_sposti'";
 			mysqli_query($connection, $query) or die(mysqli_error($connection));
 

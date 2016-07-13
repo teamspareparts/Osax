@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `yritys` varchar(50) COLLATE utf8_swedish_ci DEFAULT NULL,
   `sahkoposti` varchar(255) COLLATE utf8_swedish_ci DEFAULT NULL,
   `puhelin` varchar(20) COLLATE utf8_swedish_ci DEFAULT NULL,
+  `y_tunnus` varchar(9) COLLATE utf8_swedish_ci DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   `demo` tinyint(1) NOT NULL DEFAULT '0',
@@ -14,9 +15,8 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `voimassaolopvm` datetime DEFAULT NULL,
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
-  /* Minä en ole ollenkaan varma tästä... */
-  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',		
-  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50',
+  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
+  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
   PRIMARY KEY (`id`, `sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kayttaja_id` int(11) NOT NULL,
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
   `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -63,12 +64,14 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
-  `tilaus_id` int(11) NOT NULL AUTO_INCREMENT,
-  `pysyva_sahkoposti` varchar(255) NOT NULL,
-  `pysyva_puhelin` varchar(20) NOT NULL,
-  `pysyva_yritys` varchar(50) NOT NULL,
-  `pysyva_katuosoite` varchar(255) NOT NULL,
-  `pysyva_postinumero` varchar(10) NOT NULL,
+  `tilaus_id` int(11) NOT NULL,
+  `pysyva_etunimi` varchar(255) COLLATE NOT NULL,
+  `pysyva_sukunimi` varchar(255) COLLATE NOT NULL,
+  `pysyva_sahkoposti` varchar(255) COLLATE NOT NULL,
+  `pysyva_puhelin` varchar(20) COLLATE NOT NULL,
+  `pysyva_yritys` varchar(50) COLLATE NOT NULL,
+  `pysyva_katuosoite` varchar(255) COLLATE NOT NULL,
+  `pysyva_postinumero` varchar(10) COLLATE NOT NULL,
   `pysyva_postitoimipaikka` varchar(255) NOT NULL,
   PRIMARY KEY (`tilaus_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -88,33 +91,34 @@ CREATE TABLE IF NOT EXISTS `ALV_kanta` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
-  `kayttaja_id` int(11) NOT NULL,
-  `osoite_id` tinyint(2) NOT NULL,
-  `sahkoposti` varchar(255) NOT NULL,
-  `puhelin` varchar(20) NOT NULL,
-  `yritys` varchar(50) NOT NULL,
-  `katuosoite` varchar(255) NOT NULL,
-  `postinumero` varchar(10) NOT NULL,
-  `postitoimipaikka` varchar(255) NOT NULL,
-  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
+  `kayttaja_id` int(11) NOT NULL, -- PK
+  `osoite_id` tinyint(2) NOT NULL, -- PK
+  `etunimi` varchar(255) DEFAULT '',
+  `sukunimi` varchar(255) DEFAULT '',
+  `sahkoposti` varchar(255) DEFAULT '',
+  `puhelin` varchar(20) DEFAULT '',
+  `yritys` varchar(50) DEFAULT '',
+  `katuosoite` varchar(255) DEFAULT '',
+  `postinumero` varchar(10) DEFAULT '',
+  `postitoimipaikka` varchar(255) DEFAULT ''
   PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `asiakas_hinta` (
-  `kayttaja_id` int(11) NOT NULL,
-  `tuote_id` int(11) NOT NULL,
+  `kayttaja_id` int(11) NOT NULL, -- PK
+  `tuote_id` int(11) NOT NULL, -- PK
   `hinta` decimal(11,2) NOT NULL,
   PRIMARY KEY (`kayttaja_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_search` (
-  `tuote_id` int(11) NOT NULL,
-  `search_no` varchar(20) NOT NULL,
+  `tuote_id` int(11) NOT NULL, -- PK
+  `search_no` varchar(20) NOT NULL, -- PK
 PRIMARY KEY (`tuote_id`, `search_no`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_oe` (
-  `tuote_id` int(11) NOT NULL,
-  `oe_number` varchar(20) NOT NULL,
+  `tuote_id` int(11) NOT NULL, -- PK
+  `oe_number` varchar(20) NOT NULL, -- PK
 PRIMARY KEY (`tuote_id`, `oe_number`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

@@ -1,6 +1,6 @@
 <?php 
 $kayttaja_id = $_SESSION['id'];
-/*
+/**
  * Hakee kaikki toimitusosoitteet ja tulostaa, plus kaksi nappia; toinen muokkaamista
  *  ja toinen poistamista varten.
  */
@@ -15,6 +15,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 		?><!--  HTML  -->
 		<p> Osoite <?= $row['osoite_id'] ?><br>
 		<br>
+		<label><span>Nimi</span></label><?= ($row['etunimi'] . ' ' . $row['sukunimi']) ?><br>
 		<label><span>Sähköposti</span></label><?= $row['sahkoposti']?><br>
 		<label><span>Puhelin</span></label><?= $row['puhelin']?><br>
 		<label><span>Yritys</span></label><?= $row['yritys']?><br>
@@ -24,7 +25,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 		
 		<input class="nappi" type="button" value="Muokkaa" 
 			onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row['osoite_id'] ?>);">
-		<input class="nappi" type="button" value="Poista" style="background:rgb(210, 0, 6);border-color: #b70004;"
+		<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
 			onClick="vahvista_Osoitteen_Poistaminen(<?= $row['osoite_id'] ?>);">
 			
 		<?php $form_id = "poista_Osoite_Form_" . $row['osoite_id'];?>
@@ -37,7 +38,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 	}
 }
 	
-/* hae_toimitusosoite()
+/**
  * Hakee kirjautuneen kayttajan toimitusosoitteen, ja palauttaa sen arrayna.
  * Param:
  *		$osoite_id : int, muokattavan osoitteen ID
@@ -56,7 +57,7 @@ function hae_toimitusosoite($osoite_id) {
 	return $row;
 }
 
-/* 
+/** 
  * Tallentaa uudet tiedot tietokantaan. Tallennettavat tiedot $_POST-muuttujan kautta.
  *  Funktio on tarkoitus kutsua vain lomakkeen lähetyksen jälkeen.
  *  Tarkistaa tyhjät kentät, ja päivittää vain muuttuneet tiedot
@@ -68,7 +69,7 @@ function tallenna_uudet_tiedot() {
 	global $connection;
 	$osoite_id = $_POST['osoite_id'];
 	
-	$possible_fields = array('sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka');
+	$possible_fields = array('etunimi', 'sukunimi', 'sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka');
 	$i = 0;
 	$cleaned_array = array_filter($_POST); //Poistaa tyhjat
 	$len = count($cleaned_array);
@@ -93,7 +94,7 @@ function tallenna_uudet_tiedot() {
 	return false; //Jos ei yhtään päivitettävää osaa
 }
 
-/* lisaa_uusi_osoite()
+/**
  * Lisaa uuden osoitteen tietokantaan listan loppuun. Tallennettavat tiedot $_POST-muuttujan kautta.
  *  Funktio on tarkoitus kutsua vain lomakkeen vastaanottamisen jalkeen.
  * Param: ---
@@ -103,7 +104,9 @@ function lisaa_uusi_osoite() {
 	global $kayttaja_id;
 	global $connection;
 
-	$a = $_POST['email'];		//Olin laiska kun nimesin nama muuttujat
+	$a1 = $_POST['etunimi'];		//Olin laiska kun nimesin nama muuttujat
+	$b1 = $_POST['sukunimi'];
+	$a = $_POST['sahkopsoti'];		//Olin laiska kun nimesin nama muuttujat
 	$b = $_POST['puhelin'];
 	$c = $_POST['yritys'];
 	$d = $_POST['katuosoite'];
@@ -114,14 +117,14 @@ function lisaa_uusi_osoite() {
 	
 	$sql_query = "	INSERT 
 					INTO	toimitusosoite
-						(kayttaja_id, osoite_id, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka)
-					VALUES 	('$kayttaja_id', '$uusi_osoite_id', '$a', '$b', '$c', '$d', '$e', '$f');";
+						(kayttaja_id, osoite_id, etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka)
+					VALUES 	('$kayttaja_id', '$uusi_osoite_id', '$a1', '$b1', '$a', '$b', '$c', '$d', '$e', '$f');";
 	
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	return $result;
 }
 
-/* poista_osoite()
+/**
  * Poistaa tietokannasta toimitusosoitteen annetulla ID:lla. Siirtaa viimeiselta paikalta 
  *  toimitusosoitteen poistetun paikalle listan eheyden sailyttamiseksi. Poistettava 
  *  ID $_POST-muuttujan kautta. Funktio on tarkoitus kutsua vain lomakkeen vastaanottamisen jalkeen.
@@ -150,7 +153,7 @@ function poista_osoite() {
 	return $result;
 }
 
-/* hae_osoitteet_indeksi()
+/**
  * Hakee viimeisen toimitusosoitteen indeksin + 1.
  * Param: ---
  * Return:	int, indeksi+1
@@ -180,10 +183,12 @@ if ( !empty($_POST["muokkaa_vanha"]) ) {
 ?>
 
 
-<script src="js/jsmodal-1.0d.min.js"></script>
+<script src="js/jsmodal-1.0d.min.js">/* jsModal ikkunan avaamista varten*/</script>
 <script>
-/*
- * Modal-ikkuna toimitusosoitteen muokkaamista varten
+/**
+ * Avaa jsModal-ikkunan tietyn toimitusosoitteen muokkaamista varten
+ * Huom. input name-arvo pitää olla sama kuin tietokannassa.
+ * @param muokattavan osoitteen ID
  */
 function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 	Modal.open( {
@@ -191,8 +196,12 @@ function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 			<div>Muokkaa tietoja (Osoite ' + osoite_id + ')</div>\
 			<br>\
 			<form action="#" method=post>\
+				<label>Etunimi</label>\
+					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi"><br>\
+				<label>Sukunimi</label>\
+					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi"><br>\
 				<label>Sähköposti</label>\
-					<input name="email" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
+					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
 				<label>Puhelin</label>\
 					<input name="puhelin" type="tel" pattern=".{1,20}" placeholder="Edellinen puhelinumero"><br>\
 				<label>Yritys</label>\
@@ -212,7 +221,7 @@ function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 		draggable: true
 	} );
 }
-/*
+/**
  * Modal-ikkuna uuden toimitusosoitteen lisäämistä varten
  */
 function avaa_Modal_toimitusosoite_lisaa_uusi() {
@@ -221,8 +230,12 @@ function avaa_Modal_toimitusosoite_lisaa_uusi() {
 			<div>Lisää uuden toimitusosoitteen tiedot</div>\
 			<br>\
 			<form action="#" method=post>\
+				<label>Etunimi</label>\
+					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi" required><br>\
+				<label>Sukunimi</label>\
+					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi" required><br>\
 				<label>Sähköposti</label>\
-					<input name="email" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
+					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
 				<label>Puhelin</label>\
 					<input name="puhelin" type="tel" pattern=".{1,20}" placeholder="000 1234 789" required><br>\
 				<label>Yritys</label>\
@@ -242,6 +255,13 @@ function avaa_Modal_toimitusosoite_lisaa_uusi() {
 	} );
 }
 
+/**
+ * Vahvistetaan kayttajalta osoitteen poistaminen javascript confirm-ikkunan avulla
+ * OK:n jälkeen lähettää lomakkeen, jossa osoitteen ID.
+ * 
+ * @param Poistettavan osoitteen ID
+ * @return Boolean false, jos kayttaja ei paina OK:ta.
+ */
 function vahvista_Osoitteen_Poistaminen(osoite_id) {
 	var form_ID = "poista_Osoite_Form_" + osoite_id;
 	var vahvistus = confirm( "Oletko varma, että haluat poistaa osoitteen?\n"

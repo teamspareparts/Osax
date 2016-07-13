@@ -26,8 +26,8 @@ function hae_tilauksen_tiedot () {
 	global $connection;
 	global $tilaus_id;
 	$query = "
-		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
-			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti, kayttaja.rahtimaksu, kayttaja.ilmainen_toimitus_summa_raja,
+		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
+			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti,
 			SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
 				AS summa,
 			SUM(tilaus_tuote.kpl) AS kpl
@@ -115,7 +115,7 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 		header("Location:tilaushistoria.php");
 		exit(); }
 }
-$rahtimaksu = laske_rahtimaksu();
+// $rahtimaksu = laske_rahtimaksu();
 $products = get_products_in_tilaus($tilaus_id);
 if (count($products) > 0) {
 	merge_products_with_tecdoc($products);
@@ -135,7 +135,7 @@ if (count($products) > 0) {
 		<tr><td>Tilaaja: <?= $tilaus_tiedot["etunimi"] . " " . $tilaus_tiedot["sukunimi"]?></td>
 			<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td></tr>
 		<tr><td>Tuotteet: <?= $tilaus_tiedot["kpl"]?></td>
-			<td>Summa: <?= format_euros( $tilaus_tiedot["summa"] + $rahtimaksu)?> ( ml. rahtimaksu )</td></tr>
+			<td>Summa: <?= format_euros( $tilaus_tiedot["summa"] + $tilaus_tiedot["pysyva_rahtimaksu"])?> ( ml. rahtimaksu )</td></tr>
 	</table>
 	<br>
 	<table>
@@ -153,8 +153,18 @@ if (count($products) > 0) {
 			echo "<td>" . tulosta_alennus_tuotelistaan($product->pysyva_alennus) . "</td>";
 			echo "<td>$product->kpl</td>";
 			echo '</tr>';
-		}
-		tulosta_rahtimaksu_tuotelistaan()
+		}?>
+		
+		<tr style="background-color:#cecece;">
+			<td>Rahtimaksu</td>
+			<td>Posti / Itella</td>
+			<td>---</td>
+			<td><?= format_euros($tilaus_tiedot["pysyva_rahtimaksu"])?></td>
+			<td>---</td>
+			<td>0 %</td>
+			<td><?php if ( $tilaus_tiedot["pysyva_rahtimaksu"] === 0 ) { echo "Ilmainen toimitus"; } else { echo "---"; }?></td>
+			<td>1</td>
+		</tr>
 		?><!-- HTML -->
 	</table>
 </div>

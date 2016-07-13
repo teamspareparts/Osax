@@ -52,13 +52,14 @@ function get_products_in_shopping_cart () {
 function order_products ( $products ) {
 	global $connection;
 	global $kayttaja_id;
+	$pysyva_rahtimaksu = addslashes($product->rahtimaksu);
 
 	if (empty($products)) {
 		return false;
 	}
 
 	// Lisätään uusi tilaus
-	$result = mysqli_query($connection, "INSERT INTO tilaus (kayttaja_id) VALUES ($kayttaja_id);");
+	$result = mysqli_query($connection, "INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES ($kayttaja_id, $pysyva_rahtimaksu);");
 
 	if (!$result) {
 		return false;
