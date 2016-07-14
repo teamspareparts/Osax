@@ -834,10 +834,10 @@ function print_results($products) {
 	echo '<h2>Tulokset:</h2>';
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th><th style="text-align: right;">Hinta</th><th style="text-align: right;">Varastosaldo</th><th>Kpl</th></tr>';
+		echo '<tr><th></th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th></tr>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
-			echo '<tr data-val="'. $article->articleId .'">';
+			echo '<tr class="rivi" data-val="'. $article->articleId .'">';
 			echo "<td class=\"clickable\" \"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td class=\"clickable\">$article->articleNo</td>";
 			echo "<td class=\"clickable\">$article->brandName <br> $article->articleName</td>";
@@ -849,16 +849,16 @@ function print_results($products) {
 				echo "<br>";
 			}
 			echo "</td>";
-			echo "<td class=\"clickable\">$product->ean</td>";
-			//echo "<td>$product->oe</td>";
-			echo "<td class=\"clickable\">";
-			foreach ($product->oe as $oe){
-				echo $oe;
-				echo "<br>";
-			}
-			echo "</td>";
-			echo "<td class=\"clickable\" style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-			echo "<td class=\"clickable\" style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
+// 			echo "<td class=\"clickable\">$product->ean</td>";
+//			echo "<td>$product->oe</td>";
+// 			echo "<td class=\"clickable\">";
+// 			foreach ($product->oe as $oe){
+// 				echo $oe;
+// 				echo "<br>";
+// 			}
+// 			echo "</td>";
+			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
+			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
 			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
 			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
 			echo '</tr>';

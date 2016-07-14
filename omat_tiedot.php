@@ -7,26 +7,25 @@
 	<title>Omat Tiedot</title>
 </head>
 <body>
-<?php include("header.php");?>
+<?php include("header.php");
 
-<?php
-	require 'tietokanta.php';
-	//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
-	global $connection;
-	$tbl_name = 'kayttaja';
-	
-	$email = $_SESSION['email'];
-	$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	$row = mysqli_fetch_assoc($result);
-	$email = $row['sahkoposti'];
-	$enimi = $row['etunimi'];
-	$snimi = $row['sukunimi'];
-	$puhelin = $row['puhelin'];
-	$ynimi = $row['yritys'];
-	$ytunnus = $row['y_tunnus'];
-	$demo = $row['demo'];
-	$voimassaolopvm = $row['voimassaolopvm'];
+require 'tietokanta.php';
+//käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
+global $connection;
+$tbl_name = 'kayttaja';
+
+$email = $_SESSION['email'];
+$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
+$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+$row = mysqli_fetch_assoc($result);
+$email = $row['sahkoposti'];
+$enimi = $row['etunimi'];
+$snimi = $row['sukunimi'];
+$puhelin = $row['puhelin'];
+$ynimi = $row['yritys'];
+$ytunnus = $row['y_tunnus'];
+$demo = $row['demo'];
+$voimassaolopvm = $row['voimassaolopvm'];
 ?>
 
 <h1 class="otsikko">Omat Tiedot</h1>
@@ -68,6 +67,7 @@
 			<br><br><br>
 
 			<div id="submit">
+				<input type="hidden" name="uudet_tiedot">
 				<input name="submit" value="Päivitä tiedot" type="submit">
 			</div>
 		</fieldset>
@@ -106,7 +106,7 @@
 		unset($_SESSION['result']);
 	}
 	
-	elseif (isset($_POST['etunimi'])) {
+	elseif (isset($_POST['uudet_tiedot'])) {
 		$result = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi']);
 		$_SESSION['result'] = $result;
 		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");

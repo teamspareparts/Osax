@@ -19,7 +19,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	 * Mikäli halutaan poistaa urlissa oleva get
 	 * ?>  
 	 *	<script type="text/javascript">
-	 *	window.history.pushState('login', 'Title', 'login.php');
+	 *	window.history.pushState('login', 'Title', 'index.php');
 	 *	</script> 
 	 * <?php
 	**/

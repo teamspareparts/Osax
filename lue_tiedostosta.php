@@ -51,6 +51,5 @@ if(isset($_FILES['file']['name'])) {
 
 ?>
 
-<?php include 'footer.php';?>
 </body>
 </html>

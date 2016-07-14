@@ -106,7 +106,7 @@ function lisaa_uusi_osoite() {
 
 	$a1 = $_POST['etunimi'];		//Olin laiska kun nimesin nama muuttujat
 	$b1 = $_POST['sukunimi'];
-	$a = $_POST['sahkopsoti'];		//Olin laiska kun nimesin nama muuttujat
+	$a = $_POST['sahkoposti'];		//Olin laiska kun nimesin nama muuttujat
 	$b = $_POST['puhelin'];
 	$c = $_POST['yritys'];
 	$d = $_POST['katuosoite'];
@@ -197,9 +197,9 @@ function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 			<br>\
 			<form action="#" method=post>\
 				<label>Etunimi</label>\
-					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi"><br>\
+					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen etunimi"><br>\
 				<label>Sukunimi</label>\
-					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi"><br>\
+					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen sukunimi"><br>\
 				<label>Sähköposti</label>\
 					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
 				<label>Puhelin</label>\

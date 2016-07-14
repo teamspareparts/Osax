@@ -874,12 +874,12 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
                 echo "</td>";
 				echo "<td>$product->ean</td>";
 				//echo "<td>$product->oe</td>";
-				echo "<td>";
-				foreach ($product->oe as $oe){
-					echo $oe;
-					echo "<br>";
-				}
-				echo "</td>";
+				echo "<td>Poistettu taulukosta</td>";
+// 				foreach ($product->oe as $oe){
+// 					echo $oe;
+// 					echo "<br>";
+// 				}
+// 				echo "</td>";
 
 				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog($product->articleId)\">Lisää</a></td>";
 				echo '</tr>';

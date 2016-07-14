@@ -62,6 +62,8 @@ body {
 		   		$_SESSION['email']	= $row['sahkoposti'];
 		   		$_SESSION['admin']	= $row['yllapitaja'];
 		   		$_SESSION['id']		= $row['id'];
+		   		$_SESSION['etunimi']	= $row['etunimi'];
+		   		$_SESSION['sukunimi']	= $row['sukunimi'];
 		   		
 		   		
 		   		//Onko käyttäjätunnus väliaikainen
