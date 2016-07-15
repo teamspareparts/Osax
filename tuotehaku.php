@@ -2,12 +2,16 @@
 <html lang="fi">
 <head>
 	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/bootstrap.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
+	
 	<meta charset="UTF-8">
 	<meta name="description" content="Asiakkaalle näkyvä pohja">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 	<script>
 	    <?php require_once 'tecdoc_asetukset.php'; ?>
 	    var TECDOC_MANDATOR = <?php echo json_encode(TECDOC_PROVIDER); ?>;
@@ -19,10 +23,44 @@
 	<title>Tuotehaku</title>
 </head>
 <body>
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document" style="top:50px;">
+		<div class="modal-content">
+			<div class="modal-header" style="height: 40px;">
+	      	<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	    	<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 300px;">
+			    <li class="active"><a data-toggle="tab" href="#menu1">Tuote</a></li>
+			    <li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
+			    <li><a data-toggle="tab" href="#menu3">OE</a></li>
+			</ul>
+	    	</div>
+	    
+			
+			
+			<div class="modal-body">
+			  	<div class="tab-content">
+			    	<div id="menu1" class="tab-pane fade in active"></div>
+			    	<div id="menu2" class="tab-pane fade text-center"></div>
+			    	<div id="menu3" class="tab-pane fade"></div>
+				</div>
+			</div>
+		
+		</div>
+	</div>
+</div>
+
+<!-- HTML onload -->
+<div id="cover"></div>
+
+
+
+
 <?php include('header.php');
 	require 'tecdoc.php';
 	require 'apufunktiot.php';?>
 <h1 class="otsikko">Tuotehaku <span class="question">?</span></h1>
+
 
 <div id="ostoskori-linkki"></div>
 <form action="tuotehaku.php" method="post" class="haku">
@@ -317,7 +355,7 @@ if (isset($_SESSION['cart'])) {
 		function makeTableHTML(array) {
 			if(array.length==0) return "";
 			array=array.array;
-		    var result = "<table class='center'><th colspan='2' class='text-center'>OE</th>";
+		    var result = "<table style='margin-right: auto;margin-left: auto;'><th colspan='2' class='text-center'>OE</th>";
 		    for(var i=0; i<array.length; i++) {
 		        result += "<tr>";
 		        result += "<td style='font-size:14px'>"+array[i].brandName+"</td><td style='font-size:14px'>"+array[i].oeNumber+"</td>";
@@ -325,7 +363,7 @@ if (isset($_SESSION['cart'])) {
 		    }
 		    result += "</table>";
 
-		    return result;
+		    return result;	
 		}
 
 		function imgsToHTML(response) {
@@ -333,8 +371,8 @@ if (isset($_SESSION['cart'])) {
 			var imgs = "";
 			for(var i=0; i<response.articleThumbnails.array.length; i++) {
 				thumb_id = response.articleThumbnails.array[i].thumbDocId;
-				img = TECDOC_THUMB_URL +thumb_id + '/';
-				imgs += '<img src='+ img +' border="1" class="tuote_img" /><br>';
+				img = TECDOC_THUMB_URL +thumb_id + '/0/';
+				imgs += '<img src='+ img +' border="1" class="tuote_img kuva" /><br>';
 			}
 			return imgs;
 		}
@@ -346,16 +384,17 @@ if (isset($_SESSION['cart'])) {
 				  infos += "Pakkauksia: " + response.directArticle.packingUnit + "<br>";
 			}
 			if (typeof response.directArticle.quantityPerPackingUnit != 'undefined') {
-				  infos += "Kpl/pakkaus: " + response.directArticle.quantityPerPackingUnit + "<br><br>";
+				  infos += "Kpl/pakkaus: " + response.directArticle.quantityPerPackingUnit + "<br>";
 			}
+			infos+="<br>";
 
 			//infot
 			if (response.articleAttributes == "") {
 				  return infos;
 			}
 			for(var i = 0; i < response.articleAttributes.array.length; i++) {
-				if (typeof response.articleAttributes.array[i].attrShortName != 'undefined') {
-					  infos += response.articleAttributes.array[i].attrShortName;
+				if (typeof response.articleAttributes.array[i].attrName != 'undefined') {
+					  infos += response.articleAttributes.array[i].attrName;
 				}
 				if (typeof response.articleAttributes.array[i].attrValue != 'undefined') {
 					  infos += ": " + response.articleAttributes.array[i].attrValue + " ";
@@ -380,10 +419,14 @@ if (isset($_SESSION['cart'])) {
 					//alert(response.articleDocuments.array[i].docTypeId);
 					doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
 					docName = response.articleDocuments.array[i].docFileName;
-					documentlink += '<img src="img/pdficon.png" style="margin-right:5px"><a href="'+doc+'" download="'+docName+'" id="asennusohje">Asennusohje (PDF)</a>';
+					documentlink += '<img src="img/pdficon.png" style="margin-right:5px;margin-bottom:7px;"><a href="'+doc+'" download="'+docName+'" id="asennusohje">Asennusohje (PDF)</a>';
 				}
 			}			
 			return documentlink;
+		}
+		function sleepFor( sleepDuration ){
+		    var now = new Date().getTime();
+		    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
 		}
 
 		
@@ -397,42 +440,52 @@ if (isset($_SESSION['cart'])) {
 		brand = response.directArticle.brandName;
 		infos = infosToHTML(response);
 		documents = getDocuments(response);
+
+		//display image
+		display_img_id = "";
+		if(response.articleThumbnails.length==0) {
+			display_img = "img/ei-kuvaa.png";
+			img = '<img src='+display_img+' border="1" id="display_img"/>'
+		} else {
+			display_img_id = response.articleThumbnails.array[0].thumbDocId;
+			display_img = TECDOC_THUMB_URL +thumb_id + '/0/';
+			img = '<img src='+display_img+' border="1" id="display_img" class="kuva"/>'
+		}
+		
+		//Lisätään tuote modaliin sisältö
+		$("#menu1").append('\
+			<br> \
+			<div class="left">'+img+'</div> \
+			<div id="middle"> \
+			<div id="perus_infot"> \
+			<span style="font-weight:bold">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
+			</div> \
+			<br>'+infos+'<br><br>'+documents+' \
+			\
+			\
+		');
+		$("#menu2").append('\
+				<br> \
+				'+imgs+' \
+				</div> \
+			');
+			
+		$("#menu3").append('\
+			<br> \
+			'+OEtable+' \
+		');
+		$("#menu1").append("<div style='width:200px;float:left;'><br><br></div>");
+
+		//lopetetaan spinning iconin näyttäminen
+		$('#cover').removeClass("loading");
+		//avataan modal
+		$("#myModal").modal({
+			  keyboard: true
+		});
 		
 
-		Modal.open( {
-			content:  '\
-				<div class="left">'+imgs+'</div> \
-				<div class="middle">\
-					<div id="perus_infot"> \
-						<span style="font-weight:bold">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
-					</div> \
-					<br>'+infos+'<br><hr><br>'+documents+' \
-				</div> \
-				<div class="right"> \
-				'+OEtable+' \
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				\
-				</div> \
-				<div style="width:25px;float:left"></div>\
-				\
-				\
-				\
-				\
-				\
-				\
-				',
-			draggable: true
-		} );
+		//avataan aina "tuote" tabi ensin
+		$('#modalnav a[href="#menu1"]').tab('show');
 		
 	}
 
@@ -582,41 +635,49 @@ if (isset($_SESSION['cart'])) {
 			$('.clickable').click(function(){
 					//haetaan tuotteen id
 					var articleId = $(this).closest('tr').attr('data-val');
+					//spinning icon
+					$('#cover').addClass("loading");
 					//haetaan tuotteen tiedot tecdocista
 					getDirectArticlesByIds6(articleId);
+
 					
 			});
 
 
 			$('.clickable').css('cursor', 'pointer');
-
-
-
-		});
-
+			
+			$('#myModal').on('hidden.bs.modal', function () {
+				$( "#menu1" ).empty();
+				$( "#menu2" ).empty();
+				$( "#menu3" ).empty();
+			});
 
 		  
-		//Käytetään eri muotoilua, koska dynaaminen content
-		
-		$(document.body).on('mouseover', '#asennusohje', function(){
-			$(this).css("text-decoration", "underline");	
-		});
-		$(document.body).on('mouseout', '#asennusohje', function(){
-			$(this).css("text-decoration", "none");	
-		});
-
-		
-		//avaa tuotteen kuvan isona uuteen ikkunaan
-		$(document.body).on('click', '.tuote_img', function(){
-			var src = this.src;
-			var w = this.naturalWidth;
-			var h = this.naturalHeight;
-
-			var left = (screen.width/2)-(w/2);
-			var top = (screen.height/2)-(h/2);
-			myWindow = window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+			//Käytetään eri muotoilua, koska dynaaminen content
 			
-		}); //close click
+			$(document.body).on('mouseover', '#asennusohje', function(){
+				$(this).css("text-decoration", "underline");	
+			});
+			$(document.body).on('mouseout', '#asennusohje', function(){
+				$(this).css("text-decoration", "none");	
+			});
+
+			//avaa tuotteen kuvan isona uuteen ikkunaan
+			$(document.body).on('click', '.kuva', function(){
+				var src = this.src;
+				var w = this.naturalWidth;
+				var h = this.naturalHeight;
+
+				var left = (screen.width/2)-(w/2);
+				var top = (screen.height/2)-(h/2);
+				myWindow = window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+				
+			}); //close click
+
+
+		});
+
+
 
 
 	  	
@@ -760,7 +821,7 @@ function get_catalog_products_by_number($number){
 				FROM 	tuote 
 				JOIN 	ALV_kanta
 					ON	tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	id IN ('$product_ids')";
+				WHERE 	tuote.id IN ('$product_ids') AND tuote.aktiivinen=1";
 	$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	$products = array();
 	while ($row = mysqli_fetch_object($result)) {
@@ -807,7 +868,7 @@ if(isset($_GET["manuf"])) {
 	global $connection;
 
 	$result = mysqli_query($connection, "
-			SELECT id, varastosaldo, minimisaldo, minimimyyntiera,
+			SELECT id, varastosaldo, minimisaldo,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta
@@ -835,14 +896,14 @@ function print_results($products) {
 	if (count($products) > 0) {
 		echo '<table>';
 		echo '<thead>';
-		echo '<tr><th></th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th><th>Testing</th></tr>';
+		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th><th>Testing</th></tr>';
 		echo '</thead>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
-			echo '<tr class="rivi" data-val="'. $article->articleId .'">';
-			echo '<td class="clickable thumb"><img src="' . $product->thumburl . '" alt="' . $article->articleName . '"></td>';
-			echo '<td class="clickable">' . $article->articleNo . '</td>';
-			echo '<td class="clickable">' . $article->brandName . ' <br>' . $article->articleName . '</td>';
+			echo '<tr data-val="'. $article->articleId .'">';
+			echo '<td class="clickable thumb"><img src="'.$product->thumburl.'" alt="'.$article->articleName.'"></td>';
+			echo '<td class="clickable">'.$article->articleNo.'</td>';
+			echo '<td class="clickable">'.$article->brandName.' <br> '. $article->articleName.'</td>';
 			echo '<td class="clickable">';
 			foreach ($product->infos as $info){
 				if(!empty($info->attrName)) echo $info->attrName . " ";
@@ -851,14 +912,14 @@ function print_results($products) {
 				echo "<br>";
 			}
 			echo "</td>";
-// 			echo "<td class=\"clickable\">$product->ean</td>";
-//			echo "<td>$product->oe</td>";
-// 			echo "<td class=\"clickable\">";
-// 			foreach ($product->oe as $oe){
-// 				echo $oe;
-// 				echo "<br>";
-// 			}
-// 			echo "</td>";
+//			echo "<td class=\"clickable\">$product->ean</td>";
+//			//echo "<td>$product->oe</td>";
+//			echo "<td class=\"clickable\">";
+//			foreach ($product->oe as $oe){
+//				echo $oe;
+//				echo "<br>";
+//			}
+//			echo "</td>";
 			echo '<td style="text-align: right;">' . format_integer($product->varastosaldo) . '</td>';
 			echo '<td style="text-align: right;">' . format_euros($product->hinta) . '</td>';
 // 			echo '<td style="padding-top: 0; padding-bottom: 0;"><input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
@@ -882,6 +943,7 @@ function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
 		return '<a href="javascript:void(0);" onClick="confirm(\'Woo! Loppuunmyyty.\nOle hyvä ja kirjoita ystävällinen kirje maahantuojallesi, jossa ilmoitat halukkuutesi ostaa tätä tuotetta. Kiitos yhteistyöstäsi.\');">Tuotetta ei saatavilla</a>';
 	}
 }
+
 ?>
 </body>
 </html>

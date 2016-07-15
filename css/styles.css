@@ -19,6 +19,7 @@ input {
 }
 
 
+
 /***************************************
 
 	Menu palkin tyylittelyä
@@ -110,6 +111,21 @@ input {
 	font-size: 18px;
 	color: black;
 	padding-top: 2em
+}
+
+/********************************************
+
+	Footer
+	
+*********************************************/
+#footer {
+	background-color: #1d7ae2;
+	position: relative;
+	height: 3em;
+	margin-top: 1em;
+}
+#footer .copyright {
+	text-align: center;
 }
 
 /********************************************
@@ -630,24 +646,17 @@ MODAL-ikkuna (tuotteen tiedot)
 .left {
 	float:left;
 	min-width: 100px;
+	min-height: 400px;
 }
 
 .middle {
 	float:left;
-	min-width: 270px;
 	font-size: 14px;
-	margin-right: 20px;
-	min-height: 300px;
 }
 
-.right {
-	float:left;
-	max-width: 300px;
-}
 
 .center {
-	margin-left: auto;;
-	margin-right: auto;
+	text-align: center;
 }
 
 .text-center {
@@ -658,11 +667,20 @@ MODAL-ikkuna (tuotteen tiedot)
 	font-size: 20px
 }
 
-.tuote_img {
-	max-width: 200px;
-	max-height: 200px;
-	cursor: pointer;
+#display_img {
+	max-width: 250px;
+	max-height: 300px;
 	margin-right: 20px;
+}
+
+.kuva{
+	cursor: pointer;
+}
+
+.tuote_img {
+	max-width: 350px;
+	max-height: 300px;
+	margin-bottom: 5px;
 }
 
 .no-image {
@@ -673,6 +691,21 @@ MODAL-ikkuna (tuotteen tiedot)
 	text-decoration: none;
 	font-family: sans-serif;
 	color: black;
+}
+
+/*****************
+Loading-icon
+******************/
+.loading {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	opacity: 0.4;
+	z-index: 1040;
+	background-color: #000000;
+	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
 
 
