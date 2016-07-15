@@ -539,8 +539,6 @@ function add_product_to_catalog($id, $price, $alv, $count, $minimum_count, $mini
 function remove_product_from_catalog($id) {
 	global $connection;
 	$id = intval($id);
-	remove_related_search_nos($id);
-	remove_related_oe($id);
 	mysqli_query($connection, "
 		UPDATE tuote 
 		SET aktiivinen=0 
