@@ -19,10 +19,6 @@ body {
 	$salasanan_voimassaoloaika = 180;
 	date_default_timezone_set("Europe/Helsinki");
 	
-	// Luodaan yhteys
-	$connection = mysqli_connect( DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME ) 
-					or die("Connection error:" . mysqli_connect_error());
-	
 	if (!isset($_POST["mode"])) {
 		header("Location:index.php?redir=4");
 		exit();

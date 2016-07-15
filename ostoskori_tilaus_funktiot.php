@@ -243,27 +243,33 @@ function laske_era_alennus_tulosta_huomautus ( $product, $ostoskori ) {
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( $products, $ostoskori ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
-	foreach ($products as $product) {
-		if ($product->cartCount > $product->varastosaldo) {
-			$enough_in_stock = false;
+	$tuotteita_ostoskorissa = true;
+	$huomautus = "";
+	$linkki = "";
+	
+	if ( $ostoskori ) { $linkki = "tilaus.php";
+	} else { $linkki = "tilaus.php?vahvista"; }
+	
+	if ( $products ) {
+		foreach ($products as $product) {
+			if ($product->cartCount > $product->varastosaldo) {
+				$enough_in_stock = false;
+				$huomautus = "Tuotteita ei voi tilata, koska jotain tuotetta ei ole tarpeeksi varastossa.";
+			}
+			if ($product->cartCount < $product->minimimyyntiera) {
+				$enough_ordered = false;
+				$huomautus = "Tuotteita ei voi tilata, koska jonkin tuotteen minimimyyntierää ei ole ylitetty.";
+			}
 		}
-		if ($product->cartCount < $product->minimimyyntiera) {
-			$enough_ordered = false;
-		}
+	} else {
+		$tuotteita_ostoskorissa = false;
+		$huomautus = "Ostoskori tyhjä.";
 	}
-    
-	switch ( $ostoskori ) {
-	    case TRUE:
-	    	if ( $enough_in_stock && $enough_ordered ) {
-	    		?><p><a class="nappi" href="tilaus.php">Tilaa tuotteet</a></p><?php
-    	    } else {
-    	        ?><p><a class="nappi disabled">Tilaa tuotteet</a> Tuotteita ei voi tilata, koska niitä ei ole tarpeeksi varastossa tai minimimyyntierää ei ole ylitetty.</p><?php 
-    	    }
-	        break;
-	    case FALSE:
-	        ?><p><a class="nappi" href="tilaus.php?vahvista">Vahvista tilaus</a></p><?php
-	        break;
-	    default:
-	    	?><p><a class="nappi disabled">ERROR: Jotain meni vikaan</a><?php
+	
+	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered ) {
+		?><p><a class="nappi" href="<?= $linkki ?> ">Tilaa tuotteet</a></p><?php
+	} else {
+		?><p><a class="nappi disabled">Tilaa tuotteet</a> <?= $huomautus ?> </p><?php 
 	}
+	
 }

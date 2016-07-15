@@ -32,7 +32,7 @@ if (mysqli_multi_query($yhteys, file_get_contents('tietokanta.sql'))) {
 // Luodaan ylläpitäjälle käyttäjä
 $yllapitajan_tunnus = addslashes(ADMIN_USERNAME);
 $hajautettu_salasana = password_hash(ADMIN_PASSWORD, PASSWORD_DEFAULT);
-$kysely = "INSERT INTO kayttaja (sahkoposti, salasana_hajautus, yllapitaja) VALUES ('$yllapitajan_tunnus', '$hajautettu_salasana', 1);";
+$kysely = "INSERT INTO kayttaja (sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, etunimi) VALUES ('$yllapitajan_tunnus', '$hajautettu_salasana', 1, 0, 'Admin');";
 
 while (mysqli_more_results($yhteys)) {
     mysqli_next_result($yhteys);

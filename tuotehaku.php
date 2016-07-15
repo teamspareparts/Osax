@@ -807,7 +807,7 @@ if(isset($_GET["manuf"])) {
 	global $connection;
 
 	$result = mysqli_query($connection, "
-			SELECT id, varastosaldo, minimisaldo,
+			SELECT id, varastosaldo, minimisaldo, minimimyyntiera,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta
@@ -834,14 +834,16 @@ function print_results($products) {
 	echo '<h2>Tulokset:</h2>';
 	if (count($products) > 0) {
 		echo '<table>';
-		echo '<tr><th></th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th></tr>';
+		echo '<thead>';
+		echo '<tr><th></th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th><th>Testing</th></tr>';
+		echo '</thead>';
 		foreach ($products as $product) {
 			$article = $product->directArticle;
 			echo '<tr class="rivi" data-val="'. $article->articleId .'">';
-			echo "<td class=\"clickable\" \"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
-			echo "<td class=\"clickable\">$article->articleNo</td>";
-			echo "<td class=\"clickable\">$article->brandName <br> $article->articleName</td>";
-			echo "<td class=\"clickable\">";
+			echo '<td class="clickable thumb"><img src="' . $product->thumburl . '" alt="' . $article->articleName . '"></td>';
+			echo '<td class="clickable">' . $article->articleNo . '</td>';
+			echo '<td class="clickable">' . $article->brandName . ' <br>' . $article->articleName . '</td>';
+			echo '<td class="clickable">';
 			foreach ($product->infos as $info){
 				if(!empty($info->attrName)) echo $info->attrName . " ";
 				if(!empty($info->attrValue)) echo $info->attrValue . " ";
@@ -857,10 +859,12 @@ function print_results($products) {
 // 				echo "<br>";
 // 			}
 // 			echo "</td>";
-			echo "<td style=\"text-align: right;\">" . format_integer($product->varastosaldo) . "</td>";
-			echo "<td style=\"text-align: right;\">" . format_euros($product->hinta) . "</td>";
-			echo "<td style=\"padding-top: 0; padding-bottom: 0;\"><input id=\"maara_" . $article->articleId . "\" name=\"maara_" . $article->articleId . "\" class=\"maara\" type=\"number\" value=\"0\" min=\"0\"></td>";
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"addToShoppingCart($article->articleId)\">Osta</a></td>";
+			echo '<td style="text-align: right;">' . format_integer($product->varastosaldo) . '</td>';
+			echo '<td style="text-align: right;">' . format_euros($product->hinta) . '</td>';
+// 			echo '<td style="padding-top: 0; padding-bottom: 0;"><input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
+			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $article ) . ' </td>';
+			echo '<td class="clickable">Stuff/Things</td>';
+			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(' . $article->articleId . ')">Osta</a></td>';
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -870,6 +874,14 @@ function print_results($products) {
 	echo '</div>';
 }
 
+function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
+	?><!--  <input id="maara_</?= $article->articleId ?>" name="maara_</?= $article->articleId ?>" class="maara" type="number" value="0" min="0"> --><?php
+	if ( $product->varastosaldo >= $product->minimimyyntiera ) {
+		return  '<input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
+	} else {
+		return '<a href="javascript:void(0);" onClick="confirm(\'Woo! Loppuunmyyty.\nOle hyvä ja kirjoita ystävällinen kirje maahantuojallesi, jossa ilmoitat halukkuutesi ostaa tätä tuotetta. Kiitos yhteistyöstäsi.\');">Tuotetta ei saatavilla</a>';
+	}
+}
 ?>
 </body>
 </html>

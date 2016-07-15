@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `sahkoposti` varchar(255) DEFAULT NULL, -- PK
+  `sahkoposti` varchar(255) NOT NULL, -- PK
   `salasana_hajautus` varchar(100) NOT NULL,
   `salasana_vaihdettu` datetime DEFAULT NULL,
   `etunimi` varchar(20) DEFAULT NULL,
@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
+  `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1';
   PRIMARY KEY (`id`, `sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -114,11 +115,11 @@ CREATE TABLE IF NOT EXISTS `asiakas_hinta` (
 CREATE TABLE IF NOT EXISTS `tuote_search` (
   `tuote_id` int(11) NOT NULL, -- PK
   `search_no` varchar(20) NOT NULL, -- PK
-PRIMARY KEY (`tuote_id`, `search_no`)
+  PRIMARY KEY (`tuote_id`, `search_no`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_oe` (
   `tuote_id` int(11) NOT NULL, -- PK
   `oe_number` varchar(20) NOT NULL, -- PK
-PRIMARY KEY (`tuote_id`, `oe_number`)
+  PRIMARY KEY (`tuote_id`, `oe_number`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

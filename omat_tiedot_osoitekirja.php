@@ -106,7 +106,7 @@ function lisaa_uusi_osoite() {
 
 	$a1 = $_POST['etunimi'];		//Olin laiska kun nimesin nama muuttujat
 	$b1 = $_POST['sukunimi'];
-	$a = $_POST['sahkoposti'];		//Olin laiska kun nimesin nama muuttujat
+	$a = $_POST['sahkoposti'];
 	$b = $_POST['puhelin'];
 	$c = $_POST['yritys'];
 	$d = $_POST['katuosoite'];
