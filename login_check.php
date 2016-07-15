@@ -58,8 +58,9 @@ body {
 		   		$_SESSION['email']	= $row['sahkoposti'];
 		   		$_SESSION['admin']	= $row['yllapitaja'];
 		   		$_SESSION['id']		= $row['id'];
-		   		$_SESSION['etunimi']	= $row['etunimi'];
-		   		$_SESSION['sukunimi']	= $row['sukunimi'];
+		   		$_SESSION['etunimi'] = $row['etunimi'];
+		   		$_SESSION['sukunimi'] = $row['sukunimi'];
+		   		$_SESSION['vahvista_eula'] = $row['vahvista_eula'];
 		   		
 		   		
 		   		//Onko käyttäjätunnus väliaikainen
@@ -115,9 +116,6 @@ body {
 		   						SET viime_sijainti=$viime_sijainti WHERE kayttaja_id=$id";
 		   			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 		   		}
-		   		
-		   		
-		   		
 		   		**/
 		   		
 		   		
@@ -152,6 +150,7 @@ body {
 		   		
 		   		else {
 		   			//JOS KAIKKI OK->
+		   			if ( $_SESSION['vahvista_eula'] ) { header("Location:eula.php?vahvista"); exit; }
 		   			header("Location:tuotehaku.php");
 		   			exit;
 		   		}
@@ -222,7 +221,13 @@ body {
 		}
 	}
 	
-	function GUID()	{ // Just... don't even ask.
+	/**
+	 * So apparently, com_-aluiset funktiot on poistettu PHP-coresta 5 version jälkeen, ja ne saa vaan lisäämällä manuaalisti.
+	 * Jälkimmäinen osio luo käytännössä saman asian kuin com_create_guid.
+	 * Tämä on kopioitu PHP-manuaalista, user comment.
+	 * @return string
+	 */
+	function GUID()	{
 		if (function_exists('com_create_guid') === true) {
 			return trim(com_create_guid(), '{}');
 		} else
