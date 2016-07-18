@@ -3,18 +3,14 @@
  * Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten.
  */
 
-global $osoitekirja_array; //Helpottaa osoitekirjan käsittelyä parin funktion, ja yhden js-muuttujan välillä.
-$kayttaja_id = addslashes($_SESSION['id']);
 
 /**
  * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
  * 
- * @param ---
+ * @param Mysqli-connection
  * @return Array( ostoskorin tuotteet || Empty )
  */
-function get_products_in_shopping_cart () {
-	global $connection;
-
+function get_products_in_shopping_cart ( mysqli $connection ) {
     $cart = get_shopping_cart();
     if (empty($cart)) {
         return [];
@@ -46,12 +42,12 @@ function get_products_in_shopping_cart () {
 /**
  * Tilaa ostoskorissa olevat tuotteet
  * 
- * @param Array $products
+ * @param array $products
+ * @param mysqli $connection
+ * @param int $kayttaja_id
  * @return Boolean, onnistuiko tilaaminen
  */
-function order_products ( $products ) {
-	global $connection;
-	global $kayttaja_id;
+function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id ) {
 	$pysyva_rahtimaksu = addslashes($product->rahtimaksu);
 
 	if (empty($products)) {
@@ -103,26 +99,25 @@ function order_products ( $products ) {
 }
 
 /**
- * Hakee sillä hetkellä sisäänkirjautuneen käyttäjän ostoskorin/tilauksen rahtimaksun.
+ * Hakee annetun käyttäjän rahtimaksun.
  * Hakee tietokannasta käyttäjän tiedot (rahtimaksu, ja ilmaisen toimituksen rajan).
  * Asettaa uuden hinnan, ja sen jälkeen tarkistaa, onko tilauksen summa yli ilm. toim. rajan.
  * 
- * @param ---
- * @return Array(rahtimaksu, ilmaisen toimituksen raja), indekseillä 0 ja 1. Kumpikin float
+ * @param mysqli $connection
+ * @param int $kayttaja_id
+ * @param int $tilauksen_summa
+ * @return Array(rahtimaksu, ilmaisen toimituksen raja); indekseillä 0 ja 1. Kumpikin float
  */
-function hae_rahtimaksu () {
-	global $connection;
-	global $sum;
-	global $rahtimaksu; // array( rahtimaksu, ilmaisen toimituksen raja ), default: 15, 1000
+function hae_rahtimaksu ( mysqli $connection, /* int */ $kayttaja_id, /* int */ $tilauksen_summa ) {
+	$rahtimaksu = [15, 1000];
 
-	$id = $_SESSION['id']; //Haetaan asiakkaan tiedot mahdollisesta yksilöllisestä rahtimaksusta
-	$result = mysqli_query($connection, "SELECT	rahtimaksu, ilmainen_toimitus_summa_raja FROM kayttaja WHERE id = '$id';");
+	$result = mysqli_query($connection, "SELECT	rahtimaksu, ilmainen_toimitus_summa_raja FROM kayttaja WHERE id = '$kayttaja_id';");
 	$row = mysqli_fetch_array( $result, MYSQLI_ASSOC );
 
 	$rahtimaksu[0] = $row["rahtimaksu"];
 	$rahtimaksu[1] = $row["ilmainen_toimitus_summa_raja"];
 
-	if ( $sum > $rahtimaksu[1] ) { //Onko tilaus-summa ilm. toim. rajan yli?
+	if ( $tilauksen_summa > $rahtimaksu[1] ) { //Onko tilaus-summa ilm. toim. rajan yli?
 		$rahtimaksu[0] = 0; }
 
 	return $rahtimaksu;
@@ -130,34 +125,26 @@ function hae_rahtimaksu () {
 
 /**
  * Tulostaa rahtimaksun tuotelistaan, hieman eri tyylillä
- * @param unknown $ostoskori
+ * @param int $rahtimaksu
+ * @param boolean $ostoskori; onko funktio ostoskoria, vai tilaus-vahvistusta varten
  */
-function tulosta_rahtimaksu_tuotelistaan ( $ostoskori ) {
-	global $rahtimaksu;
-
-	$rahtimaksu = hae_rahtimaksu();
+function tulosta_rahtimaksu_alennus_huomautus ( /* int */ $rahtimaksu, /* bool */ $ostoskori ) {
 
 	if ( $rahtimaksu[0] === 0 ) { $alennus = "Ilmainen toimitus";
 	} elseif ( $ostoskori ) { $alennus = "Ilmainen toimitus " . format_euros($rahtimaksu[1]) . ":n jälkeen.";
 	} else { $alennus = "---"; }
-
-	?><!-- HTML -->
-	<tr style="background-color:#cecece; height: 1em;">
-		<td>---</td>
-		<td>Rahtimaksu</td>
-		<td>---</td>
-		<td style="text-align: right; white-space: nowrap;"><?= format_euros($rahtimaksu[0])?></td>
-		<td style="text-align: right; white-space: nowrap;">---</td>
-		<td style="text-align: right;">1</td>
-		<td><?= $alennus?></td>
-	</tr>
-	<?php
+	
+	return $alennus;
 }
 
-function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array () {
-	global $connection;
-	global $kayttaja_id;
-	global $osoitekirja_array;
+/**
+ * Hakee kaikki annetun käyttäjän toimitusosoitteet, ja luo niistä JSON-arrayn.
+ * 
+ * @param mysqli $connection
+ * @param int $kayttaja_id
+ * @return array|boolean; riippuen kuinka pitkä array on
+ */
+function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array ( mysqli $connection, /* int */ $kayttaja_id ) {
 	$osoitekirja_array = array();
 	$sql_query = "	SELECT	sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 					FROM	toimitusosoite
@@ -173,12 +160,16 @@ function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array () {
 	}
 	
 	if ( count($osoitekirja_array) > 0 ) {
-		return true;
+		return $osoitekirja_array;
 	} else return false;
-} hae_kaikki_toimitusosoitteet_ja_luo_JSON_array();
+}
 
-function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal () {
-	global $osoitekirja_array;
+/**
+ * Tulostaa kaikki osoitteet (jo valmiiksi luodusta) osoitekirjasta, ja tulostaa ne Modaliin
+ * 
+ * @param array $osoitekirja_array
+ */
+function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal ( array $osoitekirja_array ) {
 
 	foreach ( $osoitekirja_array as $index => $osoite ) {
 		echo '<div> Osoite ' . $index . '<br><br> \\';
@@ -197,19 +188,27 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal () {
 	}
 }
 
-function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled () {
-	global $osoitekirja_array;
+/**
+ * Tarkistaa onko toimitusosoitteita, ja sen mukaan tulostaa toimitusosoitteen valinta-napin
+ * @param int $osoitekirja_pituus
+ * @return string; HTML-nappi
+ */
+function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /* int */ $osoitekirja_pituus ) {
 	$nappi_html_toimiva = '<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
 	$nappi_html_disabled = '
 					<a class="nappi disabled" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>
 					<p>Sinulla ei ole yhtään toimitusosoitetta profiilissa!</p>';
 	
-	if ( count($osoitekirja_array) > 0 ) {
+	if ( $osoitekirja_pituus > 0 ) {
 		return $nappi_html_toimiva;
 	} else return $nappi_html_disabled;
 }
 
-function tarkista_hinta_era_alennus ( $product ) {
+/**
+ * Tarkistaa annetun tuotteen hinnan; erityisesti määräalennuksen
+ * @param array $product
+ */
+function tarkista_hinta_era_alennus ( array $product ) {
 	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
 	
 	if ( $jakotulos >= 1 ) {
@@ -220,7 +219,12 @@ function tarkista_hinta_era_alennus ( $product ) {
 	} else { return $product->hinta; }
 }
 
-function laske_era_alennus_tulosta_huomautus ( $product, $ostoskori ) {
+/**
+ * Tulostaa huomautuksen tuotteen kohdalle, jos sopivaa.
+ * @param array $product
+ * @param bool $ostoskori
+ */
+function laske_era_alennus_tulosta_huomautus ( array $product, /* bool */ $ostoskori ) {
 	$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
 
 	$tulosta_huomautus = ( $jakotulos >= 0.75 && $jakotulos < 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
@@ -240,7 +244,14 @@ function laske_era_alennus_tulosta_huomautus ( $product, $ostoskori ) {
 	} else { echo "---"; }
 }
 
-function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( $products, $ostoskori ) {
+/**
+ * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
+ * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu
+ * Tulostaa lisäksi selityksen, napin mukana, jos disabled.
+ * @param array $products
+ * @param bool $ostoskori; onko ostoskori, vai tilauksen vahvistus
+ */
+function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array $products, /* bool */ $ostoskori ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;

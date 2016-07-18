@@ -16,7 +16,7 @@ if (!is_admin()) {
 <h1>Lisää tuotteita tiedostosta</h1>
 <p>Tällä sivulla voi valita tiedoston, josta kaikki tuotteet lisätään sivuston valikoimaan...</p>
 
-<form action="lue_tiedostosta.php" method="post" enctype="multipart/form-data">
+<form action="#" method="post" enctype="multipart/form-data">
 	Luettava tiedosto: <input type="file" name="file" accept=".csv"/>
 	<input type="submit" name="submit" value="Submit" />
 </form>

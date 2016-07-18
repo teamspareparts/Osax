@@ -868,7 +868,7 @@ if(isset($_GET["manuf"])) {
 	global $connection;
 
 	$result = mysqli_query($connection, "
-			SELECT id, varastosaldo, minimisaldo,
+			SELECT id, varastosaldo, minimisaldo, minimimyyntiera,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta

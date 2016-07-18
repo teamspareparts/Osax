@@ -62,7 +62,7 @@ if (isset($_GET['vahvista'])) {
 		    	<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu[0])?></b> ( ml. toimitus )</p>
 	    	</div>
 	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; padding-bottom:1em; padding-top:1em;">
-	    		<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled() ?>
+	    		<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled(  ) ?>
 	    	</div>
 	    	<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">
 		    	<!-- Osoitteen tulostus -->
@@ -81,12 +81,12 @@ if (isset($_GET['vahvista'])) {
 
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
-var osoitekirja = <?= json_encode($osoitekirja_array)?>;
+var osoitekirja = <?= json_encode( $osoitekirja_array )?>;
 
 function avaa_Modal_valitse_toimitusosoite() {
 	Modal.open({
 		content:  ' \
-			<?= hae_kaikki_toimitusosoitteet_ja_tulosta_Modal()?> \
+			<?= hae_kaikki_toimitusosoitteet_ja_tulosta_Modal( $osoitekirja_array )?> \
 			',
 		draggable: true
 	});

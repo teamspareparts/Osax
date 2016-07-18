@@ -3,6 +3,24 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<style type="text/css">
+		.class #id tag {}
+		
+		#eula_scrollable_textbox {
+		    height:30em;
+		    width:100%;
+		    overflow:scroll;
+	    }
+	    
+	    #eula_napit {
+	    	display: flex;
+	    }
+	    
+	    #hyvaksy_eula, #hylkaa_eula {
+	    	flex-grow: 1;
+	    	text-align: center;
+	    }
+	</style>
 	<title>Tuotteet</title>
 </head>
 <body>
@@ -10,34 +28,42 @@
 <?php include 'header.php';
 require 'tietokanta.php';
 
+function tulosta_admin_hallinta () {
+	if ( is_admin() ) {
+		echo 'ADMIN: Haluatko mieluummin päivittää EULA:n tällä sivulla, vai <br>
+			Lataa uusi EULA serverille -> <a href="lue_tiedostosta.php">Tiedoston luku -sivulla</a><br><br>';
+	} else return false;
+}
+
 $user_id = $_SESSION['id'];
 
 if ( !empty($_POST['vahvista_eula']) ) {
 	$sql_query = "	UPDATE	kayttaja
 					SET		vahvista_eula = '0'
 					WHERE	id = '$user_id';";
-	
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 }
+
+$txt_tiedosto = __DIR__.'/eula.txt';
+$eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
+
 ?>
 
 <h1>Käyttöoikeussopimus</h1>
-<p>Tällä sivulla on käyttöoikeussopimus. Tälle sivulle pääsee kuka vain.<br>
-Tälle sivulle ei ole juuri nyt linkkiä. Tälle sivulle johdatetaan ne, jotka eivät ole vielä vahvistaneet Käyttöoikeussopimusta.<br>
-Adminin kohdalla sopimus on vahvistettu automaattisesti. Admin voi varmaan tällä sivulla ladata uuden sopimuksen serverille.</p>
-<h4>WIP. Ulkonäkö ei lopullinen.</h4>
+<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
+
+<?php tulosta_admin_hallinta();?>
 
 <div id="eula_body">
 	<div id="eula_textbox">
-		Tässä kohtaa on tekstiboxi, jossa on eula. Se on vain yhden sivun mittainen, jota pystyy scrollaamaan.
+		<textarea id="eula_scrollable_textbox" ReadOnly >
+			<?php echo $eula_txt; ?>
+		</textarea><br>
 	</div>
-	<div id="eula_napit">
-		<button onClick="hyvaksy_eula();">Hyväksy</button> (huom. toiminnallisuus mukana. Jos haluat takaisin tälle sivu, muista URL.)<br>
-		<button>Hylkää</button><br>
-		Napeissa ei ole toiminnallisuutta. Ajattelin, näin aluksi, että hylkää-nappi heittäisi käyttäjän pihalle, <br>
-		poistaisi kaikki tiedot hänestä, asentaisi pari virusta, jotka tuhoavat käyttäjän koneen, ja lopuksi tulostavat "Ha haa!" -alertin.
-		<br><br>
-		Actually, nyt kun mietin, olisi varmaan vielä hauskempaa, jos Hylkää-nappi olisi vain pysyvästi Disabled.
+	<div id="eula_napit" style>
+	
+		<span id="hyvaksy_eula"><button class="nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
+		<span id="hylkaa_eula"><button class="nappi" style="background:#d20006; border-color:#b70004;" onClick="hylkaa_eula();">Hylkää</button><br></span>
 	</div>
 </div>
 
@@ -58,6 +84,13 @@ function hyvaksy_eula () {
 	} else {
 		return false;
 	}
+}
+
+function hylkaa_eula () {
+	var vahvistus = alert( "Mitä oikein odotit tapahtuvan?\n"
+							+ "Ole hyvä, ja lopeta sivuston käyttö välittömästi.\n"
+							+ "Sen jälkeen, ilmoita ylläpitäjälle halustasi sulkea tilisi.\n"
+							+ "Kiitos yhteistyöstäsi.");
 }
 </script>
 
