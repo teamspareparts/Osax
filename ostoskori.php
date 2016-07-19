@@ -8,6 +8,10 @@
 			
 			.number { text-align:right;	white-space: nowrap; }
 			#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
+			.nappi .peruuta {
+				background:rgb(200, 70, 70);
+				border-color: #b70004;
+			}
 	</style>
 	<title>Ostoskori</title>
 </head>
@@ -23,9 +27,7 @@ handle_shopping_cart_action();
 
 $products = get_products_in_shopping_cart( $connection );
 $kayttaja_id = (int)$_SESSION['id'];
-
 $sum = 0.0;
-$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtimaksu, ilm.toim.raja); indeksit 0 ja 1
 ?>
 <!-- HTML -->
 <h1 class="otsikko">Ostoskori</h1>
@@ -48,8 +50,8 @@ $rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtima
 				<td><?= laske_era_alennus_tulosta_huomautus( $product, TRUE )?></td>
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
 			</tr>
-		<?php } ?>
-		
+		<?php } 
+		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtimaksu, ilm.toim.raja); indeksit 0 ja 1 ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td>
@@ -61,11 +63,11 @@ $rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtima
 		</tr>
 	</table>
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
-		<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
-		<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu[0])?></b> ( ml. toimitus )</p>
+		<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
+		<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, TRUE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
-	<p><a class="nappi" href="tuotehaku.php" style="background:rgb(200, 70, 70);border-color: #b70004;">Palaa takaisin</a></p>
+	<p><a class="nappi peruuta" href="tuotehaku.php">Palaa takaisin</a></p>
 </div>
 
 </body>

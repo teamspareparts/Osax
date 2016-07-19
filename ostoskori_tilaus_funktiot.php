@@ -208,7 +208,7 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /* int
  * Tarkistaa annetun tuotteen hinnan; erityisesti määräalennuksen
  * @param array $product
  */
-function tarkista_hinta_era_alennus ( array $product ) {
+function tarkista_hinta_era_alennus ( stdClass $product ) {
 	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
 	
 	if ( $jakotulos >= 1 ) {
@@ -224,7 +224,7 @@ function tarkista_hinta_era_alennus ( array $product ) {
  * @param array $product
  * @param bool $ostoskori
  */
-function laske_era_alennus_tulosta_huomautus ( array $product, /* bool */ $ostoskori ) {
+function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $ostoskori ) {
 	$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
 
 	$tulosta_huomautus = ( $jakotulos >= 0.75 && $jakotulos < 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
