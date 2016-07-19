@@ -6,8 +6,7 @@
 *********************************************/
 body	{
 	background-color:#3399CC;
-	font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
-	letter-spacing: -0.01em;
+	font-family: 'Open Sans', sans-serif;
 }
 
 fieldset	{

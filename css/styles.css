@@ -7,11 +7,11 @@ html{
 }
 
 html,body{
-	background-color: Floralwhite; /*The searing white is destroying my eyes*/
+	background-color: Floralwhite; /* The searing white is destroying my eyes */
 }
 
 body{
-	font-family: Calibri, Candara, Segoe, "Segoe UI", Optima, Arial, sans-serif;
+	font-family: 'Open Sans', sans-serif;
 }
 
 input {

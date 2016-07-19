@@ -19,7 +19,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
     $ids = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
 		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
-			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
 			ALV_kanta.prosentti AS alv_prosentti
 		FROM	tuote  
 		LEFT JOIN	ALV_kanta
@@ -45,10 +45,12 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
  * @param array $products
  * @param mysqli $connection
  * @param int $kayttaja_id
- * @return Boolean, onnistuiko tilaaminen
+ * @param float $pysyva_rahtimaksu
+ * @param int $pysyva_toimitusosoite; toimitusosoitteen ID, joka tallennetaan pysyviin tietoihin.
+ * @return boolean, onnistuiko tilaaminen
  */
-function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id ) {
-	$pysyva_rahtimaksu = addslashes($product->rahtimaksu);
+function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id,
+		/* float */ $pysyva_rahtimaksu, /* int */ $pysyva_toimitusosoite) {
 
 	if (empty($products)) {
 		return false;
@@ -60,7 +62,7 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 	if (!$result) {
 		return false;
 	}
-
+	
 	$tilaus_id = mysqli_insert_id($connection);
 
 	// Lisätään tilaukseen liittyvät tuotteet
@@ -87,7 +89,16 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 			WHERE 	id = '$product_id'";
 		$result = mysqli_query($connection, $query);
 	}
-
+	
+	//Lisätään pysyvät toimitustiedot tilaukseen
+	$query = "	INSERT INTO tilaus_toimitusosoite (tilaus_id) VALUES ('$tilaus_id');";
+// 				INSERT INTO tilaus_toimitusosoite
+// 				WHERE tilaus_id = '$tilaus_id'
+// 				SELECT etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka 
+// 				FROM toimitusosoite 
+// 				WHERE kayttaja_id = '$kayttaja_id' AND osoite_id = '$pysyva_toimitusosoite';";
+	$result = mysqli_query($connection, $query);
+	
 	/**
 	 * Laitan sähköpostin lähetyksen kommentiksi niin kukaan ei lähettele vahingossa sähköpostia
 	 */
@@ -124,7 +135,7 @@ function hae_rahtimaksu ( mysqli $connection, /* int */ $kayttaja_id, /* int */ 
 }
 
 /**
- * Tulostaa rahtimaksun tuotelistaan, hieman eri tyylillä
+ * Tulostaa rahtimaksun alennushuomautuksen, tarkistuksen jälkeen.
  * @param int $rahtimaksu
  * @param boolean $ostoskori; onko funktio ostoskoria, vai tilaus-vahvistusta varten
  */
@@ -159,9 +170,7 @@ function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array ( mysqli $connection, /*
 		}
 	}
 	
-	if ( count($osoitekirja_array) > 0 ) {
-		return $osoitekirja_array;
-	} else return false;
+	return $osoitekirja_array;
 }
 
 /**
@@ -206,7 +215,7 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /* int
 
 /**
  * Tarkistaa annetun tuotteen hinnan; erityisesti määräalennuksen
- * @param array $product
+ * @param stdClass $product
  */
 function tarkista_hinta_era_alennus ( stdClass $product ) {
 	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
@@ -221,7 +230,7 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
 
 /**
  * Tulostaa huomautuksen tuotteen kohdalle, jos sopivaa.
- * @param array $product
+ * @param stdClass $product
  * @param bool $ostoskori
  */
 function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $ostoskori ) {
@@ -246,8 +255,8 @@ function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $os
 
 /**
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
- * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu
- * Tulostaa lisäksi selityksen, napin mukana, jos disabled.
+ * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu.<br>
+ * Tulostaa lisäksi selityksen napin mukana, jos disabled.
  * @param array $products
  * @param bool $ostoskori; onko ostoskori, vai tilauksen vahvistus
  */
@@ -258,8 +267,8 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array
 	$huomautus = "";
 	$linkki = "";
 	
-	if ( $ostoskori ) { $linkki = "tilaus.php";
-	} else { $linkki = "tilaus.php?vahvista"; }
+	if ( $ostoskori ) { $linkki = 'href="newfile.php"';
+	} else { $linkki = 'onClick="laheta_Tilaus();"'; } //Tilauksen lähetys toimii hieman eri tavalla
 	
 	if ( $products ) {
 		foreach ($products as $product) {
@@ -278,9 +287,8 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array
 	}
 	
 	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered ) {
-		?><p><a class="nappi" href="<?= $linkki ?> ">Tilaa tuotteet</a></p><?php
+		?><p><a class="nappi" <?= $linkki ?>>Tilaa tuotteet</a></p><?php
 	} else {
 		?><p><a class="nappi disabled">Tilaa tuotteet</a> <?= $huomautus ?> </p><?php 
 	}
-	
 }
