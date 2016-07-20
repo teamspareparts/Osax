@@ -1,30 +1,61 @@
 @CHARSET "UTF-8";
 
-/*Varmuuden varalle...*/
-html{
-	position:relative; 
-	min-height: 100%;
+/********************************************
+	General application
+*********************************************/
+html{ position:relative; min-height: 100%; /*Varmuuden varalle...*/ }
+
+html,body{ background-color: Floralwhite; /* The searing white is destroying my eyes */ }
+
+body{ font-family: Helvetica, 'Open Sans', sans-serif; }
+
+input { padding: 3pt; }
+
+.number { /* Tarkoittettu numeroiden tulostamiseen */
+	text-align: right;	
+	white-space: nowrap; 
 }
 
-html,body{
-	background-color: Floralwhite; /* The searing white is destroying my eyes */
+.small_note {
+	font-size: 90%;
+	font-style: oblique;
 }
 
-body{
-	font-family: 'Open Sans', sans-serif;
+.flex {
+	display: flex
 }
 
-input {
-	padding: 3pt;
+/********************************************
+	Header
+*********************************************/
+.header {
+	width: 100%;
+	height: 7.5em;
+	background-color: #1d7ae2;
+	display: flex;
+}
+   
+.header #logo {
+    display: flex; 			/* Pakollinen keskitystä varten */
+    align-items: center; 	/* Keskittää sisällön */
+	width: 22em;
 }
 
+.header #logo img {
+    margin-left: 0.6em;
+}
 
+.header #info {
+    display: flex; 			/* Pakollinen keskitystä varten */
+    flex-grow: 1;
+    font-size: 18px;
+    color: black;
+    align-items: center; 	/* Keskittää sisällön */
+}
 
-/***************************************
-
-	Menu palkin tyylittelyä
-
-***************************************/
+/********************************************
+	Navigointipalkki
+*********************************************/
 #navigationbar {
 	background: #1d7ae2;
 	width: auto;
@@ -40,7 +71,6 @@ input {
 	zoom: 1;
 	text-align: left;
 	border-top: 1px solid #214f87;
-
 }
 
 #navigationbar .last {
@@ -56,13 +86,11 @@ input {
   	clear: both;
 }
 
-
 #navigationbar ul li {
   	display: inline-block;
   	padding: 0;
   	margin: 0;
 }
-
 
 #navigationbar ul li a {
 	color: #ffffff;
@@ -76,62 +104,12 @@ input {
   	position: relative;
 }
 
-
 #navigationbar ul li a:HOVER {
 	color: black;
 }
 
-
 /********************************************
-
-	Headerin tyylittely
-
-*********************************************/
-.header {
-	width: 100%;
-	height: 7.5em;
-	background-color: #1d7ae2;
-	display: flex;
-}
-   
-.header #logo {
-	width: 22em;
-}
-
-.header #logo img {
-    /* position: absolute; */
-    margin-top: 0.6em;
-    margin-left: 0.6em;
-    /* top: 18px; */
-    /* left: 18px; */
-}
-
-.header #info {
-	flex-grow:1;
-	font-size: 18px;
-	color: black;
-	padding-top: 2em
-}
-
-/********************************************
-
-	Footer
-	
-*********************************************/
-#footer {
-	background-color: #1d7ae2;
-	position: relative;
-	height: 3em;
-	margin-top: 1em;
-}
-#footer .copyright {
-	text-align: center;
-}
-
-/********************************************
-
 	Otsikon tyylittely
-
 ********************************************/
 .otsikko {
 	display: inline-block;
@@ -142,9 +120,7 @@ input {
 
 
 /********************************************
-
 	Painikkeiden ulkoasu
-
 ********************************************/
 .nappi,
 #lista #submit input[type=submit],
