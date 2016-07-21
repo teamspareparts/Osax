@@ -5,15 +5,11 @@
 	<meta charset="UTF-8">
 	<title>Login</title>
 </head>
-<body class=login>
-<h1 style="text-align:center;">
-	<img src="img/rantak_varao-Logo.jpg" alt="Rantakylän Varaosa Oy" style="height:200px;">
-</h1>
+<body>
+<div class="login_container">
+	<img src="img/rantak_varao-Logo.jpg" alt="Osax.fi">
 
-<!-- -->
-<div id="login_container"><a></a>
 <?php
-
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	/**
 	 * Mikäli halutaan poistaa urlissa oleva get
@@ -52,18 +48,21 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
 				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä Rantakylän Varaosa Oy:hyn."),
+		10=> array(
+				"otsikko" => " Käyttöoikeussopimus ",
+				"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta."),
 	];
 ?>
-	<div id="content">
+	<div id="error_content">
 		<fieldset id=error><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
 			<p> <?= $modes_array[$mode]['teksti'] ?> </p>
 		</fieldset>
 	</div>
-<?php
-}?>
+<?php } ?>
 
+<!-- <div class="login_container"> -->
 	<fieldset><legend>Sisäänkirjautuminen</legend>
-		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
+		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus><br>
 			<br>
@@ -76,7 +75,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 	</fieldset>
 
 	<fieldset><legend>Unohditko salasanasi?</legend>
-		<form name="login" action="login_check.php" method="post" accept-charset="utf-8">
+		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus ><br>
 			<br>
@@ -84,8 +83,8 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
-	
 </div>
+
 </body>
 </html>
 <!-- EOF -->

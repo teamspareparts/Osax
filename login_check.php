@@ -150,7 +150,7 @@ body {
 		   		
 		   		else {
 		   			//JOS KAIKKI OK->
-		   			if ( $_SESSION['vahvista_eula'] ) { header("Location:eula.php?vahvista"); exit; }
+		   			if ( $_SESSION['vahvista_eula'] ) { header("Location:eula.php"); exit; } // else ...
 		   			header("Location:tuotehaku.php");
 		   			exit;
 		   		}

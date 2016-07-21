@@ -2,37 +2,72 @@
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/login_styles.css">
 	<style type="text/css">
 		.class #id tag {}
-		
-		#eula_scrollable_textbox {
-		    height:30em;
-		    width:100%;
-		    overflow:scroll;
-	    }
 	    
-	    #eula_napit {
+	    #eula_body {
 	    	display: flex;
+	    	flex-direction: column;
+		    margin: auto;
+		    width: 90vw;
+		    height: 100%;
+			overflow: hidden;
 	    }
 	    
+	    #headlines_container {
+	    	display: flex;
+	    	justify-content: space-around;
+	    }
+	    #headlines_text, #headlines_logo {
+	    	margin: auto;
+	    }
+		
+		
+		#eula_textbox_container {
+			width: 99%;
+	    }
+		#eula_scrollable_textbox {
+		    overflow-y: scroll;
+		    resize: vertical;
+			width: 100%;
+		    height: 200px;
+	    }
+	    
+	    #eula_napit_container {
+	    	display: flex;
+	    	flex-direction: row;
+	    	justify-content: space-around;
+	    }
 	    #hyvaksy_eula, #hylkaa_eula {
-	    	flex-grow: 1;
+	    	flex: 1 1 auto;
 	    	text-align: center;
 	    }
+	    .nappi, button, input {
+		    padding: 8px 15px;
+		    border-radius: 4px;
+		    border: solid 1px;
+		    transition-duration: 0.2s;
+			font-weight: 700;
+			font-size: 15px;
+			text-transform: uppercase;
+			font-family: 'Open Sans', sans-serif;
+	    }
+	    #hyvaksy_nappi { background-color: lightgreen; }
+	    #hylkaa_nappi { background-color: lightpink; }
 	</style>
-	<title>Tuotteet</title>
+	<title>Käyttöoikeussopimus</title>
 </head>
 <body>
 
-<?php include 'header.php';
+<?php
 require 'tietokanta.php';
 
-function tulosta_admin_hallinta () {
-	if ( is_admin() ) {
-		echo 'ADMIN: Haluatko mieluummin päivittää EULA:n tällä sivulla, vai <br>
-			Lataa uusi EULA serverille -> <a href="lue_tiedostosta.php">Tiedoston luku -sivulla</a><br><br>';
-	} else return false;
+session_start();
+
+if ( empty($_SESSION['email']) ) {
+	header('Location: index.php?redir=5');
+	exit;
 }
 
 $user_id = $_SESSION['id'];
@@ -49,27 +84,34 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 
 ?>
 
-<h1>Käyttöoikeussopimus</h1>
-<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
-
-<?php tulosta_admin_hallinta();?>
 
 <div id="eula_body">
-	<div id="eula_textbox">
-		<textarea id="eula_scrollable_textbox" ReadOnly >
+	<div id="headlines_container">
+		<div id="headlines_text">
+			<h1>Käyttöoikeussopimus</h1>
+			<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
+			<span> (Tällä sivulla ei ole enää mitään Admin-hallintaa) </span>
+		</div>
+		<div id="headlines_logo">
+			<h1>LOGO</h1>
+		</div>
+	</div>
+	<div id="eula_textbox_container">
+		<textarea id="eula_scrollable_textbox" ReadOnly Multiline>
 			<?php echo $eula_txt; ?>
 		</textarea><br>
 	</div>
-	<div id="eula_napit" style>
-	
-		<span id="hyvaksy_eula"><button class="nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
-		<span id="hylkaa_eula"><button class="nappi" style="background:#d20006; border-color:#b70004;" onClick="hylkaa_eula();">Hylkää</button><br></span>
+	<div id="eula_napit_container" style>
+		<span id="hyvaksy_eula"><button class="nappi" id="hyvaksy_nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
+		<span id="hylkaa_eula"><button class="nappi" id="hylkaa_nappi" onClick="hylkaa_eula();">Hylkää</button><br></span>
 	</div>
 </div>
 
 
 <form style="display:none;" id="vahvista_eula_form" action="#" method=post>
-	<input type=hidden name="vahvista_eula" value="<?= $user_id ?>">
+	<input type=hidden name="vahvista_eula" value="<?= $user_id ?>"> 
+	<?php /** Tämä user_id ei täytä muuta virkaa kuin arvon täytteenä, 
+			* jotta postaus menisi empty()-tarkistuksesta läpi. Siten se ei ole riski turvallisuudelle. */?>
 </form>
 
 <script>
@@ -91,6 +133,7 @@ function hylkaa_eula () {
 							+ "Ole hyvä, ja lopeta sivuston käyttö välittömästi.\n"
 							+ "Sen jälkeen, ilmoita ylläpitäjälle halustasi sulkea tilisi.\n"
 							+ "Kiitos yhteistyöstäsi.");
+	window.location="./logout.php?redir=10";
 }
 </script>
 

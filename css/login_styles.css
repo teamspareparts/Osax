@@ -1,27 +1,29 @@
-
 /********************************************
-
 	Kirjautumissivu
-	
 *********************************************/
 body	{
 	background-color:#3399CC;
-	font-family: 'Open Sans', sans-serif;
+	font-family: 'Open Sans', Helvetica sans-serif;
+}
+
+.login_container	{
+	margin: auto;
+	width: 400px;
 }
 
 fieldset	{
 	background-color: lightgrey;
-	padding: 15pt;
-	margin-bottom: 20pt;
+	padding: 20px;
+	margin: 20px 0 20px 0;
 }
 
 legend	{
-	font-size: 110%;
-	font-weight: bold;
-	background-color: #bdbdbd;
-	border: 0px groove threedface;
-	border-radius: 25px;
-	padding: 4pt 6pt;
+    font-size: 105%;
+    font-weight: bold;
+    background-color: #bdbdbd;
+    border: 0px threedface;
+    border-radius: 15px;
+    padding: 5px 12px;
 }
 
 input {
@@ -30,12 +32,20 @@ input {
 	font-size: 1em;
 	width: 100%;
 	box-sizing: border-box;
+	font-family: Helvetica, sans-serif;
 }
 
-#login_container	{
-	margin: auto;
-	width: 400px;
+img {
+    text-align: center;
+    display: block;
+    margin: 0 auto;
 }
+
 #error	{
 	color: red;
+	padding: 3px 20px 3px 20px;
 }
+
+/********************************************
+	EULA:n hyväksyminen
+*********************************************/

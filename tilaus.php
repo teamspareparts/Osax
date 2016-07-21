@@ -56,12 +56,12 @@ if (isset($_GET['vahvista'])) {
     	
 		</table>
     	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
-	    	<div id=tilausvahvistus_maksutiedot style="width:20em;">
+	    	<div id=tilausvahvistus_maksutiedot style="width:20em; margin: auto;">
 		    	<p>Tuotteiden kokonaissumma: <b><?= format_euros($sum)?></b></p>
 		    	<br>
 		    	<p>Summa yhteensä: <b><?= format_euros($sum+$rahtimaksu[0])?></b> ( ml. toimitus )</p>
 	    	</div>
-	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; padding-bottom:1em; padding-top:1em;">
+	    	<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
 	    		<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled(  ) ?>
 	    	</div>
 	    	<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">

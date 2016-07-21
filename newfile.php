@@ -79,11 +79,11 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		</tr>
 	</table>
 	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
-		<div id=tilausvahvistus_maksutiedot style="width:20em; padding-top: 1em;">
+		<div id=tilausvahvistus_maksutiedot style="width:20em; margin:auto;">
 			<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
 			<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
 		</div>
-		<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; padding-top:1.7em;">
+		<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
 			<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled( count($osoitekirja_array) ) ?>
 		</div>
 		<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">
@@ -97,7 +97,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 <!-- Hidden form -->
 <form style="display:none;" id="laheta_tilaus_form" action="#" method=post>
-	<input type=hidden name="toimitusosoite" value="" id="toimitusosoite_form_input">
+	<input type=hidden name="toimitusosoite_id" value="" id="toimitusosoite_form_input">
+	<input type=hidden name="toimitusosoite_tiedot" value="" id="toimitusosoite_id_form_input">
 	<input type=hidden name="rahtimaksu" value="" id="rahtimaksu_form_input">
 	<input type=hidden name="vahvista_tilaus" value="true">
 </form>

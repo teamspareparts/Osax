@@ -6,7 +6,6 @@
 	<style type="text/css">
 			.class #id tag {}
 			
-			.number { text-align:right;	white-space: nowrap; }
 			#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 			.nappi .peruuta {
 				background:rgb(200, 70, 70);
@@ -30,8 +29,8 @@ $kayttaja_id = (int)$_SESSION['id'];
 $sum = 0.0;
 ?>
 <!-- HTML -->
-<h1 class="otsikko">Ostoskori</h1>
-<div class="tulokset">
+<div class="main_body_container">
+	<h1 class="otsikko">Ostoskori</h1>
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta (sis. ALV)</th><th>Kpl</th><th>Info</th></tr>
 		<?php foreach ($products as $product) {

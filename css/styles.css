@@ -7,16 +7,16 @@ html{ position:relative; min-height: 100%; /*Varmuuden varalle...*/ }
 
 html,body{ background-color: Floralwhite; /* The searing white is destroying my eyes */ }
 
-body{ font-family: Helvetica, 'Open Sans', sans-serif; }
+body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
 input { padding: 3pt; }
 
-.number { /* Tarkoittettu numeroiden tulostamiseen */
+.number { /* Tarkoitettu numeroiden tulostamiseen */
 	text-align: right;	
 	white-space: nowrap; 
 }
 
-.small_note {
+.small_note { /* Pienten huomautusten tulostamiseen. Enimmäkseen ALV-huomautus. */
 	font-size: 90%;
 	font-style: oblique;
 }
@@ -25,36 +25,42 @@ input { padding: 3pt; }
 	display: flex
 }
 
+.main_body_container {
+	margin: 3vw;
+	margin-top: 0vw;
+	white-space: nowrap;
+	position:relative;
+}
+
 /********************************************
 	Header
 *********************************************/
-.header {
+.header_top {
 	width: 100%;
 	height: 7.5em;
 	background-color: #1d7ae2;
 	display: flex;
 }
    
-.header #logo {
+.header_top #head_logo {
     display: flex; 			/* Pakollinen keskitystä varten */
-    align-items: center; 	/* Keskittää sisällön */
+    margin: auto;			/* Keskittää sisällön */
 	width: 22em;
 }
 
-.header #logo img {
+.header_top #head_logo img {
     margin-left: 0.6em;
 }
 
-.header #info {
-    display: flex; 			/* Pakollinen keskitystä varten */
+.header_top #head_info {
     flex-grow: 1;
     font-size: 18px;
-    color: black;
-    align-items: center; 	/* Keskittää sisällön */
+    color: whitesmoke;
+    margin: auto;			/* Keskittää sisällön */
 }
 
 /********************************************
-	Navigointipalkki
+	Navigointipalkki 
 *********************************************/
 #navigationbar {
 	background: #1d7ae2;
@@ -76,7 +82,6 @@ input { padding: 3pt; }
 #navigationbar .last {
 	float: right;
 }
-
 
 /*	Täytyy olla, jotta KIRJAUDU ULOS -painike pysyy
 	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
@@ -107,6 +112,7 @@ input { padding: 3pt; }
 #navigationbar ul li a:HOVER {
 	color: black;
 }
+
 
 /********************************************
 	Otsikon tyylittely
@@ -148,9 +154,6 @@ input { padding: 3pt; }
 	font-family: 'Open Sans', sans-serif;
 }
 
-
-
-
 #asiakas #lista #submit input[type=submit] {
 	background: #e60005;
 	border-color: #b70004;
@@ -160,9 +163,6 @@ input { padding: 3pt; }
 	background: #b70004;
 	border: solid 1px #750003;
 }
-
-
-
 
 #tilaukset #lista #submit input[type=submit] {
 	background: #00cc1f;
@@ -176,9 +176,7 @@ input { padding: 3pt; }
 
 
 /********************************************
-
 	Ylläpitäjän asiakas tiluashistoria sivu
-
 *********************************************/
 #asiakas_tilaushistoria .asiakas_info {
 	display: block;
@@ -195,7 +193,6 @@ input { padding: 3pt; }
 	display: inline-block;
 	width: 22%;
 }
-
 
 
 /********************************************

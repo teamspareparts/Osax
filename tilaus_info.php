@@ -110,12 +110,12 @@ if (count($products) > 0) {
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
 
-<div id="otsikko_container" class="flex">
-	<h1 class="otsikko">Tilauksen tiedot</h1>
-	<?php if ($tilaus_tiedot["kasitelty"] == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>Odottaa käsittelyä.</h4>"; }
-	else { echo "<h4 style='color:green; display:flex; align-items:center;'>Käsitelty ja toimitettu.</h4>"; } ?>
-</div>
-<div class="tulokset">
+<div class="main_body_container">
+	<div id="otsikko_container" class="flex">
+		<h1 class="otsikko">Tilauksen tiedot</h1>
+		<?php if ($tilaus_tiedot["kasitelty"] == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>Odottaa käsittelyä.</h4>"; }
+		else { echo "<h4 style='color:green; display:flex; align-items:center;'>Käsitelty ja toimitettu.</h4>"; } ?>
+	</div>
 	<!-- HTML -->
 	<div id="tilaus_info_container" class="flex">
 		<div id="tilaus_info">
