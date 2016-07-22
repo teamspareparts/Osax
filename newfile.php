@@ -32,8 +32,9 @@ $sum = 0.0;
 
 if ( !empty($_POST['vahvista_tilaus']) ) {
 	$rahtimaksu = (float)$_POST['rahtimaksu'];
-	$toimitusosoite = (int)$_POST['toimitusosoite'];
-	if ( order_products($products, $connection, $kayttaja_id, $rahtimaksu, $toimitusosoite) ) {
+	$toimitusosoite_id = (int)$_POST['toimitusosoite_id'];
+	$toimitusosoite_array = json_decode( $_POST['toimitusosoite_tiedot'], TRUE );
+	if ( order_products($products, $connection, $kayttaja_id, $rahtimaksu, $toimitusosoite, $toimitusosoite_array) ) {
 		empty_shopping_cart();
 		header("location:tilaushistoria.php");
 		exit;
@@ -50,7 +51,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 <h1 class="otsikko">Vahvista tilaus</h1>
 <div class="tulokset">
 	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta (sis. ALV)</th><th>Kpl</th><th>Info</th></tr>
+		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 		<?php
 		foreach ( $products as $product ) {
 			$article = $product->directArticle;
@@ -61,7 +62,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				<td><?= $article->articleNo?></td><!-- Tuotenumero -->
 				<td><?= $article->articleName?></td><!-- Tuotteen nimi -->
 				<td><?= $article->brandName?></td><!-- Tuotteen valmistaja -->
-				<td class="number"><?= format_euros( $sum ) ?></td><!-- Hinta yhteensä -->
+				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->
 				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_tulosta_huomautus( $product, FALSE )?></td>
@@ -82,11 +83,12 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		<div id=tilausvahvistus_maksutiedot style="width:20em; margin:auto;">
 			<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
 			<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
+			<span class="small_note">Kaikki hinnat sis. ALV</span>
 		</div>
 		<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
 			<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled( count($osoitekirja_array) ) ?>
 		</div>
-		<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1;">
+		<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1; margin:auto;">
 			<!-- Osoitteen tulostus -->
 		</div>
 	</div>
@@ -97,16 +99,15 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 <!-- Hidden form -->
 <form style="display:none;" id="laheta_tilaus_form" action="#" method=post>
-	<input type=hidden name="toimitusosoite_id" value="" id="toimitusosoite_form_input">
-	<input type=hidden name="toimitusosoite_tiedot" value="" id="toimitusosoite_id_form_input">
-	<input type=hidden name="rahtimaksu" value="" id="rahtimaksu_form_input">
+	<input type=hidden id="toimitusosoite_id_form_input" name="toimitusosoite_id" value="">
+	<input type=hidden id="toimitusosoite_data_form_input" name="toimitusosoite_tiedot" value="">
+	<input type=hidden id="rahtimaksu_form_input" name="rahtimaksu" value="">
 	<input type=hidden name="vahvista_tilaus" value="true">
 </form>
 
 <script src="js/jsmodal-1.0d.min.js"></script>
 <script>
-var osoitekirja = <?= json_encode( $osoitekirja_array )?>;
-document.getElementById('rahtimaksu_form_input').value = <?= $rahtimaksu[0] ?>; //Tallenetaan rahtimaksu talteen piilotettuun formiin
+var osoitekirja = <?= json_encode( $osoitekirja_array, TRUE )?>;
 
 function avaa_Modal_valitse_toimitusosoite() {
 	Modal.open({
@@ -118,6 +119,7 @@ function avaa_Modal_valitse_toimitusosoite() {
 }
 function valitse_toimitusosoite( osoite_id ) {
 	var osoite_array = osoitekirja[osoite_id];
+	
 	var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
 	html_osoite.innerHTML = ""
 		+ "Toimitusosoite " + osoite_id + "<br>"
@@ -125,8 +127,10 @@ function valitse_toimitusosoite( osoite_id ) {
 		+ "Katuosoite: " + osoite_array['katuosoite'] + "<br>"
 		+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
 		+ "Puhelinnumero: " + osoite_array['puhelin'];
-	
-	document.getElementById('toimitusosoite_form_input').value = osoite_id; //Tallenetaan toimitusosoite talteen piilotettuun formiin
+
+	var osoite_string = JSON.stringify( osoite_array );
+	document.getElementById('toimitusosoite_id_form_input').value = osoite_id; //Tallenetaan toimitusosoite talteen piilotettuun formiin
+	document.getElementById('toimitusosoite_data_form_input').value = osoite_string; //Tallenetaan osoitetiedot talteen piilotettuun formiin
 }
 
 function laheta_Tilaus () {
@@ -135,6 +139,7 @@ function laheta_Tilaus () {
 			+ "Tämä on viimeinen vaihe. Toimintoa ei voi perua jälkeenpäin.\n"
 			+ "Jos painat OK, tilauksen lähetyksen jälkeen Sinut uudelleenohjataan tilaus-info sivulle.");
 	if ( vahvistus == true ) {
+		document.getElementById('rahtimaksu_form_input').value = <?= $rahtimaksu[0] ?>; //Tallenetaan rahtimaksu talteen piilotettuun formiin
 		document.getElementById(form_ID).submit();
 	} else {
 		return false;

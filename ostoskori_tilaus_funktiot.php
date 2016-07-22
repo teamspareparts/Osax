@@ -38,7 +38,6 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
 	return [];
 }
 
-
 /**
  * Tilaa ostoskorissa olevat tuotteet
  * 
@@ -50,16 +49,16 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
  * @return boolean, onnistuiko tilaaminen
  */
 function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id,
-		/* float */ $pysyva_rahtimaksu, /* int */ $pysyva_toimitusosoite) {
+		/* float */ $pysyva_rahtimaksu, /* int */ $pysyva_toimitusosoite, array $pys_tmo_tiedot) {
 
-	if (empty($products)) {
+	if ( empty($products) ) {
 		return false;
 	}
 
 	// Lisätään uusi tilaus
 	$result = mysqli_query($connection, "INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES ($kayttaja_id, $pysyva_rahtimaksu);");
 
-	if (!$result) {
+	if ( !$result ) {
 		return false;
 	}
 	
@@ -89,14 +88,13 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 			WHERE 	id = '$product_id'";
 		$result = mysqli_query($connection, $query);
 	}
-	
+	$tmo_values_string = "";
+	foreach ( $pys_tmo_tiedot as $data ) { $tmo_values_string .= "'" . $data . "',"; }
+	$tmo_values_string = rtrim($tmo_values_string, ',');
 	//Lisätään pysyvät toimitustiedot tilaukseen
-	$query = "	INSERT INTO tilaus_toimitusosoite (tilaus_id) VALUES ('$tilaus_id');";
-// 				INSERT INTO tilaus_toimitusosoite
-// 				WHERE tilaus_id = '$tilaus_id'
-// 				SELECT etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka 
-// 				FROM toimitusosoite 
-// 				WHERE kayttaja_id = '$kayttaja_id' AND osoite_id = '$pysyva_toimitusosoite';";
+	$query = "	INSERT INTO tilaus_toimitusosoite 
+					(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka) 
+				VALUES ('$tilaus_id', " . $tmo_values_string . ");";
 	$result = mysqli_query($connection, $query);
 	
 	/**

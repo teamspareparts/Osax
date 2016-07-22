@@ -6,59 +6,10 @@
 	<style type="text/css">
 		.class #id tag {}
 	    
-	    #eula_body {
-	    	display: flex;
-	    	flex-direction: column;
-		    margin: auto;
-		    width: 90vw;
-		    height: 100%;
-			overflow: hidden;
-	    }
-	    
-	    #headlines_container {
-	    	display: flex;
-	    	justify-content: space-around;
-	    }
-	    #headlines_text, #headlines_logo {
-	    	margin: auto;
-	    }
-		
-		
-		#eula_textbox_container {
-			width: 99%;
-	    }
-		#eula_scrollable_textbox {
-		    overflow-y: scroll;
-		    resize: vertical;
-			width: 100%;
-		    height: 200px;
-	    }
-	    
-	    #eula_napit_container {
-	    	display: flex;
-	    	flex-direction: row;
-	    	justify-content: space-around;
-	    }
-	    #hyvaksy_eula, #hylkaa_eula {
-	    	flex: 1 1 auto;
-	    	text-align: center;
-	    }
-	    .nappi, button, input {
-		    padding: 8px 15px;
-		    border-radius: 4px;
-		    border: solid 1px;
-		    transition-duration: 0.2s;
-			font-weight: 700;
-			font-size: 15px;
-			text-transform: uppercase;
-			font-family: 'Open Sans', sans-serif;
-	    }
-	    #hyvaksy_nappi { background-color: lightgreen; }
-	    #hylkaa_nappi { background-color: lightpink; }
 	</style>
 	<title>Käyttöoikeussopimus</title>
 </head>
-<body>
+<body class="eula">
 
 <?php
 require 'tietokanta.php';
@@ -66,17 +17,17 @@ require 'tietokanta.php';
 session_start();
 
 if ( empty($_SESSION['email']) ) {
-	header('Location: index.php?redir=5');
-	exit;
+	header('Location: index.php?redir=4'); exit; //Ei ole kirjautunut sisään
 }
 
 $user_id = $_SESSION['id'];
 
-if ( !empty($_POST['vahvista_eula']) ) {
+if ( isset($_POST['vahvista_eula']) ) {
 	$sql_query = "	UPDATE	kayttaja
 					SET		vahvista_eula = '0'
 					WHERE	id = '$user_id';";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+	header('Location: tuotehaku.php'); exit;
 }
 
 $txt_tiedosto = __DIR__.'/eula.txt';
@@ -85,33 +36,29 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 ?>
 
 
-<div id="eula_body">
-	<div id="headlines_container">
-		<div id="headlines_text">
-			<h1>Käyttöoikeussopimus</h1>
-			<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
-			<span> (Tällä sivulla ei ole enää mitään Admin-hallintaa) </span>
-		</div>
-		<div id="headlines_logo">
-			<h1>LOGO</h1>
-		</div>
+<header id="eula_header">
+	<div id="head_text">
+		<h1>Käyttöoikeussopimus</h1>
+		<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
+		<span> (Tällä sivulla ei ole enää mitään Admin-hallintaa) </span>
 	</div>
-	<div id="eula_textbox_container">
+	<div id="head_logo">
+		<h1>LOGO</h1>
+	</div>
+</header>
+	
+<main id="eula_body">
 		<textarea id="eula_scrollable_textbox" ReadOnly Multiline>
 			<?php echo $eula_txt; ?>
 		</textarea><br>
-	</div>
 	<div id="eula_napit_container" style>
 		<span id="hyvaksy_eula"><button class="nappi" id="hyvaksy_nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
 		<span id="hylkaa_eula"><button class="nappi" id="hylkaa_nappi" onClick="hylkaa_eula();">Hylkää</button><br></span>
 	</div>
-</div>
-
+</main>
 
 <form style="display:none;" id="vahvista_eula_form" action="#" method=post>
-	<input type=hidden name="vahvista_eula" value="<?= $user_id ?>"> 
-	<?php /** Tämä user_id ei täytä muuta virkaa kuin arvon täytteenä, 
-			* jotta postaus menisi empty()-tarkistuksesta läpi. Siten se ei ole riski turvallisuudelle. */?>
+	<input type=hidden name="vahvista_eula">
 </form>
 
 <script>

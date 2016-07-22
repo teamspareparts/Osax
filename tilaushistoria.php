@@ -15,7 +15,7 @@
 		
 		if (is_admin()){
 			//haetaan kyseisen asiakkaan tiedot
-			$user_id = $_GET['id'];
+			$user_id = $_GET['id']; //TODO: korjaa/muuta. Jos admin haluaa tarkastella omia tilauksiaan, tämä kaatuu.
 			
 			$tbl_name="kayttaja";				// Taulun nimi
 			$query = "SELECT * FROM $tbl_name WHERE id='$user_id'";

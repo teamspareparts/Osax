@@ -6,30 +6,22 @@
 	<title>Login</title>
 </head>
 <body>
-<div class="login_container">
+<main class="login_container">
 	<img src="img/rantak_varao-Logo.jpg" alt="Osax.fi">
 
 <?php
 if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
-	/**
-	 * Mikäli halutaan poistaa urlissa oleva get
-	 * ?>  
-	 *	<script type="text/javascript">
-	 *	window.history.pushState('login', 'Title', 'index.php');
-	 *	</script> 
-	 * <?php
-	**/
 	$mode = $_GET["redir"];		// Otetaan moodi talteen
 	$modes_array = [
 		1 => array(
 				"otsikko" => " Väärä sähköposti ",
 				"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein."),
 		2 => array(
-				"otsikko" => " Käyttäjätili poistettu ",
-				"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun."),
-		3 => array(
 				"otsikko" => " Väärä salasana ",
 				"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein."),
+		3 => array(
+				"otsikko" => " Käyttäjätili de-aktivoitu ",
+				"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun."),
 		4 => array(
 				"otsikko" => " Et ole kirjautunut sisään ",
 				"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa."),
@@ -47,20 +39,18 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 				"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään."),
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
-				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä Rantakylän Varaosa Oy:hyn."),
+				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään."),
 		10=> array(
 				"otsikko" => " Käyttöoikeussopimus ",
 				"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta."),
 	];
 ?>
-	<div id="error_content">
-		<fieldset id=error><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
-			<p> <?= $modes_array[$mode]['teksti'] ?> </p>
-		</fieldset>
-	</div>
+	<fieldset id=error><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
+		<p> <?= $modes_array[$mode]['teksti'] ?> </p>
+	</fieldset>
 <?php } ?>
 
-<!-- <div class="login_container"> -->
+<!-- <main class="login_container"> -->
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
@@ -83,7 +73,17 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
-</div>
+</main>
+
+<script>
+/** Otamme tämän käyttöön, jos tämä sivusto koskaan menee ihan oikeaan asiakas käyttöön.
+ * window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
+ */
+
+/**
+ * Tähän evästeiden tarkistus. Evästeillä voimme tallentaa pysyvää tietoa lokaalisti.
+ */
+</script>
 
 </body>
 </html>

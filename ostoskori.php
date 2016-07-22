@@ -32,7 +32,7 @@ $sum = 0.0;
 <div class="main_body_container">
 	<h1 class="otsikko">Ostoskori</h1>
 	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta (sis. ALV)</th><th>Kpl</th><th>Info</th></tr>
+		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 		<?php foreach ($products as $product) {
 			$article = $product->directArticle;
 			$product->hinta = tarkista_hinta_era_alennus( $product );
@@ -41,7 +41,7 @@ $sum = 0.0;
 				<td><?= $article->articleNo?></td><!-- Tuotenumero -->
 				<td><?= $article->articleName?></td><!-- Tuotteen nimi -->
 				<td><?= $article->brandName?></td><!-- Tuotteen valmistaja -->
-				<td class="number"><?= format_euros( $sum ) ?></td><!-- Hinta yhteensä -->
+				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
 					<input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0">
@@ -64,6 +64,7 @@ $sum = 0.0;
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
 		<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
 		<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
+		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, TRUE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
 	<p><a class="nappi peruuta" href="tuotehaku.php">Palaa takaisin</a></p>

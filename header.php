@@ -6,8 +6,7 @@
  */
 function check_login_status() {
 	if ( empty($_SESSION['email']) ) {
-	    header('Location: index.php?redir=5');
-	    exit;
+	    header('Location: index.php?redir=4'); exit; //Et ole kirjautunut sisään
 	}	
 }
 
@@ -31,7 +30,7 @@ check_login_status();
 		</div>	
 		
 		<div id="head_info">
-			Tervetuloa takaisin, <?= $_SESSION['etunimi'] . " " . $_SESSION['sukunimi'] ?><br>
+			Tervetuloa takaisin, <?= $_SESSION['koko_nimi'] ?><br>
 			Kirjautuneena: <?= $_SESSION['email'] ?>
 		</div>	
 	</div>
