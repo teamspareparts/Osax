@@ -33,17 +33,14 @@ $sum = 0.0;
 if ( !empty($_POST['vahvista_tilaus']) ) {
 	$rahtimaksu = (float)$_POST['rahtimaksu'];
 	$toimitusosoite_id = (int)$_POST['toimitusosoite_id'];
-	$toimitusosoite_array = json_decode( $_POST['toimitusosoite_tiedot'], TRUE );
-	if ( order_products($products, $connection, $kayttaja_id, $rahtimaksu, $toimitusosoite, $toimitusosoite_array) ) {
+	if ( order_products($products, $connection, $kayttaja_id, $rahtimaksu, $toimitusosoite_id) ) {
 		empty_shopping_cart();
-		header("location:tilaushistoria.php");
-		exit;
+		header("location:tilaushistoria.php"); exit;
 	} else {
 		echo '<p class="error">Tilauksen lähetys ei onnistunut!</p>';
 	}
 } elseif ( empty($products) ) {
-	header("location:ostoskori.php");
-	exit;
+	header("location:ostoskori.php"); exit;
 }
 ?>
 
@@ -99,8 +96,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 <!-- Hidden form -->
 <form style="display:none;" id="laheta_tilaus_form" action="#" method=post>
-	<input type=hidden id="toimitusosoite_id_form_input" name="toimitusosoite_id" value="">
-	<input type=hidden id="toimitusosoite_data_form_input" name="toimitusosoite_tiedot" value="">
+	<input type=hidden id="toimitusosoite_form_input" name="toimitusosoite_id" value="">
 	<input type=hidden id="rahtimaksu_form_input" name="rahtimaksu" value="">
 	<input type=hidden name="vahvista_tilaus" value="true">
 </form>
@@ -117,10 +113,10 @@ function avaa_Modal_valitse_toimitusosoite() {
 		draggable: true
 	});
 }
+
 function valitse_toimitusosoite( osoite_id ) {
-	var osoite_array = osoitekirja[osoite_id];
-	
 	var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
+	var osoite_array = osoitekirja[osoite_id];
 	html_osoite.innerHTML = ""
 		+ "Toimitusosoite " + osoite_id + "<br>"
 		+ "Sähköposti: " + osoite_array['sahkoposti'] + "<br>"
@@ -128,9 +124,7 @@ function valitse_toimitusosoite( osoite_id ) {
 		+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
 		+ "Puhelinnumero: " + osoite_array['puhelin'];
 
-	var osoite_string = JSON.stringify( osoite_array );
-	document.getElementById('toimitusosoite_id_form_input').value = osoite_id; //Tallenetaan toimitusosoite talteen piilotettuun formiin
-	document.getElementById('toimitusosoite_data_form_input').value = osoite_string; //Tallenetaan osoitetiedot talteen piilotettuun formiin
+	document.getElementById('toimitusosoite_form_input').value = osoite_id; //Tallenetaan toimitusosoite talteen piilotettuun formiin
 }
 
 function laheta_Tilaus () {

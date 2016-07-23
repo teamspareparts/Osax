@@ -49,7 +49,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
  * @return boolean, onnistuiko tilaaminen
  */
 function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id,
-		/* float */ $pysyva_rahtimaksu, /* int */ $pysyva_toimitusosoite, array $pys_tmo_tiedot) {
+		/* float */ $pysyva_rahtimaksu, /* int */ $toimitusosoite_id) {
 
 	if ( empty($products) ) {
 		return false;
@@ -80,21 +80,32 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 		if (!$result) {
 			return false;
 		}
-		//päivitetään varastosaldo
-		$uusi_varastosaldo = $product->varastosaldo - $product_count;
+		
+		$uusi_varastosaldo = $product->varastosaldo - $product_count; //päivitetään varastosaldo
 		$query = "
 			UPDATE	tuote
 			SET		varastosaldo = '$uusi_varastosaldo'
 			WHERE 	id = '$product_id'";
 		$result = mysqli_query($connection, $query);
 	}
-	$tmo_values_string = "";
-	foreach ( $pys_tmo_tiedot as $data ) { $tmo_values_string .= "'" . $data . "',"; }
-	$tmo_values_string = rtrim($tmo_values_string, ',');
-	//Lisätään pysyvät toimitustiedot tilaukseen
+
+	/**
+	 * Haetaan toimitusosoitteen tiedot, ja tallennetaan ne pysyviin.
+	 * //TODO: Tee tästä parempi. Käytä SELECT INTO:a. Tämä on vain temp, helppo ratkaisu
+	 * @var Ambiguous $query; "Ambiguous" indeed...
+	 */
+	$query = "	SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
+				FROM	toimitusosoite
+				WHERE	kayttaja_id = '$kayttaja_id' 
+					AND osoite_id = '$toimitusosoite_id';";
+	$result = mysqli_query($connection, $query);
+	$row = $result->fetch_assoc();
+	$pysyva_etunimi = $row['etunimi']; $pysyva_sukunimi = $row['sukunimi']; $pysyva_sahkoposti = $row['sahkoposti']; $pysyva_puhelin = $row['puhelin']; $pysyva_yritys = $row['yritys'];
+	$pysyva_katuosoite = $row['katuosoite']; $pysyva_postinumero = $row['postinumero']; $pysyva_postitoimipaikka = $row['postitoimipaikka'];
 	$query = "	INSERT INTO tilaus_toimitusosoite 
 					(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka) 
-				VALUES ('$tilaus_id', " . $tmo_values_string . ");";
+				VALUES 
+					('$tilaus_id', '$pysyva_etunimi', '$pysyva_sukunimi', '$pysyva_sahkoposti', '$pysyva_puhelin', '$pysyva_yritys', '$pysyva_katuosoite', '$pysyva_postinumero', '$pysyva_postitoimipaikka');";
 	$result = mysqli_query($connection, $query);
 	
 	/**
