@@ -234,7 +234,9 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
 		$product->hinta = ($product->hinta * $alennus_prosentti);
 		return $product->hinta;
 	
-	} else { return $product->hinta; }
+	} else {
+		$product->alennusera_prosentti = 0.0;
+		return $product->hinta; }
 }
 
 /**
