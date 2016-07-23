@@ -6,7 +6,8 @@
 	<title>Tilaushistoria</title>
 </head>
 <body>
-<?php 	include 'header.php';?>
+<?php 	include 'header.php';
+require 'apufunktiot.php'; ?>
 <h1 class="otsikko">Asiakkaan Tilaushistoria</h1>
 <br>
 <div id="asiakas_tilaushistoria">
@@ -40,7 +41,8 @@
 			$query = "
 				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
 					SUM(tilaus_tuote.kpl) AS kpl, 
-					SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))) AS summa
+					SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
+						AS summa
 				FROM $tbl_name 
 				LEFT JOIN tilaus_tuote
 					ON tilaus_tuote.tilaus_id = tilaus.id
@@ -59,7 +61,7 @@
 					<fieldset><a href="tilaus_info.php?id=<?= $row["id"]?>"><span class="tilausnumero"><?= $row["id"]?>
 						</span><span class="pvm"><?= date("d.m.Y", strtotime($row["paivamaara"]))?>
 						</span><span class="tuotteet_kpl"><?= $row["kpl"]?></span>
-						</span><span class="sum"><?= $row["summa"]?>eur</span>
+						</span><span class="sum"><?= format_euros($row["summa"]) ?></span>
 					<?php
 					if ($row["kasitelty"] == 1) echo "OK";
 					else echo "<span style='color:red'>EI</span>"?>
