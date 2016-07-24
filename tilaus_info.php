@@ -28,8 +28,6 @@ require 'apufunktiot.php';
  * @return Array; tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( mysqli $connection, /* int */ $tilaus_id ) {
-	global $connection;
-	global $tilaus_id;
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
 			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti,
@@ -61,7 +59,6 @@ function hae_tilauksen_tiedot ( mysqli $connection, /* int */ $tilaus_id ) {
  * @return Array; tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
 function get_products_in_tilaus( mysqli $connection, /* int */ $tilaus_id) {
-	global $connection;
 	$query = "
 		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
 			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
@@ -110,7 +107,7 @@ if (count($products) > 0) {
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
 
-<div class="main_body_container">
+<main class="main_body_container">
 	<div id="otsikko_container" class="flex">
 		<h1 class="otsikko">Tilauksen tiedot</h1>
 		<?php if ($tilaus_tiedot["kasitelty"] == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>Odottaa käsittelyä.</h4>"; }
@@ -165,7 +162,7 @@ if (count($products) > 0) {
 			<td class="number">---</td>
 		</tr>
 	</table>
-</div>
+</main>
 
 </body>
 </html>

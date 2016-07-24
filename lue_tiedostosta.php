@@ -3,6 +3,16 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<style type="text/css">
+			.class #id tag {}
+			#tuote_tiedosto, #eula_tiedosto {
+				border: 1px dashed;
+    			border-radius: 6px;
+			}
+			#tuote_tiedosto:hover, #eula_tiedosto:hover {
+				border-color: cadetblue;
+			}
+	</style>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<title>Tuotteet</title>
 </head>
@@ -15,32 +25,35 @@ if (!is_admin()) {
 	exit();
 }
 ?>
-<h1>Lisää tuotteita tiedostosta</h1>
-<p>Tällä sivulla voit ladata tuotteita valikoimaan suoraan tiedostosta tai ladata palvelimelle uudet käyttöehdot.</p>
-
-<fieldset><legend>Lisää tuotteita</legend>
-<form action="#" method="post" enctype="multipart/form-data">
-	Luettava tiedosto: <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv"/>
-	<input id=submit_tuote type="submit" name="submit" value="Submit" disabled/>
-	<br>
-	1:<select id=select0></select><br>
-	2:<select id=select1></select><br>
-	3:<select id=select2></select><br>
-	4:<select id=select3></select><br>
-	5:<select id=select4></select><br>
-	6:<select id=select5></select><br>
-</form>
-HUOM: Ei vielä tarkastuksia...
-</fieldset>
-<br><br>
-<fieldset><legend>Käyttöoikeussopimus</legend>
-<form action="#" method="post" enctype="multipart/form-data">
-	Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt"/>
-	<input id="submit_eula" type="submit" name="submit" value="Submit" disabled/>
-	<a href="http://www.osax.fi/eula.txt" download="nykyinen_EULA" style="margin-left:100px">Lataa nykyinen EULA</a>
-</form>
-</fieldset>
-
+<main>
+	<h1>Lisää tuotteita tiedostosta</h1>
+	<p>Tällä sivulla voit ladata tuotteita valikoimaan suoraan tiedostosta tai ladata palvelimelle uudet käyttöehdot.</p>
+	
+	<fieldset><legend>Lisää tuotteita</legend>
+		<form action="#" method="post" enctype="multipart/form-data">
+			Luettava tiedosto: <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv"/>
+			<input id=submit_tuote type="submit" name="submit" value="Submit" disabled/>
+			<br>
+			1:<select id=select0></select><br>
+			2:<select id=select1></select><br>
+			3:<select id=select2></select><br>
+			4:<select id=select3></select><br>
+			5:<select id=select4></select><br>
+			6:<select id=select5></select><br>
+		</form>
+		HUOM: Ei vielä tarkastuksia...
+	</fieldset>
+	
+	<br><br>
+	
+	<fieldset><legend>Käyttöoikeussopimus</legend>
+		<form action="#" method="post" enctype="multipart/form-data">
+			Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt"/>
+			<input id="submit_eula" type="submit" name="submit" value="Submit" disabled/>
+			<a href="http://www.osax.fi/eula.txt" download="nykyinen_EULA" style="margin-left:100px">Lataa nykyinen EULA</a>
+		</form>
+	</fieldset>
+</main>
 
 <?php 
 /**
