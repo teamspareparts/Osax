@@ -70,7 +70,7 @@ function empty_shopping_cart() {
 function handle_shopping_cart_action() {
 	$cart_action = isset($_POST['ostoskori_toiminto']) ? $_POST['ostoskori_toiminto'] : null;
 	if ($cart_action) {
-		$cart_product = isset($_POST['ostoskori_tuote']) ? $_POST['ostoskori_tuote'] : null;
+		$cart_product = isset($_POST['ostoskori_tuote']) ? str_replace(" ", "", $_POST['ostoskori_tuote']) : null;
 		$cart_amount = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
 
 		if ($cart_action === 'lisaa') {

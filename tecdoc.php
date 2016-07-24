@@ -62,6 +62,37 @@ function getArticleDirectSearchAllNumbersWithState($number) {
 }
 
 
+//Catalogin tuotteiden hakua varten
+//Etsitään lisätiedot articleNo perusteella
+function findMoreInfoByArticleNo($number) {
+	$function = 'getArticleDirectSearchAllNumbersWithState';
+	$params = [
+			'lang' => TECDOC_LANGUAGE,
+			'articleCountry' => TECDOC_COUNTRY,
+			'provider' => TECDOC_PROVIDER,
+			'articleNumber' => $number,
+			'searchExact' => true,
+			'numberType' => 0, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	if (isset($response->data->array)) {
+		return $response->data->array[0];
+	}
+
+	return [];
+}
+
+
+
 //
 // Hakee tuotteet annettujen tunnisteiden (articleId) perusteella
 //
@@ -137,6 +168,20 @@ function merge_products_with_tecdoc($products) {
 				$product->oe = get_oe_number($tecdoc_product);
 			}
 		}
+	}
+}
+
+
+//Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa
+//jos $all_info: merge myös oe, kuvat, ean ja infot
+function merge_catalog_with_tecdoc($catalog_products, $all_info) {
+	foreach ($catalog_products as $catalog_product) {
+		$response = findMoreInfoByArticleNo($catalog_product->id);
+		$catalog_product->articleId = $response->articleId;
+		$catalog_product->directArticle = $response;
+	}
+	if ($all_info) {
+		merge_products_with_optional_data($catalog_products);
 	}
 }
 

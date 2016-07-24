@@ -44,10 +44,10 @@ $sum = 0.0;
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
-					<input id="maara_<?= $article->articleId ?>" name="maara_<?= $article->articleId ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0">
+					<input id="maara_<?= $article->articleNo ?>" name="maara_<?= $article->articleNo ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0">
 				</td>
 				<td><?= laske_era_alennus_tulosta_huomautus( $product, TRUE )?></td>
-				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart(<?= $article->articleId?>)">Päivitä</a></td>
+				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $article->articleNo?>')">Päivitä</a></td>
 			</tr>
 		<?php } 
 		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtimaksu, ilm.toim.raja); indeksit 0 ja 1 ?>

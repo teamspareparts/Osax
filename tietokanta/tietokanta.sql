@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `tuote` (
-  `id` int(11) NOT NULL, -- PK
+  `id` varchar(20) NOT NULL, -- PK
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
   `ALV_kanta` tinyint(1) NOT NULL,
   `varastosaldo` int(11) NOT NULL DEFAULT '0',

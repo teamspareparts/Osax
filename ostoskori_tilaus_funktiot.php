@@ -16,7 +16,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
         return [];
     }
 
-    $ids = addslashes(implode(', ', array_keys($cart)));
+    $articleNos = addslashes(implode(', ', array_keys($cart)));
 	$result = mysqli_query($connection, "
 		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
@@ -24,7 +24,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
 		FROM	tuote  
 		LEFT JOIN	ALV_kanta
 			ON		tuote.ALV_kanta = ALV_kanta.kanta
-		WHERE 	id in ($ids);");
+		WHERE 	tuote.id in ('$articleNos');");
 
 	if ($result) {
 		$products = [];
@@ -32,7 +32,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
             $row->cartCount = $cart[$row->id];
 			array_push($products, $row);
 		}
-		merge_products_with_tecdoc($products);
+		merge_catalog_with_tecdoc($products, false);
 		return $products;
 	}
 	return [];
@@ -227,12 +227,14 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /* int
  * @param stdClass $product
  */
 function tarkista_hinta_era_alennus ( stdClass $product ) {
-	$jakotulos =  $product->cartCount / $product->alennusera_kpl;
+	if ($product->alennusera_kpl != 0){
+		$jakotulos =  $product->cartCount / $product->alennusera_kpl;
 	
-	if ( $jakotulos >= 1 ) {
-		$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
-		$product->hinta = ($product->hinta * $alennus_prosentti);
-		return $product->hinta;
+		if ( $jakotulos >= 1 ) {
+			$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
+			$product->hinta = ($product->hinta * $alennus_prosentti);
+			return $product->hinta;
+		}
 	
 	} else {
 		$product->alennusera_prosentti = 0.0;
@@ -245,8 +247,10 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
  * @param bool $ostoskori
  */
 function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $ostoskori ) {
-	$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
-
+	$jakotulos = 0; //default
+	if ($product->alennusera_kpl > 0){
+		$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
+	}
 	$tulosta_huomautus = ( $jakotulos >= 0.75 && $jakotulos < 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
 	//Jos: kpl-määrä 75% alennuserä kpl-rajasta, mutta alle 100%. Lisäksi tuotteella on eräalennus asetettu (kpl-raja ei ole nolla, ja prosentti ei ole nolla).
 	$tulosta_alennus = ( $jakotulos >= 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );

@@ -23,11 +23,11 @@
 	<title>Tuotehaku</title>
 </head>
 <body>
-<!-- Modal -->
+<!-- Tuoteikkuna Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog" role="document" style="top:50px;">
 		<div class="modal-content">
-			<div class="modal-header" style="height: 40px;">
+			<div class="modal-header" style="height: 35px;">
 	      	<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 	    	<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 300px;">
 			    <li class="active"><a data-toggle="tab" href="#menu1">Tuote</a></li>
@@ -38,7 +38,7 @@
 	    
 			
 			
-			<div class="modal-body">
+			<div class="modal-body" style="margin-top:-20px;">
 			  	<div class="tab-content">
 			    	<div id="menu1" class="tab-pane fade in active"></div>
 			    	<div id="menu2" class="tab-pane fade text-center"></div>
@@ -63,8 +63,8 @@
 
 
 <div id="ostoskori-linkki"></div>
-<form action="tuotehaku.php" method="post" class="haku">
-	<input type="text" name="haku" placeholder="Tuotenumero">
+<form action="tuotehaku.php" method="get" class="haku">
+	<input id="search" type="text" name="haku" placeholder="Tuotenumero">
 	<input class="nappi" type="submit" value="Hae">
 </form>
 <?php include('ostoskori_lomake.php'); ?>
@@ -113,6 +113,7 @@
 <?php 
 //ostoskorin päivitys ja ostoskorin sisällön määrittäminen
 handle_shopping_cart_action();
+//var_dump($_SESSION['cart']);
 
 $cart_contents = '0 tuotetta';
 if (isset($_SESSION['cart'])) {
@@ -424,10 +425,6 @@ if (isset($_SESSION['cart'])) {
 			}			
 			return documentlink;
 		}
-		function sleepFor( sleepDuration ){
-		    var now = new Date().getTime();
-		    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
-		}
 
 		
 		response = response.data.array[0];
@@ -729,6 +726,12 @@ if (isset($_SESSION['cart'])) {
 
 		}
 
+		if(qs["haku"]){
+			var search = qs["haku"];
+			
+			$("#search").val(search);
+		}
+
 		//apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun
 		//vuosiluvut parempaan muotoon
 		function addSlash(text) {
@@ -812,26 +815,31 @@ function get_catalog_products_by_number($number){
 	
 	//Etsitään omasta catalogista
 	$product_ids = array();
-	//ID:t listaan
+	$product_articleNos = array();
+	//articleNo:t ja articleId:t listaan
 	foreach ($products as $product) {
+		array_push($product_articleNos, addslashes(str_replace(" ", "", $product->articleNo)));
 		array_push($product_ids, $product->articleId);
 	}
-	$product_ids = implode("','", $product_ids);
+	$articleNos = implode("', '", $product_articleNos);
 	$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 				FROM 	tuote 
 				JOIN 	ALV_kanta
 					ON	tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	tuote.id IN ('$product_ids') AND tuote.aktiivinen=1";
+				WHERE 	tuote.id IN ('$articleNos') AND tuote.aktiivinen=1";
 	$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	$products = array();
 	while ($row = mysqli_fetch_object($result)) {
+		//vaihdetaan id (articleNo) tecdoc_id:ksi, jotta voidaan käyttää 
+		//merge_products_with_tecdoc -funktiota
+		$row->id = $product_ids[array_search($row->id, $product_articleNos)];
 		array_push($products, $row);
 	}
 	merge_products_with_tecdoc($products);
 	return $products;
 }
 
-$number = isset($_POST['haku']) ? $_POST['haku'] : null;
+$number = isset($_GET['haku']) ? $_GET['haku'] : null;
 
 if ($number) {
 	$products = get_catalog_products_by_number($number);
@@ -852,38 +860,34 @@ if(isset($_GET["manuf"])) {
 	echo "groupID: " . $_POST["osat_alalaji"] . " "; */
 
 
-	$articleIDs = [];
+	$product_articleNos = array();
 	$articles = getArticleIdsWithState($selCar, $selPartType);
 
 	//poistetaan duplikaatit
 	foreach ($articles as $article){
-		if(!in_array($article->articleId, $articleIDs)){
-			array_push($articleIDs, $article->articleId);
-
+		if(!in_array($article->articleNo, $product_articleNos)){
+			array_push($product_articleNos, addslashes(str_replace(" ", "", $article->articleNo)));
 		}
 	}
-
+	$articleNos = implode("','", $product_articleNos);
 	//valitaan vain ne tuotteet jotka lisätty tietokantaan
-
 	global $connection;
-
 	$result = mysqli_query($connection, "
 			SELECT id, varastosaldo, minimisaldo, minimimyyntiera,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta
-				ON ALV_kanta = ALV_kanta.kanta;");
+				ON ALV_kanta = ALV_kanta.kanta
+			WHERE tuote.id IN ('$articleNos');");
 
 	if ($result) {
-		$products = [];
+		$products = array();
 		while ($row = mysqli_fetch_object($result)) {
-			if(in_array($row->id, $articleIDs)) {
-				array_push($products, $row);
-			}
+			array_push($products, $row);
 		}
 		//yhdistetään tietokannasta löytyneet tuotteet tecdoc-datan kanssa
 		if (count($products) > 0) {
-			merge_products_with_tecdoc($products);
+			merge_catalog_with_tecdoc($products, true);
 		}
 	}
 	print_results($products);
@@ -925,7 +929,7 @@ function print_results($products) {
 // 			echo '<td style="padding-top: 0; padding-bottom: 0;"><input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
 			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $article ) . ' </td>';
 			echo '<td class="clickable">Stuff/Things</td>';
-			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(' . $article->articleId . ')">Osta</a></td>';
+			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(\''.$article->articleNo.'\')">Osta</a></td>';
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -938,7 +942,7 @@ function print_results($products) {
 function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
 	?><!--  <input id="maara_</?= $article->articleId ?>" name="maara_</?= $article->articleId ?>" class="maara" type="number" value="0" min="0"> --><?php
 	if ( $product->varastosaldo >= $product->minimimyyntiera ) {
-		return  '<input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
+		return  '<input id="maara_' . $article->articleNo . '" name="maara_' . $article->articleNo . '" class="maara" type="number" value="0" min="0"></td>';
 	} else {
 		return '<a href="javascript:void(0);" onClick="confirm(\'Woo! Loppuunmyyty.\nOle hyvä ja kirjoita ystävällinen kirje maahantuojallesi, jossa ilmoitat halukkuutesi ostaa tätä tuotetta. Kiitos yhteistyöstäsi.\');">Tuotetta ei saatavilla</a>';
 	}
