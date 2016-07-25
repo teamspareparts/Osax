@@ -51,7 +51,7 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 		<textarea id="eula_scrollable_textbox" ReadOnly Multiline>
 			<?php echo $eula_txt; ?>
 		</textarea><br>
-	<div id="eula_napit_container" style>
+	<div id="eula_napit_container">
 		<span id="hyvaksy_eula"><button class="nappi" id="hyvaksy_nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
 		<span id="hylkaa_eula"><button class="nappi" id="hylkaa_nappi" onClick="hylkaa_eula();">Hylkää</button><br></span>
 	</div>

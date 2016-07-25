@@ -25,7 +25,7 @@ if (!is_admin()) {
 	exit();
 }
 ?>
-<main>
+<main class="main_body_container">
 	<h1>Lisää tuotteita tiedostosta</h1>
 	<p>Tällä sivulla voit ladata tuotteita valikoimaan suoraan tiedostosta tai ladata palvelimelle uudet käyttöehdot.</p>
 	

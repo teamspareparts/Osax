@@ -13,27 +13,26 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta() {
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
 	while ($row = $result->fetch_assoc()) {
 		?><!--  HTML  -->
-		<p> Osoite <?= $row['osoite_id'] ?><br>
-		<br>
-		<label><span>Nimi</span></label><?= ($row['etunimi'] . ' ' . $row['sukunimi']) ?><br>
-		<label><span>Sähköposti</span></label><?= $row['sahkoposti']?><br>
-		<label><span>Puhelin</span></label><?= $row['puhelin']?><br>
-		<label><span>Yritys</span></label><?= $row['yritys']?><br>
-		<label><span>Katuosoite</span></label><?= $row['katuosoite']?><br>
-		<label><span>Postinumero</span></label><?= $row['postinumero']?><br>
-		<label><span>Postitoimipaikka</span></label><?= $row['postitoimipaikka']?><br><br>
-		
-		<input class="nappi" type="button" value="Muokkaa" 
-			onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row['osoite_id'] ?>);">
-		<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
-			onClick="vahvista_Osoitteen_Poistaminen(<?= $row['osoite_id'] ?>);">
+		<div> Osoite <?= $row['osoite_id'] ?><br>
+			<br>
+			<label><span>Nimi</span></label><?= ($row['etunimi'] . ' ' . $row['sukunimi']) ?><br>
+			<label><span>Sähköposti</span></label><?= $row['sahkoposti']?><br>
+			<label><span>Puhelin</span></label><?= $row['puhelin']?><br>
+			<label><span>Yritys</span></label><?= $row['yritys']?><br>
+			<label><span>Katuosoite</span></label><?= $row['katuosoite']?><br>
+			<label><span>Postinumero</span></label><?= $row['postinumero']?><br>
+			<label><span>Postitoimipaikka</span></label><?= $row['postitoimipaikka']?><br><br>
 			
-		<?php $form_id = "poista_Osoite_Form_" . $row['osoite_id'];?>
-		<form style="display:none;" id="<?= $form_id ?>" action="#" method=post>
-			<input type=hidden name=poista value="<?= $row['osoite_id'] ?>">
-		</form>
-		
-		</p><hr>
+			<input class="nappi" type="button" value="Muokkaa" 
+				onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row['osoite_id'] ?>);">
+			<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
+				onClick="vahvista_Osoitteen_Poistaminen(<?= $row['osoite_id'] ?>);">
+				
+			<?php $form_id = "poista_Osoite_Form_" . $row['osoite_id'];?>
+			<form style="display:none;" id="<?= $form_id ?>" action="#" method=post>
+				<input type=hidden name=poista value="<?= $row['osoite_id'] ?>">
+			</form>
+		</div><hr>
 		<!--  HTML  --><?php
 	}
 }

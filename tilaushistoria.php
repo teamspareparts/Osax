@@ -60,7 +60,7 @@ require 'apufunktiot.php'; ?>
 					?>
 					<fieldset><a href="tilaus_info.php?id=<?= $row["id"]?>"><span class="tilausnumero"><?= $row["id"]?>
 						</span><span class="pvm"><?= date("d.m.Y", strtotime($row["paivamaara"]))?>
-						</span><span class="tuotteet_kpl"><?= $row["kpl"]?></span>
+						</span><span class="tuotteet_kpl"><?= $row["kpl"]?>
 						</span><span class="sum"><?= format_euros($row["summa"]) ?></span>
 					<?php
 					if ($row["kasitelty"] == 1) echo "OK";

@@ -10,8 +10,12 @@
 	<img src="img/rantak_varao-Logo.jpg" alt="Osax.fi">
 
 <?php
-if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
-	$mode = $_GET["redir"];		// Otetaan moodi talteen
+session_start();
+if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan onko uudellenohjaus
+	
+	if ( !empty($_SESSION['email']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
+	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
+	
 	$modes_array = [
 		1 => array(
 				"otsikko" => " Väärä sähköposti ",
@@ -43,6 +47,10 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 		10=> array(
 				"otsikko" => " Käyttöoikeussopimus ",
 				"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta."),
+			
+		99=> array(
+				"otsikko" => " Kirjautuminen ",
+				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="tuotehaku.php">Linkki etusivulle</a></p>'),
 	];
 ?>
 	<fieldset id=error><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
@@ -51,6 +59,7 @@ if (!empty($_GET['redir'])) {	// Onko uudellenohjaus?
 <?php } ?>
 
 <!-- <main class="login_container"> -->
+
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
