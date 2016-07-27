@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `sahkoposti` varchar(255) NOT NULL, -- PK
+  `sahkoposti` varchar(255) NOT NULL, -- UNIQUE KEY
   `salasana_hajautus` varchar(100) NOT NULL,
   `salasana_vaihdettu` datetime DEFAULT NULL,
   `etunimi` varchar(20) DEFAULT NULL,
@@ -10,29 +10,40 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `y_tunnus` varchar(9) DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
-  `demo` tinyint(1) NOT NULL DEFAULT '0',
+  `demo` tinyint(1) NOT NULL DEFAULT '0', -- Välikaikainen tunnus sivuston demoamista varten
   `viime_sijainti` varchar(100) DEFAULT '',
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `voimassaolopvm` datetime DEFAULT NULL,
+  `voimassaolopvm` datetime DEFAULT NULL, -- Miten pitkään tunnus on voimassa, jos demo = 1
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
   `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1';
-  PRIMARY KEY (`id`, `sahkoposti`)
+  PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
+
+/* Meillä alkaa olla aika monta toiminnallisuutta, jotka ei viittaa yksittäiseen asiakkaaseen,
+ vaan yritykseen. Tosin siinä tapauksessa meillä on aika monta ongelmaa, esim asiakkaan tiedoissa:
+ esim. kuka saa muuttaa y-tunnusta, onko y-tunnus edes asiakkaan tiedoissa, 
+ onko yrityksellä oma sivu? Note: vakoilin juuri osalinkkiä, niillä näyttäisi olevan yritystiedot erikseen. */
+CREATE TABLE IF NOT EXISTS `yritys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
+  `nimi` varchar(255) NOT NULL, -- UNIQUE KEY
+  `y_tunnus` varchar(9) DEFAULT NULL,
+  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` varchar(20) NOT NULL, -- PK
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
-  `ALV_kanta` tinyint(1) NOT NULL,
+  `ALV_kanta` tinyint(1) NOT NULL, -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
-  `minimisaldo` int(11) NOT NULL DEFAULT '0',
+  `minimisaldo` int(11) NOT NULL DEFAULT '0', -- TODO: Poista; turha
   `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
   `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
-  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0',
+  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Mikä tämän tarkoitus on?
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
-  `alennusera_kpl` int(11) NOT NULL DEFAULT '0',
-  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00',
+  `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl
+  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -47,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
 
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `kayttaja_id` int(11) NOT NULL,
+  `kayttaja_id` int(11) NOT NULL, -- Foreign KEY
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
   `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
@@ -122,4 +133,34 @@ CREATE TABLE IF NOT EXISTS `tuote_oe` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `oe_number` varchar(20) NOT NULL, -- PK
   PRIMARY KEY (`tuote_id`, `oe_number`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
+  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  `asiakas_id` int(11) NOT NULL, -- PK; Foreign K
+  `laskuri` int(4) NOT NULL DEFAULT '0', -- Ostopyyntöjen määrä
+  PRIMARY KEY (`tuote_id`, `asiakas_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
+  `tuote_id` int(11) NOT NULL, -- Foreign KEY
+  `asiakas_id` int(11) NOT NULL, -- Foreign KEY
+  `maaraalennus_kpl` int(11) DEFAULT '0',
+  `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
+  `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `ostoskori` (
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
+  `yritys_id` int(11) NOT NULL, -- Foreign KEY
+  `asiakas_id` int(11) NOT NULL, -- Foreign KEY -- Saattaa olla turha
+  PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
+  `ostoskori_id` int(11) NOT NULL, -- PK; Foreign K
+  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
