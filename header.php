@@ -7,7 +7,7 @@
 function check_login_status() {
 	if ( empty($_SESSION['email']) ) {
 	    header('Location: index.php?redir=4'); exit; //Et ole kirjautunut sisään
-	}	
+	}
 }
 
 /**
@@ -26,15 +26,15 @@ check_login_status();
 <div class="header_container">
 	<div class="header_top">
 		<div id="head_logo">
-			<img src="img/rantak_varao-Logo.jpg" height="100" width="300" align="left" alt="No pics, plz">
-		</div>	
-		
+			<img src="img/osax_logo.jpg" height="100" width="300" align="left" alt="No pics, plz">
+		</div>
+
 		<div id="head_info">
 			Tervetuloa takaisin, <?= $_SESSION['koko_nimi'] ?><br>
 			Kirjautuneena: <?= $_SESSION['email'] ?>
-		</div>	
+		</div>
 	</div>
-	
+
 	<div id="navigationbar">
 		<ul>
 	        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
