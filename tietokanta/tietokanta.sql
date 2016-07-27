@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
   `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Mikä tämän tarkoitus on?
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
-  `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl
-  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros
+  `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl -- Saattaa olla turha
+  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `maaraalennus_kpl` int(11) DEFAULT '0',
   `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
   `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
+  `voimassaolopvm` datetime DEFAULT NULL, -- Jos tarjouksella on vanhenemisraja
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -162,5 +163,6 @@ CREATE TABLE IF NOT EXISTS `ostoskori` (
 CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   `ostoskori_id` int(11) NOT NULL, -- PK; Foreign K
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  `kpl_maara` int(11) DEFAULT '1',
   PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

@@ -145,12 +145,12 @@ function hae_rahtimaksu ( mysqli $connection, /* int */ $kayttaja_id, /* int */ 
 
 /**
  * Tulostaa rahtimaksun alennushuomautuksen, tarkistuksen jälkeen.
- * @param int $rahtimaksu
+ * @param array $rahtimaksu
  * @param boolean $ostoskori; onko funktio ostoskoria, vai tilaus-vahvistusta varten
  */
-function tulosta_rahtimaksu_alennus_huomautus ( /* int */ $rahtimaksu, /* bool */ $ostoskori ) {
+function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /* bool */ $ostoskori ) {
 
-	if ( $rahtimaksu[0] === 0 ) { $alennus = "Ilmainen toimitus";
+	if ( $rahtimaksu[0] == 0 ) { $alennus = "Ilmainen toimitus";
 	} elseif ( $ostoskori ) { $alennus = "Ilmainen toimitus " . format_euros($rahtimaksu[1]) . ":n jälkeen.";
 	} else { $alennus = "---"; }
 	

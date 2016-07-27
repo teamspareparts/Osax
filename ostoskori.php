@@ -58,7 +58,7 @@ $sum = 0.0;
 			<td class="number"><?= format_euros( $rahtimaksu[0] )?></td>
 			<td class="number">---</td>
 			<td class="number">1</td>
-			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu[0], TRUE )?></td>
+			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, TRUE )?></td>
 		</tr>
 	</table>
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
