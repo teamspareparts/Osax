@@ -4,8 +4,10 @@
  *
  * Link for more info on PDO: https://phpdelusions.net/pdo
  *
- * Ajattelin, lisäksi pistää tämän luokan jälkeen toisen luokan,
- * 	jossa on esimerkkejä käytöstä.
+ * Tiedoston lopussa toinen luokka, jossa esimerkkejä käytöstä.
+ * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ylh.ol. linkissä.
+ *
+ * Käytän PDO:ta, koska se on yksinkertaisempaa käyttää prep. stmt:n kanssa.
  *
  * @name DByhteys_luokka
  * @author jjarv
@@ -64,7 +66,7 @@ class DByhteys_luokka {
 	protected $returnType = PDO::FETCH_ASSOC;
 
 	/**
-	 * Konstruktori. Oletan, että tiedät mikä se on.
+	 * Konstruktori.
 	 *
 	 * @param string $username
 	 * @param string $password
@@ -96,12 +98,13 @@ class DByhteys_luokka {
 	}
 
 	/**
-	 *
+	 * Hakee joko yhden, tai useamman rivin tietokannasta.
+	 * Defaultina hakee yhden rivin.
 	 * @param string $query
-	 * @param array $values optional;
+	 * @param array $values optional, default=NULL<p>
 	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
 	 * 		jotka sitten lähetetään tietokannalle.
-	 * @param bool $fetch_All_Rows optional;
+	 * @param bool $fetch_All_Rows optional, default=FALSE<p>
 	 * 		haetaanko kaikki rivit, vai vain yksi.
 	 * @return array(results|empty); assoc array, to be precise
 	 */
@@ -136,8 +139,9 @@ class DByhteys_luokka {
 
 	/**
 	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa)
-	 * @param array $values optional; queryyn upotettavat arvot
-	 * @return void; käytä get_next_row()-metodia saadaksesi tuloksen
+	 * @param array $values optional, default=NULL<p> 
+	 * 		queryyn upotettavat arvot
+	 * @return void<p> käytä get_next_row()-metodia saadaksesi tuloksen
 	 */
 	public function run_prepared_stmt( array $values = NULL ) {
 		$stmt = $this->prepared_stmt;
@@ -147,7 +151,7 @@ class DByhteys_luokka {
 	/**
 	 * Palauttaa seuraavan rivin viimeksi tehdystä hausta.
 	 * Huom. ei toimi query()-metodin kanssa. Toisen haun tekeminen nollaa tulokset.
-	 * @return array( results|empty ); assoc array
+	 * @return array( results|empty )
 	 */
 	public function get_next_row() {
 		$stmt = $this->prepared_stmt;
@@ -157,7 +161,7 @@ class DByhteys_luokka {
 
 	/**
 	 * Sulkee valmistellun PDOstatementin.
-	 * Enimmäkseen käytössä vain __destructorissa
+	 * Enimmäkseen käytössä vain __destructorissa, mutta jos joku haluaa varmistaa.
 	 */
 	public function close_prepared_stmt() {
 		if ( $this->prepared_stmt ) {
@@ -182,26 +186,189 @@ class DByhteys_luokka {
 
 /**
  * Coming later...
+ * Please don't try running these. They won't work.
  */
 class examples_and_information {
-	var $select = "	SELECT	*
-					FROM	table
-					WHERE	column = value;";
 
-	var $delete = "	DELETE
+	/**
+	 * Miten asiat tehtiin ennen. Esimerkin vuoksi tässä.
+	 */
+	function example_0_before() {
+		$mysqli_conn = mysqli_connect('host', 'username', 'password', 'tietokanta')
+				or die('Error: ' . mysqli_connect_error());
+
+		$value = ''; //Some user input
+		$simple_query = "	SELECT	*
+							FROM	table
+							WHERE	column = {$value}; "; //Turvallisuusriski
+
+		$result = mysqli_query($mysqli_conn, $simple_query) or die(mysqli_error($mysqli_conn));
+		$result = mysqli_fetch_assoc($result);
+
+		if ( $result ) {
+			//Do stuff and things
+		}
+	}
+
+	function example_1( $db_conn /* Älä välitä tästä, säästää yhden rivin koodia */ ) {
+		$values_array = [ $user_input ]; // An array of some user inputs
+		$query = "	SELECT	*
 					FROM	table
-					WHERE	column = value;";
-	var $insert = "	INSERT
-					INTO	table
-					VALUES	(value1, value2, ...);";
-	var $update = "	UPDATE	table
-					SET		column1 = value1, column2 = value2, ...
-					WHERE	column = value;";
-	var $insert_into = "
-					INSERT INTO table2
-						(column2(s))
-					SELECT column1(s)
-					FROM table1
-					WHERE column1 = value;";
+					WHERE	column = ? "; //Huom. ei puolipistettä ";"
+
+		$result = $db_conn->query( $query, $values_array );
+
+		if ( $result ) {
+			//Do stuff and things
+		}
+
+		/*
+		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot muodossa:
+			Array (
+				[id] => 'foo'
+				...
+			)
+		 */
+	}
+
+	function example_2( $db_conn ) {
+		$values_array = [ $user_input ]; // An array of some user inputs
+		$query = "	SELECT	*
+					FROM	table
+					WHERE	column = ?"; //Huom. ei puolipistettä ";"
+
+		$results = $db_conn->query( $query, $values_array, FETCH_ALL /*Alias TRUE:lle*/ );
+
+		foreach ( $results as $array ) {
+			//Do stuff with the assoc array
+		}
+
+		/*
+		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot muodossa:
+			Array (
+				[0] => Array (
+			            [id] => 'foo'
+			            ...
+					)
+				[1] => Array (
+			            [id] => 'bar'
+			            ...
+					)
+				...
+			)
+		 */
+	}
+
+	/**
+	 * Complicated way, or at least more verbose
+	 */
+	function example_3( $db_conn ) {
+		$values_array = [ $user_input ]; // An array of some user inputs
+		$query = "	SELECT	*
+					FROM	table
+					WHERE	column = ?"; //Huom. ei puolipistettä ";"
+
+		$db_conn->prepare_stmt( $query ); //Valmistellaan sql-haku
+
+		$db_conn->run_prepared_stmt( $values_array ); //Ajetaan haku syötteillä
+
+
+		while ( $result = $db_conn->get_next_row() ) {
+			//Do stuff with the received assoc array
+		}
+
+		/* Jos haluat ajaa uudestaan saman haun, mutta eri arvoilla... */
+		$db_conn->run_prepared_stmt( $different_values_array );
+		//Ajetaan haku eri syötteillä, ja sen jälkeen sama while-/if-lause
+
+		/*
+		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot samalla tavalla kuin
+		 *  ekassa esimerkissä. Jos odotat vain yhtä riviä, voit myös käyttää if-lausetta,
+		 *  mutta sillä ei ole hirveästi väliä kumpaa käyttää.
+		 */
+
+		/*
+		 * Luokassa on myös close_prepared_stmt()-metodi, mutta sitä ei oikeastaan tarvitse käyttää.
+		 */
+		$db_conn->close_prepared_stmt(); //Sulkee statementin
+	}
+
+	/**
+	 * Some interesting trivia about the class, and it's functions.
+	 *
+	 * Jos luit linkin aivan tiedoston alussa PDO:sta, tämä toistaa
+	 * aika paljon siitä.
+	 */
+	function example_4_interesting_trivia( $db_conn ) {
+
+		/*
+		 * Kaikki nämä seuraavat sql_haut toimivat:
+		 */
+		$query_no_user_input = "	SELECT	*
+									FROM	table ";
+
+		$query_with_user_input = "	SELECT	*
+									FROM	table
+									WHERE	column = {$value} ";
+		$db_conn->query( $query_no_user_input ); //tai query( $query, NULL )
+		$db_conn->query( $query_with_user_input ); //tai query( $query, NULL )
+
+		$db_conn->prepare_stmt( $query_no_user_input );
+		$db_conn->prepare_stmt( $query_with_user_input );
+		$db_conn->run_prepared_stmt(); //tai run_prep_stmt( NULL )
+		/*
+		 * Tämän takia raw_query()-metodi on hieman turha.
+		 */
+
+
+		/*
+		 * SQL-kyselyn voi tehdä myös nimetyilla placeholdereilla
+		 */
+		$query = "	SELECT	*
+					FROM	table
+					WHERE	column = :value ";
+		/* ... missä tapauksessa $values -array pitää olla assoc array:  */
+		$values_array = [ 'value' => $user_input ]; //Key samanniminen kuin placeholder
+		/*
+		 * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
+		 * En ole testannut pystykö käyttämään kumpaakin, joten valitse jompikumpi.
+		 */
+
+
+		/*
+		 * Esimerkissä 2 käytin FETCH_ALL muuttujaa. Se on alias TRUE:lle.
+		 * Define()-metodi siitä on konstruktorissa. Tämä kohta on hieman leikkimistä minulta, myönnetään
+		 */
+		FETCH_ALL === TRUE;
+
+
+		/*
+		 * Luokan muuttujissa on $returnType. Se ei ole käytössä parametrina missään, mutta teoreettisesti
+		 *  sillä voisi palauttaa tuloksen hyvin monella eri tavalla. Jos ominaisuudelle on tarvetta, se ei
+		 *  olisi vaikea lisätä. Funktioiden fetch()-metodit jo käyttävät parametrina $this->returnType:ia.
+		 */
+		$pdo_options = [ PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC ];
+		$returnType = PDO::FETCH_ASSOC; // Nämä kaksi toistaa itseään, jos ihmettelit asiaa.
+		// Niillä ei siis oikeastaan ole mitään funktionaalista eroa.
+
+
+		/*
+		 * Syy miksi käytän PDO:ta, enkä MySQLi:ta (jossa on myös prep. stmt), on seuraava rivi:
+		 */
+		//Prepare
+		$db_conn->bindParam( $value_types, $value1, $value2 /*, ...*/ ); //Tämä funktio on PDO:ssa ja mySQLi:ssa
+		//Execute
+		/*
+		 * Tällä tavalla tehtynä minun pitäisi selvittää, miten monta muuttujaa annetaan, koska tuo metodi
+		 *  ei hyväksy parametrina arrayta.
+		 * PDO:ssa execute()-metodi hyväksyy arrayn, jossa muuttujat. Kaikki annetut muuttujat muutetaan merkkijonoksi PHP puolella.
+		 * Oletettavasti tietokanta sitten muuttaa ne tarvittaviin muotoihin takaisin.
+		 *
+		 * Plus lisäksi, siinä pitäisi joko antaa myös arvojen tyypit, tai selvittää luokassa,
+		 *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
+		 *
+		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta.)
+		 */
+	}
 }
 //EOF
