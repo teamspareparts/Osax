@@ -2,7 +2,7 @@
 /**
  * Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten.
  */
-
+include 'tietokanta.php';
 
 /**
  * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
@@ -17,7 +17,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
         return [];
     }
 
-    $articleNos = addslashes(implode(', ', array_keys($cart)));
+    $articleNos = implode("', '", array_keys($cart));
 	$result = mysqli_query($connection, "
 		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
@@ -25,7 +25,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
 		FROM	tuote
 		LEFT JOIN	ALV_kanta
 			ON		tuote.ALV_kanta = ALV_kanta.kanta
-		WHERE 	tuote.id in ('$articleNos');");
+		WHERE 	tuote.id in ( '{$articleNos}' );");
 
 	if ($result) {
 		$products = [];
