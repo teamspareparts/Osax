@@ -2,7 +2,6 @@
 /**
  * Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten.
  */
-include 'tietokanta.php';
 
 /**
  * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
