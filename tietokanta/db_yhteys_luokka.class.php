@@ -2,15 +2,14 @@
 /**
  * Luokka Tietokannan yhteyden käsittelyä varten PDO:n avulla.
  *
- * Link for more info on PDO: https://phpdelusions.net/pdo
+ * Link for more info on PDO: {@link https://phpdelusions.net/pdo}<br>
+ * Link to PHP-manual on PDO: {@link https://secure.php.net/manual/en/book.pdo.php}
  *
  * Tiedoston lopussa toinen luokka, jossa esimerkkejä käytöstä.
- * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ylh.ol. linkissä.
+ * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa
+ * ylhäällä olevassa linkissä.
  *
  * Käytän PDO:ta, koska se on yksinkertaisempaa käyttää prep. stmt:n kanssa.
- *
- * @name DByhteys_luokka
- * @author jjarv
  *
  * @method __construct
  * @method raw_query
@@ -31,10 +30,10 @@ class DByhteys_luokka {
 	protected $pdo_dsn = '';		//PDO:n yhdistämistä varten
 	/**
 	 * Optional options for the PDO connection, given at new PDO(...).
-	 * ATTR_* : attribuutti
-	 * 		ERRMODE : Miten PDO-yhteys toimii virhetilanteissa.
-	 * 		DEF_FETCH_M : Mitä PDO-haku palauttaa (arrayn, objektin, ...)
-	 * 		EMUL_PREP : https://phpdelusions.net/pdo#emulation
+	 * ATTR_* : attribuutti<br>
+	 * 	_ERRMODE : Miten PDO-yhteys toimii virhetilanteissa.<br>
+	 * 	_DEF_FETCH_M : Mitä PDO-haku palauttaa (arrayn, objektin, ...)<br>
+	 * 	_EMUL_PREP : {@link https://phpdelusions.net/pdo#emulation}
 	 * @var array
 	 */
 	protected $pdo_options = [		//PDO:n DB driver specific options
@@ -60,8 +59,8 @@ class DByhteys_luokka {
 	/**
 	 * Tämä muuttujaa ei oikeastaan ole käytössä tällä hetkellä.
 	 * See link for more info on return types:
-	 *	https://phpdelusions.net/pdo/fetch_modes
-	 * @var $returnType; possible return types for a PDO query fetch()-function
+	 *	{@link https://phpdelusions.net/pdo/fetch_modes}
+	 * @var $returnType <p> possible return types for a PDO query fetch()-function
 	 */
 	protected $returnType = PDO::FETCH_ASSOC;
 
@@ -98,18 +97,18 @@ class DByhteys_luokka {
 	}
 
 	/**
-	 * Hakee joko yhden, tai useamman rivin tietokannasta.
-	 * Defaultina hakee yhden rivin.
+	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
+	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.
 	 * @param string $query
 	 * @param array $values optional, default=NULL<p>
 	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
 	 * 		jotka sitten lähetetään tietokannalle.
 	 * @param bool $fetch_All_Rows optional, default=FALSE<p>
 	 * 		haetaanko kaikki rivit, vai vain yksi.
-	 * @return array(results|empty); assoc array, to be precise
+	 * @return array ( results | empty ) <p> assoc array, to be precise
 	 */
 	public function query( /* string */ $query, array $values = NULL,
-			/* bool */ $fetch_All_Rows = false ) {
+			/* bool */ $fetch_All_Rows = FALSE ) {
 		$db = $this->connection;
 
 		$stmt = $db->prepare( $query );	// Valmistellaan query
@@ -139,7 +138,7 @@ class DByhteys_luokka {
 
 	/**
 	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa)
-	 * @param array $values optional, default=NULL<p> 
+	 * @param array $values optional, default=NULL<p>
 	 * 		queryyn upotettavat arvot
 	 * @return void<p> käytä get_next_row()-metodia saadaksesi tuloksen
 	 */
@@ -150,7 +149,8 @@ class DByhteys_luokka {
 
 	/**
 	 * Palauttaa seuraavan rivin viimeksi tehdystä hausta.
-	 * Huom. ei toimi query()-metodin kanssa. Toisen haun tekeminen nollaa tulokset.
+	 * Huom. ei toimi query()-metodin kanssa. Käytä vain prep.stmt -metodien kanssa.<br>
+	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
 	 * @return array( results|empty )
 	 */
 	public function get_next_row() {
@@ -185,8 +185,9 @@ class DByhteys_luokka {
 }
 
 /**
- * Coming later...
- * Please don't try running these. They won't work.
+ * Sisältää esimerkkejä käytöstä käytännössä.
+ * Lisäksi lopussa on pari trivia tietoa luokasta. <p>
+ * (Please don't try running these. They won't work.)
  */
 class examples_and_information {
 
@@ -331,7 +332,7 @@ class examples_and_information {
 		$values_array = [ 'value' => $user_input ]; //Key samanniminen kuin placeholder
 		/*
 		 * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
-		 * En ole testannut pystykö käyttämään kumpaakin, joten valitse jompikumpi.
+		 * Nimettyjä ja kysymysmerkkejä ei voi käyttää samassa queryssa.
 		 */
 
 

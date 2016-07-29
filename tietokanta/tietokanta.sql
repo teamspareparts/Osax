@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `sukunimi` varchar(20) DEFAULT NULL,
   `yritys` varchar(50) DEFAULT NULL,
   `puhelin` varchar(20) DEFAULT NULL,
-  `y_tunnus` varchar(9) DEFAULT NULL,
+  `y_tunnus` varchar(9) DEFAULT NULL, -- TODO: turha; poista. Y-tunnus pitäisi varmaan olla yrityksessä
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   `demo` tinyint(1) NOT NULL DEFAULT '0', -- Välikaikainen tunnus sivuston demoamista varten
@@ -17,8 +17,9 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
-  `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1';
-  PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`)
+  `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`), 
+  UNIQUE KEY (`sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 /* Meillä alkaa olla aika monta toiminnallisuutta, jotka ei viittaa yksittäiseen asiakkaaseen,
@@ -27,18 +28,27 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
  onko yrityksellä oma sivu? Note: vakoilin juuri osalinkkiä, niillä näyttäisi olevan yritystiedot erikseen. */
 CREATE TABLE IF NOT EXISTS `yritys` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `nimi` varchar(255) NOT NULL, -- UNIQUE KEY
-  `y_tunnus` varchar(9) DEFAULT NULL,
-  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
+  `nimi` varchar(255) NOT NULL, -- UNIQUE KEY -- Koska ei niitä yrityksiä varmaan useampaa ole
+  `y_tunnus` varchar(9) DEFAULT '',
+  `sahkoposti` varchar(255) DEFAULT '',
+  `puhelin` varchar(20) DEFAULT '',
+  `katuosoite` varchar(255) DEFAULT '',
+  `postinumero` varchar(10) DEFAULT '',
+  `postitoimipaikka` varchar(255) DEFAULT '',
+  /*
+  Osalinkillä on myös faxnumero, ERP-numero, jälleenmyyjän ERP-numero, ja autofutur-asiakasnumero,
+  mutta koska en tiedä mitä noilla tekisi en oikein halua lisätä niitä tietokantaan
+  */
+  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`, `y_tunnus`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` varchar(20) NOT NULL, -- PK
-  `hinta_ilman_ALV` decimal(11,2) NOT NULL,
-  `ALV_kanta` tinyint(1) NOT NULL, -- Foreign KEY
+  `hinta_ilman_ALV` decimal(11,2) NOT NULL DEFAULT '0.00',
+  `ALV_kanta` tinyint(1) NOT NULL DEFAULT '0', -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
   `minimisaldo` int(11) NOT NULL DEFAULT '0', -- TODO: Poista; turha
-  `minimimyyntiera` int(11) NOT NULL DEFAULT '0',
+  `minimimyyntiera` int(11) NOT NULL DEFAULT '1',
   `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
   `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Mikä tämän tarkoitus on?
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
@@ -137,15 +147,15 @@ CREATE TABLE IF NOT EXISTS `tuote_oe` (
 
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `asiakas_id` int(11) NOT NULL, -- PK; Foreign K
-  `laskuri` int(4) NOT NULL DEFAULT '0', -- Ostopyyntöjen määrä
-  PRIMARY KEY (`tuote_id`, `asiakas_id`)
+  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `laskuri` int(4) DEFAULT '1', -- Ostopyyntöjen määrä
+  PRIMARY KEY (`tuote_id`, `kayttaja_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `tuote_id` int(11) NOT NULL, -- Foreign KEY
-  `asiakas_id` int(11) NOT NULL, -- Foreign KEY
+  `kayttaja_id` int(11) NOT NULL, -- Foreign KEY
   `maaraalennus_kpl` int(11) DEFAULT '0',
   `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
   `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
@@ -156,7 +166,7 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
 CREATE TABLE IF NOT EXISTS `ostoskori` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `yritys_id` int(11) NOT NULL, -- Foreign KEY
-  `asiakas_id` int(11) NOT NULL, -- Foreign KEY -- Saattaa olla turha
+  `kayttaja_id` int(11) NOT NULL, -- Foreign KEY -- Saattaa olla turha
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
