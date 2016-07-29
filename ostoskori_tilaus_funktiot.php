@@ -234,12 +234,11 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
 		if ( $jakotulos >= 1 ) {
 			$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
 			$product->hinta = ($product->hinta * $alennus_prosentti);
-			return $product->hinta;
 		}
-
 	} else {
 		$product->alennusera_prosentti = 0.0;
-		return $product->hinta; }
+	}
+	return $product->hinta;
 }
 
 /**
@@ -250,7 +249,7 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
  * @return void <p> tulostaa suoraan funktiossa
  */
 function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $ostoskori ) {
-	if ( $product->cartCount > $product->minimimyyntiera ) {
+	if ( $product->cartCount >= $product->minimimyyntiera ) {
 
 		$jakotulos = 0; //default
 		if ($product->alennusera_kpl > 0){
