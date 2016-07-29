@@ -10,7 +10,7 @@ define('DB_PASSWORD', '');
 define('DB_NAME', 'tuoteluettelo_database');
 
 //Objektin luonti uutta yhteyttä varten
-$db = new DByhteys_luokka( DB_USERNAME, DB_PASSWORD, DB_NAME, DB_HOST );
+$db = new DByhteys( DB_USERNAME, DB_PASSWORD, DB_NAME, DB_HOST );
 
 $connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME)
 				or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());

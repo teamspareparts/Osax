@@ -20,7 +20,7 @@
  * @method close_prepared_stmt
  * @method __destruct
  */
-class DByhteys_luokka {
+class DByhteys {
 
 	/**
 	 * PDO:n yhteyden luontia varten, sisältää tietokannan tiedot.
@@ -57,7 +57,8 @@ class DByhteys_luokka {
 	protected $prepared_stmt = NULL;//Tallennettu prepared statement
 
 	/**
-	 * Tämä muuttujaa ei oikeastaan ole käytössä tällä hetkellä.
+	 * Käytä metodia change_returnType(), jos haluat muuttaa,
+	 *  tai parametrina anna tarkka palautustyyppi muissa metodeissa.
 	 * See link for more info on return types:
 	 *	{@link https://phpdelusions.net/pdo/fetch_modes}
 	 * @var $returnType <p> possible return types for a PDO query fetch()-function
@@ -70,7 +71,7 @@ class DByhteys_luokka {
 	 * @param string $username
 	 * @param string $password
 	 * @param string $database
-	 * @param string $host optional //TODO: 'localhost' ei saata toimia.
+	 * @param string $host [optional] //TODO: 'localhost' ei saata toimia.
 	 */
 	public function __construct( /* string */ $username,  /* string */ $password,
 			/* string */ $database, /* string */ $host = 'localhost' ) {
@@ -82,44 +83,40 @@ class DByhteys_luokka {
 	}
 
 	/**
-	 * Tällä voi suoraan suorittaa sql-haun, kuin mysqli_query($connection, $sql_query).
-	 * Huom. Ei todellakaan turvallinen. Älä käytä, jos mitään käyttäjän syötteitä mukana.
-	 * @param string $query
-	 * @return array
-	 */
-	public function raw_query( $query ) {
-		$db = $this->connection;
-		$result = $db->query( $query );
-		foreach ( $result as $the_answer ) {
-			$results[] = $the_answer;
-		}
-		return $results;
-	}
-
-	/**
 	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
 	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.
 	 * @param string $query
-	 * @param array $values optional, default=NULL<p>
+	 * @param array $values [optional], default=NULL<p>
 	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
 	 * 		jotka sitten lähetetään tietokannalle.
-	 * @param bool $fetch_All_Rows optional, default=FALSE<p>
+	 * @param bool $fetch_All_Rows [optional], default=FALSE<p>
 	 * 		haetaanko kaikki rivit, vai vain yksi.
+	 * @param special $returnType [optional], default = NULL <p>
+	 * 		Missä muodossa haluat tiedot palautettavan.
+	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
+	 * 		Mahdolliset arvot:
+	 * 		<ul>	<li>PDO::FETCH_ASSOC (huom. default jo valmiiksi)</li>
+	 * 				<li>PDO::FETCH_NUM</li>
+	 * 				<li>PDO::FETCH_BOTH</li>
+	 * 				<li>PDO::FETCH_OBJ</li>
+	 * 				<li>PDO::FETCH_LAZY</li>
+	 * 		</ul>
+	 * Niitä on muitakin, mutta nuo on tärkeimmät.
 	 * @return array ( results | empty ) <p> assoc array, to be precise
 	 */
 	public function query( /* string */ $query, array $values = NULL,
-			/* bool */ $fetch_All_Rows = FALSE ) {
+			/* bool */ $fetch_All_Rows = FALSE, /* special */ $returnType = NULL ) {
 		$db = $this->connection;
 
 		$stmt = $db->prepare( $query );	// Valmistellaan query
 		$stmt->execute( $values );		//Toteutetaan query varsinaisilla arvoilla
 
 		if ($fetch_All_Rows) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
-			$result = $stmt->fetchAll( $this->returnType );
+			$result = $stmt->fetchAll( $returnType );
 			$stmt->closeCursor();
 
 		} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
-			$result = $stmt->fetch( $this->returnType );
+			$result = $stmt->fetch( $returnType );
 			$stmt->closeCursor();
 		}
 
@@ -138,7 +135,7 @@ class DByhteys_luokka {
 
 	/**
 	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa)
-	 * @param array $values optional, default=NULL<p>
+	 * @param array $values [optional], default=NULL<p>
 	 * 		queryyn upotettavat arvot
 	 * @return void<p> käytä get_next_row()-metodia saadaksesi tuloksen
 	 */
@@ -151,12 +148,53 @@ class DByhteys_luokka {
 	 * Palauttaa seuraavan rivin viimeksi tehdystä hausta.
 	 * Huom. ei toimi query()-metodin kanssa. Käytä vain prep.stmt -metodien kanssa.<br>
 	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
+	 * @param special $returnType [optional], default = NULL <p>
+	 * 		Missä muodossa haluat tiedot palautettavan.
+	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
+	 * 		Mahdolliset arvot:
+	 * 		<ul>	<li>PDO::FETCH_ASSOC (huom. default jo valmiiksi)</li>
+	 * 				<li>PDO::FETCH_NUM</li>
+	 * 				<li>PDO::FETCH_BOTH</li>
+	 * 				<li>PDO::FETCH_OBJ</li>
+	 * 				<li>PDO::FETCH_LAZY</li>
+	 * 		</ul>
+	 * Niitä on muitakin, mutta nuo on tärkeimmät.
 	 * @return array( results|empty )
 	 */
-	public function get_next_row() {
+	public function get_next_row ( /* mixed */ $returnType = NULL ) {
 		$stmt = $this->prepared_stmt;
-		$results = $stmt->fetch( $this->returnType );
+		$results = $stmt->fetch( $returnType );
 		return $results;
+	}
+
+	/**
+	 * Metodilla voi muuttaa missä muodossa kaikki luokan sql-haut palautetaan.
+	 *
+	 * Mahdolliset tyypit:
+	 * <ul>
+	 * 	<li>'enum' : an array indexed by column number as returned in your result set, starting at 0 </li>
+	 * 	<li>'object' : returns an object with property names that correspond to the column names returned in your result set </li>
+	 * 	<li>'lazy' : combines PDO::FETCH_BOTH (enum ja assoc) and PDO::FETCH_OBJ, creating the object variable names as they are accessed.</li>
+	 * </ul>
+	 * Jos metodi kutsutaan ilman parametria, tai parametria ei tunnisteta, niin:
+	 * <ul><li>returnType = Assoc array</li></ul>
+	 * @param string $type [optional], default = NULL <p> haluttu tyyppi
+	 */
+	public function change_returnType( /* string */ $type = NULL ) {
+		switch ( $type ) {
+			case 'enum':
+				$this->returnType = PDO::FETCH_NUM;
+				break;
+			case 'object':
+				$this->returnType = PDO::FETCH_OBJ;
+				break;
+			case 'lazy':
+				$this->returnType = PDO::FETCH_LAZY;
+				break;
+			default:
+				$this->returnType = PDO::FETCH_ASSOC;
+				break;
+		}
 	}
 
 	/**
@@ -186,6 +224,7 @@ class DByhteys_luokka {
 
 /**
  * Sisältää esimerkkejä käytöstä käytännössä.
+ *
  * Lisäksi lopussa on pari trivia tietoa luokasta. <p>
  * (Please don't try running these. They won't work.)
  */
@@ -211,7 +250,7 @@ class examples_and_information {
 		}
 	}
 
-	function example_1( $db_conn /* Älä välitä tästä, säästää yhden rivin koodia */ ) {
+	function example_1_simple_query_with_single_result ( $db_conn /* Älä välitä tästä, säästää yhden rivin koodia */ ) {
 		$values_array = [ $user_input ]; // An array of some user inputs
 		$query = "	SELECT	*
 					FROM	table
@@ -224,7 +263,7 @@ class examples_and_information {
 		}
 
 		/*
-		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot muodossa:
+		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
 			Array (
 				[id] => 'foo'
 				...
@@ -232,7 +271,7 @@ class examples_and_information {
 		 */
 	}
 
-	function example_2( $db_conn ) {
+	function example_2_simple_query_with_multiple_results ( $db_conn ) {
 		$values_array = [ $user_input ]; // An array of some user inputs
 		$query = "	SELECT	*
 					FROM	table
@@ -245,7 +284,7 @@ class examples_and_information {
 		}
 
 		/*
-		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot muodossa:
+		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
 			Array (
 				[0] => Array (
 			            [id] => 'foo'
@@ -263,7 +302,7 @@ class examples_and_information {
 	/**
 	 * Complicated way, or at least more verbose
 	 */
-	function example_3( $db_conn ) {
+	function example_3_more_verbose_version( $db_conn ) {
 		$values_array = [ $user_input ]; // An array of some user inputs
 		$query = "	SELECT	*
 					FROM	table
@@ -318,7 +357,9 @@ class examples_and_information {
 		$db_conn->prepare_stmt( $query_with_user_input );
 		$db_conn->run_prepared_stmt(); //tai run_prep_stmt( NULL )
 		/*
-		 * Tämän takia raw_query()-metodi on hieman turha.
+		 * Tätä tyyliä ei tietenkään suositella, jos mukana user inputteja.
+		 * Mutta jos jonkin prep stmt:n kanssa on ongelmia, niin voit vain pistää koko
+		 * jutun tuolla tavalla.
 		 */
 
 
@@ -328,7 +369,7 @@ class examples_and_information {
 		$query = "	SELECT	*
 					FROM	table
 					WHERE	column = :value ";
-		/* ... missä tapauksessa $values -array pitää olla assoc array:  */
+		/* ... missä tapauksessa $values-array pitää olla assoc array:  */
 		$values_array = [ 'value' => $user_input ]; //Key samanniminen kuin placeholder
 		/*
 		 * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
@@ -349,8 +390,12 @@ class examples_and_information {
 		 *  olisi vaikea lisätä. Funktioiden fetch()-metodit jo käyttävät parametrina $this->returnType:ia.
 		 */
 		$pdo_options = [ PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC ];
-		$returnType = PDO::FETCH_ASSOC; // Nämä kaksi toistaa itseään, jos ihmettelit asiaa.
-		// Niillä ei siis oikeastaan ole mitään funktionaalista eroa.
+		$returnType = PDO::FETCH_ASSOC;
+		/*
+		 * Nämä kaksi toistaa itseään, jos ihmettelit asiaa.
+		 * Niillä ei siis oikeastaan ole mitään funktionaalista eroa.
+		 */
+
 
 
 		/*
@@ -369,6 +414,14 @@ class examples_and_information {
 		 *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
 		 *
 		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta.)
+		 */
+	}
+	/**
+	 * Esimerkit eri palautustyypeistä
+	 */
+	function example_4_examples_returnTypes( $db_conn ) {
+		/**
+		 * ... ehkä.
 		 */
 	}
 }

@@ -71,7 +71,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			<td class="number"><?= format_euros( $rahtimaksu[0] )?></td><!-- Hinta yhteensä -->
 			<td class="number">---</td>
 			<td class="number">1</td><!-- Kpl-määrä -->
-			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu[0], FALSE )?></td>
+			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, FALSE )?></td>
 		</tr>
 	</table>
 	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">

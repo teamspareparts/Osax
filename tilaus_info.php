@@ -27,11 +27,11 @@ require 'apufunktiot.php';
  * @param int $tilaus_id
  * @return Array; tilauksen tiedot, pois lukien tuotteet
  */
-function hae_tilauksen_tiedot ( mysqli $connection, /* int */ $tilaus_id ) {
+function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
 			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti,
-			CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi, 
+			CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 			CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 			tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
 			SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
@@ -46,10 +46,9 @@ function hae_tilauksen_tiedot ( mysqli $connection, /* int */ $tilaus_id ) {
 			ON tuote.id=tilaus_tuote.tuote_id
 		LEFT JOIN tilaus_toimitusosoite AS tmo
 			ON tmo.tilaus_id = tilaus.id
-		WHERE tilaus.id = '$tilaus_id'";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	
-	return mysqli_fetch_assoc($result);
+		WHERE tilaus.id = :order_id ";
+	$values = [ 'order_id' => $tilaus_id ];
+	return ( $db->query($query, $values) );
 }
 
 /**
@@ -66,7 +65,9 @@ function get_products_in_tilaus( mysqli $connection, /* int */ $tilaus_id) {
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id
 		WHERE tilaus.id = '$tilaus_id'";
+
 	$result = mysqli_query($connection, $query);
+
 	if ($result) {
 		$products = [];
 		while ($row = mysqli_fetch_object($result)) {
@@ -93,9 +94,9 @@ function tulosta_alennus_tuotelistaan( /* float */ $alennus ) {
 }
 
 $tilaus_id = $_GET["id"];
-$tilaus_tiedot = hae_tilauksen_tiedot( $connection, $tilaus_id );
+$tilaus_tiedot = hae_tilauksen_tiedot( $db, $tilaus_id );
 
-if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) { 
+if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 	if ( !is_admin() ) {
 		header("Location:tilaushistoria.php");
 		exit(); }
@@ -136,7 +137,7 @@ if (count($products) > 0) {
 	<br>
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th><th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th><th class="number">Kpl</th></tr>
-		<?php 
+		<?php
 		foreach ($products as $product) {
 			$article = $product->directArticle; ?>
 			<tr>
@@ -150,7 +151,7 @@ if (count($products) > 0) {
 				<td class="number"><?= $product->kpl?></td>
 			</tr>
 		<?php } ?>
-		
+
 		<tr style="background-color:#cecece;">
 			<td>---</td>
 			<td>Rahtimaksu</td>
