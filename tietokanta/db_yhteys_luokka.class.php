@@ -173,8 +173,8 @@ class DByhteys {
 	 * Mahdolliset tyypit:
 	 * <ul>
 	 * 	<li>'enum' : an array indexed by column number as returned in your result set, starting at 0 </li>
-	 * 	<li>'object' : returns an object with property names that correspond to the column names returned in your result set </li>
-	 * 	<li>'lazy' : combines PDO::FETCH_BOTH (enum ja assoc) and PDO::FETCH_OBJ, creating the object variable names as they are accessed.</li>
+	 * 	<li>'object' : returns an object with variables corresponding to the column names </li>
+	 * 	<li>'key_pair' : only use with two columns. Same principle as assoc array, but first column is key. </li>
 	 * </ul>
 	 * Jos metodi kutsutaan ilman parametria, tai parametria ei tunnisteta, niin:
 	 * <ul><li>returnType = Assoc array</li></ul>
@@ -183,16 +183,19 @@ class DByhteys {
 	public function change_returnType( /* string */ $type = NULL ) {
 		switch ( $type ) {
 			case 'enum':
-				$this->returnType = PDO::FETCH_NUM;
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_NUM );
+				break;
+			case 'both':
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_BOTH );
 				break;
 			case 'object':
-				$this->returnType = PDO::FETCH_OBJ;
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ );
 				break;
-			case 'lazy':
-				$this->returnType = PDO::FETCH_LAZY;
+			case 'key_pair':
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_KEY_PAIR );
 				break;
 			default:
-				$this->returnType = PDO::FETCH_ASSOC;
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC );
 				break;
 		}
 	}
@@ -300,7 +303,8 @@ class examples_and_information {
 	}
 
 	/**
-	 * Complicated way, or at least more verbose
+	 * Complicated way, or at least more verbose.
+	 * This way you can run multiple queries with different values.
 	 */
 	function example_3_more_verbose_version( $db_conn ) {
 		$values_array = [ $user_input ]; // An array of some user inputs
@@ -334,12 +338,48 @@ class examples_and_information {
 	}
 
 	/**
+	 * Tietoa eri palautustyypeistä. Ei esimerkkejä, koska testaillessani, suurin osa niistä
+	 *  on oikeastaan aika tylsiä. Pari on näyttää täysin samalta, paitsi jos olet surkea
+	 *  suunnittelemaan tietokantoja.
+	 */
+	function example_4_returnTypes( $db_conn ) {
+		/** Jos haluat valita tietyn tietyn palautustyypin... */
+		$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_OBJ );
+		/* Tai... */
+		$db_conn->change_returnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
+		$db_conn->query( $query, $values ); // Palauttaa nyt objektina
+			// Jos haluat vaihtaa takaisin defaultiin...
+		$db_conn->change_returnType( ['' || NULL || 'assoc'] );
+		/* Haluaisin huomauttaa, että tuo syntaksi ei todellakaan ole mikään
+		 * standardi. Minä keksin sen tyhjästä juuri äsken. */
+
+		/**
+		 * FETCH_LAZY: ei voi käyttää fetchAll():in kanssa.
+		 *
+		 * FECTH_KEY_PAIR: vaatii tasan kaksi valittua kolumnia.
+		 * 		Ensimmäinen kolumni on avain, toinen arvo.
+		 *
+		 * FETCH_UNIQUE: sama idea kuin FETCH_ASSOC fetchAll():in kanssa.
+		 * 		Valitsee ensimmäisen kolumin arvon, ja tekee siitä kyseisen arrayn avaimen.
+		 * 		Ei palauta ensimmäistä kolumnia. Jos duplikaatteja, palauttaa viimeisen.
+		 * 		Ei voi käyttää fetch():in kanssa (single result, that is)
+		 *
+		 * OBJ on aika ilmiselvä. ENUM kanssa.
+		 * NAMED palauttaa saman kuin ASSOC, mutta jos duplikaatti kolumneja, tekee
+		 *  niistä oman arrayn (inside the first array).
+		 * BOTH vaan palauttaa koko arrayn tuplana. Mitä hyötyä siitä on?
+		 *
+		 * Suurin osa näistä on aika esoteerisia käyttötarkoitukseltaan.
+		 */
+	}
+
+	/**
 	 * Some interesting trivia about the class, and it's functions.
 	 *
 	 * Jos luit linkin aivan tiedoston alussa PDO:sta, tämä toistaa
 	 * aika paljon siitä.
 	 */
-	function example_4_interesting_trivia( $db_conn ) {
+	function example_5_interesting_trivia( $db_conn ) {
 
 		/*
 		 * Kaikki nämä seuraavat sql_haut toimivat:
@@ -414,14 +454,6 @@ class examples_and_information {
 		 *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
 		 *
 		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta.)
-		 */
-	}
-	/**
-	 * Esimerkit eri palautustyypeistä
-	 */
-	function example_4_examples_returnTypes( $db_conn ) {
-		/**
-		 * ... ehkä.
 		 */
 	}
 }

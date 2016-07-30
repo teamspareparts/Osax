@@ -23,7 +23,7 @@ require 'apufunktiot.php';
 /**
  * Hakee tilauksen yleiset tiedot. Ei koske tuotteiden tietoja, ne haetaan erikseen.
  * Tiedot tilaajaasta, tilauksen päivämäärä jne., plus toimitusosoite
- * @param mysqli $connection
+ * @param DByhteys $db
  * @param int $tilaus_id
  * @return Array; tilauksen tiedot, pois lukien tuotteet
  */
@@ -47,35 +47,28 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 		LEFT JOIN tilaus_toimitusosoite AS tmo
 			ON tmo.tilaus_id = tilaus.id
 		WHERE tilaus.id = :order_id ";
+
 	$values = [ 'order_id' => $tilaus_id ];
 	return ( $db->query($query, $values) );
 }
 
 /**
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
- * @param mysqli $connection
+ * @param DByhteys $db
  * @param int $tilaus_id
  * @return Array; tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
-function get_products_in_tilaus( mysqli $connection, /* int */ $tilaus_id) {
+function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 	$query = "
 		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
 			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
 		FROM tilaus
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id
-		WHERE tilaus.id = '$tilaus_id'";
+		WHERE tilaus.id = :order_id ";
 
-	$result = mysqli_query($connection, $query);
-
-	if ($result) {
-		$products = [];
-		while ($row = mysqli_fetch_object($result)) {
-			array_push($products, $row);
-		}
-		return $products;
-	}
-	return [];
+	$values = [ 'order_id' => $tilaus_id ];
+	return ( $db->query($query, $values, FETCH_ALL, PDO::FETCH_OBJ) );
 }
 
 
@@ -102,7 +95,7 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 		exit(); }
 }
 
-$products = get_products_in_tilaus( $connection, $tilaus_id );
+$products = get_products_in_tilaus( $db, $tilaus_id );
 if (count($products) > 0) {
 	merge_products_with_tecdoc($products);
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
