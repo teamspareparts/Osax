@@ -3,6 +3,7 @@
 <head>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<style type="text/css">
 			.class #id tag {}
 			#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
@@ -137,6 +138,12 @@ function laheta_Tilaus () {
 		return false;
 	}
 }
+
+
+//JQUERY
+$(document).ready(function(){
+//tarvitaan estämään tilauksen teko, jos toimitusosoite ei valittu
+});
 </script>
 
 </body>

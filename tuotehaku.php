@@ -207,6 +207,7 @@ if (isset($_SESSION['cart'])) {
                 "provider" : TECDOC_MANDATOR,
                 "childNodes" : false
         };
+        params = toJSON(params);
 		tecdocToCatPort[functionName] (params, updatePartTypeList);
     }
 
@@ -223,6 +224,7 @@ if (isset($_SESSION['cart'])) {
                 "parentNodeId" : parentNodeID,
                 "childNodes" : false
         };
+        params = toJSON(params);
 		tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
@@ -241,7 +243,22 @@ if (isset($_SESSION['cart'])) {
         		"oeNumbers" : true,
         		"documents" : true
         };
-		tecdocToCatPort[functionName] (params, showProductInfoOnModal);
+        params = toJSON(params);
+		tecdocToCatPort[functionName] (params, addProductInfoOnModal);
+    }
+
+    function getComparableNumber(articleNumber) {
+        var functionName = "getArticleDirectSearchAllNumbersWithState";
+        var params = {
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR,
+        		"articleNumber" : articleNumber,
+        		"numberType" : 3,
+        		"searchExact" : true
+        };
+        params = toJSON(params);
+		tecdocToCatPort[functionName] (params, addComparableNumbersToModal);
     }
 
  	// Create JSON String and put a blank after every ',':
@@ -350,13 +367,14 @@ if (isset($_SESSION['cart'])) {
 			$('#osat_alalaji').removeAttr('disabled');
     }
 
-	//Näytetään tuotteen tarkemmat tiedot
-	function showProductInfoOnModal(response){
+	  
+	//Näytetään tuotteen tarkemmat tiedot Modal-ikkunassa
+	function addProductInfoOnModal(response){
 
 		function makeTableHTML(array) {
 			if(array.length==0) return "";
 			array=array.array;
-		    var result = "<table style='margin-right: auto;margin-left: auto;'><th colspan='2' class='text-center'>OE</th>";
+		    var result = "<div style='display:inline-block; width:50%;'><table style='margin-left:auto; margin-right:auto;'><th colspan='2' class='text-center'>OE</th>";
 		    for(var i=0; i<array.length; i++) {
 		        result += "<tr>";
 		        result += "<td style='font-size:14px'>"+array[i].brandName+"</td><td style='font-size:14px'>"+array[i].oeNumber+"</td>";
@@ -367,6 +385,7 @@ if (isset($_SESSION['cart'])) {
 		    return result;	
 		}
 
+		//Tehdään peräkkäinen html-muotoinen lista, jossa kaikki löytyneet kuvat peräkkäin
 		function imgsToHTML(response) {
 			if(response.articleThumbnails.length==0) return "<img src='img/ei-kuvaa.png' class='no-image' />";
 			var imgs = "";
@@ -378,8 +397,13 @@ if (isset($_SESSION['cart'])) {
 			return imgs;
 		}
 
+		//Tehdään html-muotoinen listaus tuotteen infoista
 		function infosToHTML(response) {
 			var infos = "";
+			//saatavuustiedot
+			if(response.directArticle.articleState != 1) {
+				infos += "<span style='color:red;'>" + response.directArticle.articleStateName + "</span><br>";
+			}
 			//pakkaustiedot
 			if (typeof response.directArticle.packingUnit != 'undefined') {
 				  infos += "Pakkauksia: " + response.directArticle.packingUnit + "<br>";
@@ -408,7 +432,7 @@ if (isset($_SESSION['cart'])) {
 			return infos;
 		}
 
-		
+		//Tehdään asennusohjeen latauslinkki, jos asennusohje olemassa 
 		function getDocuments(response){
 			if (response.articleDocuments == "") {
 				return "";
@@ -430,6 +454,7 @@ if (isset($_SESSION['cart'])) {
 		response = response.data.array[0];
 		id = response.directArticle.articleId;
 
+		//Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
 		imgs = imgsToHTML(response);
 		OEtable = makeTableHTML(response.oenNumbers);
 		name = response.directArticle.articleName;
@@ -437,7 +462,7 @@ if (isset($_SESSION['cart'])) {
 		brand = response.directArticle.brandName;
 		infos = infosToHTML(response);
 		documents = getDocuments(response);
-
+		
 		//display image
 		display_img_id = "";
 		if(response.articleThumbnails.length==0) {
@@ -473,17 +498,52 @@ if (isset($_SESSION['cart'])) {
 		');
 		$("#menu1").append("<div style='width:200px;float:left;'><br><br></div>");
 
+
+		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot)
+		getComparableNumber(articleNo);
+		
+	}
+
+
+	//Lisätään vertailunumerot modaliin
+	function addComparableNumbersToModal(response){
+
+		function combarableNumbersToList(response){
+			
+			if(response.length==0) return "";
+		    var result = "<div style='display:inline-block; width:49%; vertical-align:top;'><table style='margin-left:auto; margin-right:auto;'><th colspan='2' class='text-center'>Vertailunumerot</th>";
+		    for(var i=0; i<response.length; i++) {
+		        result += "<tr>";
+		        result += "<td style='font-size:14px'>"+response[i].brandName+"</td><td style='font-size:14px'>"+response[i].articleNo+"</td>";
+		        result += "</tr>";
+		    }
+		    result += "</table>";
+
+		    return result;	
+		}
+
+		if(response.data != "") {
+			response = response.data.array;
+			comparableNumbers = combarableNumbersToList(response);
+			$("#menu3").append('\
+				'+comparableNumbers+'\
+				\
+			');
+		}
+		showModal();
+	}
+
+
+	//avataan modal ja pysäytetään spinning icon
+	function showModal(){
 		//lopetetaan spinning iconin näyttäminen
 		$('#cover').removeClass("loading");
 		//avataan modal
 		$("#myModal").modal({
 			  keyboard: true
 		});
-		
-
 		//avataan aina "tuote" tabi ensin
 		$('#modalnav a[href="#menu1"]').tab('show');
-		
 	}
 
 
@@ -629,6 +689,8 @@ if (isset($_SESSION['cart'])) {
 			    $("div.tooltip").remove();
 			});
 
+
+			//Jos listassa olevaa tuotetta painetaan
 			$('.clickable').click(function(){
 					//haetaan tuotteen id
 					var articleId = $(this).closest('tr').attr('data-val');
@@ -807,6 +869,13 @@ require 'tietokanta.php';
 }
  */
 
+
+/**
+ * Hakee catalogista löytyvät tuotteet annetun tuotenumeron perusteella
+ * 
+ * @param string $number: Tuotenumero, jota vastaavat tuotteet haetaan catalogista.
+ * @return array $products: Tuotteet, jotka löytyi catalogista.
+ */
 function get_catalog_products_by_number($number){
 	global $connection;
 	$number = trim(addslashes(str_replace(" ", "", $number)));
@@ -826,18 +895,19 @@ function get_catalog_products_by_number($number){
 				FROM 	tuote 
 				JOIN 	ALV_kanta
 					ON	tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	tuote.id IN ('$articleNos') AND tuote.aktiivinen=1";
+				WHERE 	tuote.articleNo IN ('$articleNos') AND tuote.aktiivinen=1";
 	$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
 	$products = array();
 	while ($row = mysqli_fetch_object($result)) {
 		//vaihdetaan id (articleNo) tecdoc_id:ksi, jotta voidaan käyttää 
 		//merge_products_with_tecdoc -funktiota
-		$row->id = $product_ids[array_search($row->id, $product_articleNos)];
+		$row->id = $product_ids[array_search($row->articleNo, $product_articleNos)];
 		array_push($products, $row);
 	}
 	merge_products_with_tecdoc($products);
 	return $products;
 }
+
 
 $number = isset($_GET['haku']) ? $_GET['haku'] : null;
 
@@ -873,12 +943,12 @@ if(isset($_GET["manuf"])) {
 	//valitaan vain ne tuotteet jotka lisätty tietokantaan
 	global $connection;
 	$result = mysqli_query($connection, "
-			SELECT id, varastosaldo, minimisaldo, minimimyyntiera,
+			SELECT articleNo, varastosaldo, minimisaldo, minimimyyntiera,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta
 				ON ALV_kanta = ALV_kanta.kanta
-			WHERE tuote.id IN ('$articleNos');");
+			WHERE tuote.articleNo IN ('$articleNos');");
 
 	if ($result) {
 		$products = array();

@@ -18,18 +18,18 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
 
     $articleNos = implode("', '", array_keys($cart));
 	$result = mysqli_query($connection, "
-		SELECT	id, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
+		SELECT	articleNo, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 			ALV_kanta.prosentti AS alv_prosentti
 		FROM	tuote
 		LEFT JOIN	ALV_kanta
 			ON		tuote.ALV_kanta = ALV_kanta.kanta
-		WHERE 	tuote.id in ( '{$articleNos}' );");
+		WHERE 	tuote.articleNo in ( '{$articleNos}' );");
 
 	if ($result) {
 		$products = [];
 		while ( $row = mysqli_fetch_object($result) ) {
-            $row->cartCount = $cart[$row->id];
+            $row->cartCount = $cart[$row->articleNo];
 			array_push($products, $row);
 		}
 		merge_catalog_with_tecdoc($products, false);
@@ -214,7 +214,7 @@ function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal ( array $osoitekirja_arra
 function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /* int */ $osoitekirja_pituus ) {
 	$nappi_html_toimiva = '<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
 	$nappi_html_disabled = '
-					<a class="nappi disabled" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>
+					<a class="nappi disabled" type="button">Valitse<br>toimitusosoite</a>
 					<p>Sinulla ei ole yhtään toimitusosoitetta profiilissa!</p>';
 
 	if ( $osoitekirja_pituus > 0 ) {
