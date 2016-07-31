@@ -3,7 +3,7 @@
 /********************************************
 	General application
 *********************************************/
-html{ position:relative; min-height: 100%; /*Varmuuden varalle...*/ }
+html{ position:relative; min-height: 100%; width:100%; /*Varmuuden varalle...*/ }
 
 html,body{ background-color: Floralwhite; /* The searing white is destroying my eyes */ }
 
@@ -118,9 +118,10 @@ input { padding: 3pt; }
 	Otsikon tyylittely
 ********************************************/
 .otsikko {
+	vertical-align: middle;
 	display: inline-block;
 	position: relative;
-	width: 50%;
+	width: 45%;
 	left: 5%;
 }
 
@@ -447,7 +448,7 @@ th {
 }
 
 #modal-container input {
-	text-align: right;
+	text-align: left;
 }
 
 .dialogi-otsikko {
@@ -511,7 +512,8 @@ th {
 
 /** Otsikon vasemmalla puolella olevat napit */
 #painikkeet {
-	width: 44%;
+	vertical-align: middle;
+	width: 49%;
 	text-align: right;
 	display: inline-block;
 }

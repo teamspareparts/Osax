@@ -33,6 +33,53 @@ function _send_json($request) {
 }
 
 //
+// Hakee aktivoidut toimittajat
+//
+function getAmBrands() {
+	$function = 'getAmBrands';
+	$params = [
+			'lang' => TECDOC_LANGUAGE,
+			'articleCountry' => TECDOC_COUNTRY,
+			'provider' => TECDOC_PROVIDER,
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	return $response->data->array;
+}
+
+//
+// Hakee toimittajan tiedot annetun valmistajanumeron perusteella
+//
+function getAmBrandAddress($brandNo) {
+	$function = 'getAmBrandAddress';
+	$params = [
+			'lang' => TECDOC_LANGUAGE,
+			'articleCountry' => TECDOC_COUNTRY,
+			'provider' => TECDOC_PROVIDER,
+			'brandNo' => $brandNo,
+	];
+
+	// Lähetetään JSON-pyyntö
+	$request =	[$function => $params];
+	$response = _send_json($request);
+
+	// Pyyntö epäonnistui
+	if ($response->status !== 200) {
+		return [];
+	}
+
+	return $response->data->array;
+}
+
+//
 // Hakee tuotteet annetuen tuotenumeron (articleNo) perusteella
 //
 function getArticleDirectSearchAllNumbersWithState($number) {
@@ -176,7 +223,7 @@ function merge_products_with_tecdoc($products) {
 //jos $all_info: merge myös oe, kuvat, ean ja infot
 function merge_catalog_with_tecdoc($catalog_products, $all_info) {
 	foreach ($catalog_products as $catalog_product) {
-		$response = findMoreInfoByArticleNo($catalog_product->id);
+		$response = findMoreInfoByArticleNo($catalog_product->articleNo);
 		$catalog_product->articleId = $response->articleId;
 		$catalog_product->directArticle = $response;
 	}

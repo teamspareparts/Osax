@@ -135,18 +135,6 @@ CREATE TABLE IF NOT EXISTS `asiakas_hinta` (
   PRIMARY KEY (`kayttaja_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `tuote_search` (
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `search_no` varchar(20) NOT NULL, -- PK
-  PRIMARY KEY (`tuote_id`, `search_no`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
-
-CREATE TABLE IF NOT EXISTS `tuote_oe` (
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `oe_number` varchar(20) NOT NULL, -- PK
-  PRIMARY KEY (`tuote_id`, `oe_number`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
-
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
@@ -176,5 +164,18 @@ CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   `ostoskori_id` int(11) NOT NULL, -- PK; Foreign K
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kpl_maara` int(11) DEFAULT '1',
+  PRIMARY KEY (`ostoskori_id`, `tuote_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `vaihtoehtoinen_toimittaja` (
+  `brandNo` int(11) NOT NULL, -- PK; Foreign K
+  `name` varchar(11) DEFAULT '',
+  `street` varchar(50) DEFAULT '',
+  `zip` varchar(11) DEFAULT '',
+  `city` varchar(50) DEFAULT '',
+  `phone` varchar(50) DEFAULT '',
+  `fax` varchar(50) DEFAULT '',
+  `email` varchar(50) DEFAULT '',
+  `wwwURL` varchar(50) DEFAULT '',
   PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

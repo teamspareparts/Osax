@@ -26,11 +26,13 @@
 		exit();
 	}
 ?>
+<div>
 <h1 class="otsikko">Tuotteet</h1>
 
 <div id="painikkeet">
-	<a href="lue_tiedostosta.php"><span class="nappi">Lisää tiedostosta</span></a>
+	<a href="lue_tiedostosta.php"><span class="nappi">EULA</span></a>
 	<?php include("yp_tuotteet_alv_muokkaus.php"); //Sisaltaa kaiken toiminnallisuuden ALV:ien muokkaamiseen ?>
+</div>
 </div>
 
 <form action="yp_tuotteet.php" method="post" class="haku">
@@ -569,58 +571,6 @@ function modify_product_in_catalog($articleNo, $price, $alv, $count, $minimum_co
 		WHERE 	articleNo='$articleNo';");
 	return mysqli_affected_rows($connection) >= 0;
 }
-
-/* //linkitetyt tuotteet tietokantaan erilliseen tauluun
-function add_related_search_nos($articleId, $search_no){
-	global $connection;
-	//haetaan lisättävään tuotteeseen linkitetyt tuotteet
-	$products = getArticleDirectSearchAllNumbersWithState2($search_no);
-	//echo count($products);
-	$query = "INSERT IGNORE INTO tuote_search (tuote_id, search_no)
-						VALUES";
-	foreach ($products as $product){
-		$product->articleNo = str_replace(" ", "", $product->articleNo);
-		$query .="($articleId, '$product->articleNo'),";
-	}
-	$query = substr_replace($query, "", -1);
-	$query .= ";";
-	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
-	return mysqli_affected_rows($connection) > 0; 
-}
-
-//poistetaan linkitetyt tuotteet tietokannasta
-function remove_related_search_nos($articleId){
-	global $connection;
-	$query = "DELETE FROM tuote_search WHERE tuote_id=$articleId";
-	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
-	return mysqli_affected_rows($connection) > 0;
-}
-
-
-//tuotteen oe numerot tietokantaan erilliseen tauluun
-function add_related_oes($oes, $articleId){
-	global $connection;
-	if(count($oes < 1)) return false;
-	$query = "INSERT IGNORE INTO tuote_oe (tuote_id, oe_number) VALUES";
-	foreach ($oes as $oe){
-		$oe = str_replace(" ", "", $oe);
-		$query .="($articleId, '$oe'),";
-	}
-	$query = substr_replace($query, "", -1);
-	$query .= ";";
-	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
-	return mysqli_affected_rows($connection) > 0;
-}
-
-//poistetaan tuotteen oe numerot tietokannasta
-function remove_related_oe($articleId){
-	global $connection;
-	$query = "DELETE FROM tuote_oe WHERE tuote_id=$articleId";
-	$result = mysqli_multi_query($connection, $query) or die("Error:" . mysqli_error($connection));
-	return mysqli_affected_rows($connection) > 0;
-} */
-
-
 
 //
 // Hakee tietokannasta kaikki tuotevalikoimaan lisätyt tuotteet

@@ -42,6 +42,7 @@ check_login_status();
 			<?php if ( is_admin() ) { ?>
 		        <li><a href='yp_asiakkaat.php'><span>Asiakkaat</span></a></li>
 		        <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
+		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
 			<?php } else { ?>
 				<li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
