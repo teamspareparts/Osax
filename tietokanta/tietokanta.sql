@@ -128,13 +128,6 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `asiakas_hinta` (
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `hinta` decimal(11,2) NOT NULL,
-  PRIMARY KEY (`kayttaja_id`, `tuote_id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
-
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
