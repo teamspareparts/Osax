@@ -44,8 +44,8 @@ CREATE TABLE IF NOT EXISTS `yritys` (
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `articleNo` varchar(20) NOT NULL, 
-  `brandNo` int(11) NOT NULL,
+  `articleNo` varchar(20) NOT NULL, -- UNIQUE KEY
+  `brandNo` int(11) NOT NULL, -- UNIQUE KEY
   `hinta_ilman_ALV` decimal(11,2) NOT NULL DEFAULT '0.00',
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT '0', -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
@@ -101,8 +101,8 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `pw_reset` (
+  `user_id` int(11) NOT NULL, -- PK; Foreign K
   `reset_key` varchar(100) NOT NULL, -- PK
-  `user_id` varchar(255) COLLATE utf8_swedish_ci NOT NULL, -- PK; Foreign K
   `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`reset_key`, `user_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -110,8 +110,7 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (
   `kanta` tinyint(1) NOT NULL, -- PK
   `prosentti` decimal(3,2) NOT NULL, -- UNIQUE K
-  PRIMARY KEY (`kanta`),
-  UNIQUE KEY (`prosentti`)
+  PRIMARY KEY (`kanta`), UNIQUE KEY (`prosentti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (

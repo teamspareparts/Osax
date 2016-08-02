@@ -3,10 +3,6 @@
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/login_styles.css">
-	<style type="text/css">
-		.class #id tag {}
-	    
-	</style>
 	<title>Käyttöoikeussopimus</title>
 </head>
 <body class="eula">
@@ -48,7 +44,7 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 </header>
 	
 <main id="eula_body">
-		<textarea id="eula_scrollable_textbox" ReadOnly Multiline>
+		<textarea id="eula_scrollable_textbox" ReadOnly title="Käyttöoikeussopimus">
 			<?php echo $eula_txt; ?>
 		</textarea><br>
 	<div id="eula_napit_container">
@@ -57,7 +53,7 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 	</div>
 </main>
 
-<form style="display:none;" id="vahvista_eula_form" action="#" method=post>
+<form class="hidden" id="vahvista_eula_form" action="#" method=post>
 	<input type=hidden name="vahvista_eula">
 </form>
 
@@ -68,7 +64,7 @@ function hyvaksy_eula () {
 							+ "Tätä toimintoa ei voi perua jälkeenpäin!\n"
 							+ "Jos painat OK, yhtikäs mitään ei muutu, ja maailma jatkuu pyörimistään.\n"
 							+ "(Huom. Hylkää-napilla olisi ollut aivan sama lopputulos.)");
-	if ( vahvistus == true ) {
+	if ( vahvistus ) {
 		document.getElementById(form_ID).submit();
 	} else {
 		return false;

@@ -32,6 +32,10 @@ input { padding: 3pt; }
 	position:relative;
 }
 
+.hidden {
+	display: none;
+}
+
 /********************************************
 	Header
 *********************************************/
@@ -43,20 +47,20 @@ input { padding: 3pt; }
 }
    
 .header_top #head_logo {
-    display: flex; 			/* Pakollinen keskitystä varten */
-    margin: auto;			/* Keskittää sisällön */
+	display: flex; 			/* Pakollinen keskitystä varten */
+	margin: auto;			/* Keskittää sisällön */
 	width: 22em;
 }
 
 .header_top #head_logo img {
-    margin-left: 0.6em;
+	margin-left: 0.6em;
 }
 
 .header_top #head_info {
-    flex-grow: 1;
-    font-size: 18px;
-    color: whitesmoke;
-    margin: auto;			/* Keskittää sisällön */
+	flex-grow: 1;
+	font-size: 18px;
+	color: whitesmoke;
+	margin: auto;			/* Keskittää sisällön */
 }
 
 /********************************************
@@ -87,26 +91,26 @@ input { padding: 3pt; }
 	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
 #navigationbar ul:after {
 	content: " ";
-  	display: block;
-  	clear: both;
+	display: block;
+	clear: both;
 }
 
 #navigationbar ul li {
-  	display: inline-block;
-  	padding: 0;
-  	margin: 0;
+	display: inline-block;
+	padding: 0;
+	margin: 0;
 }
 
 #navigationbar ul li a {
 	color: #ffffff;
- 	text-decoration: none;
- 	display: block;
+	text-decoration: none;
+	display: block;
 	padding: 15px 25px;
 	font-family: 'Open Sans', sans-serif;
-  	font-weight: 700;
-  	text-transform: uppercase;
-  	font-size: 16px;
-  	position: relative;
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 16px;
+	position: relative;
 }
 
 #navigationbar ul li a:HOVER {
@@ -132,23 +136,23 @@ input { padding: 3pt; }
 .nappi,
 #lista #submit input[type=submit],
 #lomake #submit input[type=submit] {
-    padding: 8px 15px;
-    color: #FFF;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-    border: solid 1px;
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
-    -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
-    -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
-    -webkit-transition-duration: 0.2s;
-    -moz-transition-duration: 0.2s;
-    transition-duration: 0.2s;
-    -webkit-user-select:none;
-    -moz-user-select:none;
-    -ms-user-select:none;
-    user-select:none;
+	padding: 8px 15px;
+	color: #FFF;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	border: solid 1px;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
+	-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
+	-webkit-transition-duration: 0.2s;
+	-moz-transition-duration: 0.2s;
+	transition-duration: 0.2s;
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
+	user-select:none;
 	font-weight: 700;
 	font-size: 15px;
 	text-transform: uppercase;
@@ -249,16 +253,16 @@ input { padding: 3pt; }
 #lomake fieldset {
 	width: 450px;
 	border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    margin: 0px 0px 10px 0px;
-    border: 1px solid #000000;
-    padding: 20px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	margin: 0px 0px 10px 0px;
+	border: 1px solid #000000;
+	padding: 20px;
 }
 
 #lomake fieldset legend {
 	text-align: left;
-    font-size: 20px;
+	font-size: 20px;
 }
 
 
@@ -285,14 +289,14 @@ input { padding: 3pt; }
 }
 
 #lomake #submit input[type=submit] {
-    background: #4479BA;
-    border-color: #20538D;
+	background: #4479BA;
+	border-color: #20538D;
 }
 
 #lomake #submit input[type=submit]:HOVER {
-    background: #356094;
-    border: solid 1px #2A4E77;
-    cursor: pointer;
+	background: #356094;
+	border: solid 1px #2A4E77;
+	cursor: pointer;
 }
 
 
@@ -424,16 +428,16 @@ th {
 
 .nappi {
 	background: #4479BA;
-    border-color: #20538D;
+	border-color: #20538D;
 	text-decoration: none;
-    display: inline-block;
-    margin-top: 4px;
+	display: inline-block;
+	margin-top: 4px;
 }
 
 .nappi:hover {
-    background: #356094;
-    border: solid 1px #2A4E77;
-    cursor: pointer;
+	background: #356094;
+	border: solid 1px #2A4E77;
+	cursor: pointer;
 }
 
 .disabled {
@@ -443,8 +447,8 @@ th {
 
 #modal-container label {
 	display: inline-block;
-    width: 8em;
-    margin-bottom: 10pt;
+	width: 8em;
+	margin-bottom: 10pt;
 }
 
 #modal-container input {
