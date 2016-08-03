@@ -34,7 +34,8 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 			CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 			CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 			tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
-			SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
+			SUM( tilaus_tuote.kpl * 
+					( (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
 				AS summa,
 			SUM(tilaus_tuote.kpl) AS kpl
 		FROM tilaus
@@ -56,12 +57,14 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return Array; tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
+ * @return Array <p> tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
 function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 	$query = "
-		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
-			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) AS maksettu_hinta
+		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, 
+			tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
+			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) 
+				AS maksettu_hinta
 		FROM tilaus
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id
@@ -96,7 +99,7 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 }
 
 $products = get_products_in_tilaus( $db, $tilaus_id );
-if (count($products) > 0) {
+if ( $products ) {
 	merge_products_with_tecdoc($products);
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
@@ -104,8 +107,10 @@ if (count($products) > 0) {
 <main class="main_body_container">
 	<div id="otsikko_container" class="flex">
 		<h1 class="otsikko">Tilauksen tiedot</h1>
-		<?php if ($tilaus_tiedot["kasitelty"] == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>Odottaa käsittelyä.</h4>"; }
-		else { echo "<h4 style='color:green; display:flex; align-items:center;'>Käsitelty ja toimitettu.</h4>"; } ?>
+		<?php if ($tilaus_tiedot["kasitelty"] == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>
+			Odottaa käsittelyä.</h4>"; }
+		else { echo "<h4 style='color:green; display:flex; align-items:center;'>
+			Käsitelty ja toimitettu.</h4>"; } ?>
 	</div>
 	<!-- HTML -->
 	<div id="tilaus_info_container" class="flex">
@@ -116,7 +121,10 @@ if (count($products) > 0) {
 				<tr><td>Tilaaja: <?= $tilaus_tiedot["etunimi"] . " " . $tilaus_tiedot["sukunimi"]?></td>
 					<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td></tr>
 				<tr><td>Tuotteet: <?= $tilaus_tiedot["kpl"]?></td>
-					<td>Summa: <?= format_euros( $tilaus_tiedot["summa"] + $tilaus_tiedot["pysyva_rahtimaksu"])?> ( ml. rahtimaksu )</td></tr>
+					<td>Summa:
+						<?= format_euros( $tilaus_tiedot["summa"] + $tilaus_tiedot["pysyva_rahtimaksu"])?>
+						( ml. rahtimaksu )
+					</td></tr>
 			</table>
 			<p class="small_note">Kaikki hinnat sisältävät ALV:n</p>
 		</div>
@@ -129,7 +137,9 @@ if (count($products) > 0) {
 	</div>
 	<br>
 	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th><th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th><th class="number">Kpl</th></tr>
+		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th>
+			<th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th>
+			<th class="number">Kpl</th></tr>
 		<?php
 		foreach ($products as $product) {
 			$article = $product->directArticle; ?>
@@ -152,7 +162,9 @@ if (count($products) > 0) {
 			<td class="number"><?= format_euros( $tilaus_tiedot["pysyva_rahtimaksu"] ) ?></td>
 			<td class="number">---</td>
 			<td class="number">0 %</td>
-			<td class="number"><?php if ( $tilaus_tiedot["pysyva_rahtimaksu"] === 0 ) { echo "Ilmainen toimitus"; } else { echo "---"; } ?></td>
+			<td class="number">
+				<?php if ($tilaus_tiedot["pysyva_rahtimaksu"]===0) { echo "Ilmainen toimitus"; } else { echo "---"; } ?>
+			</td>
 			<td class="number">---</td>
 		</tr>
 	</table>

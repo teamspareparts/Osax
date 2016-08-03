@@ -10,15 +10,6 @@
  * ylhäällä olevassa linkissä.
  *
  * Käytän PDO:ta, koska se on yksinkertaisempaa käyttää prep. stmt:n kanssa.
- *
- * @method __construct
- * @method raw_query
- * @method query
- * @method prepare_stmt
- * @method run_prepared_stmt
- * @method get_next_row
- * @method close_prepared_stmt
- * @method __destruct
  */
 class DByhteys {
 
@@ -180,7 +171,7 @@ class DByhteys {
 	 * <ul><li>returnType = Assoc array</li></ul>
 	 * @param string $type [optional], default = NULL <p> haluttu tyyppi
 	 */
-	public function change_returnType( /* string */ $type = NULL ) {
+	public function setReturnType( /* string */ $type = NULL ) {
 		switch ( $type ) {
 			case 'enum':
 				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_NUM );

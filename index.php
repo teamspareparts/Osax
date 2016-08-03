@@ -7,7 +7,7 @@
 </head>
 <body>
 <main class="login_container">
-	<img src="img/rantak_varao-Logo.jpg" alt="Osax.fi">
+	<img src="img/osax-Logo.jpg" alt="Osax.fi">
 
 <?php
 session_start();
@@ -16,52 +16,60 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 	if ( !empty($_SESSION['email']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
 	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
 
+	/** Error-boxin väritys. Muuta haluamaasi väriin. Jos haluat muuttaa vain yksittäisen
+	 * boxin värin, niin muuta suoraan style-merkkijonoon. */
+	$colors = [
+		'warning' => 'red',
+		'success' => 'green',
+		'note' => 'blue',
+	];
+
 	$modes_array = [
 		1 => array(
 				"otsikko" => " Väärä sähköposti ",
 				"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein.",
-				"style" => 'style="color:#0afec0;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 		2 => array(
 				"otsikko" => " Väärä salasana ",
 				"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein.",
-				"style" => 'style="color:#c9f2d0;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 		3 => array(
 				"otsikko" => " Käyttäjätili de-aktivoitu ",
 				"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun.",
-				"style" => 'style="color:#9b923e;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 		4 => array(
 				"otsikko" => " Et ole kirjautunut sisään ",
 				"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
-				"style" => 'style="color:#7a0e0b;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 		5 => array(
 				"otsikko" => " :( ",
 				"teksti" => "Olet onnistuneesti kirjautunut ulos.",
-				"style" => 'style="color:#dbe32a;"'),
+				"style" => "style='color:{$colors['success']};'"),
 		6 => array(
 				"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
 				"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.",
-				"style" => 'style="color:#F4917F;"'),
+				"style" => "style='color:{$colors['success']};'"),
 		7 => array(
 				"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
 				"teksti" => "Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan.",
-				"style" => 'style="color:#312f78;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 		8 => array(
 				"otsikko" => " Salasanan palautus - Onnistunut ",
 				"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään.",
-				"style" => 'style="color:#76b944;"'),
+				"style" => "style='color:{$colors['success']};'"),
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
 				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään.",
-				"style" => 'style="color:#1e4d2e;"'),
+				"style" => "style='color:{$colors['note']};'"),
 		10=> array(
 				"otsikko" => " Käyttöoikeussopimus ",
 				"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta.",
-				"style" => 'style="color:#4a117c;"'),
+				"style" => "style='color:{$colors['warning']};'"),
 
 		99=> array(
 				"otsikko" => " Kirjautuminen ",
-				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="tuotehaku.php">Linkki etusivulle</a></p>',
-				"style" => 'style="color:#934219;"'),
+				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php">Linkki etusivulle</a></p>',
+				"style" => "style='color:{$colors['note']};'"),
 	];
 ?>
 	<fieldset id=error <?= @$modes_array[$mode]['style'] ?>><legend> <?= @$modes_array[$mode]['otsikko'] ?> </legend>
