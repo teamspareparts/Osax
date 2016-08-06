@@ -95,8 +95,8 @@ function showAddDialog(articleNo, brandNo) {
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
-				<label for="alennusera_kpl">Eräraja:</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
-				<label for="alennusera_prosentti">Eräalennus:</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0,00"></span><br> \
+				<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
+				<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
 				<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 				<input type="hidden" name="lisaa" value="' + articleNo + '"> \
@@ -130,8 +130,8 @@ function showModifyDialog(articleNo, price, alv, count, minimumCount, minimumSal
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
 				<label for="minimisaldo">Minimisaldo:</label><span class="dialogi-kentta"><input class="kpl" name="minimisaldo" placeholder="0" value="' + minimumCount + '"> kpl</span><br> \
 				<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="' + minimumSaleCount + '"> kpl</span><br> \
-				<label for="alennusera_kpl">Eräraja (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="' + alennusera_kpl + '"> kpl</span><br> \
-				<label for="alennusera_prosentti">Eräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0,00" value="' + alennusera_prosentti + '"></span><br> \
+				<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="' + alennusera_kpl + '"> kpl</span><br> \
+				<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="' + alennusera_prosentti + '"></span><br> \
 				<p><input class="nappi" type="submit" name="tallenna" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
 				<input type="hidden" name="muokkaa" value="' + articleNo + '"> \
@@ -525,7 +525,7 @@ function add_product_to_catalog($articleNo, $brandNo, $price, $alv, $count, $min
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
 	$alennusera_kpl = intval($alennusera_kpl);
-	$alennusera_prosentti = doubleval($alennusera_prosentti);
+	$alennusera_prosentti = (double)$alennusera_prosentti;
 	$result = mysqli_query($connection, "
 		INSERT INTO tuote 
 			(articleNo, brandNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti) 
@@ -562,9 +562,9 @@ function modify_product_in_catalog($articleNo, $price, $alv, $count, $minimum_co
 	$count = intval($count);
 	$minimum_count = intval($minimum_count);
 	$minimum_sale_count = intval($minimum_sale_count);
-	$alennusera_kpl = intval($alennusera_kpl);
-	$alennusera_prosentti = doubleval($alennusera_prosentti);
-	$result = mysqli_query($connection, "
+	$alennusera_kpl = (int)$alennusera_kpl;
+	$alennusera_prosentti = (double)$alennusera_prosentti / 100;
+	mysqli_query($connection, "
 		UPDATE 	tuote 
 		SET 	hinta_ilman_ALV=$price, ALV_kanta=$alv, varastosaldo=$count, minimisaldo=$minimum_count, 
 			minimimyyntiera=$minimum_sale_count, alennusera_kpl=$alennusera_kpl, alennusera_prosentti=$alennusera_prosentti
@@ -579,7 +579,8 @@ function get_products_in_catalog() {
 	
 	global $connection;
 	$result = mysqli_query($connection, "
-		SELECT articleNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
+		SELECT articleNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, 
+			(alennusera_prosentti * 100) AS alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 		FROM tuote
 		JOIN ALV_kanta
@@ -750,7 +751,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
-		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
+		$alennusera_prosentti = (int)$_POST['alennusera_prosentti'] / 100;
 		$success = add_product_to_catalog($articleNo, $brandNo, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
@@ -772,7 +773,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
-		$alennusera_prosentti = doubleval(str_replace(',', '.', $_POST['alennusera_prosentti']));
+		$alennusera_prosentti = (int)$_POST['alennusera_prosentti'] / 100;
 		$success = modify_product_in_catalog($articleNo, $hinta, $alv, $varastosaldo, $minimisaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuotteen tiedot päivitetty!</p>';

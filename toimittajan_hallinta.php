@@ -37,12 +37,18 @@ $logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 
 <br><br>
 <div style="text-align: center; display:inline-block; margin-left: 5%;">
-<?php 
+<?php
 
-
+/**
+ * PhpDocin saa automaattisesti, jos painat enteriä "/**":n jälkeen.
+ * This message brought to by Passive-Aggressive. The best way to communicate.
+ * @param $brandAddress
+ * @param $brandName
+ * @param $brandId
+ */
 function yhteystiedot($brandAddress, $brandName, $brandId){
 	//tarkastetaan onko tietokannassa vaihtoehtoista toimittajaa
-	global $connection;
+	global $connection; // *gough*globaalien muutttujien käyttö on huonoa tyyliä*gough*
 	$table_name = "vaihtoehtoinen_toimittaja";
 	$query = "SELECT * FROM $table_name WHERE brandNo=$brandId";
 	

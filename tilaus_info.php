@@ -99,7 +99,7 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 }
 
 $products = get_products_in_tilaus( $db, $tilaus_id );
-if ( $products ) {
+if ( $products) {
 	merge_products_with_tecdoc($products);
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>

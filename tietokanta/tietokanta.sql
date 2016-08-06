@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
   `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`), 
-  UNIQUE KEY (`sahkoposti`)
+  PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 /* Meillä alkaa olla aika monta toiminnallisuutta, jotka ei viittaa yksittäiseen asiakkaaseen,
@@ -35,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `katuosoite` varchar(255) DEFAULT '',
   `postinumero` varchar(10) DEFAULT '',
   `postitoimipaikka` varchar(255) DEFAULT '',
+  `maa` VARCHAR(200) DEFAULT 'Suomi',
   /*
   Osalinkillä on myös faxnumero, ERP-numero, jälleenmyyjän ERP-numero, ja autofutur-asiakasnumero,
   mutta koska en tiedä mitä noilla tekisi en oikein halua lisätä niitä tietokantaan
@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
   `pysyva_katuosoite` varchar(255) NOT NULL,
   `pysyva_postinumero` varchar(10) NOT NULL,
   `pysyva_postitoimipaikka` varchar(255) NOT NULL,
+  `pysyva_maa` varchar(200) DEFAULT 'Suomi',
   PRIMARY KEY (`tilaus_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -110,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (
   `kanta` tinyint(1) NOT NULL, -- PK
   `prosentti` decimal(3,2) NOT NULL, -- UNIQUE K
-  PRIMARY KEY (`kanta`), UNIQUE KEY (`prosentti`)
+  PRIMARY KEY (`kanta`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
@@ -124,20 +125,21 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   `katuosoite` varchar(255) DEFAULT '',
   `postinumero` varchar(10) DEFAULT '',
   `postitoimipaikka` varchar(255) DEFAULT '',
+  `maa` varchar(200) DEFAULT 'Suomi',
   PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `laskuri` int(4) DEFAULT '1', -- Ostopyyntöjen määrä
-  PRIMARY KEY (`tuote_id`, `kayttaja_id`)
+  `pvm` DATETIME DEFAULT CURRENT_TIME,
+  PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `tuote_id` int(11) NOT NULL, -- Foreign KEY
-  `kayttaja_id` int(11) NOT NULL, -- Foreign KEY
+  `tuote_id` int(11) DEFAULT NULL, -- Foreign KEY
+  `kayttaja_id` int(11) DEFAULT NULL, -- Foreign KEY
   `maaraalennus_kpl` int(11) DEFAULT '0',
   `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
   `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
@@ -169,5 +171,23 @@ CREATE TABLE IF NOT EXISTS `vaihtoehtoinen_toimittaja` (
   `fax` varchar(50) DEFAULT '',
   `email` varchar(50) DEFAULT '',
   `wwwURL` varchar(50) DEFAULT '',
-  PRIMARY KEY (`ostoskori_id`, `tuote_id`)
+  PRIMARY KEY (`brandNo`, `nimi`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `hankintapaikka` (
+  `brandNo` int(11) NOT NULL, -- PK; Foreign K
+  `nimi` varchar(11) DEFAULT '',
+  `katuosoite` varchar(50) DEFAULT '',
+  `postinumero` varchar(11) DEFAULT '',
+  `kaupunki` varchar(50) DEFAULT '',
+  `maa` varchar(50) DEFAULT '',
+  `puhelin` varchar(50) DEFAULT '',
+  `yhteyshenkilo_nimi` varchar(50) DEFAULT '',
+  `yhteyshenkilo_puhelin` varchar(50) DEFAULT '',
+  `yhteyshenkilo_email` varchar(50) DEFAULT '',
+  `email` varchar(50) DEFAULT '',
+  `www_url` varchar(50) DEFAULT '',
+  `www_kayttajatunnus` varchar(50) DEFAULT '',
+  `www_salasana` varchar(50) DEFAULT '',
+  PRIMARY KEY (`brandNo`, `nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

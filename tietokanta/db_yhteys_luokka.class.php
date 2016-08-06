@@ -48,15 +48,6 @@ class DByhteys {
 	protected $prepared_stmt = NULL;//Tallennettu prepared statement
 
 	/**
-	 * Käytä metodia change_returnType(), jos haluat muuttaa,
-	 *  tai parametrina anna tarkka palautustyyppi muissa metodeissa.
-	 * See link for more info on return types:
-	 *	{@link https://phpdelusions.net/pdo/fetch_modes}
-	 * @var $returnType <p> possible return types for a PDO query fetch()-function
-	 */
-	protected $returnType = PDO::FETCH_ASSOC;
-
-	/**
 	 * Konstruktori.
 	 *
 	 * @param string $username
@@ -82,7 +73,7 @@ class DByhteys {
 	 * 		jotka sitten lähetetään tietokannalle.
 	 * @param bool $fetch_All_Rows [optional], default=FALSE<p>
 	 * 		haetaanko kaikki rivit, vai vain yksi.
-	 * @param special $returnType [optional], default = NULL <p>
+	 * @param int $returnType [optional], default = NULL <p>
 	 * 		Missä muodossa haluat tiedot palautettavan.
 	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
 	 * 		Mahdolliset arvot:
@@ -92,7 +83,7 @@ class DByhteys {
 	 * 				<li>PDO::FETCH_OBJ</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
-	 * Niitä on muitakin, mutta nuo on tärkeimmät.
+	 * 		Niitä on muitakin, mutta nuo on tärkeimmät.
 	 * @return array ( results | empty ) <p> assoc array, to be precise
 	 */
 	public function query( /* string */ $query, array $values = NULL,
@@ -139,7 +130,7 @@ class DByhteys {
 	 * Palauttaa seuraavan rivin viimeksi tehdystä hausta.
 	 * Huom. ei toimi query()-metodin kanssa. Käytä vain prep.stmt -metodien kanssa.<br>
 	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
-	 * @param special $returnType [optional], default = NULL <p>
+	 * @param int $returnType [optional], default = NULL <p>
 	 * 		Missä muodossa haluat tiedot palautettavan.
 	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
 	 * 		Mahdolliset arvot:
@@ -209,10 +200,6 @@ class DByhteys {
 	function __destruct() {
 		$this->close_prepared_stmt();
 		$this->connection = NULL;
-		$this->username = NULL;
-		$this->password = NULL;
-		$this->host = NULL;
-		$this->database = NULL;
 	}
 }
 
@@ -232,8 +219,9 @@ class examples_and_information {
 				or die('Error: ' . mysqli_connect_error());
 
 		$value = ''; //Some user input
+		/** @noinspection SqlResolve */
 		$simple_query = "	SELECT	*
-							FROM	table
+							FROM	`table`
 							WHERE	column = {$value}; "; //Turvallisuusriski
 
 		$result = mysqli_query($mysqli_conn, $simple_query) or die(mysqli_error($mysqli_conn));
@@ -244,11 +232,13 @@ class examples_and_information {
 		}
 	}
 
+	/** @param DByhteys $db_conn */
 	function example_1_simple_query_with_single_result ( $db_conn /* Älä välitä tästä, säästää yhden rivin koodia */ ) {
-		$values_array = [ $user_input ]; // An array of some user inputs
+		$values_array = [ 'user_input' ]; // An array of some user inputs
+		/** @noinspection SqlResolve */
 		$query = "	SELECT	*
-					FROM	table
-					WHERE	column = ? "; //Huom. ei puolipistettä ";"
+					FROM	`table`
+					WHERE	`column` = ? "; //Huom. ei puolipistettä ";"
 
 		$result = $db_conn->query( $query, $values_array );
 
@@ -265,11 +255,13 @@ class examples_and_information {
 		 */
 	}
 
+	/** @param DByhteys $db_conn */
 	function example_2_simple_query_with_multiple_results ( $db_conn ) {
-		$values_array = [ $user_input ]; // An array of some user inputs
+		$values_array = [ 'user_input' ]; // An array of some user inputs
+		/** @noinspection SqlResolve */
 		$query = "	SELECT	*
-					FROM	table
-					WHERE	column = ?"; //Huom. ei puolipistettä ";"
+					FROM	`table`
+					WHERE	`column` = ?"; //Huom. ei puolipistettä ";"
 
 		$results = $db_conn->query( $query, $values_array, FETCH_ALL /*Alias TRUE:lle*/ );
 
@@ -296,12 +288,14 @@ class examples_and_information {
 	/**
 	 * Complicated way, or at least more verbose.
 	 * This way you can run multiple queries with different values.
+	 * @param DByhteys $db_conn
 	 */
 	function example_3_more_verbose_version( $db_conn ) {
-		$values_array = [ $user_input ]; // An array of some user inputs
+		$values_array = [ 'user_input' ]; // An array of some user inputs
+		/** @noinspection SqlResolve */
 		$query = "	SELECT	*
-					FROM	table
-					WHERE	column = ?"; //Huom. ei puolipistettä ";"
+					FROM	`table`
+					WHERE	`column` = ?"; //Huom. ei puolipistettä ";"
 
 		$db_conn->prepare_stmt( $query ); //Valmistellaan sql-haku
 
@@ -313,7 +307,7 @@ class examples_and_information {
 		}
 
 		/* Jos haluat ajaa uudestaan saman haun, mutta eri arvoilla... */
-		$db_conn->run_prepared_stmt( $different_values_array );
+		$db_conn->run_prepared_stmt( ['different_input'] );
 		//Ajetaan haku eri syötteillä, ja sen jälkeen sama while-/if-lause
 
 		/*
@@ -332,15 +326,16 @@ class examples_and_information {
 	 * Tietoa eri palautustyypeistä. Ei esimerkkejä, koska testaillessani, suurin osa niistä
 	 *  on oikeastaan aika tylsiä. Pari on näyttää täysin samalta, paitsi jos olet surkea
 	 *  suunnittelemaan tietokantoja.
+	 * @param DByhteys $db_conn
 	 */
 	function example_4_returnTypes( $db_conn ) {
 		/** Jos haluat valita tietyn tietyn palautustyypin... */
 		$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_OBJ );
 		/* Tai... */
-		$db_conn->change_returnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
+		$db_conn->setReturnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
 		$db_conn->query( $query, $values ); // Palauttaa nyt objektina
 			// Jos haluat vaihtaa takaisin defaultiin...
-		$db_conn->change_returnType( ['' || NULL || 'assoc'] );
+		$db_conn->setReturnType( ['' || NULL || 'assoc'] );
 		/* Haluaisin huomauttaa, että tuo syntaksi ei todellakaan ole mikään
 		 * standardi. Minä keksin sen tyhjästä juuri äsken. */
 
@@ -369,6 +364,7 @@ class examples_and_information {
 	 *
 	 * Jos luit linkin aivan tiedoston alussa PDO:sta, tämä toistaa
 	 * aika paljon siitä.
+	 * @param DByhteys $db_conn
 	 */
 	function example_5_interesting_trivia( $db_conn ) {
 
@@ -376,11 +372,11 @@ class examples_and_information {
 		 * Kaikki nämä seuraavat sql_haut toimivat:
 		 */
 		$query_no_user_input = "	SELECT	*
-									FROM	table ";
+									FROM	`table` ";
 
 		$query_with_user_input = "	SELECT	*
-									FROM	table
-									WHERE	column = {$value} ";
+									FROM	`table`
+									WHERE	`column` = {$value} ";
 		$db_conn->query( $query_no_user_input ); //tai query( $query, NULL )
 		$db_conn->query( $query_with_user_input ); //tai query( $query, NULL )
 
@@ -398,10 +394,11 @@ class examples_and_information {
 		 * SQL-kyselyn voi tehdä myös nimetyilla placeholdereilla
 		 */
 		$query = "	SELECT	*
-					FROM	table
-					WHERE	column = :value ";
+					FROM	`table`
+					WHERE	`column` = :value ";
 		/* ... missä tapauksessa $values-array pitää olla assoc array:  */
-		$values_array = [ 'value' => $user_input ]; //Key samanniminen kuin placeholder
+		$values_array = [ 'value' => 'user_input' ]; //Key samanniminen kuin placeholder
+		$db_conn->query( $query, $values_array );
 		/*
 		 * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
 		 * Nimettyjä ja kysymysmerkkejä ei voi käyttää samassa queryssa.
@@ -413,20 +410,6 @@ class examples_and_information {
 		 * Define()-metodi siitä on konstruktorissa. Tämä kohta on hieman leikkimistä minulta, myönnetään
 		 */
 		FETCH_ALL === TRUE;
-
-
-		/*
-		 * Luokan muuttujissa on $returnType. Se ei ole käytössä parametrina missään, mutta teoreettisesti
-		 *  sillä voisi palauttaa tuloksen hyvin monella eri tavalla. Jos ominaisuudelle on tarvetta, se ei
-		 *  olisi vaikea lisätä. Funktioiden fetch()-metodit jo käyttävät parametrina $this->returnType:ia.
-		 */
-		$pdo_options = [ PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC ];
-		$returnType = PDO::FETCH_ASSOC;
-		/*
-		 * Nämä kaksi toistaa itseään, jos ihmettelit asiaa.
-		 * Niillä ei siis oikeastaan ole mitään funktionaalista eroa.
-		 */
-
 
 
 		/*
@@ -444,7 +427,7 @@ class examples_and_information {
 		 * Plus lisäksi, siinä pitäisi joko antaa myös arvojen tyypit, tai selvittää luokassa,
 		 *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
 		 *
-		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta.)
+		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta. But close enough.)
 		 */
 	}
 }

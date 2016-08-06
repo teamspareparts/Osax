@@ -147,7 +147,7 @@ if ( $mode == "login" ) {
    		
    		else { //JOS KAIKKI OK->
    			if ( $_SESSION['vahvista_eula'] ) { header("Location:eula.php"); exit; } // else ...
-   			header("Location:tuotehaku.php"); exit;
+   			header("Location:etusivu.php"); exit;
    		}
 	   
 	} else { //Ei tuloksia == väärä käyttäjätunnus --> lähetä takaisin
