@@ -69,7 +69,7 @@ function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 		LEFT JOIN tilaus_tuote
 			ON tilaus_tuote.tilaus_id=tilaus.id
 		WHERE tilaus.id = :order_id ";
-
+	//TODO: Miksi se käyttää left joinia, ja hakee tilauksestsa, kun tilaus_tuotteessa on jo tilaus_id?
 	$values = [ 'order_id' => $tilaus_id ];
 	return ( $db->query($query, $values, FETCH_ALL, PDO::FETCH_OBJ) );
 }

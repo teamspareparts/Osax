@@ -61,7 +61,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->
-				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_tulosta_huomautus( $product, FALSE )?></td>
+				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_palauta_huomautus( $product, FALSE )?></td>
 			</tr><?php
 		}
 		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); ?>

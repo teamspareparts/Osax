@@ -241,19 +241,19 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
 }
 
 /**
- * Tulostaa huomautuksen tuotteen kohdalle, jos sopivaa.
- * Mahdollisia huomautuksia: määräalennus | minimimyyntierä
+ * Palauttaa huomautuksen tuotteen kohdalle, jos sopivaa.
+ * Mahdollisia huomautuksia: määräalennus | minimimyyntierä | --- (tyhjä)
  * @param stdClass $product
- * @param bool $ostoskori
- * @return void <p> tulostaa suoraan funktiossa
+ * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
+ * @return string <p> palauttaa huomautuksen
  */
-function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $ostoskori ) {
+function laske_era_alennus_palauta_huomautus ( stdClass $product, /* bool */ $ostoskori = TRUE ) {
 	if ( $product->cartCount >= $product->minimimyyntiera ) {
 
-		$jakotulos = 0; //default
-		if ($product->alennusera_kpl > 0){
+		if ( $product->alennusera_kpl > 0 ){
 			$jakotulos =  $product->cartCount / $product->alennusera_kpl; //Onko tuotetta tilattu tarpeeksi eräalennukseen, tai huomautuksen tulostukseen
-		}
+		} else { $jakotulos = 0; } // Vältetään nollalla jako
+
 		$tulosta_huomautus = ( $jakotulos >= 0.75 && $jakotulos < 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
 		//Jos: kpl-määrä 75% alennuserä kpl-rajasta, mutta alle 100%. Lisäksi tuotteella on eräalennus asetettu (kpl-raja ei ole nolla, ja prosentti ei ole nolla).
 		$tulosta_alennus = ( $jakotulos >= 1 ) && ( $product->alennusera_kpl != 0 && $product->alennusera_prosentti != 0 );
@@ -262,14 +262,14 @@ function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $os
 		if ( $tulosta_huomautus && $ostoskori ) {
 			$puuttuva_kpl_maara = $product->alennusera_kpl - $product->cartCount;
 			$alennus_prosentti = round((float)$product->alennusera_prosentti * 100 );
-			echo "Lisää {$puuttuva_kpl_maara} kpl saadaksesi {$alennus_prosentti} % alennusta!";
+			return "Lisää {$puuttuva_kpl_maara} kpl saadaksesi {$alennus_prosentti} % alennusta!";
 
 		} elseif ( $tulosta_alennus ) {
 			$alennus_prosentti = round((float)$product->alennusera_prosentti * 100 );
-			echo "Eräalennus ({$alennus_prosentti} %) asetettu.";
+			return "Eräalennus ({$alennus_prosentti} %) asetettu.";
 
-		} else { echo "---"; }
-	} else { echo "<span style='color:red;'>Minimyyntierä: {$product->minimimyyntiera} kpl</span>";}
+		} else { return "---"; }
+	} else { return "<span style='color:red;'>Minimyyntierä: {$product->minimimyyntiera} kpl</span>";}
 }
 
 /**
@@ -277,17 +277,17 @@ function laske_era_alennus_tulosta_huomautus ( stdClass $product, /* bool */ $os
  * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
  * @param array $products
- * @param bool $ostoskori <p> onko ostoskori, vai tilauksen vahvistus
+ * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
+ * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
-function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array $products, /* bool */ $ostoskori ) {
+function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array $products, /* bool */ $ostoskori = TRUE ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;
 	$huomautus = "";
-	$linkki = "";
+	$linkki = 'href="tilaus.php"';
 
-	if ( $ostoskori ) { $linkki = 'href="tilaus.php"';
-	} else { $linkki = 'onClick="laheta_Tilaus();"'; } //Tilauksen lähetys toimii hieman eri tavalla
+	if ( !$ostoskori ) { $linkki = 'onClick="laheta_Tilaus();"'; } //Tilauksen lähetys toimii hieman eri tavalla
 
 	if ( $products ) {
 		foreach ($products as $product) {
@@ -306,8 +306,8 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array
 	}
 
 	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered ) {
-		?><p><a class="nappi" <?= $linkki ?>>Tilaa tuotteet</a></p><?php
+		return "<p><a class='nappi' {$linkki}>Tilaa tuotteet</a></p>";
 	} else {
-		?><p><a class="nappi disabled">Tilaa tuotteet</a> <?= $huomautus ?> </p><?php
+		return "<p><a class='nappi disabled'>Tilaa tuotteet</a> {$huomautus} </p>";
 	}
 }

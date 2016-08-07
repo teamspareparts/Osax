@@ -7,7 +7,7 @@
 			.class #id tag {}
 			
 			#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
-			.nappi .peruuta {
+			.peruuta {
 				background:rgb(200, 70, 70);
 				border-color: #b70004;
 			}
@@ -29,7 +29,7 @@ $kayttaja_id = (int)$_SESSION['id'];
 $sum = 0.0;
 ?>
 <!-- HTML -->
-<div class="main_body_container">
+<main class="main_body_container">
 	<h1 class="otsikko">Ostoskori</h1>
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
@@ -44,9 +44,9 @@ $sum = 0.0;
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
-					<input id="maara_<?= $article->articleNo ?>" name="maara_<?= $article->articleNo ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0">
+					<input id="maara_<?= $article->articleNo ?>" name="maara_<?= $article->articleNo ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0" title="Kappalemäärä">
 				</td>
-				<td><?= laske_era_alennus_tulosta_huomautus( $product, TRUE )?></td>
+				<td><?= laske_era_alennus_palauta_huomautus( $product, TRUE )?></td>
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $article->articleNo?>')">Päivitä</a></td>
 			</tr>
 		<?php } 
@@ -68,8 +68,7 @@ $sum = 0.0;
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, TRUE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
 	<p><a class="nappi peruuta" href="tuotehaku.php">Palaa takaisin</a></p>
-</div>
+</main>
 
-</body>
 </body>
 </html>

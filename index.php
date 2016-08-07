@@ -44,7 +44,7 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 		5 => array(
 				"otsikko" => " :( ",
 				"teksti" => "Olet onnistuneesti kirjautunut ulos.",
-				"style" => "style='color:{$colors['success']};'"),
+				"style" => "style='color:{$colors['note']};'"),
 		6 => array(
 				"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
 				"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.",

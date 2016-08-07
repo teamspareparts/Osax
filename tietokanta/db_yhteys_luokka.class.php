@@ -301,7 +301,9 @@ class examples_and_information {
 
 		$db_conn->run_prepared_stmt( $values_array ); //Ajetaan haku syötteillä
 
-
+		/**
+		 * Hups, you are not actually supposed to this. Bad coding style, apparently
+		 */
 		while ( $result = $db_conn->get_next_row() ) {
 			//Do stuff with the received assoc array
 		}
