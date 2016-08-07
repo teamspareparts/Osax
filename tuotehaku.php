@@ -30,7 +30,7 @@
 			<div class="modal-header" style="height: 35px;">
 	      	<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 	    	<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 300px;">
-			    <li class="active"><a data-toggle="tab" href="#menu1">Tuote</a></li>
+			    <li class="active"><a data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
 			    <li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
 			    <li><a data-toggle="tab" href="#menu3">OE</a></li>
 			</ul>
@@ -49,18 +49,13 @@
 		</div>
 	</div>
 </div>
-
-<!-- HTML onload -->
+<!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
-
-
-
 
 <?php include('header.php');
 	require 'tecdoc.php';
 	require 'apufunktiot.php';?>
 <h1 class="otsikko">Tuotehaku <span class="question">?</span></h1>
-
 
 <div id="ostoskori-linkki"></div>
 <form action="tuotehaku.php" method="get" class="haku">
@@ -247,19 +242,6 @@ if (isset($_SESSION['cart'])) {
 		tecdocToCatPort[functionName] (params, addProductInfoOnModal);
     }
 
-    function getComparableNumber(articleNumber) {
-        var functionName = "getArticleDirectSearchAllNumbersWithState";
-        var params = {
-                "articleCountry" : TECDOC_COUNTRY,
-                "lang" : TECDOC_LANGUAGE,
-                "provider" : TECDOC_MANDATOR,
-        		"articleNumber" : articleNumber,
-        		"numberType" : 3,
-        		"searchExact" : true
-        };
-        params = toJSON(params);
-		tecdocToCatPort[functionName] (params, addComparableNumbersToModal);
-    }
 
  	// Create JSON String and put a blank after every ',':
  	//Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
@@ -440,37 +422,100 @@ if (isset($_SESSION['cart'])) {
 			var documentlink = "";
 			for(var i = 0; i < response.articleDocuments.array.length; i++) {
 				//asennusohjeet
-				if(response.articleDocuments.array[i].docTypeId == 4) {
+				if(response.articleDocuments.array[i].docTypeId != 5) {
 					//alert(response.articleDocuments.array[i].docTypeId);
-					doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
-					docName = response.articleDocuments.array[i].docFileName;
-					documentlink += '<img src="img/pdficon.png" style="margin-right:5px;margin-bottom:7px;"><a href="'+doc+'" download="'+docName+'" id="asennusohje">Asennusohje (PDF)</a>';
+					var doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
+					var docName = response.articleDocuments.array[i].docFileName;
+					var docTypeName = response.articleDocuments.array[i].docTypeName;
+
+					documentlink += '<img src="img/pdficon.png" style="margin-right:5px;margin-bottom:7px;"><a href="'+doc+
+						'" download="'+docName+'" id="asennusohje">'+docTypeName+' (PDF)</a><br>';
 				}
 			}			
 			return documentlink;
 		}
 
+        function getComparableNumber(articleNumber) {
+            var functionName = "getArticleDirectSearchAllNumbersWithState";
+            var params = {
+                "articleCountry" : TECDOC_COUNTRY,
+                "lang" : TECDOC_LANGUAGE,
+                "provider" : TECDOC_MANDATOR,
+                "articleNumber" : articleNumber,
+                "numberType" : 3,
+                "searchExact" : true
+            };
+            params = toJSON(params);
+            tecdocToCatPort[functionName] (params, addComparableNumbersToModal);
+        }
+
+        //Lisätään vertailunumerot modaliin
+        function addComparableNumbersToModal(response){
+
+            function combarableNumbersToList(response){
+
+                if(response.data != "") {
+                    response = response.data.array;
+                }
+                //luodaan taulu
+                var result = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
+                    "<table style='margin-left:auto; margin-right:auto;'>" +
+                    "<th colspan='2' class='text-center'>Vertailunumerot</th>" +
+                    "<tr><td style='font-size:14px'>"+brand+"</td><td style='font-size:14px'>"+articleNo+"</td></tr>";
+                if(response.length==0) return "";
+                for(var i=0; i<response.length; i++) {
+                    result += "<tr>";
+                    result += "<td style='font-size:14px'>"+response[i].brandName+"</td><td style='font-size:14px'>"+response[i].articleNo+"</td>";
+                    result += "</tr>";
+                }
+                result += "</table>";
+
+                return result;
+            }
+
+
+
+            //luodaan taulu
+            comparableNumbers = combarableNumbersToList(response);
+            //lisätään modaliin
+            $("#menu3").append('\
+			'+comparableNumbers+'\
+			');
+        }
+
+        //avataan modal ja pysäytetään spinning icon
+        function showModal(){
+            //lopetetaan spinning iconin näyttäminen
+            $('#cover').removeClass("loading");
+            //avataan modal
+            $("#myModal").modal({
+                keyboard: true
+            });
+            //avataan aina "tuote" tabi ensin
+            $('#maintab').tab('show');
+        }
+
 		
 		response = response.data.array[0];
-		id = response.directArticle.articleId;
+		var id = response.directArticle.articleId;
 
 		//Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
-		imgs = imgsToHTML(response);
-		OEtable = makeTableHTML(response.oenNumbers);
-		name = response.directArticle.articleName;
-		articleNo = response.directArticle.articleNo;
-		brand = response.directArticle.brandName;
-		infos = infosToHTML(response);
-		documents = getDocuments(response);
+		var imgs = imgsToHTML(response);
+		var OEtable = makeTableHTML(response.oenNumbers);
+		var name = response.directArticle.articleName;
+		var articleNo = response.directArticle.articleNo;
+		var brand = response.directArticle.brandName;
+		var infos = infosToHTML(response);
+		var documents = getDocuments(response);
 		
 		//display image
-		display_img_id = "";
+		var display_img_id = "";
 		if(response.articleThumbnails.length==0) {
 			display_img = "img/ei-kuvaa.png";
 			img = '<img src='+display_img+' border="1" id="display_img"/>'
 		} else {
 			display_img_id = response.articleThumbnails.array[0].thumbDocId;
-			display_img = TECDOC_THUMB_URL +thumb_id + '/0/';
+			display_img = TECDOC_THUMB_URL + display_img_id + '/0/';
 			img = '<img src='+display_img+' border="1" id="display_img" class="kuva"/>'
 		}
 		
@@ -496,55 +541,18 @@ if (isset($_SESSION['cart'])) {
 			<br> \
 			'+OEtable+' \
 		');
-		$("#menu1").append("<div style='width:200px;float:left;'><br><br></div>");
+		//$("#menu1").append("<div style='width:200px;float:left;'><br><br></div>");
 
 
-		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot)
+		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
 		getComparableNumber(articleNo);
+
+        //näytetään modal
+        showModal();
+
 		
 	}
 
-
-	//Lisätään vertailunumerot modaliin
-	function addComparableNumbersToModal(response){
-
-		function combarableNumbersToList(response){
-			
-			if(response.length==0) return "";
-		    var result = "<div style='display:inline-block; width:49%; vertical-align:top;'><table style='margin-left:auto; margin-right:auto;'><th colspan='2' class='text-center'>Vertailunumerot</th>";
-		    for(var i=0; i<response.length; i++) {
-		        result += "<tr>";
-		        result += "<td style='font-size:14px'>"+response[i].brandName+"</td><td style='font-size:14px'>"+response[i].articleNo+"</td>";
-		        result += "</tr>";
-		    }
-		    result += "</table>";
-
-		    return result;	
-		}
-
-		if(response.data != "") {
-			response = response.data.array;
-			comparableNumbers = combarableNumbersToList(response);
-			$("#menu3").append('\
-				'+comparableNumbers+'\
-				\
-			');
-		}
-		showModal();
-	}
-
-
-	//avataan modal ja pysäytetään spinning icon
-	function showModal(){
-		//lopetetaan spinning iconin näyttäminen
-		$('#cover').removeClass("loading");
-		//avataan modal
-		$("#myModal").modal({
-			  keyboard: true
-		});
-		//avataan aina "tuote" tabi ensin
-		$('#modalnav a[href="#menu1"]').tab('show');
-	}
 
 
 	//jQuery
@@ -776,7 +784,7 @@ if (isset($_SESSION['cart'])) {
 			getPartTypes(car);
 			getChildNodes(car, osat);
 
-			setTimeout(setSelected ,700)
+			setTimeout(setSelected ,700);
 
 			function setSelected(){
 				$("#manufacturer option[value=" + manuf + "]").attr('selected', 'selected');
@@ -876,12 +884,9 @@ require 'tietokanta.php';
  * @param string $number: Tuotenumero, jota vastaavat tuotteet haetaan catalogista.
  * @return array $products: Tuotteet, jotka löytyi catalogista.
  */
-function get_catalog_products_by_number($number){
+function filter_catalog_products($products){
 	global $connection;
-	$number = trim(addslashes(str_replace(" ", "", $number)));
-	//haetaan kaikki linkitetyt tuotteet
-	$products = getArticleDirectSearchAllNumbersWithState($number);
-	
+
 	//Etsitään omasta catalogista
 	$product_ids = array();
 	$product_articleNos = array();
@@ -904,17 +909,31 @@ function get_catalog_products_by_number($number){
 		$row->id = $product_ids[array_search($row->articleNo, $product_articleNos)];
 		array_push($products, $row);
 	}
-	merge_products_with_tecdoc($products);
+	merge_catalog_with_tecdoc($products, true);
 	return $products;
 }
+
 
 
 $number = isset($_GET['haku']) ? $_GET['haku'] : null;
 
 if ($number) {
-	$products = get_catalog_products_by_number($number);
+	$number = trim(addslashes(str_replace(" ", "", $number)));
+	//haetaan kaikki linkitetyt tuotteet
+	$products = getArticleDirectSearchAllNumbersWithState($number);
+	//filtteröidään vain catalogi tuotteet ja liitetään lisätiedot
+	$catalog_products = filter_catalog_products($products);
+	print_results($catalog_products);
 
-	print_results($products);
+	//$ids = array();
+	//haetaan vielä kaikki tuotteet jotka eivät olleet valikoimassa
+	//foreach ($catalog_products as $catalog_product) {
+	//	array_push($ids, $catalog_product->articleId);
+	//}
+	//foreach ($products as $product){
+	//	if (in_array($product->articleId, $ids));
+	//}
+
 }
 
 if(isset($_GET["manuf"])) {
@@ -950,8 +969,8 @@ if(isset($_GET["manuf"])) {
 				ON ALV_kanta = ALV_kanta.kanta
 			WHERE tuote.articleNo IN ('$articleNos');");
 
+    $products = array();
 	if ($result) {
-		$products = array();
 		while ($row = mysqli_fetch_object($result)) {
 			array_push($products, $row);
 		}

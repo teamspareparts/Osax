@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `sukunimi` varchar(20) DEFAULT NULL,
   `yritys` varchar(50) DEFAULT NULL,
   `puhelin` varchar(20) DEFAULT NULL,
-  `y_tunnus` varchar(9) DEFAULT NULL, -- TODO: turha; poista. Y-tunnus pitäisi varmaan olla yrityksessä
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   `demo` tinyint(1) NOT NULL DEFAULT '0', -- Välikaikainen tunnus sivuston demoamista varten
@@ -28,13 +27,14 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 CREATE TABLE IF NOT EXISTS `yritys` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `nimi` varchar(255) NOT NULL, -- UNIQUE KEY -- Koska ei niitä yrityksiä varmaan useampaa ole
-  `y_tunnus` varchar(9) DEFAULT '',
+  `y_tunnus` varchar(9) NOT NULL,  -- UNIQUE KEY
   `sahkoposti` varchar(255) DEFAULT '',
   `puhelin` varchar(20) DEFAULT '',
   `katuosoite` varchar(255) DEFAULT '',
   `postinumero` varchar(10) DEFAULT '',
   `postitoimipaikka` varchar(255) DEFAULT '',
   `maa` VARCHAR(200) DEFAULT 'Suomi',
+  `aktiivinen` tinyint(1) DEFAULT '1',
   /*
   Osalinkillä on myös faxnumero, ERP-numero, jälleenmyyjän ERP-numero, ja autofutur-asiakasnumero,
   mutta koska en tiedä mitä noilla tekisi en oikein halua lisätä niitä tietokantaan
@@ -49,10 +49,9 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hinta_ilman_ALV` decimal(11,2) NOT NULL DEFAULT '0.00',
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT '0', -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
-  `minimisaldo` int(11) NOT NULL DEFAULT '0', -- TODO: Poista; turha
   `minimimyyntiera` int(11) NOT NULL DEFAULT '1',
-  `sisaanostohinta` int(11) NOT NULL DEFAULT '0',
-  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Mikä tämän tarkoitus on?
+  `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT '0',
+  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Tämän avulla lasketaan keskiostohinta.
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
   `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl -- Saattaa olla turha
   `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros -- Saattaa olla turha
@@ -132,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `pvm` DATETIME DEFAULT CURRENT_TIME,
+  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -161,18 +160,6 @@ CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `vaihtoehtoinen_toimittaja` (
-  `brandNo` int(11) NOT NULL, -- PK; Foreign K
-  `name` varchar(11) DEFAULT '',
-  `street` varchar(50) DEFAULT '',
-  `zip` varchar(11) DEFAULT '',
-  `city` varchar(50) DEFAULT '',
-  `phone` varchar(50) DEFAULT '',
-  `fax` varchar(50) DEFAULT '',
-  `email` varchar(50) DEFAULT '',
-  `wwwURL` varchar(50) DEFAULT '',
-  PRIMARY KEY (`brandNo`, `nimi`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `brandNo` int(11) NOT NULL, -- PK; Foreign K

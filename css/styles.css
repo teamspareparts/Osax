@@ -447,7 +447,7 @@ th {
 
 #modal-container label {
 	display: inline-block;
-	width: 8em;
+	width: 9em;
 	margin-bottom: 10pt;
 }
 
@@ -623,9 +623,10 @@ MODAL-ikkuna (tuotteen tiedot)
 ******************************/
 
 .left {
+	margin-bottom: 50%;
 	float:left;
 	min-width: 100px;
-	min-height: 400px;
+	min-height: 500px;
 }
 
 .middle {
@@ -685,6 +686,26 @@ Loading-icon
 	z-index: 1040;
 	background-color: #000000;
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
+}
+
+
+
+.floating-box {
+	display: inline-block;
+	position: relative;
+	vertical-align: middle;
+	text-align: center;
+	width: 400px;
+	height: 100px;
+	line-height: 100px;
+	margin: 1px;
+	border: 1px solid #294fad;
+	padding: 10px;
+}
+
+.container {
+	position: relative;
+	left: 5%;
 }
 
 

@@ -33,6 +33,29 @@ function _send_json($request) {
 }
 
 //
+// Sallii clientin ottaa yhteyttä tecdociin XX tunnin ajan
+//
+function addDynamicAddress() {
+    $function = 'addDynamicAddress';
+    $params = [
+        'validityHours' => 12,
+        'provider' => TECDOC_PROVIDER,
+        'address' => $_SERVER['REMOTE_ADDR'],
+    ];
+
+    // Lähetetään JSON-pyyntö
+    $request =	[$function => $params];
+    $response = _send_json($request);
+
+    // Pyyntö epäonnistui
+    if ($response->status !== 200) {
+        return [];
+    }
+
+    return $response->data->array;
+}
+
+//
 // Hakee aktivoidut toimittajat
 //
 function getAmBrands() {

@@ -28,24 +28,7 @@ if (!is_admin()) {
 <main class="main_body_container">
 	<h1>EULA</h1>
 	<p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
-	<!-- 
-	<fieldset><legend>Lisää tuotteita</legend>
-		<form action="#" method="post" enctype="multipart/form-data">
-			Luettava tiedosto: <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv"/>
-			<input id=submit_tuote type="submit" name="submit" value="Submit" disabled/>
-			<br>
-			1:<select id=select0></select><br>
-			2:<select id=select1></select><br>
-			3:<select id=select2></select><br>
-			4:<select id=select3></select><br>
-			5:<select id=select4></select><br>
-			6:<select id=select5></select><br>
-		</form>
-		HUOM: Ei vielä tarkastuksia...
-	</fieldset>
-	
-	<br><br>
-	-->
+
 	<br><br>
 	<fieldset><legend>Käyttöoikeussopimus</legend>
 		<form action="#" method="post" enctype="multipart/form-data">
@@ -58,53 +41,10 @@ if (!is_admin()) {
 
 <?php 
 /**
- * Tuotteita sisältävän tiedoston käsittely
+ * Tiedoston käsittely
  */
-if(isset($_FILES['tuotteet']['name'])) {
-	//Jos ei virheitä...
-	if(!$_FILES['tuotteet']['error']) {
-		
-		$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
-		//$sisalto = fgetcsv($handle);
-		echo "Valmis käsittelemään tiedostoa...";
-		
-		global $connection;
-		$query = "INSERT...;";
-		
-		$row=1;
-		while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-			//hypätään ensimmäisen rivin yli
-			if($row==1){ $row++; continue; }
-			
-			//sarakkeet lkm
-			$num = count($data);
-			
-			echo "<p> $num saraketta rivillä $row: <br /></p>\n";
-			$row++;
-			for ($c=0; $c < $num; $c++) {
-				echo $data[$c] . "<br />\n";
-			}
-		}
-		fclose($handle);
-		/************************
-		 * 
-		 * 
-		 * 
-		 * Tähän tiedostosta luku
-		 * 
-		 * 
-		 * 
-		 * 
-		 **************************/
-		
-	}
-	// Jos virhe...
-	else
-	{
-		echo "Error: " . $_FILES['tuotteet']['error'];
-	}
-}
-else if(isset($_FILES['eula']['name'])) {
+
+if(isset($_FILES['eula']['name'])) {
 	// Jos ei virheitä...
 	if(!$_FILES['eula']['error']) {
 
@@ -136,24 +76,7 @@ else if(isset($_FILES['eula']['name'])) {
 ?>
 <script type="text/javascript">
 
-/* //luodaan sisältö selectoreihin
-for(var i = 0; i < 6; i++){
-	sarake = document.getElementById("select" + i);
-	sarake.options.add(new Option("Tuotenumero", 0));
-	sarake.options.add(new Option("Ostohinta", 1));
-	sarake.options.add(new Option("Myyntihinta", 2));
-	sarake.options.add(new Option("Verokanta", 3));
-	sarake.options.add(new Option("Minimimyyntierä", 4));
-	sarake.options.add(new Option("Kpl", 5));
-	$("#select"+i+" option[value="+i+"]").attr('selected', 'selected');
-} */
-
-
 $(document).ready(function(){
-	//$('#tuote_tiedosto').on("change", function() {
-	//    $('#submit_tuote').prop('disabled', !$(this).val()); 
-	//});
-
 	$('#eula_tiedosto').on("change", function() {
 	    $('#submit_eula').prop('disabled', !$(this).val()); 
 	});

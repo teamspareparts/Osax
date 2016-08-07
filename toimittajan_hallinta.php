@@ -46,13 +46,9 @@ $logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
  * @param $brandName
  * @param $brandId
  */
-function yhteystiedot($brandAddress, $brandName, $brandId){
-	//tarkastetaan onko tietokannassa vaihtoehtoista toimittajaa
-	global $connection; // *gough*globaalien muutttujien käyttö on huonoa tyyliä*gough*
-	$table_name = "vaihtoehtoinen_toimittaja";
-	$query = "SELECT * FROM $table_name WHERE brandNo=$brandId";
-	
-	
+function tulosta_yhteystiedot($brandAddress, $brandName, $brandId){
+
+	echo '<div style="float:left; padding-right: 200px;">';
 	echo '<table>';
 	echo "<th colspan='2' class='text-center'>Yhteystiedot</th>";
 	echo '<tr><td>Yritys</td><td>'. $brandAddress->name .'</td></tr>';
@@ -62,40 +58,82 @@ function yhteystiedot($brandAddress, $brandName, $brandId){
 	if(isset($brandAddress->email)) echo '<tr><td>Email</td><td>'. $brandAddress->email .'</td></tr>';
 	echo '<tr><td>URL</td><td>'. $brandAddress->wwwURL .'</td></tr>';
 	echo '</table>';
-	echo '<input class="nappi" type="button" value="Vaihda toimittajaa" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.', \''.$brandName.'\')">';
+	echo '</div>';
+
+
 }
 
-function tallenna_uusi_toimittaja(){
+function tallenna_uusi_hankintapaikka(){
 	global $connection;
-	$table_name = "vaihtoehtoinen_toimittaja";
-	$query = "INSERT INTO $table_name .......";
+	$table_name = "hankintapaikka";
+	$query = "INSERT INTO $table_name VALUES ";
 	
 	//ei vielä valmis
-	
-	
+}
+
+function tulosta_hankintapaikka($brandId) {
+
+	//tarkastetaan onko tietokannassa vaihtoehtoista toimittajaa
+	global $connection; // *gough*globaalien muutttujien käyttö on huonoa tyyliä*gough*
+	$table_name = "hankintapaikka";
+	$query = "SELECT * FROM $table_name WHERE brandNo=$brandId";
+	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+	if (mysqli_num_rows($result) !== 0) {
+		echo '<div style="float:left;">';
+		echo '<table>';
+		echo "<th colspan='2' class='text-center'>Hankintapaikka</th>";
+		echo '<tr><td>Yritys</td><td>'. $brandAddress->name .'</td></tr>';
+		echo '<tr><td>Osoite</td><td>'. $brandAddress->street . '<br>' . $brandAddress->zip . " " . strtoupper($brandAddress->city) .'</td></tr>';
+		echo '<tr><td>Puh</td><td>'. $brandAddress->phone .'</td></tr>';
+		if(isset($brandAddress->fax)) echo '<tr><td>Fax</td><td>'. $brandAddress->fax .'</td></tr>';
+		if(isset($brandAddress->email)) echo '<tr><td>Email</td><td>'. $brandAddress->email .'</td></tr>';
+		echo '<tr><td>URL</td><td>'. $brandAddress->wwwURL .'</td></tr>';
+		echo '</table>';
+		echo '<input class="nappi" type="button" value="Vaihda toimittajaa" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">';
+
+		echo '</div>';
+	}
+	else {
+		echo '<div style="float:left;">';
+		echo '<p>Valitse hankintapaikka!</p>';
+		echo '<input class="nappi" type="button" value="Vaihda hankintapaikka" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">';
+		echo '</div>';
+	}
+
+
 }
 
 
 
 if (isset($_POST['nimi'])) {
-	tallenna_uusi_toimittaja();
+	tallenna_uusi_hankintapaikka();
 }
 
-yhteystiedot($brandAddress, $brandName, $brandId);
+tulosta_yhteystiedot($brandAddress, $brandName, $brandId);
+tulosta_hankintapaikka($brandId);
 ?>
 </div>
 
 <script>
 	//
 	// Avataan modal, jossa voi täyttää uuden toimittajan yhteystiedot
+	// tai valita jo olemassa olevista
 	//
-	function avaa_Modal_toimittaja_yhteystiedot(brandId, brandName){
+	function avaa_Modal_toimittaja_yhteystiedot(brandId){
 		Modal.open( {
 			content:  '\
-				<div id="toimittaja_lomake">\
+				<div>\
+				<h4>Anna uuden hankintapaikan tiedot tai valitse listasta.</h4>\
+				<br>\
 				<form action="" method="post">\
-					<h4>Anna uuden toimittajan tiedot.</h4>\
-					<br> \
+				<label><span>Toimittajat</span></label></label><select name="hankintapaikka"></select>\
+				<br>\
+				<input class="nappi" type="submit" name="submit" value="Valitse"> \
+				<input type="hidden" name="brandId" value="'+brandId+'">\
+				</form>\
+				<hr>\
+				<form action="" method="post">\
+					\
 					<label><span>Yritys</span></label>\
 					<input name="nimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Yritys Oy" title="Vain aakkosia.">\
 					<br><br>\
@@ -114,11 +152,20 @@ yhteystiedot($brandAddress, $brandName, $brandId);
 					<label><span>Fax</span></label>\
 					<input name="fax" type="text" pattern=".{1,50}" placeholder="01 234567">\
 					<br><br>\
-					<label><span>Email</span></label>\
-					<input name="email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi">\
-					<br><br>\
 					<label><span>URL</span></label>\
 					<input name="url" type="text" pattern=".{1,50}" placeholder="www.url.fi">\
+					<br><br>\
+					<label><span>Yhteyshenkilö</span></label>\
+					<input name="email" type="text" pattern=".{1,50}" placeholder="Etunimi Sukunimi">\
+					<br><br>\
+					<label><span>Yhteyshenk. puh.</span></label>\
+					<input name="email" type="text" pattern=".{1,50}" placeholder="040 123 4567">\
+					<br><br>\
+					<label><span>Yhteyshenk. email</span></label>\
+					<input name="email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi">\
+					<br><br>\
+					<label><span>Tilaustapa</span></label>\
+					<input name="url" type="text" pattern=".{1,50}" placeholder="???">\
 					<br><br>\
 					<input class="nappi" type="submit" name="submit" value="Tallenna"> \
 					<input type="hidden" name="brandId" value="'+brandId+'">\

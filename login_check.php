@@ -4,6 +4,7 @@
 require 'tietokanta.php';
 require 'email.php';
 require 'IP.php';
+require 'tecdoc.php';
 
 /**
  * Tarkistaa käyttäjän käyttöoikeuden sivustoon, keskitetysti yhdessä funktiossa.
@@ -146,6 +147,7 @@ if ( $mode == "login" ) {
    		}
    		
    		else { //JOS KAIKKI OK->
+            addDynamicAddress();
    			if ( $_SESSION['vahvista_eula'] ) { header("Location:eula.php"); exit; } // else ...
    			header("Location:etusivu.php"); exit;
    		}
