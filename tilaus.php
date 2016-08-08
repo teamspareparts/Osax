@@ -117,7 +117,7 @@ function valitse_toimitusosoite( osoite_id ) {
 	var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
 	var osoite_array = osoitekirja[osoite_id];
 	html_osoite.innerHTML = ""
-		+ "Toimitusosoite " + osoite_id + "<br>"
+		+ "<h4 style='margin-bottom:0;'>Toimitusosoite " + osoite_id + "</h4>"
 		+ "Sähköposti: " + osoite_array['sahkoposti'] + "<br>"
 		+ "Katuosoite: " + osoite_array['katuosoite'] + "<br>"
 		+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
@@ -131,7 +131,7 @@ function laheta_Tilaus () {
 	var vahvistus = confirm( "Oletko varma, että haluat lähettää tilauksen?\n"
 			+ "Tämä on viimeinen vaihe. Toimintoa ei voi perua jälkeenpäin.\n"
 			+ "Jos painat OK, tilauksen lähetyksen jälkeen Sinut uudelleenohjataan tilaus-info sivulle.");
-	if ( vahvistus == true ) {
+	if ( vahvistus ) {
 		document.getElementById('rahtimaksu_form_input').value = <?= $rahtimaksu[0] ?>; //Tallenetaan rahtimaksu talteen piilotettuun formiin
 		document.getElementById(form_ID).submit();
 	} else {
@@ -139,13 +139,13 @@ function laheta_Tilaus () {
 	}
 }
 
-
 //JQUERY
 $(document).ready(function(){
-//tarvitaan estämään tilauksen teko, jos toimitusosoite ei valittu
+	//tarvitaan estämään tilauksen teko, jos toimitusosoite ei valittu
+//	???
 });
+valitse_toimitusosoite(1);
 </script>
 
-</body>
 </body>
 </html>

@@ -7,7 +7,7 @@
  * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
  *
  * @param Mysqli-connection
- * @return Array( ostoskorin tuotteet || Empty )
+ * @return array ( ostoskorin tuotteet || Empty )
  */
 function get_products_in_shopping_cart ( mysqli $connection ) {
     $cart = get_shopping_cart();
@@ -85,13 +85,13 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 			UPDATE	tuote
 			SET		varastosaldo = '$uusi_varastosaldo'
 			WHERE 	id = '$product_id'";
-		$result = mysqli_query($connection, $query);
+		mysqli_query($connection, $query);
 	}
 
 	/**
 	 * Haetaan toimitusosoitteen tiedot, ja tallennetaan ne pysyviin.
 	 * //TODO: Tee tästä parempi. Käytä SELECT INTO:a. Tämä on vain temp, helppo ratkaisu
-	 * @var Ambiguous $query; "Ambiguous" indeed...
+	 * @var $query; "Ambiguous" indeed...
 	 */
 	$query = "	SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 				FROM	toimitusosoite
@@ -105,7 +105,7 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 					(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka)
 				VALUES
 					('$tilaus_id', '$pysyva_etunimi', '$pysyva_sukunimi', '$pysyva_sahkoposti', '$pysyva_puhelin', '$pysyva_yritys', '$pysyva_katuosoite', '$pysyva_postinumero', '$pysyva_postitoimipaikka');";
-	$result = mysqli_query($connection, $query);
+	mysqli_query($connection, $query);
 
 	/**
 	 * Laitan sähköpostin lähetyksen kommentiksi niin kukaan ei lähettele vahingossa sähköpostia
@@ -125,7 +125,7 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
  * @param mysqli $connection
  * @param int $kayttaja_id
  * @param int $tilauksen_summa
- * @return Array(rahtimaksu, ilmaisen toimituksen raja); indekseillä 0 ja 1. Kumpikin float
+ * @return array(rahtimaksu, ilmaisen toimituksen raja); indekseillä 0 ja 1. Kumpikin float
  */
 function hae_rahtimaksu ( mysqli $connection, /* int */ $kayttaja_id, /* int */ $tilauksen_summa ) {
 	$rahtimaksu = [15, 1000];
@@ -146,6 +146,7 @@ function hae_rahtimaksu ( mysqli $connection, /* int */ $kayttaja_id, /* int */ 
  * Tulostaa rahtimaksun alennushuomautuksen, tarkistuksen jälkeen.
  * @param array $rahtimaksu
  * @param boolean $ostoskori; onko funktio ostoskoria, vai tilaus-vahvistusta varten
+ * @return string
  */
 function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /* bool */ $ostoskori ) {
 
@@ -185,24 +186,26 @@ function hae_kaikki_toimitusosoitteet_ja_luo_JSON_array ( mysqli $connection, /*
  * Tulostaa kaikki osoitteet (jo valmiiksi luodusta) osoitekirjasta, ja tulostaa ne Modaliin
  *
  * @param array $osoitekirja_array
+ * @return string
  */
 function hae_kaikki_toimitusosoitteet_ja_tulosta_Modal ( array $osoitekirja_array ) {
-
+	$s = '';
 	foreach ( $osoitekirja_array as $index => $osoite ) {
-		echo '<div> Osoite ' . $index . '<br><br> \\';
+		$s .= '<div> Osoite ' . $index . '<br><br> \\';
 
 		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']);
 
 		foreach ( $osoite as $key => $value ) {
-			echo '<label><span>' . ucfirst($key) . '</span></label>' . $value . '<br> \\';
+			$s .= '<label><span>' . ucfirst($key) . '</span></label>' . $value . '<br> \\';
 		}
-		echo '
+		$s .= '
 			<br> \
 			<input class="nappi" type="button" value="Valitse" onClick="valitse_toimitusosoite(' . $index . ');"> \
 		</div>\
 		<hr> \
 		';
 	}
+	return $s;
 }
 
 /**
