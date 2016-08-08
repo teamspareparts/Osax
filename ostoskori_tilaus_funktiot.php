@@ -18,7 +18,7 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
 
     $articleNos = implode("', '", array_keys($cart));
 	$result = mysqli_query($connection, "
-		SELECT	articleNo, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
+		SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 			ALV_kanta.prosentti AS alv_prosentti
 		FROM	tuote
@@ -45,8 +45,8 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
  * @param mysqli $connection
  * @param int $kayttaja_id
  * @param float $pysyva_rahtimaksu
- * @param int $pysyva_toimitusosoite; toimitusosoitteen ID, joka tallennetaan pysyviin tietoihin.
- * @return boolean, onnistuiko tilaaminen
+ * @param int $toimitusosoite_id <p> toimitusosoitteen ID, joka tallennetaan pysyviin tietoihin.
+ * @return bool <p> onnistuiko tilaaminen
  */
 function order_products ( array $products, mysqli $connection, /* int */ $kayttaja_id,
 		/* float */ $pysyva_rahtimaksu, /* int */ $toimitusosoite_id) {
@@ -66,8 +66,7 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 
 	// Lisätään tilaukseen liittyvät tuotteet
 	foreach ($products as $product) {
-		$article = $product->directArticle;
-		$product_id = addslashes($article->articleId);
+		$product_id = $product->id;
 		$product_price = addslashes($product->hinta_ilman_alv);
 		$alv_prosentti = addslashes($product->alv_prosentti);
 		$alennus_prosentti = addslashes($product->alennusera_prosentti);

@@ -60,16 +60,21 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
  * @return Array <p> tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
 function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
+//	$query = "
+//		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta,
+//			tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
+//			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) )
+//				AS maksettu_hinta
+//		FROM tilaus
+//		LEFT JOIN tilaus_tuote
+//			ON tilaus_tuote.tilaus_id=tilaus.id
+//		WHERE tilaus.id = :order_id ";
 	$query = "
-		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta, 
-			tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
-			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) 
+		SELECT tuote_id AS id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl,
+			( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ) 
 				AS maksettu_hinta
-		FROM tilaus
-		LEFT JOIN tilaus_tuote
-			ON tilaus_tuote.tilaus_id=tilaus.id
-		WHERE tilaus.id = :order_id ";
-	//TODO: Miksi se käyttää left joinia, ja hakee tilauksestsa, kun tilaus_tuotteessa on jo tilaus_id?
+		FROM tilaus_tuote
+		WHERE tilaus_id = :order_id ";
 	$values = [ 'order_id' => $tilaus_id ];
 	return ( $db->query($query, $values, FETCH_ALL, PDO::FETCH_OBJ) );
 }
