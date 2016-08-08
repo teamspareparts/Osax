@@ -7,7 +7,7 @@
 	<style type="text/css">
 			.class #id tag {}
 			#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
-			.nappi .peruuta {
+			.peruuta {
 				background:rgb(200, 70, 70);
 				border-color: #b70004;
 			}
@@ -90,7 +90,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	</div>
 
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, FALSE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
-	<p><a class="nappi" href="ostoskori.php" style="background:rgb(200, 70, 70);border-color: #b70004;">Palaa takaisin</a></p>
+	<p><a class="nappi peruuta" href="ostoskori.php" style="background:rgb(200, 70, 70);border-color: #b70004;">Palaa takaisin</a></p>
 </div>
 
 <!-- Hidden form -->
@@ -139,11 +139,6 @@ function laheta_Tilaus () {
 	}
 }
 
-//JQUERY
-$(document).ready(function(){
-	//tarvitaan estämään tilauksen teko, jos toimitusosoite ei valittu
-//	???
-});
 valitse_toimitusosoite(1);
 </script>
 

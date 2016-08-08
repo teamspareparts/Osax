@@ -278,36 +278,46 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /* bool */ $os
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
  * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
+ * //TODO: korjaa lissä toimitusosoitteen tarkistus
  * @param array $products
  * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
+ * @param int $tmo_arr_count [optional] default = 0 <p> Onko käyttäjän profiilissa toimitusosoitteita
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
-function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled ( array $products, /* bool */ $ostoskori = TRUE ) {
+function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
+		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 0 ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;
+	$tmo_valittu = $tmo_arr_count > 0;
 	$huomautus = "";
 	$linkki = 'href="tilaus.php"';
 
-	if ( !$ostoskori ) { $linkki = 'onClick="laheta_Tilaus();"'; } //Tilauksen lähetys toimii hieman eri tavalla
+	if ( !$ostoskori ) {
+		$linkki = 'onClick="laheta_Tilaus();"'; //Tilauksen lähetys toimii hieman eri tavalla
+	}
+
+	if ( !$tmo_valittu ) {
+		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
+	}
 
 	if ( $products ) {
 		foreach ($products as $product) {
 			if ($product->cartCount > $product->varastosaldo) {
 				$enough_in_stock = false;
-				$huomautus = "Tuotteita ei voi tilata, koska jotain tuotetta ei ole tarpeeksi varastossa.";
+				$huomautus .= "Tuotteita ei voi tilata, koska jotain tuotetta ei ole tarpeeksi varastossa.<br>";
 			}
 			if ($product->cartCount < $product->minimimyyntiera) {
 				$enough_ordered = false;
-				$huomautus = "Tuotteita ei voi tilata, koska jonkin tuotteen minimimyyntierää ei ole ylitetty.";
+				$huomautus .= "Tuotteita ei voi tilata, koska jonkin tuotteen minimimyyntierää ei ole ylitetty.<br>";
 			}
 		}
 	} else {
 		$tuotteita_ostoskorissa = false;
-		$huomautus = "Ostoskori tyhjä.";
+		$huomautus .= "Ostoskori tyhjä.<br>";
 	}
 
-	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered ) {
+	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered && $tmo_valittu ) {
 		return "<p><a class='nappi' {$linkki}>Tilaa tuotteet</a></p>";
 	} else {
 		return "<p><a class='nappi disabled'>Tilaa tuotteet</a> {$huomautus} </p>";
