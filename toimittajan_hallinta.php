@@ -146,6 +146,9 @@ tulosta_hankintapaikka($brandId);
 					<label><span>Kaupunki</span></label>\
 					<input name="kaupunki" type="text" pattern=".{1,50}" placeholder="KAUPUNKI">\
 					<br><br>\
+					<label><span>Maa</span></label>\
+					<input name="maa" type="text" pattern=".{1,50}" placeholder="Maa">\
+					<br><br>\
 					<label><span>Puh</span></label>\
 					<input name="puh" type="text" pattern=".{8,10}" placeholder="040 123 4567">\
 					<br><br>\

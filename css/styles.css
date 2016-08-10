@@ -22,12 +22,11 @@ input { padding: 3pt; }
 }
 
 .flex {
-	display: flex
+	display: flex;
 }
 
 .main_body_container {
-	margin: 3vw;
-	margin-top: 0vw;
+	margin: 0 3vw 3vw;
 	white-space: nowrap;
 	position:relative;
 }

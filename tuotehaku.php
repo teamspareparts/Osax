@@ -53,8 +53,16 @@
 <div id="cover"></div>
 
 <?php include('header.php');
-	require 'tecdoc.php';
-	require 'apufunktiot.php';?>
+require 'tecdoc.php';
+require 'apufunktiot.php';
+require 'tietokanta.php';
+if ( !empty($_POST['tuote_ostopyynto']) ) {
+	$sql = 'INSERT
+			INTO tuote_ostopyynto (tuote_id, kayttaja_id )
+			VALUES ( ?, ? ) ';
+	$db->query($sql, [ $_POST['tuote_ostopyynto'], $_SESSION['id'] ]);
+}
+?>
 <h1 class="otsikko">Tuotehaku <span class="question">?</span></h1>
 
 <div id="ostoskori-linkki"></div>
@@ -812,8 +820,6 @@ if (isset($_SESSION['cart'])) {
 
 <?php
 
-require 'tietokanta.php';
-
 /* function filter_by_article_number($number) {
 
 	// Korvaa jokerimerkit * ja ? merkeillä % ja _ ,joita käytetään
@@ -962,7 +968,7 @@ if(isset($_GET["manuf"])) {
 	//valitaan vain ne tuotteet jotka lisätty tietokantaan
 	global $connection;
 	$result = mysqli_query($connection, "
-			SELECT articleNo, varastosaldo, minimisaldo, minimimyyntiera,
+			SELECT id, articleNo, varastosaldo, minimisaldo, minimimyyntiera,
 				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
 			FROM tuote
 			JOIN ALV_kanta
@@ -1005,17 +1011,8 @@ function print_results($products) {
 				echo "<br>";
 			}
 			echo "</td>";
-//			echo "<td class=\"clickable\">$product->ean</td>";
-//			//echo "<td>$product->oe</td>";
-//			echo "<td class=\"clickable\">";
-//			foreach ($product->oe as $oe){
-//				echo $oe;
-//				echo "<br>";
-//			}
-//			echo "</td>";
 			echo '<td style="text-align: right;">' . format_integer($product->varastosaldo) . '</td>';
 			echo '<td style="text-align: right;">' . format_euros($product->hinta) . '</td>';
-// 			echo '<td style="padding-top: 0; padding-bottom: 0;"><input id="maara_' . $article->articleId . '" name="maara_' . $article->articleId . '" class="maara" type="number" value="0" min="0"></td>';
 			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $article ) . ' </td>';
 			echo '<td class="clickable">Stuff/Things</td>';
 			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(\''.$article->articleNo.'\')">Osta</a></td>';
@@ -1028,15 +1025,46 @@ function print_results($products) {
 	echo '</div>';
 }
 
+/**
+ * @param $product
+ * @param $article
+ * @return string <p> palauttaa kpl-kentän tai ostopyyntö-napin
+ */
 function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
-	?><!--  <input id="maara_</?= $article->articleId ?>" name="maara_</?= $article->articleId ?>" class="maara" type="number" value="0" min="0"> --><?php
-	if ( $product->varastosaldo >= $product->minimimyyntiera ) {
-		return  '<input id="maara_' . $article->articleNo . '" name="maara_' . $article->articleNo . '" class="maara" type="number" value="0" min="0"></td>';
-	} else {
-		return '<a href="javascript:void(0);" onClick="confirm(\'Woo! Loppuunmyyty.\nOle hyvä ja kirjoita ystävällinen kirje maahantuojallesi, jossa ilmoitat halukkuutesi ostaa tätä tuotetta. Kiitos yhteistyöstäsi.\');">Tuotetta ei saatavilla</a>';
-	}
+	return
+		($product->varastosaldo >= $product->minimimyyntiera || $product->varastosaldo === 0) ?
+			"<input id='maara_{$article->articleNo}' name='maara_{$article->articleNo}' class='maara' 
+				type='number' value='0' min='0'></td>"
+			: "<a href='javascript:void(0);' onClick='ostopyynnon_varmistus( {$product->id} );'>
+			Tuotetta ei saatavilla</a>";
 }
 
 ?>
+
+<script>
+	/**
+	 * Lähettää POST:ina formin. Vastaanotto puolella INSERT ostopyyntö tietokantaan.
+	 * @param product_id <p> Halutun tuotteen ID
+	 * @returns {boolean}
+	 */
+	function ostopyynnon_varmistus( product_id ) {
+		var form_id = 'ostopyynto_form';
+		var form_id_value = 'tuote_ostopyynto';
+		var vahvistus = confirm( "Tuote on loppuunmyyty tai poistettu valikoimasta.\n"
+			+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
+			+ "Ostopyyntö ei ole sitova.");
+		if ( vahvistus ) {
+			document.getElementById(form_id_value).value = product_id;
+			document.getElementById(form_id).submit();
+		} else {
+			return false;
+		}
+	}
+</script>
+
+<form class="hidden" id="ostopyynto_form" action="#" method=post>
+	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
+</form>
+
 </body>
 </html>

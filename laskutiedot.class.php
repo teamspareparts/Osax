@@ -1,12 +1,12 @@
 <?php
 /** * */
 class Laskutiedot {
-	protected $tilaus_pvm = '[Tilauksen päivämäärä]';
-	protected $tilaus_nro = '[Tilauksen numero]';
-	protected $laskun_nro = '[Laskun numero]';
+	public $tilaus_pvm = '[Tilauksen päivämäärä]';
+	public $tilaus_nro = '[Tilauksen numero]';
+	public $laskun_nro = '[Laskun numero]';
 
-	protected $maksutapa = '[Maksutapa]';
-	protected $toimitustapa = '[Toimitustapa]';
+	public $maksutapa = '[Maksutapa]';
+	public $toimitustapa = '[Toimitustapa]';
 
 	protected $asiakkaan_id = '[Asiakkaan ID]';
 	/** @var Asiakas object */
@@ -31,11 +31,11 @@ class Laskutiedot {
 
 	/**
 	 * Laskutiedot constructor.
-	 * @param $tilaus_id
-	 * @param $db
+	 * @param DByhteys $db
+	 * @param int $tilaus_id [optional] default=NULL
 	 */
-	public function __construct( /* int */ $tilaus_id, DByhteys $db ) {
-		$this->tilaus_nro = $tilaus_id;
+	public function __construct( DByhteys $db, /*int*/ $tilaus_id = NULL ) {
+		$this->tilaus_nro = isset($tilaus_id) ? $tilaus_id : '[Tilauksen numero]';
 		$this->db = $db;
 		$this->asiakas = new Asiakas();
 		$this->yritys = new Yritys();
@@ -43,11 +43,15 @@ class Laskutiedot {
 		$this->tuotteet[] = new Tuote();
 	}
 
-	public function haeTilauksenTiedot() {
+	/**
+	 * @param int $tilaus_nro [optional] default=NULL
+	 */
+	public function haeTilauksenTiedot( $tilaus_nro = NULL ) {
 		$query = "	SELECT	kayttaja_id, paivamaara, pysyva_rahtimaksu
 					FROM	tilaus
 					WHERE	id = ? ";
 
+		$this->tilaus_nro = isset($tilaus_nro) ? $tilaus_nro : $this->tilaus_nro;
 		$row = $this->db->query( $query, [$this->tilaus_nro] );
 		if ( $row ) {
 			$this->asiakkaan_id = $row['kayttaja_id'];
@@ -109,6 +113,7 @@ class Laskutiedot {
 
 	/**  */
 	protected function haeTuotteet() {
+		$this->tuotteet = array();
 		$query = "	SELECT tuote.id, tuote.articleNo, tuote.brandNo, 
 						tilaus_tuote.kpl, tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, 
 						tilaus_tuote.pysyva_alennus,
@@ -196,6 +201,41 @@ class Laskutiedot {
 			[Tosin jos kaikki maksavat suoraan, niin näitä ei varmaan sitten tarvita?]";
 
 		return $lasku;
+	}
+
+	/**
+	 * @return Asiakas
+	 */
+	public function getAsiakas () {
+		return $this->asiakas;
+	}
+
+	/**
+	 * @return null|Yritys
+	 */
+	public function getYritys () {
+		return $this->yritys;
+	}
+
+	/**
+	 * @return null|Toimitusosoite
+	 */
+	public function getToimitusosoite () {
+		return $this->toimitusosoite;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getTuotteet () {
+		return $this->tuotteet;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getHintatiedot () {
+		return $this->hintatiedot;
 	}
 }
 
