@@ -15,7 +15,7 @@ require 'header.php';
 require 'tietokanta.php';
 require 'tecdoc.php';
 if (!is_admin()) {
-	header("Location:tuotehaku.php");
+	header("Location:etusivu.php");
 	exit();
 }
 //tarkastetaan onko tultu toimittajat sivulta

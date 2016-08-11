@@ -29,7 +29,7 @@ include 'header.php';
 				require 'apufunktiot.php';
 				
 				if (!is_admin()) {
-					header("Location:tuotehaku.php");
+					header("Location:etusivu.php");
 					exit();
 				}
 

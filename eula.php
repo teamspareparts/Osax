@@ -23,7 +23,7 @@ if ( isset($_POST['vahvista_eula']) ) {
 					SET		vahvista_eula = '0'
 					WHERE	id = '$user_id';";
 	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
-	header('Location: tuotehaku.php'); exit;
+	header('Location:etusivu.php'); exit;
 }
 
 $txt_tiedosto = __DIR__.'/eula.txt';

@@ -28,7 +28,7 @@
 
 			<?php
 				if (!is_admin()) {
-					header("Location:tuotehaku.php");
+					header("Location:etusivu.php");
 					exit();
 				}
 				require 'tietokanta.php';
