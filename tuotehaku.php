@@ -973,7 +973,7 @@ if(isset($_GET["manuf"])) {
 			FROM tuote
 			JOIN ALV_kanta
 				ON ALV_kanta = ALV_kanta.kanta
-			WHERE tuote.articleNo IN ('$articleNos');");
+			WHERE tuote.articleNo IN ('$articleNos');") or die(mysqli_error($connection));
 
     $products = array();
 	if ($result) {

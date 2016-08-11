@@ -84,7 +84,7 @@ class DByhteys {
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
 	 * 		Niitä on muitakin, mutta nuo on tärkeimmät.
-	 * @return array ( results | empty ) <p> assoc array, to be precise
+	 * @return array ( results | empty ) assoc array, to be precise
 	 */
 	public function query( /* string */ $query, array $values = NULL,
 			/* bool */ $fetch_All_Rows = FALSE, /* special */ $returnType = NULL ) {
@@ -108,7 +108,6 @@ class DByhteys {
 	/**
 	 * Valmistelee erillisen haun, jota voi sitten käyttää run_prep_stmt()-metodilla.
 	 * @param string $query
-	 * @return void
 	 */
 	public function prepare_stmt( /* string */ $query ) {
 		$db = $this->connection;
@@ -116,10 +115,10 @@ class DByhteys {
 	}
 
 	/**
-	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa)
+	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa).
+	 * Hae tulos get_next_row()-metodilla.
 	 * @param array $values [optional], default=NULL<p>
 	 * 		queryyn upotettavat arvot
-	 * @return void<p> käytä get_next_row()-metodia saadaksesi tuloksen
 	 */
 	public function run_prepared_stmt( array $values = NULL ) {
 		$stmt = $this->prepared_stmt;
