@@ -750,10 +750,6 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
-			/* Ohjelma ei koskaan pääse tänne asti. Nykyinen tapa, jolla olen tehnyt luokan ei tallenna INSERT:in
-			 *  tai DELETE:n tulosta. Mielestäni tälle osiolle ei ole tarvetta, koska en keksi tapausta, jossa lisäys
-			 *  epäonnistuisi (tai tarkemmin sanoen tuloksella olisi merkitystä). Jos sille todella on tarvetta voin
-			 *  kyllä lisätä sen palauttamaan oikean tuloksen. */
 			echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
 		}
 	} elseif (isset($_GET['poista'])) { //Miksi tämä on GET:llä? Entä jos joku pistää randomi ID:n URL:iin?
@@ -761,10 +757,6 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		if ($success) {
 			echo '<p class="success">Tuote poistettu!</p>';
 		} else {
-			/* Ohjelma ei koskaan pääse tänne asti. Nykyinen tapa, jolla olen tehnyt luokan ei tallenna INSERT:in
-			 *  tai DELETE:n tulosta. Mielestäni tälle osiolle ei ole tarvetta, koska en keksi tapausta, jossa poisto
-			 *  epäonnistuisi (tai tarkemmin sanoen tuloksella olisi merkitystä). Jos sille todella on tarvetta voin
-			 *  kyllä lisätä sen palauttamaan oikean tuloksen.*/
 			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
 		}
 	} elseif (isset($_POST['muokkaa'])) {

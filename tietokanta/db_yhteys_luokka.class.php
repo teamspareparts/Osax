@@ -76,34 +76,37 @@ class DByhteys {
 	 * @param int $returnType [optional], default = NULL <p>
 	 * 		Missä muodossa haluat tiedot palautettavan.
 	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
-	 * 		Mahdolliset arvot:
+	 * 		Mahdolliset (tärkeimmät) arvot:
 	 * 		<ul>	<li>PDO::FETCH_ASSOC (huom. default jo valmiiksi)</li>
 	 * 				<li>PDO::FETCH_NUM</li>
 	 * 				<li>PDO::FETCH_BOTH</li>
 	 * 				<li>PDO::FETCH_OBJ</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
-	 * 		Niitä on muitakin, mutta nuo on tärkeimmät.
-	 * @return array|TRUE <p> Palauttaa arrayn, jos esim. SELECT.<br>
-	 * 		Palauttaa TRUE, jos esim. INSERT tai DELETE.
+	 * @return array|boolean <p> Palauttaa arrayn, jos esim. SELECT.<br>
+	 * 		Palauttaa boolean, jos esim. INSERT tai DELETE.
 	 */
 	public function query( /* string */ $query, array $values = NULL,
 			/* bool */ $fetch_All_Rows = FALSE, /* int */ $returnType = NULL ) {
 		$db = $this->connection;
 
-		$stmt = $db->prepare( $query );	// Valmistellaan query
-		$stmt->execute( $values );		//Toteutetaan query varsinaisilla arvoilla
+		$q_type = substr( ltrim($query), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
 
-		if ($fetch_All_Rows) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
-			$result = $stmt->fetchAll( $returnType );
-			$stmt->closeCursor();
+		$stmt = $db->prepare( $query );		// Valmistellaan query
+		$result = $stmt->execute( $values );//Toteutetaan query varsinaisilla arvoilla
 
-		} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
-			$result = $stmt->fetch( $returnType );
-			$stmt->closeCursor();
-		}
+		if ( $q_type === "SELECT" ) { //Jos select, haetaan array
+			if ($fetch_All_Rows) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
+				$result = $stmt->fetchAll( $returnType );
+				$stmt->closeCursor();
 
-		return !empty($result) ? $result : TRUE; //TODO: Improve
+			} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
+				$result = $stmt->fetch( $returnType );
+				$stmt->closeCursor();
+			}
+		} //Jos ei, palautetaan boolean execute()-metodilta
+
+		return $result;
 	}
 
 	/**
