@@ -90,7 +90,7 @@ function showAddDialog(articleNo, brandNo) {
 			<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
 				<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
 				<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-					<?php hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ?> \
+					<?= hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ?> \
 				</span><br> \
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 				<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
@@ -123,7 +123,7 @@ function showModifyDialog(articleNo, price, alv, count, minimumSaleCount, alennu
 			<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
 				<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
 				<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-					<?php hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ?> \
+					<?= hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ?> \
 				</span><br> \
 				<span class="dialogi-kentta">Nykyinen verokanta: ' + alv + '</span><br>\
 				<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
@@ -640,7 +640,6 @@ function print_results($number) {
 			}
 			echo "</td>";
 			echo "<td>$article->ean</td>";
-			//echo "<td>$article->oe</td>";
 			echo "<td>";
 			foreach ($article->oe as $oe){
 				echo $oe;
@@ -651,7 +650,7 @@ function print_results($number) {
                 // Tuote on jo valikoimassa
                 echo "<td class=\"toiminnot\"><a class=\"nappi disabled\">Lisää</a></td>";
             } else {
-                echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog('$article->articleNo', $article->brandNo)\">Lisää</a></td>";
+                echo "<td class=\"toiminnot\"><a class=\"nappi\" href='javascript:void(0)' onclick=\"showAddDialog('$article->articleNo', $article->brandNo)\">Lisää</a></td>";
             }
 			echo '</tr>';
 		}
@@ -692,16 +691,16 @@ function print_catalog( array $products ) {
 			echo "<td style=\"text-align: right;\">" . format_integer($product->minimimyyntiera) . "</td>";
 			$product->hinta_ilman_ALV = str_replace('.', ',', $product->hinta_ilman_ALV);
 			$product->alennusera_prosentti = str_replace('.', ',', $product->alennusera_prosentti);
-			echo "<td class=\"toiminnot\"><a class=\"nappi\" href='javascript:void(0)' 
+			echo "<td class=\"toiminnot\"><a class=\"nappi\" href='javascript:void(0);' 
 				onclick=\"showModifyDialog(
-					'$product->articleNo',
-					'$product->hinta_ilman_ALV',
-					$product->ALV_kanta,
-					$product->varastosaldo,
-					$product->minimimyyntiera,
-					$product->alennusera_kpl,
-					'$product->alennusera_prosentti')
-					\">Muokkaa</a> <a class=\"nappi\" href='javascript:void(0)' onclick=\"showRemoveDialog('$product->articleNo')\">Poista</a></td>";
+					'{$product->articleNo}',
+					'{$product->hinta_ilman_ALV}',
+					{$product->ALV_kanta},
+					{$product->varastosaldo},
+					{$product->minimimyyntiera},
+					{$product->alennusera_kpl},
+					'{$product->alennusera_prosentti}');
+					\">Muokkaa</a> <a class=\"nappi\" href='javascript:void(0)' onclick='showRemoveDialog(\"{$product->articleNo}\");'>Poista</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -724,11 +723,12 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
 
 	$result = $db->query( $sql_query, NULL, FETCH_ALL );
 
-	$return_string .= "<select name='alv_lista'>";
+	$return_string .= "<select name=\"alv_lista\">";
 
 	foreach ( $result as $row ) {
+		$kanta = $row['kanta'];
 		$prosentti = str_replace( '.', ',', $row['prosentti'] );
-		$return_string .= "<option name='alv' value='{$row['kanta']}'>{$row['kanta']}; {$prosentti}</option>";
+		$return_string .= "<option name=\"alv\" value=\"{$kanta}\">{$kanta}; {$prosentti}</option>";
 	}
 
 	$return_string .= "</select>";
@@ -750,13 +750,21 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		if ($success) {
 			echo '<p class="success">Tuote lisätty!</p>';
 		} else {
+			/* Ohjelma ei koskaan pääse tänne asti. Nykyinen tapa, jolla olen tehnyt luokan ei tallenna INSERT:in
+			 *  tai DELETE:n tulosta. Mielestäni tälle osiolle ei ole tarvetta, koska en keksi tapausta, jossa lisäys
+			 *  epäonnistuisi (tai tarkemmin sanoen tuloksella olisi merkitystä). Jos sille todella on tarvetta voin
+			 *  kyllä lisätä sen palauttamaan oikean tuloksen. */
 			echo '<p class="error">Tuotteen lisäys epäonnistui!</p>';
 		}
-	} elseif (isset($_GET['poista'])) {
+	} elseif (isset($_GET['poista'])) { //Miksi tämä on GET:llä? Entä jos joku pistää randomi ID:n URL:iin?
 		$success = remove_product_from_catalog($_GET['poista']);
 		if ($success) {
 			echo '<p class="success">Tuote poistettu!</p>';
 		} else {
+			/* Ohjelma ei koskaan pääse tänne asti. Nykyinen tapa, jolla olen tehnyt luokan ei tallenna INSERT:in
+			 *  tai DELETE:n tulosta. Mielestäni tälle osiolle ei ole tarvetta, koska en keksi tapausta, jossa poisto
+			 *  epäonnistuisi (tai tarkemmin sanoen tuloksella olisi merkitystä). Jos sille todella on tarvetta voin
+			 *  kyllä lisätä sen palauttamaan oikean tuloksen.*/
 			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
 		}
 	} elseif (isset($_POST['muokkaa'])) {
@@ -764,7 +772,6 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
-		$minimisaldo = intval($_POST['minimisaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = (int)$_POST['alennusera_prosentti'] / 100;

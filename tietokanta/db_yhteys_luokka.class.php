@@ -84,10 +84,11 @@ class DByhteys {
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
 	 * 		Niitä on muitakin, mutta nuo on tärkeimmät.
-	 * @return array ( results | empty ) assoc array, to be precise
+	 * @return array|TRUE <p> Palauttaa arrayn, jos esim. SELECT.<br>
+	 * 		Palauttaa TRUE, jos esim. INSERT tai DELETE.
 	 */
 	public function query( /* string */ $query, array $values = NULL,
-			/* bool */ $fetch_All_Rows = FALSE, /* special */ $returnType = NULL ) {
+			/* bool */ $fetch_All_Rows = FALSE, /* int */ $returnType = NULL ) {
 		$db = $this->connection;
 
 		$stmt = $db->prepare( $query );	// Valmistellaan query
@@ -102,7 +103,7 @@ class DByhteys {
 			$stmt->closeCursor();
 		}
 
-		return $result;
+		return !empty($result) ? $result : TRUE; //TODO: Improve
 	}
 
 	/**
