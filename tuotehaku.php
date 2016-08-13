@@ -947,14 +947,6 @@ if(isset($_GET["manuf"])) {
 	$selCar = $_GET["car"];
 	$selPartType = $_GET["osat_alalaji"];
 
-
-
-	/* echo "manuf: " . $_POST["manuf"] . " ";
-	echo "model: " . $_POST["model"] . " ";
-	echo "car: " . $_POST["car"] . " ";
-	echo "groupID: " . $_POST["osat_alalaji"] . " "; */
-
-
 	$product_articleNos = array();
 	$articles = getArticleIdsWithState($selCar, $selPartType);
 
@@ -966,30 +958,31 @@ if(isset($_GET["manuf"])) {
 	}
 	$articleNos = implode("','", $product_articleNos);
 	//valitaan vain ne tuotteet jotka lisätty tietokantaan
-	global $connection;
-	$result = mysqli_query($connection, "
-			SELECT id, articleNo, varastosaldo, minimisaldo, minimimyyntiera,
-				( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
-			FROM tuote
-			JOIN ALV_kanta
-				ON ALV_kanta = ALV_kanta.kanta
-			WHERE tuote.articleNo IN ('$articleNos');") or die(mysqli_error($connection));
 
-    $products = array();
-	if ($result) {
-		while ($row = mysqli_fetch_object($result)) {
-			array_push($products, $row);
-		}
-		//yhdistetään tietokannasta löytyneet tuotteet tecdoc-datan kanssa
-		if (count($products) > 0) {
-			merge_catalog_with_tecdoc($products, true);
-		}
+	$query = "	SELECT id, articleNo, varastosaldo, minimimyyntiera,
+					( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
+				FROM tuote
+				JOIN ALV_kanta
+					ON ALV_kanta = ALV_kanta.kanta
+				WHERE tuote.articleNo IN ('{$articleNos}') ";
+	$result = $db->query( $query, NULL, FETCH_ALL, PDO::FETCH_OBJ );
+
+	$products = array();
+	if ( $result ) {
+		foreach ( $result as $tuote ) {
+			$products[] = $tuote;
+		} //yhdistetään tietokannasta löytyneet tuotteet tecdoc-datan kanssa
+		merge_catalog_with_tecdoc($products, true);
 	}
+
 	print_results($products);
 }
 
-
-function print_results($products) {
+/**
+ * Tulostaa annetut tuotteet (haun tulokset) taulukossa.
+ * @param array $products
+ */
+function print_results( array $products ) {
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset:</h2>';
 	if (count($products) > 0) {
@@ -1031,7 +1024,7 @@ function print_results($products) {
  * @return string <p> palauttaa kpl-kentän tai ostopyyntö-napin
  */
 function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
-	return
+	return //Hyvin monimutkainen if-else-lauseke:
 		($product->varastosaldo >= $product->minimimyyntiera || $product->varastosaldo === 0) ?
 			"<input id='maara_{$article->articleNo}' name='maara_{$article->articleNo}' class='maara' 
 				type='number' value='0' min='0'></td>"

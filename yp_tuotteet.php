@@ -586,20 +586,19 @@ function get_products_in_catalog() {
 				FROM tuote
 				JOIN ALV_kanta
 					ON tuote.ALV_kanta = ALV_kanta.kanta 
-				WHERE aktiivinen=1;";
+				WHERE aktiivinen=1 ";
 
 	$result = $db->query( $query, NULL, FETCH_ALL, PDO::FETCH_OBJ );
 
+	$products = array();
 	if ( $result ) {
-		$products = array();
 		foreach ( $result as $tuote ) {
 			$products[] = $tuote;
 		}
 		merge_catalog_with_tecdoc($products, true);
-		return $products;
 	}
 
-	return $result; //Joka on käytännössä tyhjä|false|null, jos se tänne asti pääsee
+	return $products; //Joka on käytännössä tyhjä|false|null, jos se tänne asti pääsee
 }
 
 //
