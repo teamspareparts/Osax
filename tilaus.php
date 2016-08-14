@@ -50,14 +50,13 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 		<?php
 		foreach ( $products as $product ) {
-			$article = $product->directArticle;
 			$product->hinta = tarkista_hinta_era_alennus( $product );
 			$sum += $product->hinta * $product->cartCount;?>
 			<!-- HTML -->
 			<tr>
-				<td><?= $article->articleNo?></td><!-- Tuotenumero -->
-				<td><?= $article->articleName?></td><!-- Tuotteen nimi -->
-				<td><?= $article->brandName?></td><!-- Tuotteen valmistaja -->
+				<td><?= $product->articleNo?></td><!-- Tuotenumero -->
+				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
+				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->

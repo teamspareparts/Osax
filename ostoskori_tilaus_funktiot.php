@@ -16,23 +16,22 @@ function get_products_in_shopping_cart ( mysqli $connection ) {
         return [];
     }
 
-    $articleNos = implode("', '", array_keys($cart));
+    $ids = implode(',', array_keys($cart));
 	$result = mysqli_query($connection, "
-		SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimisaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
+		SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
 			(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 			ALV_kanta.prosentti AS alv_prosentti
 		FROM	tuote
 		LEFT JOIN	ALV_kanta
 			ON		tuote.ALV_kanta = ALV_kanta.kanta
-		WHERE 	tuote.articleNo in ( '{$articleNos}' );");
-
+		WHERE 	tuote.id IN ($ids);") or die(mysqli_error($connection));
 	if ($result) {
 		$products = [];
 		while ( $row = mysqli_fetch_object($result) ) {
-            $row->cartCount = $cart[$row->articleNo];
+            $row->cartCount = $cart[$row->id];
 			array_push($products, $row);
 		}
-		merge_catalog_with_tecdoc($products, false);
+		merge_catalog_with_tecdoc($products, true);
 		return $products;
 	}
 	return [];
@@ -285,7 +284,7 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /* bool */ $os
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 0 ) {
+		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 1 ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;

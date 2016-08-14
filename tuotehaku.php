@@ -422,15 +422,15 @@ if (isset($_SESSION['cart'])) {
 			return infos;
 		}
 
-		//Tehdään asennusohjeen latauslinkki, jos asennusohje olemassa 
+		//Tehdään dokumenttien latauslinkit, jos olemassa
 		function getDocuments(response){
 			if (response.articleDocuments == "") {
 				return "";
 			}
 			var documentlink = "";
 			for(var i = 0; i < response.articleDocuments.array.length; i++) {
-				//asennusohjeet
-				if(response.articleDocuments.array[i].docTypeId != 5) {
+				//Dokumentit
+				if(response.articleDocuments.array[i].docTypeName != "Valokuva") {
 					//alert(response.articleDocuments.array[i].docTypeId);
 					var doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
 					var docName = response.articleDocuments.array[i].docFileName;
@@ -549,7 +549,6 @@ if (isset($_SESSION['cart'])) {
 			<br> \
 			'+OEtable+' \
 		');
-		//$("#menu1").append("<div style='width:200px;float:left;'><br><br></div>");
 
 
 		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
@@ -893,7 +892,31 @@ if (isset($_SESSION['cart'])) {
 function filter_catalog_products($products){
 	global $connection;
 
-	//Etsitään omasta catalogista
+	$catalog_products = array();
+	$ids = array();
+	foreach ($products as $product) {
+		$articleNo = addslashes(str_replace(" ", "", $product->articleNo));
+		$query = " SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+					FROM 	tuote 
+					JOIN 	ALV_kanta
+						ON	tuote.ALV_kanta = ALV_kanta.kanta
+					WHERE 	tuote.articleNo = '$articleNo'
+					 		AND tuote.brandNo = $product->brandNo
+					 		AND tuote.aktiivinen=1;";
+		$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
+		while ($row = mysqli_fetch_object($result)) {
+			if (!in_array($row->id, $ids)) {
+				array_push($ids, $row->id);
+				$row->articleId = $product->articleId;
+				$row->articleName = $product->articleName;
+				$row->brandName = $product->brandName;
+				array_push($catalog_products, $row);
+
+			}
+		}
+	}
+	merge_catalog_with_tecdoc($catalog_products, false);
+	/*//Etsitään omasta catalogista
 	$product_ids = array();
 	$product_articleNos = array();
 	//articleNo:t ja articleId:t listaan
@@ -915,8 +938,8 @@ function filter_catalog_products($products){
 		$row->id = $product_ids[array_search($row->articleNo, $product_articleNos)];
 		array_push($products, $row);
 	}
-	merge_catalog_with_tecdoc($products, true);
-	return $products;
+	merge_catalog_with_tecdoc($products, true);*/
+	return $catalog_products;
 }
 
 
@@ -947,35 +970,35 @@ if(isset($_GET["manuf"])) {
 	$selCar = $_GET["car"];
 	$selPartType = $_GET["osat_alalaji"];
 
-	$product_articleNos = array();
-	$articles = getArticleIdsWithState($selCar, $selPartType);
+	$products = getArticleIdsWithState($selCar, $selPartType);
 
-	//poistetaan duplikaatit
-	foreach ($articles as $article){
-		if(!in_array($article->articleNo, $product_articleNos)){
-			array_push($product_articleNos, addslashes(str_replace(" ", "", $article->articleNo)));
+	global $connection;
+
+	$catalog_products = array();
+	$ids = array();
+	foreach ($products as $product) {
+		$articleNo = addslashes(str_replace(" ", "", $product->articleNo));
+		$query = " SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+					FROM 	tuote 
+					JOIN 	ALV_kanta
+						ON	tuote.ALV_kanta = ALV_kanta.kanta
+					WHERE 	tuote.articleNo = '$articleNo'
+					 		AND tuote.brandNo = $product->brandNo
+					 		AND tuote.aktiivinen=1;";
+		$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
+		while ($row = mysqli_fetch_object($result)) {
+			if (!in_array($row->id, $ids)) {
+				array_push($ids, $row->id);
+				$row->articleId = $product->articleId;
+				$row->articleName = $product->genericArticleName;
+				$row->brandName = $product->brandName;
+				array_push($catalog_products, $row);
+
+			}
 		}
 	}
-	$articleNos = implode("','", $product_articleNos);
-	//valitaan vain ne tuotteet jotka lisätty tietokantaan
-
-	$query = "	SELECT id, articleNo, varastosaldo, minimimyyntiera,
-					( hinta_ilman_alv * (1+ALV_kanta.prosentti) ) AS hinta
-				FROM tuote
-				JOIN ALV_kanta
-					ON ALV_kanta = ALV_kanta.kanta
-				WHERE tuote.articleNo IN ('{$articleNos}') ";
-	$result = $db->query( $query, NULL, FETCH_ALL, PDO::FETCH_OBJ );
-
-	$products = array();
-	if ( $result ) {
-		foreach ( $result as $tuote ) {
-			$products[] = $tuote;
-		} //yhdistetään tietokannasta löytyneet tuotteet tecdoc-datan kanssa
-		merge_catalog_with_tecdoc($products, true);
-	}
-
-	print_results($products);
+	merge_catalog_with_tecdoc($catalog_products, false);
+	print_results($catalog_products);
 }
 
 /**
@@ -991,11 +1014,10 @@ function print_results( array $products ) {
 		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Saldo</th><th style="text-align: right;">Hinta (sis. ALV)</th><th>Kpl</th><th>Testing</th></tr>';
 		echo '</thead>';
 		foreach ($products as $product) {
-			$article = $product->directArticle;
-			echo '<tr data-val="'. $article->articleId .'">';
-			echo '<td class="clickable thumb"><img src="'.$product->thumburl.'" alt="'.$article->articleName.'"></td>';
-			echo '<td class="clickable">'.$article->articleNo.'</td>';
-			echo '<td class="clickable">'.$article->brandName.' <br> '. $article->articleName.'</td>';
+			echo '<tr data-val="'. $product->articleId .'">';
+			echo '<td class="clickable thumb"><img src="'.$product->thumburl.'" alt="'.$product->articleName.'"></td>';
+			echo '<td class="clickable">'.$product->articleNo.'</td>';
+			echo '<td class="clickable">'.$product->brandName.' <br> '. $product->articleName.'</td>';
 			echo '<td class="clickable">';
 			foreach ($product->infos as $info){
 				if(!empty($info->attrName)) echo $info->attrName . " ";
@@ -1006,9 +1028,9 @@ function print_results( array $products ) {
 			echo "</td>";
 			echo '<td style="text-align: right;">' . format_integer($product->varastosaldo) . '</td>';
 			echo '<td style="text-align: right;">' . format_euros($product->hinta) . '</td>';
-			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $article ) . ' </td>';
+			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $product ) . ' </td>';
 			echo '<td class="clickable">Stuff/Things</td>';
-			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(\''.$article->articleNo.'\')">Osta</a></td>';
+			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart('.$product->id.')">Osta</a></td>';
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -1023,10 +1045,10 @@ function print_results( array $products ) {
  * @param $article
  * @return string <p> palauttaa kpl-kentän tai ostopyyntö-napin
  */
-function laske_tuotesaldo_ja_tulosta_huomautus ( $product, $article ) {
+function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
 	return //Hyvin monimutkainen if-else-lauseke:
 		($product->varastosaldo >= $product->minimimyyntiera || $product->varastosaldo === 0) ?
-			"<input id='maara_{$article->articleNo}' name='maara_{$article->articleNo}' class='maara' 
+			"<input id='maara_{$product->id}' name='maara_{$product->id}' class='maara' 
 				type='number' value='0' min='0'></td>"
 			: "<a href='javascript:void(0);' onClick='ostopyynnon_varmistus( {$product->id} );'>
 			Tuotetta ei saatavilla</a>";

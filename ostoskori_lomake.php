@@ -8,10 +8,11 @@
 //
 // Lisää annetun tuotteen ostoskoriin
 //
-function addToShoppingCart(articleNo) {
-	var count = document.getElementById('maara_' + articleNo).value;
+function addToShoppingCart(id) {
+	var count = document.getElementById('maara_' + id).value;
 	document.getElementById('ostoskori_toiminto').value = 'lisaa';
-	document.getElementById('ostoskori_tuote').value = articleNo;
+	document.getElementById('ostoskori_tuote').value = id;
+	alert
 	document.getElementById('ostoskori_maara').value = count;
 	document.ostoskorilomake.submit();
 }
@@ -19,10 +20,10 @@ function addToShoppingCart(articleNo) {
 //
 // Muokkaa annettua tuotetta ostoskorissa
 //
-function modifyShoppingCart(articleNo) {
-	var count = document.getElementById('maara_' + articleNo).value;
+function modifyShoppingCart(id) {
+	var count = document.getElementById('maara_' + id).value;
 	document.getElementById('ostoskori_toiminto').value = 'muokkaa';
-	document.getElementById('ostoskori_tuote').value = articleNo;
+	document.getElementById('ostoskori_tuote').value = id;
 	document.getElementById('ostoskori_maara').value = count;
 	document.ostoskorilomake.submit();
 }
@@ -30,7 +31,7 @@ function modifyShoppingCart(articleNo) {
 //
 // Poistaa annetun tuotteen ostoskorista
 //
-function removeFromShoppingCart(articleNo) {
+function removeFromShoppingCart(id) {
 	document.getElementById('ostoskori_toiminto').value = 'poista';
 	document.getElementById('ostoskori_tuote').value = articleNo;
 	document.ostoskorilomake.submit();
@@ -39,7 +40,7 @@ function removeFromShoppingCart(articleNo) {
 //
 // Tyhjentää koko ostoskorin
 //
-function emptyShoppingCart(articleId) {
+function emptyShoppingCart() {
 	document.getElementById('ostoskori_toiminto').value = 'tyhjenna';
 	document.ostoskorilomake.submit();
 }

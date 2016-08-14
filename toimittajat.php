@@ -31,12 +31,18 @@ foreach ($brands as $brand) {
 }*/
 
 $brands = getAmBrands();
+usort($brands, "cmp");
+
 foreach ($brands as $brand) {
 	$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
 	echo '<div class="floating-box clickable" data-brandId="'.$brand->brandId.'" data-brandName="'.$brand->brandName.'"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
 }
-?>
 
+function cmp($a, $b) {
+	return strcmp($a->brandName, $b->brandName);
+}
+
+?>
 
 
 

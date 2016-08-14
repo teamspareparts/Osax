@@ -62,13 +62,19 @@ if(isset($_FILES['tuotteet']['name'])) {
 		else{
 			$row=0;
 		}
+		$failed_inserts = 0;
 		echo "<table>";
-		echo "<th>tuote</th><th>ostohinta</th><th>myyntihinta</th><th>vero %</th><th>myyntierä</th><th>kpl</th>";
+		echo "<th>Tuote</th><th>Ostohinta</th><th>Myyntihinta</th><th>Vero ID</th><th>Myyntierä</th><th>KPL</th>";
 		while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 			if ($row == -1){$row++;continue;}
 			$row++;
 			//rivin sarakkeiden lkm
 			$num = count($data);
+			if ($num != 6) {
+				echo "<tr><td><span style='color: red;'>Tuotetta rivillä " . $row . " ei voitu lisätä.</span></td></tr>";
+				$failed_inserts++;
+				continue;
+			}
 			//Järjestetään tuotteet aina järjestykseen
 			//1:tuote	2:ostohinta	3:myyntihinta
 			//4:vero(%)	5:minimimyyntierä	6:kpl
@@ -83,17 +89,16 @@ if(isset($_FILES['tuotteet']['name'])) {
 			$query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo) 
 					  VALUES ('$row_order[0]', '$row_order[1]', '$row_order[1]', '$row_order[2]', '$row_order[3]', '$row_order[4]', '$row_order[5]', '$row_order[5]', '$brandId')
 					  ON DUPLICATE KEY
-					  	UPDATE sisaanostohinta=$row_order[1], hinta_ilman_ALV=$row_order[2], ALV_kanta=$row_order[3], minimimyyntiera=$row_order[4], varastosaldo = varastosaldo+$row_order[5], keskiostohinta=(keskiostohinta*yhteensa_kpl+$row_order[1]*$row_order[5])/(yhteensa_kpl+$row_order[5]), yhteensa_kpl=yhteensa_kpl+$row_order[5];";
+					  	UPDATE sisaanostohinta=$row_order[1], hinta_ilman_ALV=$row_order[2], ALV_kanta=$row_order[3], minimimyyntiera=$row_order[4], varastosaldo = varastosaldo+$row_order[5], keskiostohinta=IFNULL(((keskiostohinta*yhteensa_kpl+$row_order[1]*$row_order[5])/(yhteensa_kpl+$row_order[5])),0), yhteensa_kpl=yhteensa_kpl+$row_order[5];";
 			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
 			echo "<tr>";
-			//echo "<p> $num saraketta rivillä $row: <br /></p>\n";
 			for ($c=0; $c < $num; $c++) {
 				echo "<td>" . $row_order[$c] . "</td>";
 			}
 			echo "</tr>";
 		}
 		echo "</table>";
-		echo "Tietokantaan vietiin $row tuotetta.";
+		echo "Tietokantaan vietiin ". ($row-$failed_inserts) ."/" . $row ." tuotetta.";
 		
 		
 		fclose($handle);

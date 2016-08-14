@@ -105,18 +105,18 @@ function showAddDialog(articleNo, brandNo) {
 }
 
 // Tuotteen poisto valikoimasta
-function showRemoveDialog(articleNo) {
+function showRemoveDialog(id) {
 	Modal.open( {
     	content: '\
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
-		<p style="margin-top: 20pt;"><a class="nappi" href="yp_tuotteet.php?poista=' + articleNo + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
+		<p style="margin-top: 20pt;"><a class="nappi" href="yp_tuotteet.php?poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
 			onclick="Modal.close()">Peruuta</a></p>'
 	} );
 }
 
 // Valikoimaan lisätyn tuotteen muokkaus
-function showModifyDialog(articleNo, price, alv, count, minimumSaleCount, alennusera_kpl, alennusera_prosentti) {
+function showModifyDialog(id, price, alv, count, minimumSaleCount, alennusera_kpl, alennusera_prosentti) {
 	Modal.open( {
     	content: '\
 			<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
@@ -132,7 +132,7 @@ function showModifyDialog(articleNo, price, alv, count, minimumSaleCount, alennu
 				<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="' + alennusera_prosentti + '"></span><br> \
 				<p><input class="nappi" type="submit" name="tallenna" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 					href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
-				<input type="hidden" name="muokkaa" value="' + articleNo + '"> \
+				<input type="hidden" name="muokkaa" value="' + id + '"> \
 			</form>',
 			draggable: true,
 	} );
@@ -541,13 +541,13 @@ function add_product_to_catalog($articleNo, $brandNo, $price, $alv, $count, $min
  * @param $articleNo <p> Poistettava tuote
  * @return boolean <p> onnistuiko poisto. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
-function remove_product_from_catalog($articleNo) {
+function remove_product_from_catalog($id) {
 	global $db;
 	$query = "	UPDATE tuote 
 				SET aktiivinen=0 
-				WHERE articleNo=? ";
+				WHERE id=? ";
 
-	return $db->query( $query, [$articleNo] );
+	return $db->query( $query, [$id] );
 }
 
 /**
@@ -562,16 +562,16 @@ function remove_product_from_catalog($articleNo) {
  * @param float $ale_prosentti
  * @return bool <p> onnistuiko muutos. Tosin heittää exceptionin, jos jotain menee vikaan haussa.
  */
-function modify_product_in_catalog($articleNo, $price, $alv, $count, $min_sale_count, $ale_kpl, $ale_prosentti) {
+function modify_product_in_catalog($id, $price, $alv, $count, $min_sale_count, $ale_kpl, $ale_prosentti) {
 	global $db;
 	$query = "	
 		UPDATE 	tuote 
 		SET 	hinta_ilman_ALV=?, ALV_kanta=?, varastosaldo=?, minimimyyntiera=?, 
 			alennusera_kpl=?, alennusera_prosentti=?
-		WHERE 	articleNo=? ";
+		WHERE 	id=? ";
 
 	return $db->query( $query,
-		[$price, $alv, $count, $min_sale_count, $ale_kpl, $ale_prosentti, $articleNo] );
+		[$price, $alv, $count, $min_sale_count, $ale_kpl, $ale_prosentti, $id] );
 }
 
 /**
@@ -580,7 +580,7 @@ function modify_product_in_catalog($articleNo, $price, $alv, $count, $min_sale_c
  */
 function get_products_in_catalog() {
 	global $db;
-	$query = "	SELECT articleNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimimyyntiera, alennusera_kpl, 
+	$query = "	SELECT id, articleNo, brandNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimimyyntiera, alennusera_kpl, 
 					(alennusera_prosentti * 100) AS alennusera_prosentti,
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 				FROM tuote
@@ -613,19 +613,34 @@ function print_results($number) {
 		$number = trim(addslashes($number));
 	}
 
-    $ids_in_catalog = [];
+
+	//listataan artikkelinumero ja brändinumero yhtenä merkkijonona listaan
+	//(tehakkaampi kuin lisätä objektit listaksi)
+    $articleNo_and_brandNo = array();
     foreach ($catalog_products as $product) {
-        array_push($ids_in_catalog, $product->articleNo);
+    	$index = $product->articleNo . $product->brandNo;
+		$articleNo_and_brandNo[$index] = true;
+        //array_push($ids_in_catalog, $product->articleId);
     }
+
+    //poistetaan duplikaatit
+    $tecdoc_ids = array();
+	$products = getArticleDirectSearchAllNumbersWithState($number);
+	$unique_products = array();
+	foreach ($products as $product) {
+		if (!in_array($product->articleId, $tecdoc_ids)){
+			array_push($tecdoc_ids, $product->articleId);
+			array_push($unique_products, $product);
+		}
+	}
+	merge_products_with_optional_data($unique_products);
 
 	echo '<div class="tulokset">';
 	echo '<h2>Tulokset:</h2>';
-	$products = getArticleDirectSearchAllNumbersWithState($number);
-	merge_products_with_optional_data($products);
-	if (count($products) > 0) {
+	if (count($unique_products) > 0) {
 		echo '<table>';
 		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
-		foreach ($products as $article) {
+		foreach ($unique_products as $article) {
 			echo '<tr>';
 			echo "<td class=\"thumb\"><img src=\"$article->thumburl\" alt=\"$article->articleName\"></td>";
 			echo "<td>$article->articleNo</td>";
@@ -645,7 +660,8 @@ function print_results($number) {
 				echo "<br>";
 			}
 			echo "</td>";
-            if (in_array(addslashes(str_replace(" ", "", $article->articleNo)), $ids_in_catalog)) {
+			$index = str_replace(" ", "", $article->articleNo) . $article->brandNo;
+            if (isset($articleNo_and_brandNo[$index])) {
                 // Tuote on jo valikoimassa
                 echo "<td class=\"toiminnot\"><a class=\"nappi disabled\">Lisää</a></td>";
             } else {
@@ -672,11 +688,10 @@ function print_catalog( array $products ) {
         echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th style="text-align: right;">Hinta</th>
 			<th style="text-align: right;">Varastosaldo</th><th style="text-align: right;">Minimimyyntierä</th></tr>';
 		foreach ($products as $product) {
-			$article = $product->directArticle;
 			echo '<tr>';
-			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$article->articleName\"></td>";
-			echo "<td>$article->articleNo</td>";
-			echo "<td>$article->brandName <br> $article->articleName</td>";
+			echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$product->articleName\"></td>";
+			echo "<td>$product->articleNo</td>";
+			echo "<td>$product->brandName <br> $product->articleName</td>";
             echo "<td>";
             foreach ($product->infos as $info){
                 if (!empty($info->attrName)) echo $info->attrName . " ";
@@ -692,14 +707,14 @@ function print_catalog( array $products ) {
 			$product->alennusera_prosentti = str_replace('.', ',', $product->alennusera_prosentti);
 			echo "<td class=\"toiminnot\"><a class=\"nappi\" href='javascript:void(0);' 
 				onclick=\"showModifyDialog(
-					'{$product->articleNo}',
+					{$product->id},
 					'{$product->hinta_ilman_ALV}',
 					{$product->ALV_kanta},
 					{$product->varastosaldo},
 					{$product->minimimyyntiera},
 					{$product->alennusera_kpl},
 					'{$product->alennusera_prosentti}');
-					\">Muokkaa</a> <a class=\"nappi\" href='javascript:void(0)' onclick='showRemoveDialog(\"{$product->articleNo}\");'>Poista</a></td>";
+					\">Muokkaa</a> <a class=\"nappi\" href='javascript:void(0)' onclick='showRemoveDialog({$product->id});'>Poista</a></td>";
 			echo '</tr>';
 		}
 		echo '</table>';
@@ -759,14 +774,14 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 			echo '<p class="error">Tuotteen poisto epäonnistui!<br><br>Luultavasti kyseistä tuotetta ei ollut valikoimassa.</p>';
 		}
 	} elseif (isset($_POST['muokkaa'])) {
-		$articleNo = strval($_POST['muokkaa']);
+		$id = intval($_POST['muokkaa']);
 		$hinta = doubleval(str_replace(',', '.', $_POST['hinta']));
 		$alv = intval($_POST['alv_lista']);
 		$varastosaldo = intval($_POST['varastosaldo']);
 		$minimimyyntiera = intval($_POST['minimimyyntiera']);
 		$alennusera_kpl = intval($_POST['alennusera_kpl']);
 		$alennusera_prosentti = (int)$_POST['alennusera_prosentti'] / 100;
-		$success = modify_product_in_catalog($articleNo, $hinta, $alv, $varastosaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
+		$success = modify_product_in_catalog($id, $hinta, $alv, $varastosaldo, $minimimyyntiera, $alennusera_kpl, $alennusera_prosentti);
 		if ($success) {
 			echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
 		} else {
@@ -840,6 +855,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 	$catalog_products = get_products_in_catalog();
 	print_results($number);
 	print_catalog($catalog_products);
+    //echo "Valikoima otettu pois käytöstä hitauden vuoksi.<br>Uusi valikoima tulossa joskus lähitulevaisuudessa.";
 
 ?>
 

@@ -34,20 +34,19 @@ $sum = 0.0;
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 		<?php foreach ($products as $product) {
-			$article = $product->directArticle;
 			$product->hinta = tarkista_hinta_era_alennus( $product );
 			$sum += $product->hinta * $product->cartCount; ?>
 			<tr>
-				<td><?= $article->articleNo?></td><!-- Tuotenumero -->
-				<td><?= $article->articleName?></td><!-- Tuotteen nimi -->
-				<td><?= $article->brandName?></td><!-- Tuotteen valmistaja -->
+				<td><?= $product->articleNo?></td><!-- Tuotenumero -->
+				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
+				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
-					<input id="maara_<?= $article->articleNo ?>" name="maara_<?= $article->articleNo ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0" title="Kappalemäärä">
+					<input id="maara_<?= $product->id ?>" name="maara_<?= $product->id ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0" title="Kappalemäärä">
 				</td>
 				<td><?= laske_era_alennus_palauta_huomautus( $product, TRUE )?></td>
-				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $article->articleNo?>')">Päivitä</a></td>
+				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $product->id?>')">Päivitä</a></td>
 			</tr>
 		<?php } 
 		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtimaksu, ilm.toim.raja); indeksit 0 ja 1 ?>

@@ -244,15 +244,18 @@ function merge_products_with_tecdoc($products) {
 
 //Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa
 //jos $all_info: merge myös oe, kuvat, ean ja infot
-function merge_catalog_with_tecdoc($catalog_products, $all_info) {
-	foreach ($catalog_products as $catalog_product) {
-		$response = findMoreInfoByArticleNo($catalog_product->articleNo);
-		$catalog_product->articleId = $response->articleId;
-		$catalog_product->directArticle = $response;
-	}
-	if ($all_info) {
-		merge_products_with_optional_data($catalog_products);
-	}
+function merge_catalog_with_tecdoc($catalog_products, $also_basic_info) {
+
+    if ($also_basic_info){
+	    foreach ($catalog_products as $catalog_product) {
+            $response = findMoreInfoByArticleNo($catalog_product->articleNo);
+            $catalog_product->articleId = $response->articleId;
+            $catalog_product->brandName = $response->brandName;
+            $catalog_product->articleName = $response->articleName;
+        }
+    }
+	merge_products_with_optional_data($catalog_products);
+
 }
 
 
