@@ -72,10 +72,9 @@ function hyvaksy_eula () {
 }
 
 function hylkaa_eula () {
-	var vahvistus = alert( "Mitä oikein odotit tapahtuvan?\n"
-							+ "Ole hyvä, ja lopeta sivuston käyttö välittömästi.\n"
-							+ "Sen jälkeen, ilmoita ylläpitäjälle halustasi sulkea tilisi.\n"
-							+ "Kiitos yhteistyöstäsi.");
+	alert( "Olemme pahoillamme, että et pidä nykyisistä ehdoista.\n"
+		+ "OK:n klikkaamisen jälkeen sinut kirjataan ulos sivustosta.\n"
+		+ "Kiitos yhteistyöstäsi.");
 	window.location="./logout.php?redir=10";
 }
 </script>

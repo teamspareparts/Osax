@@ -49,7 +49,7 @@ $sum = 0.0;
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $product->id?>')">Päivitä</a></td>
 			</tr>
 		<?php } 
-		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum ); //array(rahtimaksu, ilm.toim.raja); indeksit 0 ja 1 ?>
+		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum );  ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td>
@@ -65,7 +65,7 @@ $sum = 0.0;
 		<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
 		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
-	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, TRUE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
+	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, TRUE ) ?>
 	<p><a class="nappi peruuta" href="tuotehaku.php">Palaa takaisin</a></p>
 </main>
 

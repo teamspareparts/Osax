@@ -1028,7 +1028,7 @@ function print_results( array $products ) {
 			echo "</td>";
 			echo '<td style="text-align: right;">' . format_integer($product->varastosaldo) . '</td>';
 			echo '<td style="text-align: right;">' . format_euros($product->hinta) . '</td>';
-			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product, $product ) . ' </td>';
+			echo '<td style="padding-top: 0; padding-bottom: 0;">' . laske_tuotesaldo_ja_tulosta_huomautus( $product ) . ' </td>';
 			echo '<td class="clickable">Stuff/Things</td>';
 			echo '<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart('.$product->id.')">Osta</a></td>';
 			echo '</tr>';

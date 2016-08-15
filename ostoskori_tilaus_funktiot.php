@@ -277,28 +277,29 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /* bool */ $os
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
  * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
- * //TODO: korjaa lissä toimitusosoitteen tarkistus
  * @param array $products
  * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
- * @param int $tmo_arr_count [optional] default = 0 <p> Onko käyttäjän profiilissa toimitusosoitteita
+ * @param int $tmo_arr_count [optional in ostoskori] default = 0 <p>
+ * 		Onko käyttäjän profiilissa toimitusosoitteita. Ei tarvita ostoskorissa. Pakollinen tilauksen vahvistuksessa.
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 1 ) {
+		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 0 ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;
-	$tmo_valittu = $tmo_arr_count > 0;
+	$tmo_valittu = TRUE; //TODO: Haluaisin että tämä tarkistaa myös ostoskorissa tämän. Keksin jotain myöhemmin.
 	$huomautus = "";
 	$linkki = 'href="tilaus.php"';
 
 	if ( !$ostoskori ) {
 		$linkki = 'onClick="laheta_Tilaus();"'; //Tilauksen lähetys toimii hieman eri tavalla
+		if ( $tmo_arr_count < 1 ) {
+			$tmo_valittu = FALSE;
+			$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
+		}
 	}
 
-	if ( !$tmo_valittu ) {
-		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
-	}
 
 	if ( $products ) {
 		foreach ($products as $product) {
