@@ -22,7 +22,7 @@
 			flex-direction: column;
 			margin: auto 40px auto;
 		}
-		.pageNumberForm, .pageNumber {
+		.pageNumberForm, .pageNumber, .productsPerPageForm {
 			display: inline-flex;
 			padding: 0;
 			margin: 0;
@@ -78,8 +78,10 @@ $products = haeTuotteet($db, $brand, $products_per_page, $offset);
 
 $total_products = isset($products[0]->row_count) ? $products[0]->row_count : 0;
 if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }
-if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page); }
-else { $total_pages = 1; }
+if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page);
+} else { $total_pages = 1; }
+if ( $page > $total_pages ) {
+	header("Location:yp_valikoima.php?brand={$brand}&page={$total_pages}&ppp={$products_per_page}"); exit(); }
 ?>
 
 <main>
@@ -100,14 +102,18 @@ else { $total_pages = 1; }
 
 			<li class="page-item active"><span class="page-link">
 					Sivu:
-					<form class="pageNumberForm" type="GET">
-						<input class="hidden" name="brand" value="<?=$brand?>"/>
+					<form class="pageNumberForm" method="GET">
+						<input type="hidden" name="brand" value="<?=$brand?>"/>
 						<input type="number" name="page" class="pageNumber"
 							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
-						<?=isset($_GET['ppp'])? "<input class='hidden' name='brand' value='{$_GET['ppp']}'/>" :NULL?>
-					</form>​
+						<?= isset($_GET['ppp'])
+							? "<input type='hidden' name='ppp' value='{$_GET['ppp']}'/>"
+							: NULL ?>
+						<input class="hidden" type="submit">
+					</form>
 					 / <?=$total_pages?><br>
-					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span></li>
+					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span>
+			</li>
 
 			<li class="page-item forward_nav" id="next_page">
 				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$page+1?>" aria-label="Next">
@@ -123,10 +129,12 @@ else { $total_pages = 1; }
 			</li>
 		</ul>
 		<div class="page_control">
-			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua. (ei toimi tällä hetkellä kunnolla.)</span>
+			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
 			<span>Tuotteita per sivu:
-				<form class="pageNumberForm" type="GET">
-					<select>
+				<form class="productsPerPageForm" method="GET">
+					<input type="hidden" name="brand" value="<?=$brand?>"/>
+					<input type="hidden" name="page" value="<?=$page?>"/>
+					<select name="ppp">
 						<option value="10">10</option>
 						<option value="20" selected>20</option>
 						<option value="30">30</option>
@@ -137,9 +145,11 @@ else { $total_pages = 1; }
 						<option value="5000">5000</option>
 						<option value="10000">10000</option>
 					</select>
+					<input type="submit" value="Muuta"> <!-- javascript ei anna lähettää formia ilman -->
 				</form>
-			</span> (Tulossa myöhemmin. Jos haluat kokeilla nyt, lisää URL:iin "&ppp=[some number]")<br>
-			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen saattaa esiintyä joitain outouksia.
+			</span>
+			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen
+			saattaa esiintyä joitain outouksia.
 		</div>
 	</nav>
 
@@ -180,6 +190,7 @@ else { $total_pages = 1; }
 		</tbody>
 	</table>
 
+
 	<nav aria-label="Page navigation" class="page_nav">
 		<ul class="pagination">
 			<li class="page-item backward_nav" id="first_page">
@@ -196,13 +207,7 @@ else { $total_pages = 1; }
 			</li>
 
 			<li class="page-item active"><span class="page-link">
-					Sivu:
-					<form class="pageNumberForm" type="GET">
-						<input class="hidden" value="<?=$brand?>"/>
-						<input type="number" name="page" class="pageNumber"
-							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
-					</form>​
-					 / <?=$total_pages?><br>
+					Sivu: <?=$page?> / <?=$total_pages?><br>
 					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span></li>
 
 			<li class="page-item forward_nav" id="next_page">
@@ -219,23 +224,7 @@ else { $total_pages = 1; }
 			</li>
 		</ul>
 		<div class="page_control">
-			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
-			<span>Tuotteita per sivu:
-				<form class="pageNumberForm" type="GET">
-					<select>
-						<option value="10">10</option>
-						<option value="20" selected>20</option>
-						<option value="30">30</option>
-						<option value="50">50</option>
-						<option value="100">100</option>
-						<option value="500">500</option>
-						<option value="1000">1000</option>
-						<option value="5000">5000</option>
-						<option value="10000">10000</option>
-					</select>
-				</form>
-			</span> (Tulossa myöhemmin. Jos haluat kokeilla nyt, lisää URL:iin "&ppp=[some number]")<br>
-			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen saattaa esiintyä joitain outouksia.
+			<span>Tuotteita per sivu: <?=$products_per_page?></span>
 		</div>
 	</nav>
 
@@ -245,28 +234,31 @@ else { $total_pages = 1; }
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js" integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD" crossorigin="anonymous"></script>
 <!--suppress JSUnusedAssignment -->
 <script>
-	var backwards = document.getElementsByClassName('backward_nav');
-	var forwards = document.getElementsByClassName('forward_nav');
-	var total_pages = <?= $total_pages?>;
-	var current_page = <?= $page?>;
-	var i = 0; //for-looppia varten
+	$(document).ready(function(){
+		var backwards = document.getElementsByClassName('backward_nav');
+		var forwards = document.getElementsByClassName('forward_nav');
+		var total_pages = <?= $total_pages?>;
+		var current_page = <?= $page?>;
+		var i = 0; //for-looppia varten
 
-	if ( current_page === 1 ) { //Tarkistetaan taaksepäin-nappien käytettävyys
-		for ( i=0; i< backwards.length; i++ ) {
-			backwards[i].className += " disabled";
+		if ( current_page === 1 ) { //Tarkistetaan taaksepäin-nappien käytettävyys
+			for ( i=0; i< backwards.length; i++ ) {
+				backwards[i].className += " disabled";
+			}
 		}
-	}
-	if ( current_page === total_pages ) { // Tarkistetaan eteenpäin-nappien käytettävyys
-		for ( i=0; i< forwards.length; i++ ) {
-			forwards[i].className += " disabled";
+		if ( current_page === total_pages ) { // Tarkistetaan eteenpäin-nappien käytettävyys
+			for ( i=0; i< forwards.length; i++ ) {
+				forwards[i].className += " disabled";
+			}
 		}
-	}
 
-	$('.pageNumberForm').keypress(function (e) {
-		if (e.which == 13) {
-			$('form#pageNumberForm').submit();
-			return false;    //<---- Add this line
-		}
+		$(".pageNumberForm").keypress(function(event) {
+			if (event.which === 13) {
+				$("form.pageNumberForm").submit();
+				return false;
+			}
+		});
+
 	});
 </script>
 </body>
