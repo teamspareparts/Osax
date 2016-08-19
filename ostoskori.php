@@ -22,7 +22,7 @@ require 'tietokanta.php';
 require 'apufunktiot.php';
 require 'ostoskori_tilaus_funktiot.php';
 
-handle_shopping_cart_action();
+echo handle_shopping_cart_action();
 
 $products = get_products_in_shopping_cart( $connection );
 $kayttaja_id = (int)$_SESSION['id'];
@@ -33,7 +33,7 @@ $sum = 0.0;
 	<h1 class="otsikko">Ostoskori</h1>
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
-		<?php foreach ($products as $product) {
+		<?php foreach ($products as $product) :
 			$product->hinta = tarkista_hinta_era_alennus( $product );
 			$sum += $product->hinta * $product->cartCount; ?>
 			<tr>
@@ -48,7 +48,7 @@ $sum = 0.0;
 				<td><?= laske_era_alennus_palauta_huomautus( $product, TRUE )?></td>
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="modifyShoppingCart('<?= $product->id?>')">Päivitä</a></td>
 			</tr>
-		<?php } 
+		<?php endforeach;
 		$rahtimaksu = hae_rahtimaksu( $connection, $kayttaja_id, $sum );  ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>

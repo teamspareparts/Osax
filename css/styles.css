@@ -351,7 +351,7 @@ input { padding: 3pt; }
 
 **************************************************/
 .haku {
-	margin-left: 5%;
+	/*margin-left: 5%;*/
 }
 
 .haku input[type=text] {
@@ -504,12 +504,12 @@ th {
 	width: 500px;
 	padding: 1pt;
 	border: 1px solid #1d7ae2;
-	margin-left: 5%;
+	/*margin-left: 5%;*/
 	font-size: 90%;
 }
 
 #ajoneuvohaku {
-	margin-left: 5%;
+	/*margin-left: 5%;*/
 }
 
 

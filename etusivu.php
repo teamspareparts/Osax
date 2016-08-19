@@ -5,7 +5,7 @@
  * ns. 'etusivulle' menevät redirectit tälle sivulle.
  */
 if ( !isset( $_GET['test'] ) ) {
-	header("Location:tuotehaku.php"); exit();
+	header("Location:newfile.php"); exit();
 }
 ?>
 

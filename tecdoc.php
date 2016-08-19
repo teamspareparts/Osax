@@ -241,11 +241,12 @@ function merge_products_with_tecdoc($products) {
 	}
 }
 
-
-//Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa
-//jos $all_info: merge myös oe, kuvat, ean ja infot
-function merge_catalog_with_tecdoc($catalog_products, $also_basic_info) {
-
+/**
+ * Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa.
+ * @param array $catalog_products <p> Tuote-array, johon liitetaan lisätieto.
+ * @param boolean $also_basic_info <p> Jos TRUE: merge myös OE, kuvat, EAN ja infot
+ */
+function merge_catalog_with_tecdoc( array $catalog_products, /*boolean*/ $also_basic_info) {
     if ($also_basic_info){
 	    foreach ($catalog_products as $catalog_product) {
             $response = findMoreInfoByArticleNo($catalog_product->articleNo);
@@ -255,13 +256,12 @@ function merge_catalog_with_tecdoc($catalog_products, $also_basic_info) {
         }
     }
 	merge_products_with_optional_data($catalog_products);
-
 }
 
-
-
-
-//hakee kaikki automerkit
+/**
+ * Hakee kaikki automerkit.
+ * @return array <p> Automerkit
+ */
 function getManufacturers() {
 	$function = 'getManufacturers';
 	$params = [

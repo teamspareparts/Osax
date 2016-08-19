@@ -68,37 +68,46 @@ function empty_shopping_cart() {
 // TODO: Siirrä jonnekin järkevämpään paikkaan
 //
 function handle_shopping_cart_action() {
+	$return = "";
 	$cart_action = isset($_POST['ostoskori_toiminto']) ? $_POST['ostoskori_toiminto'] : null;
 	if ($cart_action) {
 		$cart_product = isset($_POST['ostoskori_tuote']) ? str_replace(" ", "", $_POST['ostoskori_tuote']) : null;
 		$cart_amount = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
 
-		if ($cart_action === 'lisaa') {
-			if (add_product_to_shopping_cart($cart_product, $cart_amount)) {
-				echo '<p class="success">Tuote lisätty ostoskoriin.</p>';
-			} else {
-				echo '<p class="error">Tuotteen lisäys ei onnistunut.</p>';
-			}
-		} elseif ($cart_action === 'muokkaa') {
-			if (modify_product_in_shopping_cart($cart_product, $cart_amount)) {
-				echo '<p class="success">Ostoskori päivitetty.</p>';
-			} else {
-				echo '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
-			}
-		}  elseif ($cart_action === 'poista') {
-			if (remove_product_from_shopping_cart($cart_product)) {
-				echo '<p class="success">Tuote poistettu ostoskorista.</p>';
-			} else {
-				echo '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
-			}
-		} elseif ($cart_action === 'empty') {
-			if (empty_shopping_cart()) {
-				echo '<p class="success">Ostoskori tyhjennetty.</p>';
-			} else {
-				echo '<p class="error">Ostoskorin tyhjentäminen ei onnistunut.</p>';
-			}
+		switch ($cart_action) {
+			case 'lisaa':
+				if (add_product_to_shopping_cart($cart_product, $cart_amount)) {
+					$return = '<p class="success">Tuote lisätty ostoskoriin.</p>';
+				} else {
+					$return = '<p class="error">Tuotteen lisäys ei onnistunut.</p>';
+				}
+				break;
+			case 'muokkaa':
+				if (modify_product_in_shopping_cart($cart_product, $cart_amount)) {
+					$return = '<p class="success">Ostoskori päivitetty.</p>';
+				} else {
+					$return = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
+				}
+				break;
+			case 'poista':
+				if (remove_product_from_shopping_cart($cart_product)) {
+					$return = '<p class="success">Tuote poistettu ostoskorista.</p>';
+				} else {
+					$return = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
+				}
+				break;
+			case 'empty':
+				if (empty_shopping_cart()) {
+					$return = '<p class="success">Ostoskori tyhjennetty.</p>';
+				} else {
+					$return = '<p class="error">Ostoskorin tyhjentäminen ei onnistunut.</p>';
+				}
+				break;
+			default:
+				break;
 		}
 	}
+	return $return;
 }
 
 /*

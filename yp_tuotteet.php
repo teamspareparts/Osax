@@ -553,7 +553,7 @@ function remove_product_from_catalog($id) {
 /**
  * Muokkaa aktivoitua tuotetta tietokannassa.
  * Parametrina annetut tiedot tallennetaan tietokantaan.
- * @param string $articleNo
+ * @param int $id
  * @param float $price
  * @param int $alv
  * @param int $count
