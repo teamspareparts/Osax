@@ -112,18 +112,19 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	$ids = array();
 
 	foreach ( $products as $product ) {
+		$articleNo = str_replace(" ", "", $product->articleNo);
 		$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 					FROM 	tuote 
 					JOIN 	ALV_kanta
 						ON	tuote.ALV_kanta = ALV_kanta.kanta
 					WHERE 	tuote.articleNo = ?
-					 		AND tuote.brandNo = ?
-					 		AND tuote.aktiivinen = 1 ";
-		$row = $db->query( $query, [$product->articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
+					 	AND tuote.brandNo = ?
+					 	AND tuote.aktiivinen = 1 ";
+		$row = $db->query( $query, [$articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
 		if ($row && !in_array($row->id, $ids) ) {
 			$ids[] = $row->id;
 			$row->articleId = $product->articleId;
-			$row->articleName = $product->articleName;
+			$row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$row->brandName = $product->brandName;
 			$catalog_products[] = $row;
 		}
@@ -146,6 +147,7 @@ function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
 				<i class="material-icons">first_page</i></a>';
 }
 
+global $db;
 $manufs = getManufacturers();
 $catalog_products = array();
 if ( !empty($_POST['tuote_ostopyynto']) ) {
@@ -162,7 +164,6 @@ if ( !empty($_GET['haku']) ) {
 
 	//filtteröidään vain catalogi tuotteet ja liitetään lisätiedot
 	$catalog_products = filter_catalog_products( $db, $products );
-//	print_results($catalog_products);
 
 //	$ids = array();
 ////	haetaan vielä kaikki tuotteet jotka eivät olleet valikoimassa
@@ -174,37 +175,31 @@ if ( !empty($_GET['haku']) ) {
 //	}
 }
 
-if(isset($_GET["manuf"])) {
+if ( isset($_GET["manuf"]) ) {
 	$selectCar = $_GET["car"];
 	$selectPartType = $_GET["osat_alalaji"];
 
 	$products = getArticleIdsWithState($selectCar, $selectPartType);
 
-	global $db;
-
-	$catalog_products = array();
-	$ids = array();
-	foreach ($products as $product) {
-		$articleNo = str_replace(" ", "", $product->articleNo);
-		$query = " SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-					FROM 	tuote 
-					JOIN 	ALV_kanta
-						ON	tuote.ALV_kanta = ALV_kanta.kanta
-					WHERE 	tuote.articleNo = ?
-					 		AND tuote.brandNo = ?
-					 		AND tuote.aktiivinen = 1 ";
-		$row = $db->query( $query, [$articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
-		if ( $row && !in_array($row->id, $ids) ) {
-			$ids[] = $row->id;
-			$row->articleId = $product->articleId;
-			$row->articleName = $product->genericArticleName;
-			$row->brandName = $product->brandName;
-			$catalog_products[] = $row;
-		}
-	}
-	merge_catalog_with_tecdoc($catalog_products, false);
-//	print_results($catalog_products);
+	$catalog_products = filter_catalog_products( $db, $products );
 }
+
+echo handle_shopping_cart_action();
+/** Sivutukseen vaadittavat muuttujat */
+$other_options = "";
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Nykyinen sivu
+$products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
+$offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
+
+/* * Tässä välissä pitäisi hakea tuotteet. */
+
+$total_products = count($catalog_products);
+$total_pages = 1;
+if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }
+if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page);
+} else { $total_pages = 1; }
+if ( $page > $total_pages ) {
+	header("Location:yp_valikoima.php?brand={$brand}&page={$total_pages}&ppp={$products_per_page}"); exit(); }
 ?>
 
 <main class="main_body_container">
@@ -245,8 +240,42 @@ if(isset($_GET["manuf"])) {
 		</div>
 	</section>
 
-	<?= handle_shopping_cart_action() ?>
+	<nav aria-label="Page navigation" class="page_nav hidden">
+		<ul class="pagination">
+			<li class="page-item backward_nav" id="first_page">
+				<a class="page-link" href="?<?=$other_options?>">
+					<i class="material-icons">first_page</i>
+					First
+				</a>
+			</li>
+			<li class="page-item backward_nav" id="previous_page">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page-1?>" aria-label="Previous">
+					<i class="material-icons">arrow_back</i>
+					Previous
+				</a>
+			</li>
 
+			<li class="page-item active"><span class="page-link">
+					Sivu: <?=$page?> / <?=$total_pages?><br>
+					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span></li>
+
+			<li class="page-item forward_nav" id="next_page">
+				<a class="page-link" href="?brand=<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
+					<i class="material-icons">arrow_forward</i>
+					Next
+				</a>
+			</li>
+			<li class="page-item forward_nav" id="last_page">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$total_pages?>">
+					<i class="material-icons">last_page</i>
+					Last
+				</a>
+			</li>
+		</ul>
+		<div class="page_control">
+			<span>Tuotteita per sivu: <?=$products_per_page?></span>
+		</div>
+	</nav>
 	<section class="hakutulokset">
 		<h2>Tulokset:</h2>
 		<table>
@@ -290,7 +319,6 @@ if(isset($_GET["manuf"])) {
 	</section>
 </main>
 
-
 <form class="hidden" id="ostopyynto_form" action="#" method=post>
 	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
 </form>
@@ -323,7 +351,6 @@ if(isset($_GET["manuf"])) {
 </div>
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
-
 
 <!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
@@ -1059,9 +1086,6 @@ if(isset($_GET["manuf"])) {
 		$("#search").val(search);
 	}
 
-</script>
-
-<script>
 </script>
 
 </body>
