@@ -21,7 +21,7 @@ include 'header.php';
 	<div id="lista">
 		<form action="yp_tilaukset.php" method="post">
 			<fieldset class="lista_info">
-				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="yritys">Yritys</span><span class="sum">Summa</span>Käsitelty</p>
+				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="sum">Summa</span>Käsitelty</p>
 			</fieldset>
 
 			<?php
@@ -35,7 +35,7 @@ include 'header.php';
 
 				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
-				$query = "	SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, 
+				$query = "	SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, 
 								SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa
 							FROM tilaus
 							LEFT JOIN kayttaja
@@ -52,7 +52,6 @@ include 'header.php';
 						<a href="tilaus_info.php?id=<?= $row["id"]?>"><span class="tilausnumero"><?= $row["id"]?>
 						</span><span class="pvm"><?= date("d.m.Y", strtotime($row["paivamaara"]))?>
 						</span><span class="tilaaja"><?= $row["etunimi"] . " " . $row["sukunimi"]?>
-						</span><span class="yritys"><?= $row["yritys"]?>
 						</span><span class="sum"><?= format_euros($row["summa"])?>
 						</span></a><input type="checkbox" name="ids[]" value="<?= $row['id']?>">
 					</fieldset>

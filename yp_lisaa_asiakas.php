@@ -7,11 +7,18 @@
 	<title>Asiakkaat</title>
 </head>
 <body>
-<?php include("header.php");?>
+<?php
+require 'header.php';
+require 'tietokanta.php';
+if (!is_admin()) {
+	header("Location:etusivu.php");
+	exit();
+}
+?>
 <h1 class="otsikko">Lisää asiakas</h1>
 <br><br>
 <div id="lomake">
-	<form action="yp_lisaa_asiakas.php" name="uusi_asiakas" method="post" accept-charset="utf-8">
+	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Uuden käyttäjän tiedot</legend>
 			<br>
 			<label><span>Sähköposti<span class="required">*</span></span></label>
@@ -40,7 +47,8 @@
 			
 			<span id=inner_label class="hidden">Päivät:</span>
 			<input name="paivat" type="number" value="7" class="hidden" min="1" pattern="[0-9]" id="paivat">
-			
+
+			<input name="yritys_id" type="hidden" value="<?=$_GET['yritys_id']?>" />
 			<br><br><br>
 
 			<div id="submit">
@@ -50,12 +58,7 @@
 
 	</form><br><br>
 
-	<?php	
-	if (!is_admin()) {
-		header("Location:etusivu.php");
-		exit();
-	}
-	require 'tietokanta.php';
+	<?php
 
 		if (isset($_POST['sposti'])){
 			//jos ei demokäyttäjä, niin aktiiviset paivat 
@@ -67,69 +70,63 @@
 				$paivat = 0;
 			}
 				
-			$result = db_lisaa_asiakas($_POST['etunimi'], $_POST['sukunimi'], $_POST['sposti'], $_POST['puh'],
-										$_POST['yritysnimi'], $_POST['password'], $_POST['confirm_password'], $demo, $paivat);
+			$result = db_lisaa_asiakas($_POST['yritys_id'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['sposti'], $_POST['puh'],
+										$_POST['password'], $_POST['confirm_password'], $demo, $paivat);
 			if($result == -1){
 				echo "Sähköposti varattu.";
 			}
 			elseif ($result == -2){
 				echo "Salasanat eivät täsmää.";
 			}
-			elseif ($result == 2) {
-				echo "Käyttäjä aktivoitu.";
-			}
-			else {
-				echo "Lisäys onnistui.";
+			else{
+				header("Location:yp_asiakkaat.php?yritys_id=".$_GET['yritys_id']);
 			}
 		}
 
 		//return:
-		//-1	salasanat ei täsmää
-		//-2	käyttäjätunnus on jo olemassa
+		//-2	salasanat ei täsmää
+		//-1	käyttäjätunnus on jo olemassa
 		//1		lisäys onnistui
 		//2		kayttaja aktivoitu uudelleen
-		function db_lisaa_asiakas($asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
-				$asiakas_puh, $asiakas_yritysnimi, $asiakas_salasana, $asiakas_varmista_salasana, $demo, $paivat){
-
-					$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
-
-					//Tarkastetaan, että salsana ja vahvistussalasana ovat samat.
-					if ($asiakas_salasana != $asiakas_varmista_salasana){
-						return -2;	//salasanat ei täsmää
-					}else {
+		function db_lisaa_asiakas($yritys_id, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_sposti,
+								  $asiakas_puh, $asiakas_salasana, $asiakas_varmista_salasana, $demo, $paivat){
+			$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
 
 
-						//Palvelimeen liittyminen
-						$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-						$tbl_name = 'kayttaja';
-
-						//Tarkastetaan onko samannimistä käyttäjätunnusta
-						$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
-						$result = mysqli_query($connection, $query);
-						$count = mysqli_num_rows($result);
-						$row = mysqli_fetch_assoc($result);
+			//Tarkastetaan, että salasana ja vahvistussalasana ovat samat.
+			if ($asiakas_salasana != $asiakas_varmista_salasana){
+				return -2;	//salasanat ei täsmää
+			}else {
+				//Palvelimeen liittyminen
+				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+				$tbl_name = 'kayttaja';
+				//Tarkastetaan onko samannimistä käyttäjätunnusta
+				$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti';";
+				$result = mysqli_query($connection, $query);
+				$count = mysqli_num_rows($result);
+				$row = mysqli_fetch_assoc($result);
 						
 
 						
-						if($count != 0 && $row["aktiivinen"] == 1) {
-							return -1; //käyttäjänimi varattu
-						}
-						elseif ($count != 0 && $row["aktiivinen"] == 0){
-							$query = "UPDATE $tbl_name 
-										SET aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', yritys='$asiakas_yritysnimi',
-											puhelin='$asiakas_puh', salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY, salasana_uusittava=1
-										WHERE sahkoposti='$asiakas_sposti'";
-							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
-							return 2;	//kayttaja aktivoitu
-						}
-						else {
-							//lisätään tietokantaan
-							$query = "INSERT INTO $tbl_name (salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, yritys, sahkoposti, puhelin, demo, voimassaolopvm, salasana_uusittava)
-							VALUES ('$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_yritysnimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY, 1)";
-							$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));;
-							return 1;	//kaikki ok
-						}
-					}
+				if($count != 0 && $row["aktiivinen"] == 1) {
+					return -1; //käyttäjänimi varattu
+				}
+				elseif ($count != 0 && $row["aktiivinen"] == 0){
+					$query = "UPDATE $tbl_name 
+				  					SET yritys_id=$yritys_id, aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi',puhelin='$asiakas_puh',
+			  						salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY, salasana_uusittava=1
+		  							WHERE sahkoposti='$asiakas_sposti'";
+					$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
+					return 2;	//kayttaja aktivoitu
+				}
+				else {
+					//lisätään tietokantaan
+					$query = "	INSERT INTO $tbl_name (yritys_id, salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, sahkoposti, puhelin, demo, voimassaolopvm, salasana_uusittava)
+		      					VALUES ('$yritys_id', '$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY, 1)";
+					$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));;
+					return 1;	//kaikki ok
+				}
+			}
 		}
 	?>
 	</div>

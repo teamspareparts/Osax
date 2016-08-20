@@ -10,22 +10,40 @@
 <?php include("header.php");
 
 require 'tietokanta.php';
+
+//Päivitetäänkö omat tiedot
+$huomautus = null;
+if (isset($_POST['uudet_tiedot'])){
+    $huomautus = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh']);
+}
+elseif (isset($_POST['new_password'])) {
+    $huomautus = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
+}
+
+
+
 //käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
-global $connection;
+global $db;
 $tbl_name = 'kayttaja';
 
 $email = $_SESSION['email'];
-$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$email'";
-$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-$row = mysqli_fetch_assoc($result);
-$email = $row['sahkoposti'];
-$enimi = $row['etunimi'];
-$snimi = $row['sukunimi'];
-$puhelin = $row['puhelin'];
-$ynimi = $row['yritys'];
-$ytunnus = $row['y_tunnus'];
-$demo = $row['demo'];
-$voimassaolopvm = $row['voimassaolopvm'];
+$query = "SELECT * FROM $tbl_name WHERE sahkoposti= ? ";
+$tiedot = $db->query($query, [$email], FETCH_ALL, PDO::FETCH_OBJ)[0];
+$email = $tiedot->sahkoposti;
+$enimi = $tiedot->etunimi;
+$snimi = $tiedot->sukunimi;
+$puhelin = $tiedot->puhelin;
+$demo = $tiedot->demo;
+$voimassaolopvm = $tiedot->voimassaolopvm;
+
+$tbl_name = 'yritys';
+$yritys_id = $tiedot->yritys_id;
+$query = "SELECT * FROM $tbl_name WHERE id = ? ";
+$yritys = $db->query($query, [$yritys_id], FETCH_ALL, PDO::FETCH_OBJ);
+if (count($yritys) == 1) {
+    $yritys = $yritys[0];
+}
+
 ?>
 
 <h1 class="otsikko">Omat Tiedot</h1>
@@ -59,12 +77,7 @@ $voimassaolopvm = $row['voimassaolopvm'];
 			<label><span>Puhelin</span></label>
 			<input name="puh" type="text" pattern=".{1,20}" value="<?= $puhelin; ?>">
 			<br><br>
-			<label><span>Yrityksen nimi</span></label>
-			<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?= $ynimi; ?>">
-			<br><br>
-			<label><span>Y-tunnus</span></label>
-			<input name="y_tunnus" type="text" pattern=".{8,10}" value="<?= $ytunnus; ?>">
-			<br><br><br>
+			<br>
 
 			<div id="submit">
 				<input type="hidden" name="uudet_tiedot">
@@ -88,43 +101,44 @@ $voimassaolopvm = $row['voimassaolopvm'];
 	</fieldset>
 	</form>
 	<br><br>
+    <?php include 'omat_tiedot_osoitekirja.php'; //Sisältää kaiken toiminnallisuuden osoitekirjaa varten ?>
+    <br><br>
+    <?php if ($yritys) : ?>
+    <fieldset style="display:inline-block; text-align:left;"><legend>Yritys</legend>
+        <label><span>Nimi</span></label><?=$yritys->nimi?><br>
+        <label><span>Sähköposti</span></label><?=$yritys->sahkoposti?><br>
+        <label><span>Puhelin</span></label><?=$yritys->puhelin?><br>
+        <label><span>Katuosoite</span></label><?=$yritys->katuosoite?><br>
+        <label><span>Postinumero</span></label><?=$yritys->postinumero?><br>
+        <label><span>Postitoimipaikka</span></label><?=$yritys->postitoimipaikka?><br>
+        <label><span>Maa</span></label><?=$yritys->maa?><br>
+    </fieldset>
+    <?php endif; ?>
+
 
 	<?php
-	if (isset($_SESSION['result'])){
-		if($_SESSION['result'] == -1){
-			echo "<p>Sähköpostia ei löytynyt.</p>";
-		}
-		elseif ($_SESSION['result'] == -2){
+    switch ($huomautus){
+        case -2:
 			echo "<p>Salasanat eivät täsmää.</p>";
-		}
-		elseif ($_SESSION['result'] == 1) {
+            break;
+        case -1:
+            echo "OK";
+            break;
+        case 1:
 			echo "<p>Tiedot päivitetty.</p>";
-		}
-		elseif ($_SESSION['result'] == 2) {
-			echo "<p>Salasana vaihdettu.</p>";
-		}
-		unset($_SESSION['result']);
-	}
-	
-	elseif (isset($_POST['uudet_tiedot'])) {
-		$result = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $_POST['yritysnimi']);
-		$_SESSION['result'] = $result;
-		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
-		exit;
-	}
-	
-	elseif (isset($_POST['new_password'])) {
-		$result = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
-		$_SESSION['result'] = $result;
-		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
-		exit;
+            break;
+        case 2:
+            echo "<p>Salasana vaihdettu.</p>";
+            break;
+        default :
+            continue;
 	}
 	
 	//result:
-	//-2	Salasanat eivät täsmää
+	//-1	Salasanat eivät täsmää
 	//2		Salasana vaihdettu
 	function vaihda_salasana($id, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
-		global $connection;
+		global $db;
 		$tbl_name="kayttaja";				// Taulun nimi
 		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
 		
@@ -133,43 +147,38 @@ $voimassaolopvm = $row['voimassaolopvm'];
 		}
 		else {
 			if ($asiakas_uusi_salasana != "" && $asiakas_varmista_uusi_salasana != ""){
-				$query = "UPDATE $tbl_name SET salasana_hajautus='$hajautettu_uusi_salasana'
-				WHERE id='$id'";
-				mysqli_query($connection, $query) or die(mysqli_error($connection));
+				$query = "UPDATE $tbl_name SET salasana_hajautus= ?
+				WHERE id= ? ";
+                if ($db->query($query, [$hajautettu_uusi_salasana, $id])) return 2;
 			}
 		}
-		return 2;
+		return -1;
 	}
 	
 
 	//result:
-	//-1	käyttäjätunnusta ei olemassa
 	//1		tiedot päivitetty
-	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_yritysnimi, $asiakas_ytunnus){
+	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh){
 		$tbl_name="kayttaja";				// Taulun nimi
 		$asiakas_sposti = $email;
+        global $db;
 
-		//Palvelimeen liittyminen
-		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
+        //päivitetään tietokantaan
+        $query = "
+            UPDATE $tbl_name 
+            SET etunimi= ? , sukunimi= ? , puhelin= ?
+  		    WHERE sahkoposti= ? ";
+        if ($db->query($query, [$asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_sposti])){
+            return 1;
+        }
+        return -1;
 
-		//Tarkastetaan löytyykö käyttäjätunnusta
-		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti'";
-		$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-		$count = mysqli_num_rows($result);
-		if($count != 1){
-			return -1; //käyttäjänimeä ei löytynyt
-		}else {
-			//päivitetään tietokantaan
-			$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh', yritys='$asiakas_yritysnimi', y_tunnus='$asiakas_ytunnus'
-			WHERE sahkoposti='$asiakas_sposti'";
-			mysqli_query($connection, $query) or die(mysqli_error($connection));
 
-			return 1;	//talletetaan tulos sessioniin
-		}
 	}
-	
-	include 'omat_tiedot_osoitekirja.php'; //Sisältää kaiken toiminnallisuuden osoitekirjaa varten
+
 ?>
+
+
 </div>
 
 </body>

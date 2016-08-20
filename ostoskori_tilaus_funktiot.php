@@ -284,7 +284,7 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /* bool */ $os
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 0 ) {
+		array $products, /* bool */ $ostoskori = TRUE, /*int*/ $tmo_arr_count = 1 ) {
 	$enough_in_stock = true;
 	$enough_ordered = true;
 	$tuotteita_ostoskorissa = true;

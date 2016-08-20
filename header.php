@@ -40,7 +40,7 @@ check_login_status();
 	        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
 	        <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
 			<?php if ( is_admin() ) { ?>
-		        <li><a href='yp_asiakkaat.php'><span>Asiakkaat</span></a></li>
+		        <li><a href='yp_yritykset.php'><span>Yritykset</span></a></li>
 		        <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
 		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>

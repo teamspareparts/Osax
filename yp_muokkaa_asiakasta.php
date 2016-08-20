@@ -29,7 +29,6 @@
 	$enimi = $row['etunimi'];
 	$snimi = $row['sukunimi'];
 	$puhelin = $row['puhelin'];
-	$ynimi = $row['yritys'];
 	$demo = $row['demo'];
 	$voimassaolopvm = $row['voimassaolopvm'];
 	$rahtimaksu = $row['rahtimaksu'];
@@ -67,9 +66,7 @@
 			<label><span>Puhelin</span></label>
 			<input name="puh" type="text" pattern=".{1,20}" value="<?= $puhelin; ?>">
 			<br><br>
-			<label><span>Yrityksen nimi</span></label>
-			<input name="yritysnimi" type="text" pattern=".{1,50}" value="<?= $ynimi; ?>">
-			<br><br><br>
+			<br>
 			<div id="submit">
 				<input name="submit" value="Päivitä tiedot" type="submit">
 			</div>
@@ -82,7 +79,7 @@
 				<input name="reset_password" value="Resetoi salasana" type="submit">
 				<input name="id" value="<?= $id?>" type="hidden"/>
 		</fieldset>
-	</form>
+	</form><br><br>
 	
 	<form action="#" method="post">
 		<fieldset><legend>Asiakkaan rahtimaksu</legend>
@@ -152,7 +149,7 @@
 			return -1; //käyttäjänimeä ei löytynyt
 		}else {
 			//päivitetään tietokantaan
-			$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh', yritys='$asiakas_yritysnimi'
+			$query = "UPDATE $tbl_name SET etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi', puhelin='$asiakas_puh'
 			WHERE sahkoposti='$asiakas_sposti'";
 			mysqli_query($connection, $query) or die(mysqli_error($connection));
 

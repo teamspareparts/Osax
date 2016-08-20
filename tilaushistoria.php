@@ -25,10 +25,9 @@ require 'apufunktiot.php'; ?>
 			
 			$enimi = $row["etunimi"];
 			$snimi = $row["sukunimi"];
-			$ynimi = $row["yritys"];
 		
 			echo '<p class="asiakas_info">Tilaaja: ' . $enimi . ' ' . $snimi . '<p>';
-			echo '<p class="asiakas_info">Yritys: ' . $ynimi . '<p>';
+			//echo '<p class="asiakas_info">Yritys: ' . $ynimi . '<p>';
 		} else {
 			$user_id = $_SESSION["id"];
 		}
