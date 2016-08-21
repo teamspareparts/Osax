@@ -32,7 +32,7 @@ $logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;" /><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
 	<a href="lisaa_tuotteita.php?brandId=<?= $brandId?>&brandName=<?= $brandName?>"><span class="nappi">Lisää tuotteita</span></a>
-	<a href="#"><span class="nappi">Valikoima</span></a>
+	<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>
 </div>
 
 <br><br>
@@ -40,13 +40,9 @@ $logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 <?php
 
 /**
- * PhpDocin saa automaattisesti, jos painat enteriä "/**":n jälkeen.
- * This message brought to by Passive-Aggressive. The best way to communicate.
  * @param $brandAddress
- * @param $brandName
- * @param $brandId
  */
-function tulosta_yhteystiedot($brandAddress, $brandName, $brandId){
+function tulosta_yhteystiedot($brandAddress){
 
 	echo '<div style="float:left; padding-right: 200px;">';
 	echo '<table>';
