@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
@@ -241,12 +241,14 @@ function merge_products_with_tecdoc($products) {
 	}
 }
 
+
 /**
  * Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa.
  * @param array $catalog_products <p> Tuote-array, johon liitetaan lisätieto.
- * @param boolean $also_basic_info <p> Jos TRUE: merge myös OE, kuvat, EAN ja infot
+ * @param boolean $also_basic_info <p> Jos TRUE: merge myös kuvat ja infot
  */
 function merge_catalog_with_tecdoc( array $catalog_products, /*boolean*/ $also_basic_info) {
+
     if ($also_basic_info){
 	    foreach ($catalog_products as $catalog_product) {
             $response = findMoreInfoByArticleNo($catalog_product->articleNo);
@@ -256,7 +258,9 @@ function merge_catalog_with_tecdoc( array $catalog_products, /*boolean*/ $also_b
         }
     }
 	merge_products_with_optional_data($catalog_products);
+
 }
+
 
 /**
  * Hakee kaikki automerkit.
@@ -330,8 +334,8 @@ function getOptionalData($id) {
 			'articleId' => ['array' => $id],
 			'thumbnails' => true,
 			'immediateAttributs' => true,
-			'eanNumbers' => true,
-			'oeNumbers' => true
+			'eanNumbers' => false,
+			'oeNumbers' => false
 
 	];
 
@@ -356,9 +360,9 @@ function merge_products_with_optional_data($articles) {
 	foreach ($articles as $article){
 		$product = getOptionalData($article->articleId);
 		$article->thumburl = get_thumbnail_url($product[0]);
-		$article->ean = get_ean_number($product[0]);
+		//$article->ean = get_ean_number($product[0]);
 		$article->infos = get_infos($product[0]);
-		$article->oe = get_oe_number($product[0]);
+		//$article->oe = get_oe_number($product[0]);
 	}
 }
 

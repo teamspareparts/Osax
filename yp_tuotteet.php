@@ -618,7 +618,7 @@ function print_results($number) {
 	//(tehakkaampi kuin lisätä objektit listaksi)
     $articleNo_and_brandNo = array();
     foreach ($catalog_products as $product) {
-    	$index = $product->articleNo . $product->brandNo;
+    	$index = str_replace(" ", "", $product->articleNo) . $product->brandNo;
 		$articleNo_and_brandNo[$index] = true;
         //array_push($ids_in_catalog, $product->articleId);
     }
@@ -639,7 +639,7 @@ function print_results($number) {
 	echo '<h2>Tulokset:</h2>';
 	if (count($unique_products) > 0) {
 		echo '<table>';
-		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
+		echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th></tr>';
 		foreach ($unique_products as $article) {
 			echo '<tr>';
 			echo "<td class=\"thumb\"><img src=\"$article->thumburl\" alt=\"$article->articleName\"></td>";
@@ -653,12 +653,7 @@ function print_results($number) {
 				echo "<br>";
 			}
 			echo "</td>";
-			echo "<td>$article->ean</td>";
 			echo "<td>";
-			foreach ($article->oe as $oe){
-				echo $oe;
-				echo "<br>";
-			}
 			echo "</td>";
 			$index = str_replace(" ", "", $article->articleNo) . $article->brandNo;
             if (isset($articleNo_and_brandNo[$index])) {
@@ -819,7 +814,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 		echo '<h2>Tulokset:</h2>';
 		if (count($articles) > 0) {
 			echo '<table>';
-			echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th><th>EAN</th><th>OE</th></tr>';
+			echo '<tr><th>Kuva</th><th>Tuotenumero</th><th>Tuote</th><th>Info</th></tr>';
 			foreach ($products as $product) {
 				echo '<tr>';
 				echo "<td class=\"thumb\"><img src=\"$product->thumburl\" alt=\"$product->genericArticleName\"></td>";
@@ -834,14 +829,7 @@ $number = isset($_POST['haku']) ? $_POST['haku'] : false;
 					echo "<br>";
 				}
                 echo "</td>";
-				echo "<td>$product->ean</td>";
-				//echo "<td>$product->oe</td>";
-				echo "<td>Poistettu taulukosta</td>";
-// 				foreach ($product->oe as $oe){
-// 					echo $oe;
-// 					echo "<br>";
-// 				}
-// 				echo "</td>";
+//
 				echo "<td class=\"toiminnot\"><a class=\"nappi\" href=\"javascript:void(0)\" onclick=\"showAddDialog('$product->articleNo', $product->brandNo)\">Lisää</a></td>";
 				echo '</tr>';
 			}

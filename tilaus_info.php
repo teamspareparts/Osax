@@ -30,7 +30,7 @@ require 'apufunktiot.php';
 function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
-			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, kayttaja.sahkoposti,
+			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti,
 			CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 			CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 			tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
@@ -71,9 +71,11 @@ function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 //		WHERE tilaus.id = :order_id ";
 	$query = "
 		SELECT tuote_id AS id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl,
-			( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ) 
+			( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ), tuote.articleNo, tuote.brandNo
 				AS maksettu_hinta
 		FROM tilaus_tuote
+		LEFT JOIN tuote
+			ON tuote.id = tilaus_tuote.tuote_id
 		WHERE tilaus_id = :order_id ";
 	$values = [ 'order_id' => $tilaus_id ];
 	return ( $db->query($query, $values, FETCH_ALL, PDO::FETCH_OBJ) );
@@ -105,7 +107,7 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 
 $products = get_products_in_tilaus( $db, $tilaus_id );
 if ( $products) {
-	merge_products_with_tecdoc($products);
+	merge_catalog_with_tecdoc($products, true);
 } else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
 
@@ -124,7 +126,7 @@ if ( $products) {
 				<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot["id"])?></td>
 					<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot["paivamaara"]))?></td></tr>
 				<tr><td>Tilaaja: <?= $tilaus_tiedot["etunimi"] . " " . $tilaus_tiedot["sukunimi"]?></td>
-					<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td></tr>
+					<!--<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td>--></tr>
 				<tr><td>Tuotteet: <?= $tilaus_tiedot["kpl"]?></td>
 					<td>Summa:
 						<?= format_euros( $tilaus_tiedot["summa"] + $tilaus_tiedot["pysyva_rahtimaksu"])?>
@@ -146,12 +148,11 @@ if ( $products) {
 			<th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th>
 			<th class="number">Kpl</th></tr>
 		<?php
-		foreach ($products as $product) {
-			$article = $product->directArticle; ?>
+		foreach ($products as $product) {?>
 			<tr>
-				<td><?= $article->articleNo?></td>
-				<td><?= $article->articleName?></td>
-				<td><?= $article->brandName?></td>
+				<td><?= $product->articleNo?></td>
+				<td><?= $product->articleName?></td>
+				<td><?= $product->brandName?></td>
 				<td class="number"><?= format_euros( $product->maksettu_hinta * $product->kpl )?></td>
 				<td class="number"><?= format_euros( $product->maksettu_hinta )?></td>
 				<td class="number"><?= round( (float)$product->pysyva_alv * 100 )?> %</td>
