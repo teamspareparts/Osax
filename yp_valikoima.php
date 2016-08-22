@@ -66,10 +66,10 @@ function haeTuotteet ($db, $brandNo, $ppp, $offset) {
 }
 
 if ( !is_admin() ) { header("Location:etusivu.php"); exit(); }
-//if ( !isset($_GET['brand']) ) { header("Location:yp_toimittajat.php"); exit(); }
-$brand = isset($_GET['brand']) ? $_GET['brand'] : "all"; //TODO: Temp solution
+$brand = isset($_GET['brand']) ? $_GET['brand'] : "all";
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Mikä sivu tuotelistauksessa
 $products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
+$other_options = "brand={$brand}&ppp={$products_per_page}"; //URL:in GET-arvojen asettamista
 if ( $page < 1 ) { $page = 1; }
 if ( $products_per_page < 1 ) { $products_per_page = 1; }
 $offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
@@ -88,13 +88,13 @@ if ( $page > $total_pages ) {
 	<nav aria-label="Page navigation" class="page_nav">
 		<ul class="pagination">
 			<li class="page-item backward_nav" id="first_page">
-				<a class="page-link" href="?brand=<?=$brand?>">
+				<a class="page-link" href="?<?=$other_options?>">
 					<i class="material-icons">first_page</i>
 					First
 				</a>
 			</li>
 			<li class="page-item backward_nav" id="previous_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$page-1?>" aria-label="Previous">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page-1?>" aria-label="Previous">
 					<i class="material-icons">arrow_back</i>
 					Previous
 				</a>
@@ -104,11 +104,9 @@ if ( $page > $total_pages ) {
 					Sivu:
 					<form class="pageNumberForm" method="GET">
 						<input type="hidden" name="brand" value="<?=$brand?>"/>
+						<input type="hidden" name="ppp" value="<?=$products_per_page?>">
 						<input type="number" name="page" class="pageNumber"
 							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
-						<?= isset($_GET['ppp'])
-							? "<input type='hidden' name='ppp' value='{$_GET['ppp']}'/>"
-							: NULL ?>
 						<input class="hidden" type="submit">
 					</form>
 					 / <?=$total_pages?><br>
@@ -116,13 +114,13 @@ if ( $page > $total_pages ) {
 			</li>
 
 			<li class="page-item forward_nav" id="next_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$page+1?>" aria-label="Next">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
 					<i class="material-icons">arrow_forward</i>
 					Next
 				</a>
 			</li>
 			<li class="page-item forward_nav" id="last_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$total_pages?>">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$total_pages?>">
 					<i class="material-icons">last_page</i>
 					Last
 				</a>
@@ -145,7 +143,7 @@ if ( $page > $total_pages ) {
 						<option value="5000">5000</option>
 						<option value="10000">10000</option>
 					</select>
-					<input type="submit" value="Muuta"> <!-- javascript ei anna lähettää formia ilman -->
+					<input type="submit" value="Muuta">
 				</form>
 			</span>
 			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen
@@ -194,13 +192,13 @@ if ( $page > $total_pages ) {
 	<nav aria-label="Page navigation" class="page_nav">
 		<ul class="pagination">
 			<li class="page-item backward_nav" id="first_page">
-				<a class="page-link" href="?brand=<?=$brand?>">
+				<a class="page-link" href="?<?=$other_options?>">
 					<i class="material-icons">first_page</i>
 					First
 				</a>
 			</li>
 			<li class="page-item backward_nav" id="previous_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$page-1?>" aria-label="Previous">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page-1?>" aria-label="Previous">
 					<i class="material-icons">arrow_back</i>
 					Previous
 				</a>
@@ -211,13 +209,13 @@ if ( $page > $total_pages ) {
 					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span></li>
 
 			<li class="page-item forward_nav" id="next_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$page+1?>" aria-label="Next">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
 					<i class="material-icons">arrow_forward</i>
 					Next
 				</a>
 			</li>
 			<li class="page-item forward_nav" id="last_page">
-				<a class="page-link" href="?brand=<?=$brand?>&page=<?=$total_pages?>">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$total_pages?>">
 					<i class="material-icons">last_page</i>
 					Last
 				</a>

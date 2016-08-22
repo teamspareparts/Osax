@@ -360,9 +360,7 @@ function merge_products_with_optional_data($articles) {
 	foreach ($articles as $article){
 		$product = getOptionalData($article->articleId);
 		$article->thumburl = get_thumbnail_url($product[0]);
-		//$article->ean = get_ean_number($product[0]);
 		$article->infos = get_infos($product[0]);
-		//$article->oe = get_oe_number($product[0]);
 	}
 }
 

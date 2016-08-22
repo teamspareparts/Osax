@@ -6,17 +6,20 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/bootstrap.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<!--	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">-->
+<!--	<link rel="stylesheet" href="css/bootstrap.css">-->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<!--		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">-->
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<!-- https://design.google.com/icons/ -->
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+			integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+			crossorigin="anonymous"></script>
 	<!--	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js"-->
 	<!--			integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD"-->
 	<!--			crossorigin="anonymous"></script>-->
@@ -69,12 +72,11 @@ require 'ostoskori_lomake.php';
  */
 function printManufSelectOptions ( array $manufs ) {
 	$returnString = '';
-
 	if ( $manufs ){
 		foreach ( $manufs as $manuf ) {
 			$returnString .= "<option value='$manuf->manuId'>$manuf->manuName</option>";
 		}
-	} else $returnString = "<script type='text/javascript'>alert('TecDoc ei vastaa.');</script>";
+	} else $returnString = "<script>alert('TecDoc ei vastaa.');</script>";
 
 	return $returnString;
 }
@@ -104,17 +106,15 @@ function printOstoskoriLinkki() {
  *
  * @param DByhteys $db <p> Tietokantayhteys
  * @param array $products <p> Tuote-array, josta etsitään aktivoidut tuotteet.
- * @return array <p> Kaksi arrayta: [0]:tuotteet, jotka löytyvät catalogista [1]:tuotteet, jotka eivät löydy catalogista
+ * @return array <p> Kolme arrayta:
+ * 		[0]: saatavilla olevat tuotteet, jotka löytyvät catalogista; [1]: ei saatavilla olevat tuotteet;
+ * 		[2]: tuotteet, jotka eivät löydy catalogista
  */
 function filter_catalog_products ( DByhteys $db, array $products ) {
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
-
-	$ids = array();
-    $articleIds = array();
+	$ids = $articleIds = array();
 
 	foreach ( $products as $product ) {
-		//$articleNo = str_replace(" ", "", $product->articleNo);
-        $articleNo = $product->articleNo;
 		$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
 					FROM 	tuote 
 					JOIN 	ALV_kanta
@@ -122,18 +122,18 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 					WHERE 	tuote.articleNo = ?
 					 	AND tuote.brandNo = ?
 					 	AND tuote.aktiivinen = 1 ";
-		$row = $db->query( $query, [$articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
+		$row = $db->query( $query, [$product->articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
-		    array_push($articleIds, $product->articleId);
+			$articleIds[] = $product->articleId;
 		    $product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
-			array_push($not_in_catalog, $product);
+			$not_in_catalog[] = $product;
 		}
 		if ( $row && !in_array($row->id, $ids) ) {
-            array_push($ids, $row->id);
+            $ids[] = $row->id;
             $row->articleId = $product->articleId;
             $row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
             $row->brandName = $product->brandName;
-            if ($row->varastosaldo != 0) {
+            if ($row->varastosaldo > $row->minimimyyntiera) {
                 $catalog_products[] = $row;
             } else {
                 $not_available_catalog_products[] = $row;
@@ -146,9 +146,14 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
 
-/** Järjestetään tuotteet hinnan mukaan */
+/** Järjestetään tuotteet hinnan mukaan
+ * @param $catalog_products
+ * @return array <p> Sama array, mutta sorted
+ */
 function sortProductsByPrice( $catalog_products ){
-
+	/** @param $a
+	 * @param $b
+	 * @return bool */
     function cmpPrice($a, $b) {
         return ($a->hinta > $b->hinta);
     }
@@ -166,8 +171,8 @@ function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
 		($product->varastosaldo >= $product->minimimyyntiera && $product->varastosaldo !== 0)
 			? "<input id='maara_{$product->id}' name='maara_{$product->id}' class='maara' 
 				type='number' value='0' min='0'></td>"
-			: '<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(\'{$product->id}\');">
-				<i class="material-icons">first_page</i></a>';
+			: '<a href="javascript:void(0);" onClick="ostopyynnon_varmistus('.$product->id.');">
+				<i class="material-icons">help</i></a>';
 }
 
 global $db;
@@ -177,10 +182,11 @@ if ( !empty($_POST['tuote_ostopyynto']) ) {
 	$sql = 'INSERT
 			INTO tuote_ostopyynto (tuote_id, kayttaja_id )
 			VALUES ( ?, ? ) ';
-	$db->query($sql, [ $_POST['tuote_ostopyynto'], $_SESSION['id'] ]);
+	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
 }
 
 if ( !empty($_GET['haku']) ) {
+	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));
 
 	$products = getArticleDirectSearchAllNumbersWithState($number); // haetaan kaikki linkitetyt tuotteet
@@ -203,7 +209,8 @@ if ( !empty($_GET['haku']) ) {
 //	}
 }
 
-if ( isset($_GET["manuf"]) ) {
+if ( !empty($_GET["manuf"]) ) {
+	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$selectCar = $_GET["car"];
 	$selectPartType = $_GET["osat_alalaji"];
 
@@ -216,16 +223,21 @@ if ( isset($_GET["manuf"]) ) {
 }
 
 echo handle_shopping_cart_action();
+
 /** Sivutukseen vaadittavat muuttujat */
-$other_options = "";
+$other_options = ""; // URL:ssa ennen $page-muuttujaa tulevat GET-arvot
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Nykyinen sivu
 $products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
-$offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
+$offset = ($page-1) * $products_per_page; // Monennestako tuotteesta aloitetaan sen sivun tulostus.
 
-/* * Tässä välissä pitäisi hakea tuotteet. */
+/* Tässä välissä pitäisi hakea tuotteet.
+ * array_splice, tai _slice tai _merge tai _chunk, ehkä.
+ *
+ */
 
-$total_products = count($catalog_products);
-$total_pages = 1;
+//Kuinka monta tuotetta yhteensä
+$total_products = count($catalog_products) + count($not_available) + count($not_in_catalog);
+$total_pages = 1; //Kuinka monta sivua
 if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }
 if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page);
 } else { $total_pages = 1; }
@@ -237,7 +249,6 @@ if ( $page > $total_pages ) {
 
 <main class="main_body_container">
 	<header class="tuotehaku_header">
-		<!-- <span class="start small_note">Katsotaanpa huomaako kukaan jos vaihdan tuotehaun uuteen...</span>-->
 		<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
 	</header>
 	<section class="hakutyypit">
@@ -273,7 +284,7 @@ if ( $page > $total_pages ) {
 		</div>
 	</section>
 
-	<nav aria-label="Page navigation" class="page_nav hidden">
+	<nav aria-label="Page navigation" class="page_nav">
 		<ul class="pagination">
 			<li class="page-item backward_nav" id="first_page">
 				<a class="page-link" href="?<?=$other_options?>">
@@ -289,11 +300,20 @@ if ( $page > $total_pages ) {
 			</li>
 
 			<li class="page-item active"><span class="page-link">
-					Sivu: <?=$page?> / <?=$total_pages?><br>
-					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span></li>
+					Sivu:
+					<form class="pageNumberForm" method="GET">
+						<input type="hidden" name="brand" value="<?=$brand?>"/>
+						<input type="hidden" name="ppp" value="<?=$products_per_page?>">
+						<input type="number" name="page" class="pageNumber"
+							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
+						<input class="hidden" type="submit">
+					</form>
+					 / <?=$total_pages?><br>
+					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span>
+			</li>
 
 			<li class="page-item forward_nav" id="next_page">
-				<a class="page-link" href="?brand=<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
+				<a class="page-link" href="?<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
 					<i class="material-icons">arrow_forward</i>
 					Next
 				</a>
@@ -306,131 +326,137 @@ if ( $page > $total_pages ) {
 			</li>
 		</ul>
 		<div class="page_control">
-			<span>Tuotteita per sivu: <?=$products_per_page?></span>
+			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
+			<span>Tuotteita per sivu:
+				<form class="productsPerPageForm" method="GET">
+					<input type="hidden" name="brand" value="<?=$brand?>"/>
+					<input type="hidden" name="page" value="<?=$page?>"/>
+					<select name="ppp">
+						<option value="10">10</option>
+						<option value="20" selected>20</option>
+						<option value="30">30</option>
+						<option value="50">50</option>
+						<option value="100">100</option>
+						<option value="500">500</option>
+						<option value="1000">1000</option>
+						<option value="5000">5000</option>
+						<option value="10000">10000</option>
+					</select>
+					<input type="submit" value="Muuta">
+				</form>
+			</span>
+			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen
+			saattaa esiintyä joitain outouksia.
 		</div>
 	</nav>
 
-	<?php
-
-    //Listataan hakutulokset
-	if ((isset($_GET['haku']) || isset($_GET['manuf'])) && $catalog_products) : ?>
-		<section class="hakutulokset">
-			<h2>Saatavilla:</h2>
-			<table>
-				<thead>
-				<tr><th>Kuva</th>
-					<th>Tuotenumero</th>
-					<th>Tuote</th>
-					<th>Info</th>
-					<th style="text-align: right;">Saldo</th>
-					<th style="text-align: right;">Hinta (sis. ALV)</th>
-					<th>Kpl</th>
-					<th></th>
+	<section class="hakutulokset">
+	<?php if ( $haku && $catalog_products) : // Tulokset (saatavilla) ?>
+		<h2>Saatavilla:</h2>
+		<table><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
+			<thead>
+			<tr><th>Kuva</th>
+				<th>Tuotenumero</th>
+				<th>Tuote</th>
+				<th>Info</th>
+				<th class="number">Saldo</th>
+				<th class="number">Hinta (sis. ALV)</th>
+				<th>Kpl</th>
+				<th></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($catalog_products as $product) : ?>
+				<tr data-val="<?=$product->articleId?>">
+					<td class="clickable thumb">
+						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
+					<td class="clickable"><?=$product->articleNo?></td>
+					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
+					<td class="clickable">
+						<?php foreach ( $product->infos as $info ) :
+							echo (!empty($info->attrName) ? $info->attrName : "") . " " .
+								(!empty($info->attrValue) ? $info->attrValue : "") .
+								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
+						endforeach; ?>
+					</td>
+					<td class="number"><?=format_integer($product->varastosaldo)?></td>
+					<td class="number"><?=format_euros($product->hinta)?></td>
+					<td style="padding-top: 0; padding-bottom: 0;">
+						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
+					<td></td>
+					<td class="toiminnot">
+						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
+							Osta</a></td>
 				</tr>
-				</thead>
-				<tbody>
-				<?php foreach ($catalog_products as $product) : ?>
-					<tr data-val="<?=$product->articleId?>">
-						<td class="clickable thumb">
-							<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
-						<td class="clickable"><?=$product->articleNo?></td>
-						<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-						<td class="clickable">
-							<?php foreach ( $product->infos as $info ) :
-								echo (!empty($info->attrName) ? $info->attrName : "") . " " .
-									(!empty($info->attrValue) ? $info->attrValue : "") .
-									(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
-							endforeach; ?>
-						</td>
-						<td style="text-align: right;"><?=format_integer($product->varastosaldo)?></td>
-						<td style="text-align: right;"><?=format_euros($product->hinta)?></td>
-						<td style="padding-top: 0; padding-bottom: 0;">
-							<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
-						<td></td>
-						<td class="toiminnot">
-							<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
-								Osta</a></td>
-					</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
-		</section>
-	<?php endif;
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php endif; //if $catalog_products
 
-    //Listataan hakutulokset
-    if ((isset($_GET['haku']) || isset($_GET['manuf'])) && $not_available) : ?>
-        <section class="hakutulokset">
-            <h2>Ei varastossa:</h2>
-            <table>
-                <thead>
-                <tr><th>Kuva</th>
-                    <th>Tuotenumero</th>
-                    <th>Tuote</th>
-                    <th>Info</th>
-                    <th style="text-align: right;">Saldo</th>
-                    <th style="text-align: right;">Hinta (sis. ALV)</th>
-                    <th>Kpl</th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($not_available as $product) : ?>
-                    <tr data-val="<?=$product->articleId?>">
-                        <td class="clickable thumb">
-                            <img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
-                        <td class="clickable"><?=$product->articleNo?></td>
-                        <td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-                        <td class="clickable">
-                            <?php foreach ( $product->infos as $info ) :
-                                echo (!empty($info->attrName) ? $info->attrName : "") . " " .
-                                    (!empty($info->attrValue) ? $info->attrValue : "") .
-                                    (!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
-                            endforeach; ?>
-                        </td>
-                        <td style="text-align: right;"><?=format_integer($product->varastosaldo)?></td>
-                        <td style="text-align: right;"><?=format_euros($product->hinta)?></td>
-                        <td style="padding-top: 0; padding-bottom: 0;">
-                            <?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
-                        <td></td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        </section>
-    <?php endif;
+	if ( $haku && $not_available) : // Tulokset (ei saatavilla) ?>
+		<h2>Ei varastossa:</h2>
+		<table><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo == 0) -->
+			<thead>
+			<tr><th>Kuva</th>
+				<th>Tuotenumero</th>
+				<th>Tuote</th>
+				<th>Info</th>
+				<th class="number">Saldo</th>
+				<th class="number">Hinta (sis. ALV)</th>
+				<th>Kpl</th>
+				<th></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($not_available as $product) : ?>
+				<tr data-val="<?=$product->articleId?>">
+					<td class="clickable thumb">
+						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
+					<td class="clickable"><?=$product->articleNo?></td>
+					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
+					<td class="clickable">
+						<?php foreach ( $product->infos as $info ) :
+							echo (!empty($info->attrName) ? $info->attrName : "") . " " .
+								(!empty($info->attrValue) ? $info->attrValue : "") .
+								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
+						endforeach; ?>
+					</td>
+					<td class="number"><?=format_integer($product->varastosaldo)?></td>
+					<td class="number"><?=format_euros($product->hinta)?></td>
+					<td style="padding-top: 0; padding-bottom: 0;">
+						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
+					<td></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php endif; //if $not_available catalog products
 
+	if ( $haku && $not_in_catalog) : //Tulokset (ei katalogissa)?>
+		<h2>Tilaustuotteet:</h2>
+		<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
+			<thead>
+			<tr><th>Tuotenumero</th>
+				<th>Tuote</th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ($not_in_catalog as $product) : ?>
+				<tr data-val="<?=$product->articleId?>">
+					<td class="clickable"><?=$product->articleNo?></td>
+					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php endif; //if $not_in_catalog products
 
-    //Listataan tuotteet, jotka eivät ole valikoimassa (Tilaustuotteet)
-    if ((isset($_GET['haku']) || isset($_GET['manuf'])) && $not_in_catalog) : ?>
-        <section class="hakutulokset">
-            <h2>Tilaustuotteet:</h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>Tuotenumero</th>
-                    <th>Tuote</th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($not_in_catalog as $product) : ?>
-                    <tr data-val="<?=$product->articleId?>">
-                        <td class="clickable"><?=$product->articleNo?></td>
-                        <td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        </section>
-    <?php endif;
-    if ((isset($_GET['haku']) || isset($_GET['manuf'])) && (!$not_in_catalog && !$catalog_products)) : ?>
-        <section class="hakutulokset">
-            <h2>Ei tuloksia.</h2>
-        </section>
+	if ( $haku && (!$not_in_catalog && !$catalog_products)) : ?>
+		<h2>Ei tuloksia.</h2>
     <?php endif; ?>
 
-
+	</section>
 </main>
-
 
 <form class="hidden" id="ostopyynto_form" action="#" method=post>
 	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
@@ -448,8 +474,6 @@ if ( $page > $total_pages ) {
 					<li><a data-toggle="tab" href="#menu3">Vertailunumerot</a></li>
 				</ul>
 			</div>
-
-
 
 			<div class="modal-body" style="margin-top:-20px;">
 				<div class="tab-content">
@@ -1098,30 +1122,6 @@ if ( $page > $total_pages ) {
 				//haetaan tuotteen tiedot tecdocista
 				getDirectArticlesByIds6(articleId);
 			});
-
-//		$('.clickable').(function () {
-//			$(this).css('cursor', 'pointer'); //Muutetaan hiiren kuvaketta hoverissa
-//
-//			$(this).click(function() { //Tuotteen klikkaaminen hiirellä
-//				//haetaan tuotteen id
-//				var articleId = $(this).closest('tr').attr('data-val');
-//				//spinning icon
-//				$('#cover').addClass("loading");
-//				//haetaan tuotteen tiedot tecdocista
-//				getDirectArticlesByIds6(articleId);
-//			});
-//		});
-
-		//Jos listassa olevaa tuotetta painetaan
-//		$('.clickable').click(function(){
-//			//haetaan tuotteen id
-//			var articleId = $(this).closest('tr').attr('data-val');
-//			//spinning icon
-//			$('#cover').addClass("loading");
-//			//haetaan tuotteen tiedot tecdocista
-//			getDirectArticlesByIds6(articleId);
-//		});
-//		$('.clickable').css('cursor', 'pointer');
 
 		$('#myModal').on('hidden.bs.modal', function () {
 			$( "#menu1" ).empty();

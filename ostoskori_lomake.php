@@ -12,7 +12,6 @@ function addToShoppingCart(id) {
 	var count = document.getElementById('maara_' + id).value;
 	document.getElementById('ostoskori_toiminto').value = 'lisaa';
 	document.getElementById('ostoskori_tuote').value = id;
-	alert
 	document.getElementById('ostoskori_maara').value = count;
 	document.ostoskorilomake.submit();
 }
