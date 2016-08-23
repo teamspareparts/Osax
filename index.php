@@ -60,7 +60,7 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
 				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään.",
-				"style" => "style='color:{$colors['note']};'"),
+				"style" => "style='color:{$colors['warning']};'"),
 		10=> array(
 				"otsikko" => " Käyttöoikeussopimus ",
 				"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta.",
@@ -68,7 +68,8 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 
 		99=> array(
 				"otsikko" => " Kirjautuminen ",
-				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php">Linkki etusivulle</a></p>',
+				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php">Linkki etusivulle</a></p>
+							<p><a href="logout.php">Kirjaudu ulos</a></p>',
 				"style" => "style='color:{$colors['note']};'"),
 	];
 ?>
@@ -98,7 +99,9 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">
-			<input type="submit" value="Uusi salasana">
+			<input type="submit" value="Uusi salasana" style="display: none">
+			<p>Sillä välin kun hieman muutan salasanan palautuksen toimintaa, niin se on otettu pois käytöstä.
+			Pahoitteluni, jos unohdit salasanasi.</p>
 		</form>
 	</fieldset>
 </main>

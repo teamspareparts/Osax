@@ -20,10 +20,6 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
-/* Meillä alkaa olla aika monta toiminnallisuutta, jotka ei viittaa yksittäiseen asiakkaaseen,
- vaan yritykseen. Tosin siinä tapauksessa meillä on aika monta ongelmaa, esim asiakkaan tiedoissa:
- esim. kuka saa muuttaa y-tunnusta, onko y-tunnus edes asiakkaan tiedoissa, 
- onko yrityksellä oma sivu? Note: vakoilin juuri osalinkkiä, niillä näyttäisi olevan yritystiedot erikseen. */
 CREATE TABLE IF NOT EXISTS `yritys` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `nimi` varchar(255) NOT NULL, -- UNIQUE KEY -- Koska ei niitä yrityksiä varmaan useampaa ole
@@ -102,9 +98,10 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
 
 CREATE TABLE IF NOT EXISTS `pw_reset` (
   `user_id` int(11) NOT NULL, -- PK; Foreign K
-  `reset_key` varchar(100) NOT NULL, -- PK
+  `reset_key_hash` varchar(100) NOT NULL, -- PK
   `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`reset_key`, `user_id`)
+  `kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
+  PRIMARY KEY (`user_id`, `reset_key`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (

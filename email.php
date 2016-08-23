@@ -6,8 +6,6 @@
  * (Viittaus esim: curl.cainfo = "C:\__polku__tähän__\cacert.pem.txt")
  */
 
-$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
 
 function send_email($email, $subject, $message){
 
@@ -53,17 +51,25 @@ function send_email($email, $subject, $message){
 	print_r($response); */
 }
 
-
+/**
+ * Lähettää käyttäjälle linkin sivulle, jossa salasanan vaihto tapahtuu.
+ * @param $email
+ * @param $key <p> Palautussivun GUID (tai avain)
+ */
 function laheta_salasana_linkki($email, $key){
 	$subject = "Slasanan vaihtaminen";
-	$message = 'Salasanan vaihto onnistuu osoitteessa: http://osax.fi/pw_reset.php?id=' . $key;
+	$message = "Salasanan vaihto onnistuu osoitteessa: http://osax.fi/pw_reset.php?id={$key}";
 	send_email($email, $subject, $message);
 }
 
-
-
-
-function laheta_tilausvahvistus($email, $products, $tilausnro){
+/**
+ * Lähettää tilausvahvistuksen sähköpostiin
+ * @param $email
+ * @param $products
+ * @param $tilausnro
+ * @return bool
+ */
+function laheta_tilausvahvistus( /*string*/$email, array $products, /*string*/ $tilausnro ) {
 	$subject = "Tilausvahvistus";
 	$summa = 0.00;
 	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
@@ -81,35 +87,36 @@ function laheta_tilausvahvistus($email, $products, $tilausnro){
 					toimisto@rantakylanvaraosa.fi';
 	$message = 'Tilaaja: ' . $email . '<br>Tilausnumero: ' . $tilausnro. '<br>Summa: ' . format_euros($summa) . '<br> Tilatut tuotteet:<br>' . $productTable . $contactinfo;
 	send_email($email, $subject, $message);
+
 	return true;
 }
 
-
-
-
-function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
+/**
+ * Lähettää tilausvahvistuksen ylläpidolle
+ * @param DByhteys $db
+ * @param $email
+ * @param $products
+ * @param $tilausnro
+ * @return bool
+ */
+function laheta_tilaus_yllapitajalle( DByhteys $db, $email, $products, $tilausnro){
 	//haetaan ylläpitäjän sposti ja asiakkaan tiedot
 	//(tai voidaan määritellä erikseen sähköposti, johon tilaukset lähetetään)
-	global $connection;
 	
 	//yllapitajan sposti
 	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja=1";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	if (!$result) return false;
-	
-	$row = mysqli_fetch_object($result);
-	$yp_email = $row->sahkoposti;
+	$yp = $db->query( $query, NULL, NULL, PDO::FETCH_OBJ );
+	if (!$yp) return false;
 
 	//haetaan käyttäjän tiedot
-	$query = "SELECT * FROM kayttaja WHERE sahkoposti='$email'";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	if (!$result) return false;
-	
-	$row = mysqli_fetch_object($result);
-	$enimi = $row->etunimi;
-	$snimi = $row->sukunimi;
-	$yritys = $row->yritys;
-	$puhelin = $row->puhelin;
+	$query = "SELECT etunimi, sukunimi, yritys, puhelin FROM kayttaja WHERE sahkoposti=?";
+	$asiakas = $db->query( $query, [$email], NULL, PDO::FETCH_OBJ );
+	if (!$asiakas) return false;
+
+	$enimi = $asiakas->etunimi;
+	$snimi = $asiakas->sukunimi;
+	$yritys = $asiakas->yritys;
+	$puhelin = $asiakas->puhelin;
 	
 	
 	
@@ -133,31 +140,32 @@ function laheta_tilaus_yllapitajalle($email, $products, $tilausnro){
 				'. $productTable;
 	
 	
-	send_email($yp_email, $subject, $message);
+	send_email($yp->sahkoposti, $subject, $message);
 	return true;
 }
 
-function laheta_ilmoitus_epailyttava_IP($email, $vanha_sijainti, $uusi_sijainti){
-	
-	global $connection;
+/**
+ * Lähettää ilmoituksen epäilyttävästä IP-osoitteesta ylläpidolle.
+ * @param DByhteys $db
+ * @param $email
+ * @param $vanha_sijainti
+ * @param $uusi_sijainti
+ * @return bool
+ */
+function laheta_ilmoitus_epailyttava_IP( DByhteys $db, $email, $vanha_sijainti, $uusi_sijainti){
+
 	//haetaan yllapitajan sposti
 	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja=1";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	if (!$result) return false;
-	$row = mysqli_fetch_object($result);
-	$yp_email = $row->sahkoposti;
+	$yp = $db->query( $query, NULL, NULL, PDO::FETCH_OBJ );
+	if (!$yp) return false;
 	
 	//emailin sisältö
 	$subject = "Epäilyttävää käytöstä";
 	$message = "Asiakas ...tiedot tähän..... <br>" .
 				"Vanha sijainti:" . $vanha_sijainti . "<br>" .
 				"Uusi sijainti:" . $uusi_sijainti;
-			
 	
-	;
-	
-	
-	send_email($yp_email, $subject, $message);
+	send_email($yp->sahkoposti, $subject, $message);
 }
 
 

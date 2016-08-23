@@ -7,8 +7,8 @@
 
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
-<!--	<link rel="stylesheet" href="css/bootstrap.css">-->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<link rel="stylesheet" href="css/bootstrap.css">
+<!--	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
 <!--		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">-->
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -31,9 +31,6 @@
 	<style type="text/css">
 		.class #id tag {}
 
-		/*div, section {*/
-		/*border: 1px solid;*/
-		/*}*/
 		.tuotehaku_header {
 			display: flex;
 			flex-grow: 1;
@@ -53,6 +50,13 @@
 		.tuotekoodihaku, .ajoneuvomallihaku {
 			padding: 0 30px 30px;
 		}
+
+		/* If I ever want to get real fancy with the icons */
+		/*a:hover::after {*/
+			 /*font-family: 'Material Icons';*/
+			 /*content: "link";*/
+			 /*-webkit-font-feature-settings: 'liga';*/
+		 /*}*/
 	</style>
 </head>
 <body>
@@ -133,7 +137,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
             $row->articleId = $product->articleId;
             $row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
             $row->brandName = $product->brandName;
-            if ($row->varastosaldo > $row->minimimyyntiera) {
+            if ($row->varastosaldo >= $row->minimimyyntiera) {
                 $catalog_products[] = $row;
             } else {
                 $not_available_catalog_products[] = $row;
@@ -168,14 +172,15 @@ function sortProductsByPrice( $catalog_products ){
  */
 function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
 	return //Hyvin monimutkainen if-else-lauseke:
-		($product->varastosaldo >= $product->minimimyyntiera && $product->varastosaldo !== 0)
+		(($product->varastosaldo >= $product->minimimyyntiera) && $product->varastosaldo !== 0)
 			? "<input id='maara_{$product->id}' name='maara_{$product->id}' class='maara' 
 				type='number' value='0' min='0'></td>"
 			: '<a href="javascript:void(0);" onClick="ostopyynnon_varmistus('.$product->id.');">
-				<i class="material-icons">help</i></a>';
+				<i class="material-icons">info</i></a>';
 }
 
 global $db;
+$haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
 if ( !empty($_POST['tuote_ostopyynto']) ) {
@@ -197,16 +202,6 @@ if ( !empty($_GET['haku']) ) {
     $not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
     $catalog_products = sortProductsByPrice($catalog_products);
-
-
-//	$ids = array();
-////	haetaan vielä kaikki tuotteet jotka eivät olleet valikoimassa
-//	foreach ($catalog_products as $catalog_product) {
-//		$ids[] = $catalog_product->articleId;
-//	}
-//	foreach ($products as $product){
-//		if (in_array($product->articleId, $ids));
-//	}
 }
 
 if ( !empty($_GET["manuf"]) ) {
@@ -224,27 +219,10 @@ if ( !empty($_GET["manuf"]) ) {
 
 echo handle_shopping_cart_action();
 
-/** Sivutukseen vaadittavat muuttujat */
-$other_options = ""; // URL:ssa ennen $page-muuttujaa tulevat GET-arvot
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Nykyinen sivu
-$products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
-$offset = ($page-1) * $products_per_page; // Monennestako tuotteesta aloitetaan sen sivun tulostus.
-
-/* Tässä välissä pitäisi hakea tuotteet.
- * array_splice, tai _slice tai _merge tai _chunk, ehkä.
- *
- */
-
-//Kuinka monta tuotetta yhteensä
-$total_products = count($catalog_products) + count($not_available) + count($not_in_catalog);
-$total_pages = 1; //Kuinka monta sivua
-if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }
-if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page);
-} else { $total_pages = 1; }
-if ( $page > $total_pages ) {
-	header("Location:yp_valikoima.php?brand={$brand}&page={$total_pages}&ppp={$products_per_page}"); exit(); }
+/** Sivutus on tällä hetkellä hyllytetty.
+ * Syynä tähän on koska sen ainoa tarkoitus on muistinhallinta ja tehokkaampi haku,
+ +  mutta jos ne tuotteet pitää joka sivulla hakea kuitenkin, niin siitä ei ole mitään hyötyöä. */
 ?>
-
 
 
 <main class="main_body_container">
@@ -284,75 +262,12 @@ if ( $page > $total_pages ) {
 		</div>
 	</section>
 
-	<nav aria-label="Page navigation" class="page_nav">
-		<ul class="pagination">
-			<li class="page-item backward_nav" id="first_page">
-				<a class="page-link" href="?<?=$other_options?>">
-					<i class="material-icons">first_page</i>
-					First
-				</a>
-			</li>
-			<li class="page-item backward_nav" id="previous_page">
-				<a class="page-link" href="?<?=$other_options?>&page=<?=$page-1?>" aria-label="Previous">
-					<i class="material-icons">arrow_back</i>
-					Previous
-				</a>
-			</li>
-
-			<li class="page-item active"><span class="page-link">
-					Sivu:
-					<form class="pageNumberForm" method="GET">
-						<input type="hidden" name="brand" value="<?=$brand?>"/>
-						<input type="hidden" name="ppp" value="<?=$products_per_page?>">
-						<input type="number" name="page" class="pageNumber"
-							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
-						<input class="hidden" type="submit">
-					</form>
-					 / <?=$total_pages?><br>
-					Tuotteet: <?=$offset?>&ndash;<?=$offset + $products_per_page?> / <?=$total_products?></span>
-			</li>
-
-			<li class="page-item forward_nav" id="next_page">
-				<a class="page-link" href="?<?=$other_options?>&page=<?=$page+1?>" aria-label="Next">
-					<i class="material-icons">arrow_forward</i>
-					Next
-				</a>
-			</li>
-			<li class="page-item forward_nav" id="last_page">
-				<a class="page-link" href="?<?=$other_options?>&page=<?=$total_pages?>">
-					<i class="material-icons">last_page</i>
-					Last
-				</a>
-			</li>
-		</ul>
-		<div class="page_control">
-			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
-			<span>Tuotteita per sivu:
-				<form class="productsPerPageForm" method="GET">
-					<input type="hidden" name="brand" value="<?=$brand?>"/>
-					<input type="hidden" name="page" value="<?=$page?>"/>
-					<select name="ppp">
-						<option value="10">10</option>
-						<option value="20" selected>20</option>
-						<option value="30">30</option>
-						<option value="50">50</option>
-						<option value="100">100</option>
-						<option value="500">500</option>
-						<option value="1000">1000</option>
-						<option value="5000">5000</option>
-						<option value="10000">10000</option>
-					</select>
-					<input type="submit" value="Muuta">
-				</form>
-			</span>
-			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen
-			saattaa esiintyä joitain outouksia.
-		</div>
-	</nav>
-
 	<section class="hakutulokset">
-	<?php if ( $haku && $catalog_products) : // Tulokset (saatavilla) ?>
-		<h2>Saatavilla:</h2>
+	<?php if ( $haku ) : ?>
+		<h4>Yhteensä löydettyjä tuotteita:
+			<?=count($catalog_products)+count($not_available)+count($not_in_catalog)?></h4>
+		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
+		<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
 		<table><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>
 			<tr><th>Kuva</th>
@@ -391,11 +306,11 @@ if ( $page > $total_pages ) {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
-	<?php endif; //if $catalog_products
+		<?php endif; //if $catalog_products
 
-	if ( $haku && $not_available) : // Tulokset (ei saatavilla) ?>
-		<h2>Ei varastossa:</h2>
-		<table><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo == 0) -->
+		if ( $not_available) : // Tulokset (ei saatavilla) ?>
+		<h2>Ei varastossa: (<?=count($not_available)?>)</h2>
+		<table><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
@@ -403,7 +318,7 @@ if ( $page > $total_pages ) {
 				<th>Info</th>
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
-				<th>Kpl</th>
+				<th></th>
 				<th></th>
 			</tr>
 			</thead>
@@ -430,14 +345,15 @@ if ( $page > $total_pages ) {
 			<?php endforeach; ?>
 			</tbody>
 		</table>
-	<?php endif; //if $not_available catalog products
+		<?php endif; //if $not_available catalog products
 
-	if ( $haku && $not_in_catalog) : //Tulokset (ei katalogissa)?>
-		<h2>Tilaustuotteet:</h2>
+		if ( $not_in_catalog) : //Tulokset (ei katalogissa)?>
+		<h2>Tilaustuotteet: (<?=count($not_in_catalog)?>)</h2>
 		<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
 			<thead>
 			<tr><th>Tuotenumero</th>
 				<th>Tuote</th>
+				<th>Info</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -445,16 +361,19 @@ if ( $page > $total_pages ) {
 				<tr data-val="<?=$product->articleId?>">
 					<td class="clickable"><?=$product->articleNo?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
+					<td><a href="javascript:void(0);" onClick="ostopyynnon_varmistus(null);">
+						<i class="material-icons">help_outline</i></a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>
-	<?php endif; //if $not_in_catalog products
+		<?php endif; //if $not_in_catalog products
 
-	if ( $haku && (!$not_in_catalog && !$catalog_products)) : ?>
+		if ( !$catalog_products && !$not_available && !$not_in_catalog ) : ?>
 		<h2>Ei tuloksia.</h2>
-    <?php endif; ?>
+    	<?php endif; //if ei tuloksia?>
 
+	<?php endif; //if $haku?>
 	</section>
 </main>
 
@@ -489,7 +408,8 @@ if ( $page > $total_pages ) {
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
 
-
+<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta tecdocin
+	metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon heti funktion alussa. -->
 <!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
 	var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
@@ -730,8 +650,6 @@ if ( $page > $total_pages ) {
 			var result = "";
 			if (array.length !== 0) {
 				array = array.array;
-				/* TODO: Jokaisessa näistä funktioista on asetettu parametrin arvo heti joksikin muuksi.
-				 *	Mikset vaan kutsu sitä funktiota sillä parametrilla, jota oikeasti tarvitset? */
 				result = "" +
 					'<div style="display:inline-block; width:50%;">' +
 					'	<table style="margin-left:auto; margin-right:auto;">' +
@@ -969,17 +887,22 @@ if ( $page > $total_pages ) {
 	 * @returns {boolean}
 	 */
 	function ostopyynnon_varmistus( product_id ) {
-		var form_id = 'ostopyynto_form';
-		var form_id_value = 'tuote_ostopyynto';
-		var vahvistus = confirm( "Tuote on loppuunmyyty tai poistettu valikoimasta.\n"
-			+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
-			+ "Ostopyyntö ei ole sitova.");
-		if ( vahvistus ) {
-			document.getElementById(form_id_value).value = product_id;
-			document.getElementById(form_id).submit();
+		var vahvistus, form_id_value, form_id;
+		if ( product_id ) {
+			form_id = 'ostopyynto_form';
+			form_id_value = 'tuote_ostopyynto';
+			vahvistus = confirm( "Tuote on loppuunmyyty tai poistettu valikoimasta.\n"
+				+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
+				+ "Ostopyyntö ei ole sitova.");
+			if ( vahvistus ) {
+				document.getElementById(form_id_value).value = product_id;
+				document.getElementById(form_id).submit();
+			}
 		} else {
-			return false;
+			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, ei TecDoc:in ID:n. " +
+				"Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
 		}
+		return false;
 	}
 
 	//jQuery
@@ -1111,7 +1034,6 @@ if ( $page > $total_pages ) {
 			$("div.tooltip").remove();
 		});
 
-		//TODO: Mikä näistä kolmesta eri tavast toimii?
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
@@ -1130,7 +1052,6 @@ if ( $page > $total_pages ) {
 		});
 
 		//Käytetään eri muotoilua, koska dynaaminen content
-		//TODO: Will this actually work?
 		$(document.body)
 			.on('mouseover', '#asennusohje', function(){
 				$(this).css("text-decoration", "underline"); })
@@ -1147,7 +1068,7 @@ if ( $page > $total_pages ) {
 			var left = (screen.width/2)-(w/2);
 			var top = (screen.height/2)-(h/2);
 			//TODO: will this change work? myWindow =
-			myWindow =window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+			window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
 		}); //close click
 	});//doc.ready
 

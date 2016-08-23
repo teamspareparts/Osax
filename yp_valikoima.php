@@ -71,7 +71,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Mikä sivu tuotelistau
 $products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
 $other_options = "brand={$brand}&ppp={$products_per_page}"; //URL:in GET-arvojen asettamista
 if ( $page < 1 ) { $page = 1; }
-if ( $products_per_page < 1 ) { $products_per_page = 1; }
+if ( $products_per_page < 1 || $products_per_page > 10000 ) { $products_per_page = 20; }
 $offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
 
 $products = haeTuotteet($db, $brand, $products_per_page, $offset);
@@ -141,13 +141,11 @@ if ( $page > $total_pages ) {
 						<option value="500">500</option>
 						<option value="1000">1000</option>
 						<option value="5000">5000</option>
-						<option value="10000">10000</option>
+						<option value="10000">10000 (max)</option>
 					</select>
 					<input type="submit" value="Muuta">
 				</form>
 			</span>
-			Huom. Toimii tällä hetkellä ainakin 5000 tuotteesen asti, mutta sen jälkeen
-			saattaa esiintyä joitain outouksia.
 		</div>
 	</nav>
 
