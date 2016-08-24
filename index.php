@@ -11,7 +11,7 @@
 
 <?php
 session_start();
-if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan onko uudellenohjaus
+if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan onko uudellenohjaus
 
 	if ( !empty($_SESSION['email']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
 	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
@@ -42,7 +42,7 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 				"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
 				"style" => "style='color:{$colors['warning']};'"),
 		5 => array(
-				"otsikko" => " :( ",
+				"otsikko" => " Kirjaudutaan ulos ",
 				"teksti" => "Olet onnistuneesti kirjautunut ulos.",
 				"style" => "style='color:{$colors['note']};'"),
 		6 => array(
@@ -59,7 +59,8 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 				"style" => "style='color:{$colors['success']};'"),
 		9 => array(
 				"otsikko" => " Käyttöoikeus vanhentunut ",
-				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään.",
+				"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. 
+							Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään.",
 				"style" => "style='color:{$colors['warning']};'"),
 		10=> array(
 				"otsikko" => " Käyttöoikeussopimus ",
@@ -73,17 +74,19 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 				"style" => "style='color:{$colors['note']};'"),
 	];
 ?>
+	<!-- Muuttujat hiljennetty, jotta se ei mene tulostamaan virhettä, jos joku rupeaa leikkimään URL:illa -->
 	<fieldset id=error <?= @$modes_array[$mode]['style'] ?>><legend> <?= @$modes_array[$mode]['otsikko'] ?> </legend>
 		<p> <?= $modes_array[$mode]['teksti'] ?> </p>
 	</fieldset>
-<?php } ?>
+<?php endif; //!empty redir ?>
 
 <!-- <main class="login_container"> -->
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus><br>
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$"
+				   required autofocus><br>
 			<br>
 			<label>Salasana:</label><br>
 			<input type="password" name="password" placeholder="password" pattern="^{3,255}$" required><br>
@@ -96,12 +99,11 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) {	// Tarkistetaan on
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$" required autofocus ><br>
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$"
+				   required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">
-			<input type="submit" value="Uusi salasana" style="display: none">
-			<p>Sillä välin kun hieman muutan salasanan palautuksen toimintaa, niin se on otettu pois käytöstä.
-			Pahoitteluni, jos unohdit salasanasi.</p>
+			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
 </main>

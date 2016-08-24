@@ -9,20 +9,20 @@ require 'tecdoc.php';
 /**
  * Tarkistaa käyttäjän käyttöoikeuden sivustoon, keskitetysti yhdessä funktiossa.
  * Tarkistaa salasanan, aktiivisuuden, ja demo-tilanteen, siinä järjestyksessä.
- * @param stdClass $user_info <p> sisältää käyttäjän tiedot
+ * @param stdClass $user <p> sisältää käyttäjän tiedot
  * @param string $user_password <p> käyttäjän antama salasana
  * @param bool $skip_pw_check [optional] <p> jos pw_reset, niin salasanaa ei tarvitse tarkistaa.
  * 		Huom. jos TRUE, ei tarkista salasanaa!
  */
-function beginning_user_checks ( stdClass $user_info, /*string*/ $user_password, /*bool*/ $skip_pw_check = FALSE ) {
-	if ( !password_verify($user_password, $user_info->salasana_hajautus) && !$skip_pw_check ) {
+function beginning_user_checks ( stdClass $user, /*string*/ $user_password, /*bool*/ $skip_pw_check = FALSE ) {
+	if ( !password_verify($user_password, $user->salasana_hajautus) && !$skip_pw_check ) {
 		header("Location:index.php?redir=2"); exit; //Salasana väärin
 	}
-	if ( $user_info->aktiivinen == 0 ) { // Tarkistetaan käyttäjän aktiivisuus
+	if ( $user->aktiivinen == 0 ) { // Tarkistetaan käyttäjän aktiivisuus
 		header("Location:index.php?redir=3"); exit; //Käyttäjä de-aktivoitu
 	}
-	if ( $user_info->demo == 1 ) { // Onko käyttäjätunnus väliaikainen
-		if ( new DateTime( $user_info->voimassaolopvm ) < new DateTime() ) { //tarkistetaan, onko kokeilujakso loppunut
+	if ( $user->demo == 1 ) { // Onko käyttäjätunnus väliaikainen
+		if ( new DateTime( $user->voimassaolopvm ) < new DateTime() ) { //tarkistetaan, onko kokeilujakso loppunut
 			header( "Location:index.php?redir=9" );
 			exit(); //Käyttöoikeus vanhentunut
 		}
@@ -34,10 +34,9 @@ function beginning_user_checks ( stdClass $user_info, /*string*/ $user_password,
  * Lisäksi, jos löytää uuden sijainnin, päivittää sen tietokantaan.
  * Huom. toimii vain staattisilla IP-osoitteilla.
  * @param DByhteys $db
- * @param string $user_email
- * @param string $viime_sijainti <p> käyttäjän tietokantaan tallennettu viimeinen sijainti.
+ * @param stdClass $user
  */
-function check_IP_address ( DByhteys $db, /*string*/ $user_email, /* string */ $viime_sijainti ) {
+function check_IP_address ( DByhteys $db, stdClass $user ) {
 	$remoteaddr = new RemoteAddress(); // Haetaan asiakkaan oikea ip osoite
 	$ip = $remoteaddr->getIpAddress();
 	$details = json_decode( file_get_contents("http://ipinfo.io/{$ip}") );
@@ -45,17 +44,17 @@ function check_IP_address ( DByhteys $db, /*string*/ $user_email, /* string */ $
 	$nykyinen_sijainti = $details->city;
 	 
 	if ( $nykyinen_sijainti != "" ) { //Jos sijainti tiedossa
-		if ( $viime_sijainti != "" ) {
-			$match = strcmp( $nykyinen_sijainti, $viime_sijainti );
+		if ( $user->viime_sijainti != "" ) {
+			$match = strcmp( $nykyinen_sijainti, $user->viime_sijainti );
 			if ( $match != 0 ) {
-				laheta_ilmoitus_epailyttava_IP( $db, $user_email, $viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
+				laheta_ilmoitus_epailyttava_IP( $db, $user->sahkoposti, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
 			}
 		}
 		//päivitetään sijainti tietokantaan
 		$query = "	UPDATE	kayttaja
-					SET		viime_sijainti = $viime_sijainti 
+					SET		viime_sijainti = $nykyinen_sijainti
 					WHERE	sahkoposti = ? ";
-		$db->query( $query, [$user_email] );
+		$db->query( $query, [$user->sahkoposti] );
 	}
 }
 
@@ -64,29 +63,29 @@ function check_IP_address ( DByhteys $db, /*string*/ $user_email, /* string */ $
  * Lähettää käyttäjälle linkin sähköpostilla pw_reset-sivulle, tai jos salasana vanhentunut:
  *  ohjaa suoraan kyseiselle sivulle.
  * @param DByhteys $db
- * @param $user_id
- * @param string $user_mail <p> Käyttäjän sähköpostiosoite
+ * @param stdClass $user
  * @param string $reset_mode <p> onko kyseessä 'reset' vai 'expired'. Eka lähettää linkin, toka ohjaa suoraan.
  */
-function password_reset ( DByhteys $db, /*int*/ $user_id, /*string*/ $user_mail, /*string*/ $reset_mode ) {
+function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode ) {
 	$key = GUID();
 	$key_hashed = sha1( $key );
 	
 	$sql_query = "	INSERT INTO pw_reset (user_id, reset_key_hash)
-					VALUES (?,?)";
-	$db->query( $sql_query, [$user_id, $key_hashed] );
+					VALUES ( ?, ? )";
+	$db->query( $sql_query, [$user->id, $key_hashed] );
 	
 	if ( $reset_mode == "expired" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
 		header("Location:pw_reset.php?id={$key}"); exit;
 	}
 	else { // jos salasanaa pyydetty sähköpostiin, lähetetään linkki
-		laheta_salasana_linkki( $user_mail, $key );
+		laheta_salasana_linkki( $user->sahkoposti, $key );
 		header("Location:index.php?redir=6"); exit(); // Palautuslinkki lähetetty
 	}
 }
 
 /**
- * So apparently, com_-aluiset funktiot on poistettu PHP-coresta 5 version jälkeen, ja ne saa vaan lisäämällä manuaalisti.
+ * So apparently, com_-aluiset funktiot on poistettu PHP-coresta 5 version jälkeen,
+ * ja ne saa vaan lisäämällä manuaalisti.
  * Jälkimmäinen osio luo käytännössä saman asian kuin com_create_guid.
  * Koodi kopioitu PHP-manuaalista, user comment.
  * @return string
@@ -144,7 +143,7 @@ if ( $mode == "login" ) {
 		$time_now	= new DateTime();
 		//Jos salasana vanhentunut tai salasana on uusittava
    		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) || $user->salasana_uusittava ) {
-   			password_reset( $db, $user->sahkoposti, 'expired' );
+   			password_reset( $db, $user, 'expired' );
    		}
    		
    		else { //JOS KAIKKI OK->

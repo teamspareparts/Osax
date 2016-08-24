@@ -30,8 +30,8 @@ class DByhteys {
 	protected $pdo_options = [		//PDO:n DB driver specific options
 			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-			PDO::ATTR_EMULATE_PREPARES   => false,];
-//            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")];
+			PDO::ATTR_EMULATE_PREPARES   => false,
+            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")];
 	/**
 	 * Säilyttää yhdeyten, jota kaikki metodit käyttävät
 	 * @var PDO object
