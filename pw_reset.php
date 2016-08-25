@@ -8,8 +8,7 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 <body>
-<?php session_start();
-require 'tietokanta.php';
+<?php require 'tietokanta.php';
 
 /**
  * @param DByhteys $db
@@ -24,7 +23,6 @@ function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_has
 	$pw_reset = $db->query( $sql_q, [$reset_key_hash], NULL, PDO::FETCH_OBJ );
 
 	if ( !$pw_reset ) { header("location:index.php"); exit(); }
-
 	//OLETETAAN ETTÄ MYSQL TIMEZONE ON TALLENNETTU SUOMEN AIKAAN
 	$time_then 	= new DateTime( $pw_reset->reset_exp_aika ); // Muunnettuna DateTime-muotoon
 	$time_now	= new DateTime( 'now' );
@@ -46,7 +44,7 @@ function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_has
 /**
  * @param DByhteys $db
  * @param stdClass $pw_reset
- * @return stdClass
+ * @return array|bool|stdClass
  */
 function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
 	$sql_q = "	SELECT	id, sahkoposti
@@ -88,7 +86,7 @@ $user = hae_kayttaja( $db, $pw_reset );
 
 if ( !empty($_POST['reset']) ) {
 	if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
-		vaihda_salasana( $db, $user, $_POST['new_password'], $reset_id_hash );
+		db_vaihda_salasana( $db, $user, $_POST['new_password'], $reset_id_hash );
 		header("location:index.php?redir=8"); exit;
 	} else {
 		$error = TRUE;

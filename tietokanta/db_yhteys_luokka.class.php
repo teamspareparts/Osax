@@ -67,7 +67,8 @@ class DByhteys {
 
 	/**
 	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
-	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.
+	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p>
+	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.
 	 * @param string $query
 	 * @param array $values [optional], default=NULL<p>
 	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
@@ -84,8 +85,9 @@ class DByhteys {
 	 * 				<li>PDO::FETCH_OBJ</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
-	 * @return array|boolean <p> Palauttaa arrayn, jos esim. SELECT.<br>
-	 * 		Palauttaa boolean, jos esim. INSERT tai DELETE.
+	 * @return array|boolean|stdClass <p> Palauttaa arrayn, jos esim. SELECT.<br>
+	 * 		Palauttaa boolean, jos esim. INSERT tai DELETE.<br>Palauttaa objektin, jos haetaan vain yksi,
+	 * 		ja palautusmuotona on PDO::FETCH_OBJ.
 	 */
 	public function query( /* string */ $query, array $values = NULL,
 			/* bool */ $fetch_All_Rows = FALSE, /* int */ $returnType = NULL ) {

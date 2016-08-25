@@ -32,7 +32,7 @@ function modifyShoppingCart(id) {
 //
 function removeFromShoppingCart(id) {
 	document.getElementById('ostoskori_toiminto').value = 'poista';
-	document.getElementById('ostoskori_tuote').value = articleNo;
+	document.getElementById('ostoskori_tuote').value = articleNo; // Well this is just objectively wrong.
 	document.ostoskorilomake.submit();
 }
 
