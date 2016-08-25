@@ -210,233 +210,184 @@ class DByhteys {
 }
 
 /**
- * Sisältää esimerkkejä käytöstä käytännössä.
- *
- * Lisäksi lopussa on pari trivia tietoa luokasta. <p>
- * (Please don't try running these. They won't work.)
+ * Lopuksi joitain esimerkkejä, plus lopussa
+ *  on pari trivia tietoa luokasta.
  */
-class examples_and_information {
 
-	/**
-	 * Miten asiat tehtiin ennen. Esimerkin vuoksi tässä.
-	 */
-	function example_0_before() {
-		$mysqli_conn = mysqli_connect('host', 'username', 'password', 'tietokanta')
-				or die('Error: ' . mysqli_connect_error());
-
-		$value = ''; //Some user input
-		/** @noinspection SqlResolve */
-		$simple_query = "	SELECT	*
-							FROM	`table`
-							WHERE	column = {$value}; "; //Turvallisuusriski
-
-		$result = mysqli_query($mysqli_conn, $simple_query) or die(mysqli_error($mysqli_conn));
-		$result = mysqli_fetch_assoc($result);
-
-		if ( $result ) {
-			//Do stuff and things
-		}
-	}
-
-	/** @param DByhteys $db_conn */
-	function example_1_simple_query_with_single_result ( $db_conn /* Älä välitä tästä, säästää yhden rivin koodia */ ) {
-		$values_array = [ 'user_input' ]; // An array of some user inputs
-		/** @noinspection SqlResolve */
-		$query = "	SELECT	*
-					FROM	`table`
-					WHERE	`column` = ? "; //Huom. ei puolipistettä ";"
-
-		$result = $db_conn->query( $query, $values_array );
-
-		if ( $result ) {
-			//Do stuff and things
-		}
-
-		/*
-		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
-			Array (
-				[id] => 'foo'
-				...
-			)
-		 */
-	}
-
-	/** @param DByhteys $db_conn */
-	function example_2_simple_query_with_multiple_results ( $db_conn ) {
-		$values_array = [ 'user_input' ]; // An array of some user inputs
-		/** @noinspection SqlResolve */
-		$query = "	SELECT	*
-					FROM	`table`
-					WHERE	`column` = ?"; //Huom. ei puolipistettä ";"
-
-		$results = $db_conn->query( $query, $values_array, FETCH_ALL /*Alias TRUE:lle*/ );
-
-		foreach ( $results as $array ) {
-			//Do stuff with the assoc array
-		}
-
-		/*
-		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
-			Array (
-				[0] => Array (
-			            [id] => 'foo'
-			            ...
-					)
-				[1] => Array (
-			            [id] => 'bar'
-			            ...
-					)
-				...
-			)
-		 */
-	}
-
-	/**
-	 * Complicated way, or at least more verbose.
-	 * This way you can run multiple queries with different values.
-	 * @param DByhteys $db_conn
-	 */
-	function example_3_more_verbose_version( $db_conn ) {
-		$values_array = [ 'user_input' ]; // An array of some user inputs
-		/** @noinspection SqlResolve */
-		$query = "	SELECT	*
-					FROM	`table`
-					WHERE	`column` = ?"; //Huom. ei puolipistettä ";"
-
-		$db_conn->prepare_stmt( $query ); //Valmistellaan sql-haku
-
-		$db_conn->run_prepared_stmt( $values_array ); //Ajetaan haku syötteillä
-
-		/**
-		 * Hups, you are not actually supposed to this. Bad coding style, apparently
-		 */
-		while ( $result = $db_conn->get_next_row() ) {
-			//Do stuff with the received assoc array
-		}
-
-		/* Jos haluat ajaa uudestaan saman haun, mutta eri arvoilla... */
-		$db_conn->run_prepared_stmt( ['different_input'] );
-		//Ajetaan haku eri syötteillä, ja sen jälkeen sama while-/if-lause
-
-		/*
-		 * Huom. Tällä tavalla haettuna metodi palauttaa tiedot samalla tavalla kuin
-		 *  ekassa esimerkissä. Jos odotat vain yhtä riviä, voit myös käyttää if-lausetta,
-		 *  mutta sillä ei ole hirveästi väliä kumpaa käyttää.
-		 */
-
-		/*
-		 * Luokassa on myös close_prepared_stmt()-metodi, mutta sitä ei oikeastaan tarvitse käyttää.
-		 */
-		$db_conn->close_prepared_stmt(); //Sulkee statementin
-	}
-
-	/**
-	 * Tietoa eri palautustyypeistä. Ei esimerkkejä, koska testaillessani, suurin osa niistä
-	 *  on oikeastaan aika tylsiä. Pari on näyttää täysin samalta, paitsi jos olet surkea
-	 *  suunnittelemaan tietokantoja.
-	 * @param DByhteys $db_conn
-	 */
-	function example_4_returnTypes( $db_conn ) {
-		/** Jos haluat valita tietyn tietyn palautustyypin... */
-		$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_OBJ );
-		/* Tai... */
-		$db_conn->setReturnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
-		$db_conn->query( $query, $values ); // Palauttaa nyt objektina
-			// Jos haluat vaihtaa takaisin defaultiin...
-		$db_conn->setReturnType( ['' || NULL || 'assoc'] );
-		/* Haluaisin huomauttaa, että tuo syntaksi ei todellakaan ole mikään
-		 * standardi. Minä keksin sen tyhjästä juuri äsken. */
-
-		/**
-		 * FETCH_LAZY: ei voi käyttää fetchAll():in kanssa.
-		 *
-		 * FECTH_KEY_PAIR: vaatii tasan kaksi valittua kolumnia.
-		 * 		Ensimmäinen kolumni on avain, toinen arvo.
-		 *
-		 * FETCH_UNIQUE: sama idea kuin FETCH_ASSOC fetchAll():in kanssa.
-		 * 		Valitsee ensimmäisen kolumin arvon, ja tekee siitä kyseisen arrayn avaimen.
-		 * 		Ei palauta ensimmäistä kolumnia. Jos duplikaatteja, palauttaa viimeisen.
-		 * 		Ei voi käyttää fetch():in kanssa (single result, that is)
-		 *
-		 * OBJ on aika ilmiselvä. ENUM kanssa.
-		 * NAMED palauttaa saman kuin ASSOC, mutta jos duplikaatti kolumneja, tekee
-		 *  niistä oman arrayn (inside the first array).
-		 * BOTH vaan palauttaa koko arrayn tuplana. Mitä hyötyä siitä on?
-		 *
-		 * Suurin osa näistä on aika esoteerisia käyttötarkoitukseltaan.
-		 */
-	}
-
-	/**
-	 * Some interesting trivia about the class, and it's functions.
-	 *
-	 * Jos luit linkin aivan tiedoston alussa PDO:sta, tämä toistaa
-	 * aika paljon siitä.
-	 * @param DByhteys $db_conn
-	 */
-	function example_5_interesting_trivia( $db_conn ) {
-
-		/*
-		 * Kaikki nämä seuraavat sql_haut toimivat:
-		 */
-		$query_no_user_input = "	SELECT	*
-									FROM	`table` ";
-
-		$query_with_user_input = "	SELECT	*
-									FROM	`table`
-									WHERE	`column` = {$value} ";
-		$db_conn->query( $query_no_user_input ); //tai query( $query, NULL )
-		$db_conn->query( $query_with_user_input ); //tai query( $query, NULL )
-
-		$db_conn->prepare_stmt( $query_no_user_input );
-		$db_conn->prepare_stmt( $query_with_user_input );
-		$db_conn->run_prepared_stmt(); //tai run_prep_stmt( NULL )
-		/*
-		 * Tätä tyyliä ei tietenkään suositella, jos mukana user inputteja.
-		 * Mutta jos jonkin prep stmt:n kanssa on ongelmia, niin voit vain pistää koko
-		 * jutun tuolla tavalla.
-		 */
-
-
-		/*
-		 * SQL-kyselyn voi tehdä myös nimetyilla placeholdereilla
-		 */
-		$query = "	SELECT	*
-					FROM	`table`
-					WHERE	`column` = :value ";
-		/* ... missä tapauksessa $values-array pitää olla assoc array:  */
-		$values_array = [ 'value' => 'user_input' ]; //Key samanniminen kuin placeholder
-		$db_conn->query( $query, $values_array );
-		/*
-		 * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
-		 * Nimettyjä ja kysymysmerkkejä ei voi käyttää samassa queryssa.
-		 */
-
-
-		/*
-		 * Esimerkissä 2 käytin FETCH_ALL muuttujaa. Se on alias TRUE:lle.
-		 * Define()-metodi siitä on konstruktorissa. Tämä kohta on hieman leikkimistä minulta, myönnetään
-		 */
-		FETCH_ALL === TRUE;
-
-
-		/*
-		 * Syy miksi käytän PDO:ta, enkä MySQLi:ta (jossa on myös prep. stmt), on seuraava rivi:
-		 */
-		//Prepare
-		$db_conn->bindParam( $value_types, $value1, $value2 /*, ...*/ ); //Tämä funktio on PDO:ssa ja mySQLi:ssa
-		//Execute
-		/*
-		 * Tällä tavalla tehtynä minun pitäisi selvittää, miten monta muuttujaa annetaan, koska tuo metodi
-		 *  ei hyväksy parametrina arrayta.
-		 * PDO:ssa execute()-metodi hyväksyy arrayn, jossa muuttujat. Kaikki annetut muuttujat muutetaan merkkijonoksi PHP puolella.
-		 * Oletettavasti tietokanta sitten muuttaa ne tarvittaviin muotoihin takaisin.
-		 *
-		 * Plus lisäksi, siinä pitäisi joko antaa myös arvojen tyypit, tai selvittää luokassa,
-		 *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
-		 *
-		 * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta. But close enough.)
-		 */
-	}
+/*******
+  Esimerkki 1 (simple_query_with_single_result):
+$query = "	SELECT	*
+			FROM	table
+			WHERE	column = ? "; //Huom. ei puolipistettä ";"
+$values_array = [ 'user_input' ];
+$result = $db_conn->query( $query, $values_array );
+if ( $result ) {
+	//Do stuff and things
 }
+
+Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
+	Array (
+		[key] => 'value'
+		...
+	)
+*******/
+
+
+/********
+  Esimerkki 2 (simple_query_with_multiple_results):
+$query = "	SELECT	*
+			FROM	table
+			WHERE	column = ? "; //Huom. ei puolipistettä ";"
+$values_array = [ 'user_input' ]; // An array of some user inputs
+
+$results = $db_conn->query( $query, $values_array, FETCH_ALL (Alias TRUE:ll) );
+
+foreach ( $results as $array ) {
+	//Do stuff with the assoc array
+}
+
+
+Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
+Array (
+	[0] => Array (
+			[id] => 'foo'
+			...
+		)
+	[1] => Array (
+			[id] => 'bar'
+			...
+		)
+	...
+)
+
+******/
+
+/*****
+  Example 3 (more_verbose_version):
+$values_array = [ 'user_input' ]; // An array of some user inputs
+$query = "	SELECT	*
+			FROM	table
+			WHERE	column = ?"; //Huom. ei puolipistettä ";"
+
+$db_conn->prepare_stmt( $query ); //Valmistellaan sql-haku
+
+$db_conn->run_prepared_stmt( $values_array ); //Ajetaan haku syötteillä
+$result = $db_conn->get_next_row()
+while ( $result ) {
+	//Do stuff with the received assoc array
+	$result = $db_conn->get_next_row()
+}
+
+// Jos haluat ajaa saman haun, mutta eri arvoilla...
+$db_conn->run_prepared_stmt( ['different_input'] );
+//Ajetaan haku eri syötteillä, ja sen jälkeen sama while-/if-lause
+
+Huom. Tällä tavalla haettuna metodi palauttaa tiedot samalla tavalla kuin
+ekassa esimerkissä. Jos odotat vain yhtä riviä, voit myös käyttää if-lausetta,
+mutta sillä ei ole hirveästi väliä kumpaa käyttää.
+******/
+
+/*******
+  Example 4 (tietoa eri palautustyypeistä):
+Ei esimerkkejä, koska testaillessani, suurin osa niistä
+on oikeastaan aika tylsiä. Pari on näyttää täysin samalta, paitsi jos olet surkea
+suunnittelemaan tietokantoja.
+
+// Jos haluat valita tietyn tietyn palautustyypin...
+$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_OBJ );
+// Tai...
+$db_conn->setReturnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
+$db_conn->query( $query, $values ); // Palauttaa nyt objektina
+
+// Jos haluat vaihtaa takaisin defaultiin...
+$db_conn->setReturnType( ['' || NULL || 'assoc'] );
+Haluaisin huomauttaa, että tuo syntaksi ei todellakaan ole mikään
+standardi. Minä keksin sen tyhjästä juuri äsken.
+
+
+ * FETCH_LAZY: ei voi käyttää fetchAll():in kanssa.
+ *
+ * FECTH_KEY_PAIR: vaatii tasan kaksi valittua kolumnia.
+ * 		Ensimmäinen kolumni on avain, toinen arvo.
+ *
+ * FETCH_UNIQUE: sama idea kuin FETCH_ASSOC fetchAll():in kanssa.
+ * 		Valitsee ensimmäisen kolumin arvon, ja tekee siitä kyseisen arrayn avaimen.
+ * 		Ei palauta ensimmäistä kolumnia. Jos duplikaatteja, palauttaa viimeisen.
+ * 		Ei voi käyttää fetch():in kanssa (single result, that is)
+ *
+ * OBJ on aika ilmiselvä. ENUM kanssa.
+ * NAMED palauttaa saman kuin ASSOC, mutta jos duplikaatti kolumneja, tekee
+ *  niistä oman arrayn (inside the first array).
+ * BOTH vaan palauttaa koko arrayn tuplana. Mitä hyötyä siitä on?
+ *
+ * Suurin osa näistä on aika esoteerisia käyttötarkoitukseltaan.
+ * Edes minä en enää muista mitä nää kaikki oli. Miksi edes vaivauduin kirjoittamaan tämän?
+
+******/
+
+/*******
+  Example 5: Some Interesting trivia bout the class
+ * Jos luit linkin aivan tiedoston alussa PDO:sta, tämä toistaa
+ * aika paljon siitä.
+
+//
+// Kaikki nämä seuraavat sql_haut toimivat:
+//
+$query_no_user_input = "SELECT	*
+						FROM	table ";
+
+$query_with_user_input = "	SELECT	*
+							FROM	table
+							WHERE	column = {$value} ";
+$db_conn->query( $query_no_user_input ); //tai query( $query, NULL )
+$db_conn->query( $query_with_user_input ); //tai query( $query, NULL )
+
+$db_conn->prepare_stmt( $query_no_user_input );
+$db_conn->prepare_stmt( $query_with_user_input );
+$db_conn->run_prepared_stmt(); //tai run_prep_stmt( NULL )
+
+ * Tätä tyyliä ei tietenkään suositella, jos mukana user inputteja.
+ * Mutta jos jonkin prep stmt:n kanssa on ongelmia, niin voit vain pistää koko
+ * jutun tuolla tavalla.
+
+
+
+//
+// SQL-kyselyn voi tehdä myös nimetyilla placeholdereilla
+//
+$query = "	SELECT	*
+			FROM	table
+			WHERE	column = :value ";
+// ... missä tapauksessa $values-array pitää olla assoc array:
+$values_array = [ 'value' => 'user_input' ]; //Key samanniminen kuin placeholder
+$db_conn->query( $query, $values_array );
+
+ * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
+ * Nimettyjä ja kysymysmerkkejä ei voi käyttää samassa queryssa.
+
+
+
+ * Esimerkissä 2 käytin FETCH_ALL muuttujaa. Se on alias TRUE:lle.
+ * Define()-metodi siitä on konstruktorissa. Tämä kohta on hieman leikkimistä minulta, myönnetään
+FETCH_ALL === TRUE;
+
+
+//
+// Syy miksi käytän PDO:ta, enkä MySQLi:ta (jossa on myös prep. stmt), on seuraava rivi:
+//
+(Prepare_stmt)
+$db_conn->bindParam( $value_types, $value1, $value2, ... ); //Tämä funktio on PDO:ssa ja mySQLi:ssa
+(Execute)
+
+ * Tällä tavalla tehtynä minun pitäisi selvittää, miten monta muuttujaa annetaan, koska tuo metodi
+ *  ei hyväksy parametrina arrayta.
+ * PDO:ssa execute()-metodi hyväksyy arrayn, jossa muuttujat. Kaikki annetut muuttujat muutetaan
+ * merkkijonoksi PHP puolella.
+ * Oletettavasti tietokanta sitten muuttaa ne tarvittaviin muotoihin takaisin.
+ *
+ * Plus lisäksi, siinä pitäisi joko antaa myös arvojen tyypit, tai selvittää luokassa,
+ *  mitä tyyppiä ne on. Monimutkaistaa tilannetta. Tämä on helpompaa
+ *
+ * (Minä oikeastaan juur luin läpi PHP-manuaalia, ja tämä ei oikeastaan ole 100 % totta. But close enough.)
+*****/
 //EOF

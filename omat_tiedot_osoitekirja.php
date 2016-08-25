@@ -257,8 +257,7 @@ function avaa_Modal_toimitusosoite_lisaa_uusi() {
 /**
  * Vahvistetaan kayttajalta osoitteen poistaminen javascript confirm-ikkunan avulla
  * OK:n jälkeen lähettää lomakkeen, jossa osoitteen ID.
- * 
- * @param Poistettavan osoitteen ID
+ * @param osoite_id
  * @return Boolean false, jos kayttaja ei paina OK:ta.
  */
 function vahvista_Osoitteen_Poistaminen(osoite_id) {
@@ -267,7 +266,7 @@ function vahvista_Osoitteen_Poistaminen(osoite_id) {
 							+ "Tätä toimintoa ei voi perua jälkeenpäin.\n"
 							+ "Jos painat OK, osoite poistetaan, ja sivu latautuu uudelleen.\n"
 							+ "(Huom. Osoitetietoja ei poisteta mahdollisista tilaustiedoista.)");
-	if ( vahvistus == true ) {
+	if ( vahvistus === true ) {
 		document.getElementById(form_ID).submit();
 	} else {
 		return false;

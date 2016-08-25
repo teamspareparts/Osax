@@ -38,15 +38,14 @@ class Ostoskori {
 	function __construct ( /*int*/ $yritys_id, DByhteys $db ) {
 		$this->yritys_id = $yritys_id;
 		$this->db = $db;
-		$row = $this->db->query(
+		$this->ostoskori_id = $this->db->query(
 			"SELECT id FROM ostoskori WHERE yritys_id = ?",
 			[$yritys_id]
-		);
-		$this->ostoskori_id = $row[0];
-		$this->hae_ostoskori();
+		)[0]; //Koska se on array, ja id on indeksillä 0.
+		$this->hae_ostoskorin_sisalto();
 	}
 
-	private function hae_ostoskori () {
+	private function hae_ostoskorin_sisalto () {
 		$query = "	SELECT	tuote_id, kpl_maara
 					FROM	ostoskori_tuote
 					WHERE	ostoskori_id = ?";
@@ -62,21 +61,23 @@ class Ostoskori {
 
 	/**
 	 * @param int $tuote_id <p> Lisättävän tuotteen ID tietokannassa
+	 * @param int $kpl_maara
 	 * @return bool
 	 */
 	public function lisaa_tuote( /*int*/ $tuote_id, /*int*/ $kpl_maara ) {
 		$query = "  INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
- 					VALUE ( ?, ?, ? ) ";
+ 					VALUE ( ?, ?, ? )
+ 					ON DUPLICATE KEY UPDATE kpl_maara=VALUES(kpl_maara)";
 		return $this->db->query( $query, [$this->ostoskori_id, $tuote_id, $kpl_maara] );
 	}
 
-	public function poista_tuote() {
-		//Poista tuote ostoskorista tässä
-	}
-
-	public function onko_tuote_ostoskorissa() {
-		//Tarkastaa onko tuote jo lisätty ostoskoriin.
-		// Tosin voihan sen tehdä ON DUPLICATE KEY UPDATE:lla.
-		// Keksin tässä vain metodeja tyhjästä.
+	/**
+	 * @param $tuote_id <p> Poistettava tuote
+	 * @return bool
+	 */
+	public function poista_tuote( /*int*/ $tuote_id) {
+		$query = "  DELETE FROM ostoskori_tuote
+  					WHERE ostoskori_id = ? AND tuote_id = ? ";
+		return $this->db->query( $query, [$this->ostoskori_id, $tuote_id] );
 	}
 }
