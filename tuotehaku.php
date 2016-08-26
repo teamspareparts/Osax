@@ -40,7 +40,6 @@
 			flex-grow: 1;
 			font-size: 150%;
 		}
-		.start { text-align: start;	}
 		.end { text-align: end; }
 
 		.hakutyypit {
@@ -50,13 +49,6 @@
 		.tuotekoodihaku, .ajoneuvomallihaku {
 			padding: 0 30px 30px;
 		}
-
-		/* If I ever want to get real fancy with the icons */
-		/*a:hover::after {*/
-			 /*font-family: 'Material Icons';*/
-			 /*content: "link";*/
-			 /*-webkit-font-feature-settings: 'liga';*/
-		 /*}*/
 	</style>
 </head>
 <body>
@@ -66,6 +58,7 @@ require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'tietokanta.php';
 require 'ostoskori_lomake.php';
+require 'ostoskori.class.php';
 
 //handle_shopping_cart_action();
 /**
@@ -887,16 +880,14 @@ echo handle_shopping_cart_action();
 	 * @returns {boolean}
 	 */
 	function ostopyynnon_varmistus( product_id ) {
-		var vahvistus, form_id_value, form_id;
+		var vahvistus;
 		if ( product_id ) {
-			form_id = 'ostopyynto_form';
-			form_id_value = 'tuote_ostopyynto';
 			vahvistus = confirm( "Tuote on loppuunmyyty tai poistettu valikoimasta.\n"
 				+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
 				+ "Ostopyyntö ei ole sitova.");
 			if ( vahvistus ) {
-				document.getElementById(form_id_value).value = product_id;
-				document.getElementById(form_id).submit();
+				document.getElementById('tuote_ostopyynto').value = product_id;
+				document.getElementById('ostopyynto_form').submit();
 			}
 		} else {
 			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, ei TecDoc:in ID:n. " +

@@ -41,7 +41,7 @@ class Ostoskori {
 		$this->ostoskori_id = $this->db->query(
 			"SELECT id FROM ostoskori WHERE yritys_id = ?",
 			[$yritys_id]
-		)[0]; //Koska se on array, ja id on indeksillä 0.
+		)['id']; //Koska se on array, ja id on indeksillä 0.
 		$this->hae_ostoskorin_sisalto();
 	}
 
