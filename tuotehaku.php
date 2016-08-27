@@ -57,7 +57,6 @@
 require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'tietokanta.php';
-require 'ostoskori_lomake.php';
 require 'ostoskori.class.php';
 
 //handle_shopping_cart_action();
@@ -74,24 +73,6 @@ function printManufSelectOptions ( array $manufs ) {
 			$returnString .= "<option value='$manuf->manuId'>$manuf->manuName</option>";
 		}
 	} else $returnString = "<script>alert('TecDoc ei vastaa.');</script>";
-
-	return $returnString;
-}
-
-/**
- * Palauttaa merkkijonona linkin ostoskoriin.
- * @return string <p> Linkki ostoskoriin, HTML:nä
- */
-function printOstoskoriLinkki() {
-	$cart_count = isset($_SESSION['cart'])
-		? count($_SESSION['cart'])
-		: 0;
-
-	$cart_contents = ($cart_count !== 1)
-		? "{$cart_count} tuotetta"
-		: "1 tuote";
-
-	$returnString = "<a href='ostoskori.php'>Ostoskori ({$cart_contents}) </a>";
 
 	return $returnString;
 }
@@ -172,15 +153,26 @@ function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
 				<i class="material-icons">info</i></a>';
 }
 
-global $db;
+$cart = new Ostoskori( $_SESSION['yritys_id'], $db );
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
+$feedback = "";
 if ( !empty($_POST['tuote_ostopyynto']) ) {
 	$sql = 'INSERT
 			INTO tuote_ostopyynto (tuote_id, kayttaja_id )
 			VALUES ( ?, ? ) ';
 	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
+}
+
+if ( isset($_POST['ostoskori_tuote']) ) {
+	echo "<h1>WOO</h1>";
+	$cart_product = str_replace(" ", "", $_POST['ostoskori_tuote']);
+
+	if ( $cart->lisaa_tuote( $cart_product, $_POST['ostoskori_maara'] ) ) {
+		$feedback = '<p class="success">Tuote lisätty ostoskoriin.</p>';
+	} else {
+		$feedback = '<p class="error">Tuotteen lisäys ei onnistunut.</p>'; }
 }
 
 if ( !empty($_GET['haku']) ) {
@@ -209,18 +201,14 @@ if ( !empty($_GET["manuf"]) ) {
     $not_in_catalog = $filtered_product_arrays[2];
     $catalog_products = sortProductsByPrice($catalog_products);
 }
-
-echo handle_shopping_cart_action();
-
-/** Sivutus on tällä hetkellä hyllytetty.
- * Syynä tähän on koska sen ainoa tarkoitus on muistinhallinta ja tehokkaampi haku,
- +  mutta jos ne tuotteet pitää joka sivulla hakea kuitenkin, niin siitä ei ole mitään hyötyöä. */
 ?>
 
 
 <main class="main_body_container">
 	<header class="tuotehaku_header">
-		<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
+		<span class="end ostoskorilinkki">
+			<a href='ostoskori.php'>
+				<i class="material-icons">shopping_cart</i> Kpl: <?=count($cart->tuotteet)?></a></span>
 	</header>
 	<section class="hakutyypit">
 		<div class="tuotekoodihaku">
@@ -253,6 +241,8 @@ echo handle_shopping_cart_action();
 				<input type="submit" class="nappi" value="HAE" id="ajoneuvohaku">
 			</form>
 		</div>
+
+		<span><?= $feedback?></span>
 	</section>
 
 	<section class="hakutulokset">
@@ -291,10 +281,9 @@ echo handle_shopping_cart_action();
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
-					<td></td>
 					<td class="toiminnot">
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
-							Osta</a></td>
+							<i class="material-icons">add_shopping_cart</i></a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -370,8 +359,13 @@ echo handle_shopping_cart_action();
 	</section>
 </main>
 
-<form class="hidden" id="ostopyynto_form" action="#" method=post>
+<form class="hidden" id="ostopyynto_form" method=post>
 	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
+</form>
+
+<form name="ostoskorilomake" method="post" class="hidden">
+	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote" value="">
+	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara" value="">
 </form>
 
 <!-- Tuoteikkuna Modal -->
@@ -853,14 +847,10 @@ echo handle_shopping_cart_action();
 			'+OEtable+' \
 		');
 
-
 		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
 		getComparableNumber(articleNo);
 
-		//näytetään modal
-		showModal();
-
-
+		showModal(); //näytetään modal
 	}
 
 	/**
@@ -896,7 +886,23 @@ echo handle_shopping_cart_action();
 		return false;
 	}
 
-	//jQuery
+	//TODO: Käytä jQ.ajax()
+	/**
+	 * Tämän pitäisi lisätä tuote ostoskoriin...
+	 * @param product_id
+	 */
+	function addToShoppingCart( product_id ) {
+		var count = $("#maara_" + product_id).val();
+		if ( count > 0 ) {
+			$("#ostoskori_tuote").val( product_id );
+			$("#ostoskori_maara").val( count );
+			alert("You are quite awesome.");
+			document.ostoskorilomake.submit();
+		} else {
+			alert("Stop that. It's annoying.");
+		}
+	}
+
 	$(document).ready(function(){
 		$("#manufacturer").on("change", function(){
 			//kun painaa jotain automerkkiä->

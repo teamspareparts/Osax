@@ -38,13 +38,27 @@ class Ostoskori {
 	function __construct ( /*int*/ $yritys_id, DByhteys $db ) {
 		$this->yritys_id = $yritys_id;
 		$this->db = $db;
-		$this->ostoskori_id = $this->db->query(
-			"SELECT id FROM ostoskori WHERE yritys_id = ?",
-			[$yritys_id]
-		)['id']; //Koska se on array, ja id on indeksillä 0.
+		$this->hae_cart_id( $yritys_id );
 		$this->hae_ostoskorin_sisalto();
 	}
 
+	/**
+	 * @param $yritys_id
+	 * @return bool
+	 */
+	private function hae_cart_id ( /*int*/ $yritys_id ) {
+		$row = $this->db->query( "SELECT EXISTS(SELECT 1 FROM ostoskori WHERE id = ? LIMIT 1)",
+			[$yritys_id]);
+		if ( $row ) {
+			$this->db->query( "INSERT INTO ostoskori (yritys_id) VALUES ( ? )",
+				[$yritys_id])['id']; //Koska se on array, ja id on indeksillä 0.
+		} else
+		return true;
+	}
+
+	/**
+	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin. Hakee vain ID:n ja kpl-maaran.
+	 */
 	private function hae_ostoskorin_sisalto () {
 		$query = "	SELECT	tuote_id, kpl_maara
 					FROM	ostoskori_tuote

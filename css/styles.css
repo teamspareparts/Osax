@@ -35,6 +35,9 @@ input { padding: 3pt; }
 	display: none;
 }
 
+.material-icons { /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
+	vertical-align: text-top;
+}
 /********************************************
 	Header
 *********************************************/
@@ -201,9 +204,7 @@ input { padding: 3pt; }
 
 
 /********************************************
-
 	Ylläpitäjän tilaukset sivu
-
 *********************************************/
 #tilaukset .tilausnumero, #tilaukset .sum,
 #tilaukset .pvm {
@@ -234,9 +235,7 @@ input { padding: 3pt; }
 
 
 /********************************************
-
 	Kaikkien lomakkeitten (form) tyylittely
-
 *********************************************/
 /* keskitetään form */
 #lomake {
@@ -301,9 +300,7 @@ input { padding: 3pt; }
 
 
 /*************************************************
-
 	Listojen tyylittely (joissa käytetään checkbox)
-
 **************************************************/
 #lista {
 	text-align: center;
@@ -415,7 +412,7 @@ th {
 	position: relative;
 	left: 5%;
 	padding: 10pt;
-	width: 300pt;
+	width: 200pt;
 }
 
 .success {
@@ -708,6 +705,22 @@ Loading-icon
 	left: 5%;
 }
 
-
-
-
+/*******************************
+Sivustus (pagination) (requires bootstrap)
+*******************************/
+.page_nav {
+	display: flex;
+	flex-direction: row;
+}
+.page_control {
+	display: flex;
+	flex-direction: column;
+	margin: auto 40px auto;
+}
+.pageNumberForm, .pageNumber, .productsPerPageForm {
+	display: inline-flex;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	width: 2.7rem;
+}

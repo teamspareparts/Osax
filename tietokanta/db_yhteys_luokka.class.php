@@ -117,19 +117,18 @@ class DByhteys {
 	 * @param string $query
 	 */
 	public function prepare_stmt( /* string */ $query ) {
-		$db = $this->connection;
-		$this->prepared_stmt = $db->prepare( $query );
+		$this->prepared_stmt = $this->connection->prepare( $query );
 	}
 
 	/**
 	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa).
 	 * Hae tulos get_next_row()-metodilla.
 	 * @param array $values [optional], default=NULL<p>
-	 * 		queryyn upotettavat arvot
+	 *        queryyn upotettavat arvot
+	 * @return bool
 	 */
 	public function run_prepared_stmt( array $values = NULL ) {
-		$stmt = $this->prepared_stmt;
-		$stmt->execute( $values );
+		return $this->prepared_stmt->execute( $values );
 	}
 
 	/**
@@ -150,9 +149,7 @@ class DByhteys {
 	 * @return array( results|empty )
 	 */
 	public function get_next_row ( /* mixed */ $returnType = NULL ) {
-		$stmt = $this->prepared_stmt;
-		$results = $stmt->fetch( $returnType );
-		return $results;
+		return $this->prepared_stmt->fetch( $returnType );
 	}
 
 	/**
