@@ -44,6 +44,14 @@ check_login_status();
 		        <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
 		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
+				<div class="dropdown">
+					<li><a><span>Muut</span></a></li>
+					<div class="dropdown-content">
+						<li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
+						<li><a><span>raportit</span></a></li>
+						<li><a><span>jne jne...</span></a></li>
+					</div>
+				</div>
 			<?php } else { ?>
 				<li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
 			<?php } ?>

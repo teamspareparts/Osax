@@ -30,7 +30,6 @@
 <h1 class="otsikko">Tuotteet</h1>
 
 <div id="painikkeet">
-	<a href="lue_tiedostosta.php"><span class="nappi">EULA</span></a>
 	<?php include("yp_tuotteet_alv_muokkaus.php"); //Sisaltaa kaiken toiminnallisuuden ALV:ien muokkaamiseen ?>
 </div>
 </div>
