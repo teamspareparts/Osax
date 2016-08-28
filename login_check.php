@@ -119,9 +119,8 @@ if ( $mode == "login" ) {
 	
 	// Haetaan käyttäjän tiedot
 	$sql_query = "	SELECT	id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo, 
-						voimassaolopvm,	viime_sijainti,
+						voimassaolopvm,	viime_sijainti, yritys_id,
 						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi,
-						(SELECT yritys.id FROM yritys WHERE yritys.nimi = kayttaja.yritys) AS yritys_id
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
 	$user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
@@ -135,7 +134,6 @@ if ( $mode == "login" ) {
    		$_SESSION['admin']	= $user->yllapitaja;
    		$_SESSION['demo']	= $user->demo;
    		$_SESSION['koko_nimi'] = $user->koko_nimi;
-   		$_SESSION['vahvista_eula'] = $user->vahvista_eula;
 		$_SESSION['yritys_id'] = $user->yritys_id;
    		
 //   		check_IP_address( $db, $user->id, $user_info->viime_sijainti );
