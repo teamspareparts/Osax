@@ -29,8 +29,6 @@
 	<title>Tuotehaku</title>
 
 	<style type="text/css">
-		.class #id tag {}
-
 		.tuotehaku_header {
 			display: flex;
 			flex-grow: 1;

@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `pw_reset` (
 	`reset_key_hash` varchar(40) NOT NULL, -- PK
 	`reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
-	PRIMARY KEY (`user_id`, `reset_key`)
+	PRIMARY KEY (`kayttaja_id`, `reset_key_hash`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (

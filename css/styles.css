@@ -140,7 +140,6 @@ input { padding: 3pt; }
 	display: block;
 }
 
-
 /********************************************
 	Otsikon tyylittely
 ********************************************/
@@ -689,8 +688,6 @@ Loading-icon
 	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. */
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
-
-
 
 .floating-box {
 	display: inline-block;
