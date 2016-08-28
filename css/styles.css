@@ -21,9 +21,9 @@ input { padding: 3pt; }
 	font-style: oblique;
 }
 
-.flex {
-	display: flex;
-}
+.flex { display: flex; }
+.flex_row { display: flex; flex-direction: row; }
+.flex_column { display: flex; flex-direction: column; }
 
 .main_body_container {
 	margin: 5px 3vw 3vw;
@@ -31,13 +31,13 @@ input { padding: 3pt; }
 	position:relative;
 }
 
-.hidden {
-	display: none;
-}
+.hidden { display: none; }
 
 .material-icons { /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
 	vertical-align: text-top;
 }
+
+.end { text-align: end; }
 /********************************************
 	Header
 *********************************************/
@@ -233,7 +233,7 @@ input { padding: 3pt; }
 
 #tilaukset .tilaaja {
 	display: inline-block;
-	width: 19%
+	width: 19%;
 }
 
 #tilaukset .yritys {
@@ -507,26 +507,27 @@ th {
 	max-height: 64px;
 }
 
-#ostoskori-linkki {
-	font-size: 150%;
-	float: right;
-	margin-top: 20pt;
-	margin-right: 5%;
-}
-
 #manufacturer, #model, #car, #osaTyyppi, #osat_alalaji{
 	width: 500px;
 	padding: 1pt;
 	border: 1px solid #1d7ae2;
-	/*margin-left: 5%;*/
 	font-size: 90%;
 }
 
-#ajoneuvohaku {
-	/*margin-left: 5%;*/
+.tuotehaku_header {
+	display: flex;
+	flex-grow: 1;
+	height: 35px;
 }
 
+.ostoskorilinkki {
+	flex-grow: 1;
+	font-size: 150%;
+}
 
+.tuotekoodihaku, .ajoneuvomallihaku {
+	padding: 0 30px 30px;
+}
 
 /** Otsikon vasemmalla puolella olevat napit */
 #painikkeet {
@@ -543,9 +544,7 @@ th {
 
 
 /**************************************************
-
 	Tuotehaku-sivun infonapin tyylittely
-
 **************************************************/
 span.question {
   cursor: pointer;

@@ -27,27 +27,6 @@
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<title>Tuotehaku</title>
-
-	<style type="text/css">
-		.tuotehaku_header {
-			display: flex;
-			flex-grow: 1;
-			height: 35px;
-		}
-		.ostoskorilinkki {
-			flex-grow: 1;
-			font-size: 150%;
-		}
-		.end { text-align: end; }
-
-		.hakutyypit {
-			display: flex;
-			flex-direction: row;
-		}
-		.tuotekoodihaku, .ajoneuvomallihaku {
-			padding: 0 30px 30px;
-		}
-	</style>
 </head>
 <body>
 <?php require 'header.php';
@@ -177,7 +156,7 @@ if ( !empty($_GET["manuf"]) ) {
 			<a href='ostoskori.php'>
 				<i class="material-icons">shopping_cart</i> Kpl: <?=""//count($cart->tuotteet)?></a></span>
 	</header>
-	<section class="hakutyypit">
+	<section class="flex_row">
 		<div class="tuotekoodihaku">
 			Tuotenumerolla haku:<br>
 			<form action="tuotehaku.php" method="get" class="haku">
