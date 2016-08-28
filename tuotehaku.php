@@ -29,7 +29,7 @@
 	<title>Tuotehaku</title>
 
 	<style type="text/css">
-		.class #id tag {}
+		.class #id {}
 
 		.tuotehaku_header {
 			display: flex;
@@ -53,7 +53,6 @@
 </head>
 <body>
 <?php require 'header.php';
-//require 'tecdoc_asetukset.php';
 require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'tietokanta.php';
@@ -833,12 +832,19 @@ echo handle_shopping_cart_action();
 		//Lisätään tuote modaliin sisältö
 		$("#menu1").append('\
 			<br> \
-			<div class="left">'+img+'</div> \
-			<div id="middle"> \
-			<div id="perus_infot"> \
-			<span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
-			</div> \
-			<br>'+infos+'<br><br>'+documents+' \
+			<div class="row">\
+			    <div style="display: inline-block;">\
+			        '+img+'\
+			    </div> \
+			    <div>\
+			        <div style="font-size: 20px;">\
+			            <span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br> \
+			        </div>\
+			        <div style="font-size: 18px;">\
+			            <br>'+infos+'<br><br>'+documents+' \
+			        </div>\
+			    </div>\
+			</div>\
 			\
 			\
 		');

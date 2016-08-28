@@ -117,6 +117,26 @@ input { padding: 3pt; }
 	color: black;
 }
 
+.dropdown {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #0561e9;
+	min-width: 130px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	padding: 0px 0px;
+	z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+	display: block;
+}
+
 
 /********************************************
 	Otsikon tyylittely
@@ -621,19 +641,9 @@ Asiakaslista
 /*****************************
 MODAL-ikkuna (tuotteen tiedot)
 ******************************/
-
-.left {
-	margin-bottom: 50%;
-	float:left;
-	min-width: 100px;
-	min-height: 500px;
+.row {
+	display: flex;
 }
-
-.middle {
-	float:left;
-	font-size: 14px;
-}
-
 
 .center {
 	text-align: center;
@@ -643,13 +653,11 @@ MODAL-ikkuna (tuotteen tiedot)
 	text-align: center;
 }
 
-#perus_infot {
-	font-size: 20px
-}
 
 #display_img {
-	max-width: 250px;
+	max-width: 200px;
 	max-height: 300px;
+	margin-left: 20px;
 	margin-right: 20px;
 }
 
@@ -709,25 +717,6 @@ Loading-icon
 }
 
 
-.dropdown {
-	position: relative;
-	display: inline-block;
-	cursor: pointer;
-}
-
-.dropdown-content {
-	display: none;
-	position: absolute;
-	background-color: #0561e9;
-	min-width: 130px;
-	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-	padding: 0px 0px;
-	z-index: 1;
-}
-
-.dropdown:hover .dropdown-content {
-	display: block;
-}
 
 
 
