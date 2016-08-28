@@ -42,7 +42,18 @@ $brandName = $_GET['brandName'];
 			6:<select name=s5 id=select5></select><br>
 		</form>
 	</fieldset>
-<?php 
+<?php
+
+function paivita_hinnaston_sisaanluku_pvm($brandId){
+	global $db;
+	$query = "	INSERT INTO valmistajan_hinnaston_sisaanajo (brandId, sisaanajo_pvm)
+ 				VALUES (?, NOW()) 
+ 				ON DUPLICATE KEY
+ 				UPDATE sisaanajo_pvm = NOW();";
+	$db->query($query, [$brandId]);
+}
+
+
 /**
  * Tuotteita sisältävän tiedoston käsittely
  */
@@ -102,6 +113,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 		
 		
 		fclose($handle);
+		paivita_hinnaston_sisaanluku_pvm($brandId);
 		
 	}
 	// Jos virhe...

@@ -70,7 +70,7 @@ function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode )
 	$key = GUID();
 	$key_hashed = sha1( $key );
 	
-	$sql_query = "	INSERT INTO pw_reset (user_id, reset_key_hash)
+	$sql_query = "	INSERT INTO pw_reset (kayttaja_id, reset_key_hash)
 					VALUES ( ?, ? )";
 	$db->query( $sql_query, [$user->id, $key_hashed] );
 	
@@ -162,14 +162,14 @@ if ( $mode == "login" ) {
  ***************************/
 elseif ( $mode == "password_reset" ) {
 	
-	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm
+	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm, salasana_hajautus
 					FROM	kayttaja
 					WHERE	sahkoposti = ?";
 	$user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
 	
 	if ( $user ) {
 		beginning_user_checks( $user, NULL, TRUE );
-		password_reset( $db, $user->sahkoposti, 'reset' );
+		password_reset( $db, $user, 'reset' );
 	} else {
 		header("Location:index.php?redir=1"); //Sähköpostia ei löytynyt
 		exit();

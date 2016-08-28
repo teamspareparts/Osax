@@ -50,7 +50,7 @@ function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
 	$sql_q = "	SELECT	id, sahkoposti
 				FROM	kayttaja
 				WHERE	id = ? ";
-	$row = $db->query( $sql_q, [$pw_reset->user_id], NULL, PDO::FETCH_OBJ );
+	$row = $db->query( $sql_q, [$pw_reset->kayttaja_id], NULL, PDO::FETCH_OBJ );
 
 	if ( !$row ) { header("location:index.php?redir=98"); exit(); }
 
@@ -69,10 +69,10 @@ function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_sal
 	$query = "	UPDATE	kayttaja 
 				SET 	salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
 				WHERE	sahkoposti = ? ";
-	$db->query( $query, [$hajautettu_uusi_salasana, $user->user_id] );
+	$db->query( $query, [$hajautettu_uusi_salasana, $user->kayttaja_id] );
 
 	$query = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
-	$db->query( $query, [$user->user_id, $reset_key] );
+	$db->query( $query, [$user->kayttaja_id, $reset_key] );
 }
 
 if ( empty($_GET['id']) ) {

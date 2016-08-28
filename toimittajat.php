@@ -19,27 +19,30 @@ if (!is_admin()) {
 <div class="container">
 
 <?php
-/*$brands = getAmBrands();
-echo '<table class="tulokset" style="min-width:500px;">';
-echo "<th colspan='2' class='text-center'>Toimittajat</th>";
-foreach ($brands as $brand) {
-	$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-	echo '<tr data-val="'. $brand->brandId .'" style="height:100px;">';
-	echo '<td class="clickable center"><img src="'.$logo_src.'" /></td>';
-	echo '<td class="clickable center">'.$brand->brandName.'</td>';
-	echo '</tr>';
-}*/
-
-$brands = getAmBrands();
-usort($brands, "cmp");
-
-foreach ($brands as $brand) {
-	$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-	echo '<div class="floating-box clickable" data-brandId="'.$brand->brandId.'" data-brandName="'.$brand->brandName.'"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
+function hae_hinnaston_sisaanajo_pvm(){
+	global $db;
+	$query = "SELECT brandId, sisaanajo_pvm FROM valmistajan_hinnaston_sisaanajo";
+	return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 }
 
 function cmp($a, $b) {
 	return strcmp($a->brandName, $b->brandName);
+}
+
+$brands = getAmBrands();
+usort($brands, "cmp");
+$paivamaarat = hae_hinnaston_sisaanajo_pvm();
+
+foreach ($brands as $brand) {
+	$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
+	echo '<div class="floating-box clickable" data-brandId="'.$brand->brandId.'" data-brandName="'.$brand->brandName.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
+	foreach ($paivamaarat as $pvm) {
+		if ( $pvm->brandId == $brand->brandId ) {
+			$date = new DateTime($pvm->sisaanajo_pvm);
+			echo "Päivitetty: " . $date->format('d.m.Y');
+		}
+	}
+	echo "</div>";
 }
 
 ?>
