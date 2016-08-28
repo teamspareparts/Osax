@@ -77,7 +77,6 @@ if (!is_admin()) {
     function db_lisaa_yritys($yritys_nimi, $y_tunnus, $email,
                               $puh, $osoite, $postinumero, $postitoimipaikka, $maa){
 
-
             //Palvelimeen liittyminen
         global $db;
         $tbl_name = 'yritys';
@@ -110,7 +109,8 @@ if (!is_admin()) {
             //JOS tietokannassa on duplikaatteja...
             echo "ERROR";
         }
-
+        //Luodaan yritykselle ostoskori
+        $db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
     }
     ?>
 </div>
