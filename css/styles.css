@@ -120,6 +120,26 @@ input { padding: 3pt; }
 	color: black;
 }
 
+.dropdown {
+	position: relative;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.dropdown-content {
+	display: none;
+	position: absolute;
+	background-color: #0561e9;
+	min-width: 130px;
+	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+	padding: 0 0;
+	z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+	display: block;
+}
+
 
 /********************************************
 	Otsikon tyylittely
@@ -229,7 +249,7 @@ input { padding: 3pt; }
 
 .tilaus_info td{
 	background-color:#ffffff;
-	padding-left: 0px;
+	padding-left: 0;
 	padding-right: 30px;
 }
 
@@ -254,7 +274,7 @@ input { padding: 3pt; }
 	border-radius: 10px;
 	-webkit-border-radius: 10px;
 	-moz-border-radius: 10px;
-	margin: 0px 0px 10px 0px;
+	margin: 0 0 10px 0;
 	border: 1px solid #000000;
 	padding: 20px;
 }
@@ -315,9 +335,7 @@ input { padding: 3pt; }
 
 
 #lista fieldset{
-	border-style: solid;
-	border-width: 1px;
-	border-color: black;
+	border: 1px solid black;
 	margin-top: -1px;
 }
 
@@ -557,11 +575,10 @@ div.tooltip {
   border-radius: 5px;
 }
 div.tooltip:before {
-  border-color: transparent #3D6199 transparent transparent;
-  border-right: 6px solid #3D6199;
-  border-style: solid;
-  border-width: 6px 6px 6px 0px;
-  content: "";
+	border: 6px solid transparent;
+	border-right-color: #3D6199;
+	border-left-width: 0;
+	content: "";
   display: block;
   height: 0;
   width: 0;
@@ -618,19 +635,9 @@ Asiakaslista
 /*****************************
 MODAL-ikkuna (tuotteen tiedot)
 ******************************/
-
-.left {
-	margin-bottom: 50%;
-	float:left;
-	min-width: 100px;
-	min-height: 500px;
+.row {
+	display: flex;
 }
-
-.middle {
-	float:left;
-	font-size: 14px;
-}
-
 
 .center {
 	text-align: center;
@@ -640,13 +647,11 @@ MODAL-ikkuna (tuotteen tiedot)
 	text-align: center;
 }
 
-#perus_infot {
-	font-size: 20px
-}
 
 #display_img {
-	max-width: 250px;
+	max-width: 200px;
 	max-height: 300px;
+	margin-left: 20px;
 	margin-right: 20px;
 }
 
@@ -681,7 +686,7 @@ Loading-icon
 	left: 0;
 	opacity: 0.4;
 	z-index: 1040;
-	background-color: #000000;
+	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. */
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
 

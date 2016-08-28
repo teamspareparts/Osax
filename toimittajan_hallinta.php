@@ -40,11 +40,26 @@ $logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 <?php
 
 /**
+ * @return array
+ */
+function hae_kaikki_hankintapaikat() {
+    global $db;
+    $table_name = "hankintapaikka";
+    $query = "SELECT id, nimi FROM $table_name";
+    $rows = $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
+    $hankintapaikat = [];
+    foreach ($rows as $row){
+        $hankintapaikat[] = $row;
+    }
+    return $hankintapaikat;
+}
+
+/**
  * @param $brandAddress
  */
 function tulosta_yhteystiedot($brandAddress){
 
-	echo '<div style="float:left; padding-right: 200px;">';
+	echo '<div style="float:left; padding-right: 150px;">';
 	echo '<table>';
 	echo "<th colspan='2' class='text-center'>Yhteystiedot</th>";
 	echo '<tr><td>Yritys</td><td>'. $brandAddress->name .'</td></tr>';
@@ -59,54 +74,135 @@ function tulosta_yhteystiedot($brandAddress){
 
 }
 
-function tallenna_uusi_hankintapaikka(){
-	global $connection;
+/**
+ * @param $nimi
+ * @param $katuosoite
+ * @param $postinumero
+ * @param $kaupunki
+ * @param $maa
+ * @param $puhelin
+ * @param $fax
+ * @param $URL
+ * @param $yhteyshenkilo
+ * @param $yhteyshenkilo_puhelin
+ * @param $yhteyshenkilo_sahkoposti
+ * @return mixed
+ */
+function tallenna_uusi_hankintapaikka($nimi, $katuosoite, $postinumero,
+                                      $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
+                                      $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti){
+	global $db;
 	$table_name = "hankintapaikka";
-	$query = "INSERT INTO $table_name VALUES ";
-	
-	//ei vielä valmis
+	$query = "	INSERT IGNORE INTO $table_name (nimi, katuosoite, postinumero, 
+										  kaupunki, maa, puhelin, yhteyshenkilo_nimi, yhteyshenkilo_puhelin,
+										  yhteyshenkilo_email, fax, www_url)
+				VALUES ( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? )";
+	$db->query($query, [$nimi, $katuosoite, $postinumero, $kaupunki, $maa,
+									$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL]);
+
+	$result = $db->query("SELECT LAST_INSERT_ID() AS id", [], NULL, PDO::FETCH_OBJ);
+
+	//palauttaa id, jos lisätty. Jos jo olemassa, palauttaa 0.
+	return $result->id;
 }
 
+function poista_hankintapaikka($hankintapaikka_id){
+    global $db;
+    //Poistetaan hankintapaikka.
+    $table_name = "hankintapaikka";
+    $query = "DELETE FROM $table_name WHERE id = ? ";
+    $db->query($query, [$hankintapaikka_id]);
+
+    //Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
+    $table_name = "valmistajan_hankintapaikka";
+    $query = "DELETE FROM $table_name WHERE hankintapaikka_id = ? ";
+    $db->query($query, [$hankintapaikka_id]);
+}
+
+
+/**
+ * @param $brandId
+ * @param $hankintapaikkaId
+ */
+function linkita_valmistaja_hankintapaikkaan($brandId, $hankintapaikkaId) {
+	global $db;
+	$table_name = "valmistajan_hankintapaikka";
+	$query = "	INSERT INTO $table_name (brandId, hankintapaikka_id)
+				VALUES ( ?, ? )
+				ON DUPLICATE KEY
+			  	UPDATE hankintapaikka_id = ? ";
+	$db->query($query, [$brandId, $hankintapaikkaId, $hankintapaikkaId]);
+}
+
+/**
+ * @param $brandId
+ */
 function tulosta_hankintapaikka($brandId) {
 
 	//tarkastetaan onko tietokannassa vaihtoehtoista toimittajaa
-	global $connection; // *gough*globaalien muutttujien käyttö on huonoa tyyliä*gough*
-	$table_name = "hankintapaikka";
-	$query = "SELECT * FROM $table_name WHERE brandNo=$brandId";
-	$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
-	if (mysqli_num_rows($result) !== 0) {
-		echo '<div style="float:left;">';
-		echo '<table>';
-		echo "<th colspan='2' class='text-center'>Hankintapaikka</th>";
-		echo '<tr><td>Yritys</td><td>'. $brandAddress->name .'</td></tr>';
-		echo '<tr><td>Osoite</td><td>'. $brandAddress->street . '<br>' . $brandAddress->zip . " " . strtoupper($brandAddress->city) .'</td></tr>';
-		echo '<tr><td>Puh</td><td>'. $brandAddress->phone .'</td></tr>';
-		if(isset($brandAddress->fax)) echo '<tr><td>Fax</td><td>'. $brandAddress->fax .'</td></tr>';
-		if(isset($brandAddress->email)) echo '<tr><td>Email</td><td>'. $brandAddress->email .'</td></tr>';
-		echo '<tr><td>URL</td><td>'. $brandAddress->wwwURL .'</td></tr>';
-		echo '</table>';
-		echo '<input class="nappi" type="button" value="Vaihda toimittajaa" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">';
+	global $db; // *gough*globaalien muutttujien käyttö on huonoa tyyliä*gough*
+	$table_name = "valmistajan_hankintapaikka";
+	$query = "	SELECT * FROM $table_name
+ 				JOIN hankintapaikka
+ 					ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
+ 				WHERE valmistajan_hankintapaikka.brandId = ? ";
+	$hankintapaikka = $db->query($query, [$brandId], NULL, PDO::FETCH_OBJ);
+	if ( $hankintapaikka ) : ?>
 
-		echo '</div>';
-	}
-	else {
-		echo '<div style="float:left;">';
-		echo '<p>Valitse hankintapaikka!</p>';
-		echo '<input class="nappi" type="button" value="Vaihda hankintapaikka" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">';
-		echo '</div>';
-	}
+		<div style="float:left; padding-right: 100px;">
+			<table>
+				<th colspan='2' class='text-center'>Hankintapaikka</th>
+				<tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
+				<tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
+                <tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
+                <tr><td>Puh</td><td><?= $hankintapaikka->puhelin?></td></tr>
+				<tr><td>Fax</td><td><?= $hankintapaikka->fax?></td></tr>
+				<tr><td>URL</td><td><?= $hankintapaikka->www_url?></td></tr>
+				<th colspan='2' class='text-center'>Yhteyshenkilö</th>
+				<tr><td>Nimi</td><td><?= $hankintapaikka->yhteyshenkilo_nimi?></td></tr>
+				<tr><td>Puh</td><td><?= $hankintapaikka->yhteyshenkilo_puhelin?></td></tr>
+				<tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
 
+			</table>
+			<br>
+			<input class="nappi" type="button" value="Vaihda hankintapaikka" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">
+		</div>
 
+	<?php else : ?>
+		<div style="float:left;">
+			<p>Valitse hankintapaikka!</p>
+			<input class="nappi" type="button" value="Vaihda hankintapaikka" onClick="avaa_Modal_toimittaja_yhteystiedot('.$brandId.')">
+		</div>
+	<?php endif;
 }
 
 
 
-if (isset($_POST['nimi'])) {
-	tallenna_uusi_hankintapaikka();
+if ( isset($_POST['lisaa']) ) {
+	$id = tallenna_uusi_hankintapaikka($_POST['nimi'], $_POST['katuosoite'], $_POST['postinumero'],
+								$_POST['kaupunki'], $_POST['maa'],
+								$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
+								$_POST['yhteyshenkilo_email']);
+	if ( $id ){
+		linkita_valmistaja_hankintapaikkaan($brandId, $id);
+	}
+	else echo "<div class='error'>Hankintapaikka on jo olemassa!</div><br>";
 }
 
-tulosta_yhteystiedot($brandAddress, $brandName, $brandId);
+elseif ( isset($_POST['poista']) ) {
+    poista_hankintapaikka($_POST['hankintapaikka']);
+}
+
+elseif( isset($_POST['valitse']) ) {
+    linkita_valmistaja_hankintapaikkaan($brandId, $_POST['hankintapaikka']);
+}
+
+
+$hankintapaikat = hae_kaikki_hankintapaikat();
+tulosta_yhteystiedot($brandAddress);
 tulosta_hankintapaikka($brandId);
+
+
 ?>
 </div>
 
@@ -121,20 +217,27 @@ tulosta_hankintapaikka($brandId);
 				<div>\
 				<h4>Anna uuden hankintapaikan tiedot tai valitse listasta.</h4>\
 				<br>\
-				<form action="" method="post">\
-				<label><span>Toimittajat</span></label></label><select name="hankintapaikka"></select>\
+				<form action="" method="post" id="valitse_hankintapaikka">\
+				<label><span>Hankintapaikat</span></label>\
+					<select name="hankintapaikka" id="hankintapaikka">\
+						<option value="0">-- Hankintapaikka --</option>\
+						<?php foreach ($hankintapaikat as $hankintapaikka) : ?> \
+                                <option value="<?= $hankintapaikka->id?>"><?= $hankintapaikka->nimi?></option> \
+                        <?php endforeach; ?> \
+					</select>\
 				<br>\
-				<input class="nappi" type="submit" name="submit" value="Valitse"> \
+				<input class="nappi" type="submit" name="valitse" value="Valitse"> \
+				<input class="nappi" type="submit" name="poista" value="Poista" style="background:#d20006; border-color:#b70004;"> \
 				<input type="hidden" name="brandId" value="'+brandId+'">\
 				</form>\
 				<hr>\
 				<form action="" method="post">\
 					\
 					<label><span>Yritys</span></label>\
-					<input name="nimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Yritys Oy" title="Vain aakkosia.">\
+					<input name="nimi" type="text" placeholder="Yritys Oy" title="" required>\
 					<br><br>\
 					<label><span>Katuosoite</span></label>\
-					<input name="katuosoite" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Katu" title="Vain aakkosia">\
+					<input name="katuosoite" type="text" placeholder="Katu" title="">\
 					<br><br>\
 					<label><span>Postiumero</span></label>\
 					<input name="postinumero" type="text" pattern="[0-9]{1,20}" placeholder="00000">\
@@ -155,18 +258,18 @@ tulosta_hankintapaikka($brandId);
 					<input name="url" type="text" pattern=".{1,50}" placeholder="www.url.fi">\
 					<br><br>\
 					<label><span>Yhteyshenkilö</span></label>\
-					<input name="email" type="text" pattern=".{1,50}" placeholder="Etunimi Sukunimi">\
+					<input name="yhteyshenkilo_nimi" type="text" pattern=".{1,50}" placeholder="Etunimi Sukunimi">\
 					<br><br>\
 					<label><span>Yhteyshenk. puh.</span></label>\
-					<input name="email" type="text" pattern=".{1,50}" placeholder="040 123 4567">\
+					<input name="yhteyshenkilo_puhelin" type="text" pattern=".{1,50}" placeholder="040 123 4567">\
 					<br><br>\
 					<label><span>Yhteyshenk. email</span></label>\
-					<input name="email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi">\
+					<input name="yhteyshenkilo_email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi">\
 					<br><br>\
 					<label><span>Tilaustapa</span></label>\
-					<input name="url" type="text" pattern=".{1,50}" placeholder="???">\
+					<input name="tilaustapa" type="text" pattern=".{1,50}" placeholder="???">\
 					<br><br>\
-					<input class="nappi" type="submit" name="submit" value="Tallenna"> \
+					<input class="nappi" type="submit" name="lisaa" value="Tallenna"> \
 					<input type="hidden" name="brandId" value="'+brandId+'">\
 				</form>\
 				</div>\
@@ -174,6 +277,20 @@ tulosta_hankintapaikka($brandId);
 			draggable: true
 		} );
 	}
+
+    $(document).ready(function() {
+        $(document.body)
+
+            //Estetään valitsemasta hankintapaikaksi labelia
+            .on('submit', '#valitse_hankintapaikka', function(e){
+                var hankintapaikka = document.getElementById("hankintapaikka");
+                var id = parseInt(hankintapaikka.options[hankintapaikka.selectedIndex].value);
+                if (id == 0) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+    });
 	
 </script>
 </body>

@@ -790,6 +790,19 @@ if ( !empty($_GET["manuf"]) ) {
 			<span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
 			</div> \
 			<br>'+infos+'<br><br>'+documents+' \
+			<div class="row">\
+			    <div style="display: inline-block;">\
+			        '+img+'\
+			    </div> \
+			    <div>\
+			        <div style="font-size: 20px;">\
+			            <span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br> \
+			        </div>\
+			        <div style="font-size: 18px;">\
+			            <br>'+infos+'<br><br>'+documents+' \
+			        </div>\
+			    </div>\
+			</div>\
 			\
 			\
 		');

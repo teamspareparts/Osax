@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `salasana_vaihdettu` datetime DEFAULT NULL,
   `etunimi` varchar(20) DEFAULT NULL,
   `sukunimi` varchar(20) DEFAULT NULL,
-  `yritys` varchar(50) DEFAULT NULL,
+  `yritys_id` int(11) DEFAULT NULL, -- Foreign K
   `puhelin` varchar(20) DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 
 CREATE TABLE IF NOT EXISTS `yritys` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `nimi` varchar(255) NOT NULL, -- UNIQUE KEY -- Koska ei niitä yrityksiä varmaan useampaa ole
+  `nimi` varchar(255) NOT NULL, -- UNIQUE KEY
   `y_tunnus` varchar(9) NOT NULL,  -- UNIQUE KEY
   `sahkoposti` varchar(255) DEFAULT '',
   `puhelin` varchar(20) DEFAULT '',
@@ -97,11 +97,11 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `pw_reset` (
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `reset_key_hash` varchar(40) NOT NULL, -- PK
-  `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
-  PRIMARY KEY (`user_id`, `reset_key`)
+	`kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+	`reset_key_hash` varchar(40) NOT NULL, -- PK
+	`reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	`kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
+	PRIMARY KEY (`user_id`, `reset_key`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ALV_kanta` (
@@ -159,8 +159,8 @@ CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
 
 
 CREATE TABLE IF NOT EXISTS `hankintapaikka` (
-  `brandNo` int(11) NOT NULL, -- PK; Foreign K
-  `nimi` varchar(11) DEFAULT '',
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK;
+  `nimi` varchar(11) NOT NULL, -- UNIQUE K
   `katuosoite` varchar(50) DEFAULT '',
   `postinumero` varchar(11) DEFAULT '',
   `kaupunki` varchar(50) DEFAULT '',
@@ -170,8 +170,15 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `yhteyshenkilo_puhelin` varchar(50) DEFAULT '',
   `yhteyshenkilo_email` varchar(50) DEFAULT '',
   `email` varchar(50) DEFAULT '',
+  `fax` varchar(50) DEFAULT '',
   `www_url` varchar(50) DEFAULT '',
   `www_kayttajatunnus` varchar(50) DEFAULT '',
   `www_salasana` varchar(50) DEFAULT '',
-  PRIMARY KEY (`brandNo`, `nimi`)
+  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
+  `brandId` int(11) NOT NULL, -- PK;
+  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
+  PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
