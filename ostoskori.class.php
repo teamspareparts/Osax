@@ -16,6 +16,12 @@ class Ostoskori {
 	public $tuotteet = array();
 
 	/**
+	 * @var int $montako_tuotetta <p> Montako eri tuotetta ostoskorissa on.<br>
+	 * Käytössä vain kun $cart_mode = 0. Jos 1, käytä count()-funktiota.
+	 */
+	public $montako_tuotetta = 0;
+
+	/**
 	 * @var int <p> Ostoskorin omistavan yrityksen ID.
 	 */
 	private $yritys_id = NULL;
@@ -34,17 +40,50 @@ class Ostoskori {
 	 * Ostoskori constructor.
 	 * @param int $yritys_id <p> Ostoskorin omistaja
 	 * @param DByhteys $db <p> Tietokantayhteys, for obvious reasons. (Ostoskori on DB:ssä)
+	 * @param int $cart_mode <p> Mitä tietoja haetaan tuotteista:
+	 * 		<ul><li>-1 : Älä hae mitään tietoja
+	 * 			<li>0 : Hae vain montako eri tuotetta ostoskorissa on
+	 * 			<li>1 : Hae kaikkien tuotteiden ID:t ja kpl-määrät
+	 * 		</ul>
 	 */
-	function __construct ( /*int*/ $yritys_id, DByhteys $db ) {
+	function __construct ( /*int*/ $yritys_id, DByhteys $db, /*int*/ $cart_mode = 0 ) {
 		$this->yritys_id = $yritys_id;
 		$this->db = $db;
-		$this->ostoskori_id = $this->db->query(
-			"SELECT id FROM ostoskori WHERE yritys_id = ?",
-			[$yritys_id]
-		)['id']; //Koska se on array, ja id on indeksillä 0.
+		$this->hae_cart_id( $yritys_id );
+		switch ( $cart_mode ) {
+			case -1:
+				brake; // Do nothing
+			case 0 :
+				$this->fetchNumberOfDifferentProductsInCart();
+				brake;
+			case 1 :
+				$this->hae_ostoskorin_sisalto();
+				brake;
+		}
 		$this->hae_ostoskorin_sisalto();
 	}
 
+	/**
+	 * @param $yritys_id
+	 */
+	private function hae_cart_id ( /*int*/ $yritys_id ) {
+		$this->ostoskori_id =
+			$this->db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1",
+			[$yritys_id] );
+	}
+
+	/**
+	 * Look, tämä metodi oli varsin vaikea nimetä. Jos keksit paremman nimen, niin siitä vaan.
+	 */
+	private function fetchNumberOfDifferentProductsInCart () {
+		$this->montako_tuotetta = $this->db->query( "	
+			SELECT COUNT(tuote_id) FROM ostoskori_tuote WHERE ostoskori_id = ?",
+			[$this->ostoskori_id] );
+	}
+
+	/**
+	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin. Hakee vain ID:n ja kpl-maaran.
+	 */
 	private function hae_ostoskorin_sisalto () {
 		$query = "	SELECT	tuote_id, kpl_maara
 					FROM	ostoskori_tuote

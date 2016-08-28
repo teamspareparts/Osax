@@ -27,39 +27,14 @@
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<title>Tuotehaku</title>
-
-	<style type="text/css">
-		.class #id {}
-
-		.tuotehaku_header {
-			display: flex;
-			flex-grow: 1;
-			height: 35px;
-		}
-		.ostoskorilinkki {
-			flex-grow: 1;
-			font-size: 150%;
-		}
-		.end { text-align: end; }
-
-		.hakutyypit {
-			display: flex;
-			flex-direction: row;
-		}
-		.tuotekoodihaku, .ajoneuvomallihaku {
-			padding: 0 30px 30px;
-		}
-	</style>
 </head>
 <body>
 <?php require 'header.php';
-require 'tecdoc.php';
+require 'tecdoc.php'; // Sisältää tecdoc_asetukset.php
 require 'apufunktiot.php';
 require 'tietokanta.php';
-require 'ostoskori_lomake.php';
-//require 'ostoskori.class.php';
+require 'ostoskori.class.php';
 
-//handle_shopping_cart_action();
 /**
  * Palauttaa Autovalmistajat selectiin. Vaatii TecDoc-yhteyden.
  * @param array $manufs <p>
@@ -73,24 +48,6 @@ function printManufSelectOptions ( array $manufs ) {
 			$returnString .= "<option value='$manuf->manuId'>$manuf->manuName</option>";
 		}
 	} else $returnString = "<script>alert('TecDoc ei vastaa.');</script>";
-
-	return $returnString;
-}
-
-/**
- * Palauttaa merkkijonona linkin ostoskoriin.
- * @return string <p> Linkki ostoskoriin, HTML:nä
- */
-function printOstoskoriLinkki() {
-	$cart_count = isset($_SESSION['cart'])
-		? count($_SESSION['cart'])
-		: 0;
-
-	$cart_contents = ($cart_count !== 1)
-		? "{$cart_count} tuotetta"
-		: "1 tuote";
-
-	$returnString = "<a href='ostoskori.php'>Ostoskori ({$cart_contents}) </a>";
 
 	return $returnString;
 }
@@ -158,29 +115,11 @@ function sortProductsByPrice( $catalog_products ){
 
 }
 
-/**
- * @param $product
- * @return string <p> palauttaa kpl-kentän tai ostopyyntö-napin
- */
-function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
-	return //Hyvin monimutkainen if-else-lauseke:
-		(($product->varastosaldo >= $product->minimimyyntiera) && $product->varastosaldo !== 0)
-			? "<input id='maara_{$product->id}' name='maara_{$product->id}' class='maara' 
-				type='number' value='0' min='0'></td>"
-			: '<a href="javascript:void(0);" onClick="ostopyynnon_varmistus('.$product->id.');">
-				<i class="material-icons">info</i></a>';
-}
-
-global $db;
+//$cart = new Ostoskori( $_SESSION['yritys_id'], $db );
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
-if ( !empty($_POST['tuote_ostopyynto']) ) {
-	$sql = 'INSERT
-			INTO tuote_ostopyynto (tuote_id, kayttaja_id )
-			VALUES ( ?, ? ) ';
-	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
-}
+$feedback = "";
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
@@ -208,20 +147,16 @@ if ( !empty($_GET["manuf"]) ) {
     $not_in_catalog = $filtered_product_arrays[2];
     $catalog_products = sortProductsByPrice($catalog_products);
 }
-
-echo handle_shopping_cart_action();
-
-/** Sivutus on tällä hetkellä hyllytetty.
- * Syynä tähän on koska sen ainoa tarkoitus on muistinhallinta ja tehokkaampi haku,
- +  mutta jos ne tuotteet pitää joka sivulla hakea kuitenkin, niin siitä ei ole mitään hyötyöä. */
 ?>
 
 
 <main class="main_body_container">
 	<header class="tuotehaku_header">
-		<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
+		<span class="end ostoskorilinkki">
+			<a href='ostoskori.php'>
+				<i class="material-icons">shopping_cart</i> Kpl: <?=""//count($cart->tuotteet)?></a></span>
 	</header>
-	<section class="hakutyypit">
+	<section class="flex_row">
 		<div class="tuotekoodihaku">
 			Tuotenumerolla haku:<br>
 			<form action="tuotehaku.php" method="get" class="haku">
@@ -252,6 +187,8 @@ echo handle_shopping_cart_action();
 				<input type="submit" class="nappi" value="HAE" id="ajoneuvohaku">
 			</form>
 		</div>
+
+		<span><?= $feedback?></span>
 	</section>
 
 	<section class="hakutulokset">
@@ -290,12 +227,11 @@ echo handle_shopping_cart_action();
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
-						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
-					<td></td>
+						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
+							   type="number" value="0" min="0"></td>
 					<td class="toiminnot">
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
-							Osta</a>
-					</td>
+							<i class="material-icons">add_shopping_cart</i>Osta</a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -333,7 +269,8 @@ echo handle_shopping_cart_action();
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
-						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
+						<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(<?=$product->id?>);">
+							<i class="material-icons">info</i></a>
 					<td></td>
 				</tr>
 			<?php endforeach; ?>
@@ -371,7 +308,7 @@ echo handle_shopping_cart_action();
 	</section>
 </main>
 
-<form class="hidden" id="ostopyynto_form" action="#" method=post>
+<form class="hidden" id="ostopyynto_form" method=post>
 	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
 </form>
 
@@ -402,8 +339,9 @@ echo handle_shopping_cart_action();
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
 
-<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta tecdocin
-	metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon heti funktion alussa. -->
+<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta
+ 		tecdocin metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon
+ 		heti funktion alussa. -->
 <!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
 	var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
@@ -441,7 +379,6 @@ echo handle_shopping_cart_action();
 		};
 		params = toJSON( params );
 		tecdocToCatPort[functionName] ( params, getVehicleByIds3 );
-
 	}
 
 	//hakee lisätietoa autoista id:n perusteella
@@ -566,7 +503,6 @@ echo handle_shopping_cart_action();
 			}
 		}
 		$('#model').removeAttr('disabled');
-
 	}
 
 	// Callback function to do something with the response:
@@ -599,7 +535,6 @@ echo handle_shopping_cart_action();
 			}
 		}
 		$('#car').removeAttr('disabled');
-
 	}
 
 	// Päivittää alasvetolistaan uudet tiedot
@@ -755,15 +690,8 @@ echo handle_shopping_cart_action();
 		//Lisätään vertailunumerot modaliin
 		function addComparableNumbersToModal( response ) {
 
-			/**
-			 * Oh my god, it's funception! BWAAAMM!
-			 * ... sorry not sorry. (No but seriosly, this is a funtcion inside a function,
-			 * that is itself inside a function)
-			 * @param response
-			 * @returns {string|*}
-			 */
-
-				// Any better now? ;D
+			// Any better now? ;D
+			// :: slow_clap
 			var i, comparableNumbers;
 
 			//Luodaan haetuista vertailunumeroista html-muotoinen taulu
@@ -834,6 +762,12 @@ echo handle_shopping_cart_action();
 		//Lisätään tuote modaliin sisältö
 		$("#menu1").append('\
 			<br> \
+			<div class="left">'+img+'</div> \
+			<div id="middle"> \
+			<div id="perus_infot"> \
+			<span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
+			</div> \
+			<br>'+infos+'<br><br>'+documents+' \
 			<div class="row">\
 			    <div style="display: inline-block;">\
 			        '+img+'\
@@ -861,14 +795,10 @@ echo handle_shopping_cart_action();
 			'+OEtable+' \
 		');
 
-
 		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
 		getComparableNumber(articleNo);
 
-		//näytetään modal
-		showModal();
-
-
+		showModal(); //näytetään modal
 	}
 
 	/**
@@ -880,7 +810,6 @@ echo handle_shopping_cart_action();
 		text = String(text);
 		return (text.substr(0, 4) + "/" + text.substr(4));
 	}
-
 
 	/**
 	 * Lähettää POST:ina formin. Vastaanotto puolella INSERT ostopyyntö tietokantaan.
@@ -894,17 +823,34 @@ echo handle_shopping_cart_action();
 				+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
 				+ "Ostopyyntö ei ole sitova.");
 			if ( vahvistus ) {
-				document.getElementById('tuote_ostopyynto').value = product_id;
-				document.getElementById('ostopyynto_form').submit();
+				$.post("ajax_requests.php",
+					{	tuote_ostopyynto: product_id }
+				);
 			}
 		} else {
-			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, ei TecDoc:in ID:n. " +
-				"Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
+			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, " +
+				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
 		}
 		return false;
 	}
 
-	//jQuery
+	//TODO: Käytä jQ.ajax()
+	/**
+	 * Tämän pitäisi lisätä tuote ostoskoriin...
+	 * @param product_id
+	 */
+	function addToShoppingCart( product_id ) {
+		var kpl_maara = $("#maara_" + product_id).val();
+		if ( kpl_maara > 0 ) {
+			$.post("test_php.php",
+				{	ostoskori_toiminto: "lisaa",
+					tuote_id: product_id,
+					kpl_maara: kpl_maara }
+			);
+			alert("Tuote lisätty ostoskoriin. Huom., että ostoskorin laskuri päivittyy vasta sivun latauksessa tällä hetkellä.")
+		}
+	}
+
 	$(document).ready(function(){
 		$("#manufacturer").on("change", function(){
 			//kun painaa jotain automerkkiä->
@@ -1117,7 +1063,6 @@ echo handle_shopping_cart_action();
 
 	if ( qs["haku"] ){
 		var search = qs["haku"];
-
 		$("#search").val(search);
 	}
 
