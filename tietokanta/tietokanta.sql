@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `kayttaja` (
+﻿CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `sahkoposti` varchar(255) NOT NULL, -- UNIQUE KEY
   `salasana_hajautus` varchar(100) NOT NULL,
@@ -180,5 +180,11 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
 CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   `brandId` int(11) NOT NULL, -- PK;
   `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
+  PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `valmistajan_hinnaston_sisaanajo` (
+  `brandId` int(11) NOT NULL, -- PK;
+  `sisaanajo_pvm` DATETIME NOT NULL,
   PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

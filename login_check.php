@@ -169,7 +169,7 @@ elseif ( $mode == "password_reset" ) {
 	
 	if ( $user ) {
 		beginning_user_checks( $user, NULL, TRUE );
-		password_reset( $db, $user->sahkoposti, 'reset' );
+		password_reset( $db, $user, 'reset' );
 	} else {
 		header("Location:index.php?redir=1"); //Sähköpostia ei löytynyt
 		exit();

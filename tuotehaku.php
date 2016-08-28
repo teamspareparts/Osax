@@ -86,7 +86,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
             $row->articleId = $product->articleId;
             $row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
             $row->brandName = $product->brandName;
-            if ($row->varastosaldo >= $row->minimimyyntiera) {
+            if (($row->varastosaldo >= $row->minimimyyntiera) && ($row->varastosaldo != 0)) {
                 $catalog_products[] = $row;
             } else {
                 $not_available_catalog_products[] = $row;
@@ -197,7 +197,7 @@ if ( !empty($_GET["manuf"]) ) {
 			<?=count($catalog_products)+count($not_available)+count($not_in_catalog)?></h4>
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
-		<table><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
+		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
@@ -206,6 +206,7 @@ if ( !empty($_GET["manuf"]) ) {
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
 				<th>Kpl</th>
+				<th></th>
 				<th></th>
 			</tr>
 			</thead>
@@ -230,7 +231,7 @@ if ( !empty($_GET["manuf"]) ) {
 							   type="number" value="0" min="0"></td>
 					<td class="toiminnot">
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
-							<i class="material-icons">add_shopping_cart</i></a></td>
+							<i class="material-icons">add_shopping_cart</i>Osta</a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -239,7 +240,7 @@ if ( !empty($_GET["manuf"]) ) {
 
 		if ( $not_available) : // Tulokset (ei saatavilla) ?>
 		<h2>Ei varastossa: (<?=count($not_available)?>)</h2>
-		<table><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
+		<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
