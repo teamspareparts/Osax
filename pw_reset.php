@@ -104,7 +104,7 @@ if ( !empty($_POST['reset']) ) {
 
 	<fieldset><legend> Salasanan vaihto </legend>
 		<form action="pw_reset.php?id=<?=$_GET['id']?>" method="post" accept-charset="utf-8">
-			<?= $user->sahkoposti // Muistutuksena kauttajalle ?>
+			<?= $user->sahkoposti // Muistutuksena käyttajalle ?>
 			<br><br>
 			<label for="uusi_salasana">Uusi salasana</label>
 			<input type="password" name="new_password" id="uusi_salasana" pattern=".{6,}"
@@ -124,11 +124,13 @@ if ( !empty($_POST['reset']) ) {
 <script>
 	/** Salasanojen tarkastus reaaliajassa */
 	$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
+		$('#pw_submit').prop('disabled', true);
 		if ( $('#uusi_salasana').val() == $('#vahv_uusi_salasana').val() ) {
 			$('#check').html('<i class="material-icons">done</i>').css('color', 'green');
+			$('#pw_submit').prop('disabled', false);
 		} else {
-			$('#check').html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red'); }
-		$('#pw_submit').prop('disabled', true);
+			$('#check').html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red');
+		}
 	});
 </script>
 

@@ -411,7 +411,7 @@ th, td {
 }
 
 td.toiminnot {
-	background-color: Floralwhite;
+	/*background-color: Floralwhite;*/
 	padding-left: 0.5em;
 }
 
@@ -704,11 +704,15 @@ Loading-icon
 	vertical-align: middle;
 	text-align: center;
 	width: 400px;
-	height: 100px;
-	line-height: 100px;
+	height: 125px;
 	margin: 1px;
 	border: 1px solid #294fad;
 	padding: 10px;
+}
+
+.line {
+	height: 100px;
+	line-height: 100px;
 }
 
 .container {
