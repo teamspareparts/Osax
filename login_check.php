@@ -120,7 +120,7 @@ if ( $mode == "login" ) {
 	// Haetaan käyttäjän tiedot
 	$sql_query = "	SELECT	id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo, 
 						voimassaolopvm,	viime_sijainti, yritys_id,
-						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi,
+						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
 	$user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);

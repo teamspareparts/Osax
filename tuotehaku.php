@@ -847,6 +847,7 @@ if ( !empty($_GET["manuf"]) ) {
 					tuote_id: product_id,
 					kpl_maara: kpl_maara }
 			);
+			alert("Tuote lisätty ostoskoriin. Huom., että ostoskorin laskuri päivittyy vasta sivun latauksessa tällä hetkellä.")
 		}
 	}
 
