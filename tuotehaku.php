@@ -53,13 +53,11 @@
 </head>
 <body>
 <?php require 'header.php';
-//require 'tecdoc_asetukset.php';
-require 'tecdoc.php';
+require 'tecdoc.php'; // Sisältää tecdoc_asetukset.php
 require 'apufunktiot.php';
 require 'tietokanta.php';
 require 'ostoskori.class.php';
 
-//handle_shopping_cart_action();
 /**
  * Palauttaa Autovalmistajat selectiin. Vaatii TecDoc-yhteyden.
  * @param array $manufs <p>
@@ -140,40 +138,11 @@ function sortProductsByPrice( $catalog_products ){
 
 }
 
-/**
- * @param $product
- * @return string <p> palauttaa kpl-kentän tai ostopyyntö-napin
- */
-function laske_tuotesaldo_ja_tulosta_huomautus ( $product ) {
-	return //Hyvin monimutkainen if-else-lauseke:
-		(($product->varastosaldo >= $product->minimimyyntiera) && $product->varastosaldo !== 0)
-			? "<input id='maara_{$product->id}' name='maara_{$product->id}' class='maara' 
-				type='number' value='0' min='0'></td>"
-			: '<a href="javascript:void(0);" onClick="ostopyynnon_varmistus('.$product->id.');">
-				<i class="material-icons">info</i></a>';
-}
-
-$cart = new Ostoskori( $_SESSION['yritys_id'], $db );
+//$cart = new Ostoskori( $_SESSION['yritys_id'], $db );
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
 $feedback = "";
-if ( !empty($_POST['tuote_ostopyynto']) ) {
-	$sql = 'INSERT
-			INTO tuote_ostopyynto (tuote_id, kayttaja_id )
-			VALUES ( ?, ? ) ';
-	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
-}
-
-if ( isset($_POST['ostoskori_tuote']) ) {
-	echo "<h1>WOO</h1>";
-	$cart_product = str_replace(" ", "", $_POST['ostoskori_tuote']);
-
-	if ( $cart->lisaa_tuote( $cart_product, $_POST['ostoskori_maara'] ) ) {
-		$feedback = '<p class="success">Tuote lisätty ostoskoriin.</p>';
-	} else {
-		$feedback = '<p class="error">Tuotteen lisäys ei onnistunut.</p>'; }
-}
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
@@ -208,7 +177,7 @@ if ( !empty($_GET["manuf"]) ) {
 	<header class="tuotehaku_header">
 		<span class="end ostoskorilinkki">
 			<a href='ostoskori.php'>
-				<i class="material-icons">shopping_cart</i> Kpl: <?=count($cart->tuotteet)?></a></span>
+				<i class="material-icons">shopping_cart</i> Kpl: <?=""//count($cart->tuotteet)?></a></span>
 	</header>
 	<section class="hakutyypit">
 		<div class="tuotekoodihaku">
@@ -280,7 +249,8 @@ if ( !empty($_GET["manuf"]) ) {
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
-						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
+						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
+							   type="number" value="0" min="0"></td>
 					<td class="toiminnot">
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
 							<i class="material-icons">add_shopping_cart</i></a></td>
@@ -321,7 +291,8 @@ if ( !empty($_GET["manuf"]) ) {
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
-						<?=laske_tuotesaldo_ja_tulosta_huomautus( $product )?></td>
+						<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(<?=$product->id?>);">
+							<i class="material-icons">info</i></a>
 					<td></td>
 				</tr>
 			<?php endforeach; ?>
@@ -363,11 +334,6 @@ if ( !empty($_GET["manuf"]) ) {
 	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
 </form>
 
-<form name="ostoskorilomake" method="post" class="hidden">
-	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote" value="">
-	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara" value="">
-</form>
-
 <!-- Tuoteikkuna Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog" role="document" style="top:50px;">
@@ -395,8 +361,9 @@ if ( !empty($_GET["manuf"]) ) {
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
 
-<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta tecdocin
-	metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon heti funktion alussa. -->
+<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta
+ 		tecdocin metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon
+ 		heti funktion alussa. -->
 <!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
 	var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
@@ -434,7 +401,6 @@ if ( !empty($_GET["manuf"]) ) {
 		};
 		params = toJSON( params );
 		tecdocToCatPort[functionName] ( params, getVehicleByIds3 );
-
 	}
 
 	//hakee lisätietoa autoista id:n perusteella
@@ -559,7 +525,6 @@ if ( !empty($_GET["manuf"]) ) {
 			}
 		}
 		$('#model').removeAttr('disabled');
-
 	}
 
 	// Callback function to do something with the response:
@@ -592,7 +557,6 @@ if ( !empty($_GET["manuf"]) ) {
 			}
 		}
 		$('#car').removeAttr('disabled');
-
 	}
 
 	// Päivittää alasvetolistaan uudet tiedot
@@ -748,15 +712,8 @@ if ( !empty($_GET["manuf"]) ) {
 		//Lisätään vertailunumerot modaliin
 		function addComparableNumbersToModal( response ) {
 
-			/**
-			 * Oh my god, it's funception! BWAAAMM!
-			 * ... sorry not sorry. (No but seriosly, this is a funtcion inside a function,
-			 * that is itself inside a function)
-			 * @param response
-			 * @returns {string|*}
-			 */
-
-				// Any better now? ;D
+			// Any better now? ;D
+			// :: slow_clap
 			var i, comparableNumbers;
 
 			//Luodaan haetuista vertailunumeroista html-muotoinen taulu
@@ -863,7 +820,6 @@ if ( !empty($_GET["manuf"]) ) {
 		return (text.substr(0, 4) + "/" + text.substr(4));
 	}
 
-
 	/**
 	 * Lähettää POST:ina formin. Vastaanotto puolella INSERT ostopyyntö tietokantaan.
 	 * @param product_id <p> Halutun tuotteen ID
@@ -876,12 +832,13 @@ if ( !empty($_GET["manuf"]) ) {
 				+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
 				+ "Ostopyyntö ei ole sitova.");
 			if ( vahvistus ) {
-				document.getElementById('tuote_ostopyynto').value = product_id;
-				document.getElementById('ostopyynto_form').submit();
+				$.post("ajax_requests.php",
+					{	tuote_ostopyynto: product_id }
+				);
 			}
 		} else {
-			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, ei TecDoc:in ID:n. " +
-				"Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
+			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, " +
+				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
 		}
 		return false;
 	}
@@ -892,14 +849,13 @@ if ( !empty($_GET["manuf"]) ) {
 	 * @param product_id
 	 */
 	function addToShoppingCart( product_id ) {
-		var count = $("#maara_" + product_id).val();
-		if ( count > 0 ) {
-			$("#ostoskori_tuote").val( product_id );
-			$("#ostoskori_maara").val( count );
-			alert("You are quite awesome.");
-			document.ostoskorilomake.submit();
-		} else {
-			alert("Stop that. It's annoying.");
+		var kpl_maara = $("#maara_" + product_id).val();
+		if ( kpl_maara > 0 ) {
+			$.post("test_php.php",
+				{	ostoskori_toiminto: "lisaa",
+					tuote_id: product_id,
+					kpl_maara: kpl_maara }
+			);
 		}
 	}
 
@@ -1115,7 +1071,6 @@ if ( !empty($_GET["manuf"]) ) {
 
 	if ( qs["haku"] ){
 		var search = qs["haku"];
-
 		$("#search").val(search);
 	}
 
