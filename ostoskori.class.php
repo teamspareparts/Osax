@@ -16,8 +16,7 @@ class Ostoskori {
 	public $tuotteet = array();
 
 	/**
-	 * @var int $montako_tuotetta <p> Montako eri tuotetta ostoskorissa on.<br>
-	 * Käytössä vain kun $cart_mode = 0. Jos 1, käytä count()-funktiota.
+	 * @var int $montako_tuotetta <p> Montako eri tuotetta ostoskorissa on.
 	 */
 	public $montako_tuotetta = 0;
 
@@ -52,13 +51,13 @@ class Ostoskori {
 		$this->hae_cart_id( $yritys_id );
 		switch ( $cart_mode ) {
 			case -1:
-				brake; // Do nothing
+				break; // Do nothing
 			case 0 :
 				$this->fetchNumberOfDifferentProductsInCart();
-				brake;
+				break;
 			case 1 :
 				$this->hae_ostoskorin_sisalto();
-				brake;
+				break;
 		}
 		$this->hae_ostoskorin_sisalto();
 	}
@@ -77,8 +76,8 @@ class Ostoskori {
 	 */
 	private function fetchNumberOfDifferentProductsInCart () {
 		$this->montako_tuotetta = $this->db->query( "	
-			SELECT COUNT(tuote_id) FROM ostoskori_tuote WHERE ostoskori_id = ?",
-			[$this->ostoskori_id] );
+			SELECT COUNT(tuote_id) AS count FROM ostoskori_tuote WHERE ostoskori_id = ?",
+			[$this->ostoskori_id] )['count'];
 	}
 
 	/**
@@ -96,6 +95,7 @@ class Ostoskori {
 			$this->tuotteet[$row->tuote_id][] = $row->tuote_id;
 			$this->tuotteet[$row->tuote_id][] = $row->kpl_maara;
 		}
+	$this->montako_tuotetta = count($this->tuotteet);
 	}
 
 	/**

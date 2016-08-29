@@ -37,6 +37,9 @@ $db->query(
 $result = $db->query(
 	"INSERT INTO yritys (nimi, y_tunnus) VALUES (?,?)",
 	[ADMIN_COMPANY, ADMIN_YTUNNUS]);
+$result = $db->query(
+	"INSERT INTO ostoskori (yritys_id) VALUES (?)",
+	[1]);
 
 if ( $result ) {
     echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';

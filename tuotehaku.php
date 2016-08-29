@@ -106,7 +106,8 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 function sortProductsByPrice( $catalog_products ){
 	/** @param $a
 	 * @param $b
-	 * @return bool */
+	 * @return bool
+	 */
     function cmpPrice($a, $b) {
         return ($a->hinta > $b->hinta);
     }
@@ -115,7 +116,7 @@ function sortProductsByPrice( $catalog_products ){
 
 }
 
-//$cart = new Ostoskori( $_SESSION['yritys_id'], $db );
+$cart = new Ostoskori( $_SESSION['yritys_id'], $db, 0 );
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
@@ -154,7 +155,7 @@ if ( !empty($_GET["manuf"]) ) {
 	<header class="tuotehaku_header">
 		<span class="end ostoskorilinkki">
 			<a href='ostoskori.php'>
-				<i class="material-icons">shopping_cart</i> Kpl: <?=""//count($cart->tuotteet)?></a></span>
+				<i class="material-icons">shopping_cart</i> Kpl: <?=$cart->montako_tuotetta?></a></span>
 	</header>
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
@@ -814,7 +815,6 @@ if ( !empty($_GET["manuf"]) ) {
 	/**
 	 * Lähettää POST:ina formin. Vastaanotto puolella INSERT ostopyyntö tietokantaan.
 	 * @param product_id <p> Halutun tuotteen ID
-	 * @returns {boolean}
 	 */
 	function ostopyynnon_varmistus( product_id ) {
 		var vahvistus;
@@ -831,10 +831,8 @@ if ( !empty($_GET["manuf"]) ) {
 			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, " +
 				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
 		}
-		return false;
 	}
 
-	//TODO: Käytä jQ.ajax()
 	/**
 	 * Tämän pitäisi lisätä tuote ostoskoriin...
 	 * @param product_id
