@@ -15,7 +15,7 @@
 	<title>Tilaus-info</title>
 </head>
 <body>
-<?php 	include 'header.php';
+<?php include 'header.php';
 require 'tietokanta.php';
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -25,7 +25,7 @@ require 'apufunktiot.php';
  * Tiedot tilaajaasta, tilauksen päivämäärä jne., plus toimitusosoite
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return Array; tilauksen tiedot, pois lukien tuotteet
+ * @return array; tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 	$query = "
@@ -55,30 +55,22 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 
 /**
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
+ * //TODO: Varmista, mikä on about maksimi määrä tuotteita, joka tilauksessa voi käytännössä olla
+ * //	Hajoaa, jos liikaa tuotteita haetaan.
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return Array <p> tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
+ * @return array <p> tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
 function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
-//	$query = "
-//		SELECT tilaus_tuote.tuote_id AS id, tilaus_tuote.pysyva_hinta,
-//			tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus, tilaus_tuote.kpl,
-//			( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) )
-//				AS maksettu_hinta
-//		FROM tilaus
-//		LEFT JOIN tilaus_tuote
-//			ON tilaus_tuote.tilaus_id=tilaus.id
-//		WHERE tilaus.id = :order_id ";
 	$query = "
 		SELECT tuote_id AS id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl,
-			( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ), tuote.articleNo, tuote.brandNo
-				AS maksettu_hinta
+			( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ) AS maksettu_hinta,
+			 tuote.articleNo, tuote.brandNo
 		FROM tilaus_tuote
 		LEFT JOIN tuote
 			ON tuote.id = tilaus_tuote.tuote_id
-		WHERE tilaus_id = :order_id ";
-	$values = [ 'order_id' => $tilaus_id ];
-	return ( $db->query($query, $values, FETCH_ALL, PDO::FETCH_OBJ) );
+		WHERE tilaus_id = ? ";
+	return ( $db->query($query, [$tilaus_id], FETCH_ALL, PDO::FETCH_OBJ) );
 }
 
 

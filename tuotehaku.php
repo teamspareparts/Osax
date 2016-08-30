@@ -229,7 +229,7 @@ if ( !empty($_GET["manuf"]) ) {
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
-							   type="number" value="0" min="0"></td>
+							   type="number" value="0" min="0" title="Kappale-määrä"></td>
 					<td class="toiminnot">
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
 							<i class="material-icons">add_shopping_cart</i>Osta</a></td>
@@ -309,16 +309,13 @@ if ( !empty($_GET["manuf"]) ) {
 	</section>
 </main>
 
-<form class="hidden" id="ostopyynto_form" method=post>
-	<input type=hidden name="tuote_ostopyynto" value="" id="tuote_ostopyynto">
-</form>
-
 <!-- Tuoteikkuna Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
 	<div class="modal-dialog" role="document" style="top:50px;">
 		<div class="modal-content">
 			<div class="modal-header" style="height: 35px;">
-				<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span></button>
 				<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 400px;">
 					<li class="active"><a data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
 					<li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
