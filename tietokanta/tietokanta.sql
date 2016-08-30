@@ -125,12 +125,24 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+/* Valikoimassa olevaa tuotetta varten */
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+/* Ei-valikoimassa olevat tuotteet.
+   Taulua ei voida ottaa käyttöön ennen kuin uusi tuote-ID on toteutettu? */
+CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
+  `articleNo` varchar(20) NOT NULL, -- PK
+  `brandNo` int(11) NOT NULL, -- PK
+  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP, -- PK
+  PRIMARY KEY (`articleNo`, `brandNo`, `kayttaja_id`, `pvm`)
+  /* Jotenkin minusta tuntuu, että ei pitäisi olla SQL-taulua neljällä PK:lla */
+)
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK

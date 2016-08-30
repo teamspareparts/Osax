@@ -30,6 +30,7 @@
 </head>
 <body>
 <?php require 'header.php';
+require 'tecdoc_asetukset.php';
 require 'tecdoc.php'; // Sisältää tecdoc_asetukset.php
 require 'apufunktiot.php';
 require 'tietokanta.php';
@@ -825,8 +826,16 @@ if ( !empty($_GET["manuf"]) ) {
 				);
 			}
 		} else {
+			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
+//			$.post("ajax_requests.php",
+//				{	tuote_hankintapyynto: true,
+//					tuote_articleNo: ??,
+//					tuote_brandNo: ?? }
+//			);
 			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, " +
-				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä.");
+				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä." +
+				"Uusi taulu hankintapyyntöjä varten on tekeillä, mutta se saattaa vaatia (?) " +
+				"uuden ID-systeemin odottelua.");
 		}
 	}
 
