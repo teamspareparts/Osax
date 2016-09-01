@@ -69,7 +69,7 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 
 		99=> array(
 				"otsikko" => " Kirjautuminen ",
-				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php">Linkki etusivulle</a></p>
+				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php?test">Linkki etusivulle</a></p>
 							<p><a href="logout.php">Kirjaudu ulos</a></p>',
 				"style" => "style='color:{$colors['note']};'"),
 	];

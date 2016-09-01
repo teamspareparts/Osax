@@ -13,7 +13,7 @@ function check_login_status() {
 /**
  * Tarkistaa onko käyttäjä admin.
  * Onko admin-arvo asetettu Session-datassa.
- * @return Boolean; onko arvo asetettu ja == 1
+ * @return Boolean <p> Onko arvo asetettu ja TRUE.
  */
 function is_admin() {
 	return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
@@ -45,7 +45,7 @@ check_login_status();
 		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
 				<div class="dropdown">
-					<li><a><span>Muut</span></a></li>
+					<li><a><span>Muut</span></a></li> <?php //TODO: Lisää dropdown-ikoni ?>
 					<div class="dropdown-content">
 						<li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
 						<li><a><span>raportit</span></a></li>

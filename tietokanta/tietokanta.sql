@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
   `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`articleNo`, `brandNo`, `kayttaja_id`, `pvm`)
   /* Jotenkin minusta tuntuu, että ei pitäisi olla SQL-taulua neljällä PK:lla */
-)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
@@ -199,4 +199,14 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hinnaston_sisaanajo` (
   `brandId` int(11) NOT NULL, -- PK;
   `sisaanajo_pvm` DATETIME NOT NULL,
   PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT, -- PK
+  `tyyppi` TINYINT(1) NOT NULL DEFAULT 1,
+  `otsikko` VARCHAR(50) NOT NULL,
+  `teksti` VARCHAR(10000) NOT NULL, -- Max. pituus noin 16k.
+  `aktiivinen` BOOLEAN NOT NULL DEFAULT 1,
+  `pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

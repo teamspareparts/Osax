@@ -149,7 +149,7 @@ if ( $mode == "login" ) {
    		else { //JOS KAIKKI OK->
             addDynamicAddress();
    			if ( $user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...
-   			header("Location:etusivu.php"); exit;
+   			header("Location:etusivu.php?test"); exit;
    		}
 	   
 	} else { //Ei tuloksia == väärä käyttäjätunnus --> lähetä takaisin

@@ -8,8 +8,6 @@
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="css/bootstrap.css">
-<!--	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
-<!--		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">-->
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<!-- https://design.google.com/icons/ -->
@@ -17,12 +15,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-			integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-			crossorigin="anonymous"></script>
-	<!--	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js"-->
-	<!--			integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD"-->
-	<!--			crossorigin="anonymous"></script>-->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
@@ -827,6 +820,7 @@ if ( !empty($_GET["manuf"]) ) {
 			}
 		} else {
 			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
+			//TODO: Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
 //			$.post("ajax_requests.php",
 //				{	tuote_hankintapyynto: true,
 //					tuote_articleNo: ??,
