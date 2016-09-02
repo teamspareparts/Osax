@@ -27,6 +27,7 @@ require 'tecdoc_asetukset.php';
 require 'tecdoc.php'; // Sisältää tecdoc_asetukset.php
 require 'apufunktiot.php';
 require 'tietokanta.php';
+require 'ostoskori_lomake.php'; //TODO: Poista tämä, korvaa luokalla
 require 'ostoskori.class.php';
 
 /**
@@ -93,6 +94,25 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
 
+/**
+ * Palauttaa merkkijonona linkin ostoskoriin.
+ * @return string <p> Linkki ostoskoriin, HTML:nä
+ * //TODO: Poista tämä, korvaa luokalla
+ */
+function printOstoskoriLinkki() {
+	$cart_count = isset($_SESSION['cart'])
+		? count($_SESSION['cart'])
+		: 0;
+
+	$cart_contents = ($cart_count !== 1)
+		? "{$cart_count} tuotetta"
+		: "1 tuote";
+
+	$returnString = "<a href='ostoskori.php'>Ostoskori ({$cart_contents}) </a>";
+
+	return $returnString;
+}
+
 /** Järjestetään tuotteet hinnan mukaan
  * @param $catalog_products
  * @return array <p> Sama array, mutta sorted
@@ -107,14 +127,13 @@ function sortProductsByPrice( $catalog_products ){
     }
     usort($catalog_products, "cmpPrice");
     return $catalog_products;
-
 }
 
 $cart = new Ostoskori( $_SESSION['yritys_id'], $db, 0 );
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
-$feedback = "";
+$feedback = ""; //TODO: Yritä muistaa mikä tämän tarkoitus oli. Luultavasti ostoskori toiminnan tulostus
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
@@ -142,14 +161,17 @@ if ( !empty($_GET["manuf"]) ) {
     $not_in_catalog = $filtered_product_arrays[2];
     $catalog_products = sortProductsByPrice($catalog_products);
 }
+echo handle_shopping_cart_action();
 ?>
 
 
 <main class="main_body_container">
 	<header class="tuotehaku_header">
 		<span class="end ostoskorilinkki">
-			<a href='ostoskori.php'>
-				<i class="material-icons">shopping_cart</i> Kpl: <?=$cart->montako_tuotetta?></a></span>
+			<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
+			<!-- TODO: Korvaa uudella luokalla -->
+<!--			<a href='ostoskori.php'>-->
+<!--				<i class="material-icons">shopping_cart</i> Kpl: --><?//=$cart->montako_tuotetta?><!--</a></span>-->
 	</header>
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
@@ -792,7 +814,6 @@ if ( !empty($_GET["manuf"]) ) {
 
 		showModal(); //näytetään modal
 	}
-
 	/**
 	 * Apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun vuosiluvut parempaan muotoon
 	 * @param text
@@ -837,7 +858,7 @@ if ( !empty($_GET["manuf"]) ) {
 	 * Tämän pitäisi lisätä tuote ostoskoriin...
 	 * @param product_id
 	 */
-	function addToShoppingCart( product_id ) {
+	function addToShoppingCart_new( product_id ) { //TODO: käytä tätä uudessa ostoskorissa
 		var kpl_maara = $("#maara_" + product_id).val();
 		if ( kpl_maara > 0 ) {
 			$.post("test_php.php",
