@@ -129,7 +129,7 @@ function sortProductsByPrice( $catalog_products ){
     return $catalog_products;
 }
 
-$cart = new Ostoskori( $_SESSION['yritys_id'], $db, 0 );
+//$cart = new Ostoskori( $_SESSION['yritys_id'], $db, 0 ); //TODO: Uusi ostoskori
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
@@ -164,14 +164,13 @@ if ( !empty($_GET["manuf"]) ) {
 echo handle_shopping_cart_action();
 ?>
 
-
 <main class="main_body_container">
 	<header class="tuotehaku_header">
 		<span class="end ostoskorilinkki">
 			<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
 			<!-- TODO: Korvaa uudella luokalla -->
 <!--			<a href='ostoskori.php'>-->
-<!--				<i class="material-icons">shopping_cart</i> Kpl: --><?//=$cart->montako_tuotetta?><!--</a></span>-->
+<!--				<i class="material-icons">shopping_cart</i> Kpl: --><?= "" ?><!--</a></span>-->
 	</header>
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
