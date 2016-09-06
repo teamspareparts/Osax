@@ -26,7 +26,7 @@ check_login_status();
 <div class="header_container">
 	<div class="header_top">
 		<div id="head_logo">
-			<img src="img/osax_logo.jpg" height="100" width="300" align="left" alt="No pics, plz">
+			<img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
 			<!-- TODO: Uusi logo, muuta headerin tausta valkoiseksi -->
 		</div>
 

@@ -43,8 +43,8 @@ input { padding: 3pt; }
 *********************************************/
 .header_top {
 	width: 100%;
-	height: 7.5em;
-	background-color: #1d7ae2;
+	height: 6.5em;
+	background-color: #fff;
 	display: flex;
 }
    
@@ -61,16 +61,14 @@ input { padding: 3pt; }
 .header_top #head_info {
 	flex-grow: 1;
 	font-size: 18px;
-	color: whitesmoke;
+	color: #2f5cad;
 	margin: auto;			/* Keskittää sisällön */
 	white-space: nowrap;
 }
 
-/********************************************
-	Navigointipalkki 
-*********************************************/
+/* Navigointipalkki */
 #navigationbar {
-	background: #1d7ae2;
+	background: #2f5cad;
 	width: auto;
 	height: auto;
 }
