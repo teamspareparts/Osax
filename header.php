@@ -27,12 +27,15 @@ check_login_status();
 	<div class="header_top">
 		<div id="head_logo">
 			<img src="img/osax_logo.jpg" height="100" width="300" align="left" alt="No pics, plz">
+			<!-- TODO: Uusi logo, muuta headerin tausta valkoiseksi -->
 		</div>
 
 		<div id="head_info">
 			Tervetuloa takaisin, <?= $_SESSION['koko_nimi'] ?><br>
 			Kirjautuneena: <?= $_SESSION['email'] ?>
 		</div>
+
+		<!-- TODO: Lisää ostoskorin linkki tähän, jos pystyy -->
 	</div>
 
 	<div id="navigationbar">
@@ -45,7 +48,7 @@ check_login_status();
 		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
 				<div class="dropdown">
-					<li><a><span>Muut</span></a></li> <?php //TODO: Lisää dropdown-ikoni ?>
+					<li><a><span>Muut</span></a></li> <!-- //TODO: Lisää dropdown-ikoni -->
 					<div class="dropdown-content">
 						<li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
 						<li><a><span>raportit</span></a></li>

@@ -841,6 +841,7 @@ echo handle_shopping_cart_action();
 		} else {
 			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
 			//TODO: Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
+			//TODO: Brandin nimi, tuotteen nimi
 //			$.post("ajax_requests.php",
 //				{	tuote_hankintapyynto: true,
 //					tuote_articleNo: ??,

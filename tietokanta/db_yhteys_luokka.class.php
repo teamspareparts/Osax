@@ -1,4 +1,5 @@
 <?php
+define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään
 /**
  * Luokka Tietokannan yhteyden käsittelyä varten PDO:n avulla.
  *
@@ -23,13 +24,13 @@ class DByhteys {
 	 * Optional options for the PDO connection, given at new PDO(...).
 	 * ATTR_* : attribuutti<br>
 	 * 	_ERRMODE : Miten PDO-yhteys toimii virhetilanteissa.<br>
-	 * 	_DEF_FETCH_M : Mitä PDO-haku palauttaa (arrayn, objektin, ...)<br>
+	 * 	_DEF_FETCH_M : Mitä PDO-haku palauttaa defaultina (arrayn, objektin, ...)<br>
 	 * 	_EMUL_PREP : {@link https://phpdelusions.net/pdo#emulation}
 	 * @var array
 	 */
 	protected $pdo_options = [		//PDO:n DB driver specific options
 			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, //TODO: Pitäisikö tämä muuttaa Objektiksi?
+			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
 			PDO::ATTR_EMULATE_PREPARES   => false,
             array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")];
 	/**
@@ -58,7 +59,6 @@ class DByhteys {
 	 */
 	public function __construct( /* string */ $username,  /* string */ $password,
 			/* string */ $database, /* string */ $host = 'localhost' ) {
-		define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään
 
 		$this->pdo_dsn = "mysql:host={$host};dbname={$database};charset=utf8";
 		$this->connection = new PDO(
@@ -69,6 +69,7 @@ class DByhteys {
 	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
 	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.
+	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
 	 * @param string $query
 	 * @param array $values [optional], default=NULL<p>
 	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
@@ -79,10 +80,10 @@ class DByhteys {
 	 * 		Missä muodossa haluat tiedot palautettavan.
 	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
 	 * 		Mahdolliset (tärkeimmät) arvot:
-	 * 		<ul>	<li>PDO::FETCH_ASSOC (huom. default jo valmiiksi)</li>
+	 * 		<ul>	<li>PDO::FETCH_ASSOC)</li>
 	 * 				<li>PDO::FETCH_NUM</li>
 	 * 				<li>PDO::FETCH_BOTH</li>
-	 * 				<li>PDO::FETCH_OBJ</li>
+	 * 				<li>PDO::FETCH_OBJ (huom. default jo valmiiksi</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
 	 * @return array|boolean|stdClass <p> Palauttaa arrayn, jos esim. SELECT.<br>
@@ -135,14 +136,15 @@ class DByhteys {
 	 * Palauttaa seuraavan rivin viimeksi tehdystä hausta.
 	 * Huom. ei toimi query()-metodin kanssa. Käytä vain prep.stmt -metodien kanssa.<br>
 	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
+	 * Palauttaa tulokset objektina, jos ei palautustyyppiä.
 	 * @param int $returnType [optional], default = NULL <p>
 	 * 		Missä muodossa haluat tiedot palautettavan.
 	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
 	 * 		Mahdolliset arvot:
-	 * 		<ul>	<li>PDO::FETCH_ASSOC (huom. default jo valmiiksi)</li>
+	 * 		<ul>	<li>PDO::FETCH_ASSOC</li>
 	 * 				<li>PDO::FETCH_NUM</li>
 	 * 				<li>PDO::FETCH_BOTH</li>
-	 * 				<li>PDO::FETCH_OBJ</li>
+	 * 				<li>PDO::FETCH_OBJ (huom. default jo valmiiksi)</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
 	 * Niitä on muitakin, mutta nuo on tärkeimmät.
@@ -173,14 +175,14 @@ class DByhteys {
 			case 'both':
 				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_BOTH );
 				break;
-			case 'object':
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ );
+			case 'assoc':
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC );
 				break;
 			case 'key_pair':
 				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_KEY_PAIR );
 				break;
 			default:
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC );
+				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ );
 				break;
 		}
 	}
@@ -222,11 +224,8 @@ if ( $result ) {
 	//Do stuff and things
 }
 
-Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
-	Array (
-		[key] => 'value'
-		...
-	)
+Huom. Tällä tavalla haettuna metodi palauttaa tiedot objekti-muodossa:
+	foo->column_name
 *******/
 
 
@@ -245,17 +244,8 @@ foreach ( $results as $array ) {
 
 
 Huom. Tällä tavalla haettuna metodi palauttaa tiedot (assoc array) muodossa:
-Array (
-	[0] => Array (
-			[id] => 'foo'
-			...
-		)
-	[1] => Array (
-			[id] => 'bar'
-			...
-		)
-	...
-)
+	foo->column_name1
+	foo->column_name2
 
 ******/
 
@@ -287,11 +277,11 @@ mutta sillä ei ole hirveästi väliä kumpaa käyttää.
 /*******
   Example 4 (tietoa eri palautustyypeistä):
 Ei esimerkkejä, koska testaillessani, suurin osa niistä
-on oikeastaan aika tylsiä. Pari on näyttää täysin samalta, paitsi jos olet surkea
-suunnittelemaan tietokantoja.
+on oikeastaan aika tylsiä. Pari on näyttää täysin samalta,
+paitsi jos tietokanta on suunniteltu oudosti.
 
 // Jos haluat valita tietyn tietyn palautustyypin...
-$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_OBJ );
+$db_conn->query( $query, $values, [FETCH_ALL || NULL], PDO::FETCH_ASSOC );
 // Tai...
 $db_conn->setReturnType( 'object' ); // Vaihtaa koko luokan palautustyypin. Pysyvä muutos.
 $db_conn->query( $query, $values ); // Palauttaa nyt objektina
@@ -318,7 +308,8 @@ standardi. Minä keksin sen tyhjästä juuri äsken.
  * BOTH vaan palauttaa koko arrayn tuplana. Mitä hyötyä siitä on?
  *
  * Suurin osa näistä on aika esoteerisia käyttötarkoitukseltaan.
- * Edes minä en enää muista mitä nää kaikki oli. Miksi edes vaivauduin kirjoittamaan tämän?
+ * [later comment from me:] Edes minä en enää muista mitä nää kaikki oli.
+ * 		Miksi edes vaivauduin kirjoittamaan tämän?
 
 ******/
 
@@ -365,7 +356,7 @@ $db_conn->query( $query, $values_array );
 
 
  * Esimerkissä 2 käytin FETCH_ALL muuttujaa. Se on alias TRUE:lle.
- * Define()-metodi siitä on konstruktorissa. Tämä kohta on hieman leikkimistä minulta, myönnetään
+ * Define()-metodi siitä on tiedoston alussa. Tämä kohta on hieman leikkimistä minulta, myönnetään.
 FETCH_ALL === TRUE;
 
 

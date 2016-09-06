@@ -7,7 +7,7 @@
 </head>
 <body>
 <main class="login_container">
-	<img src="img/osax-Logo.jpg" alt="Osax.fi">
+	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
 <?php
 session_start();
@@ -106,16 +106,17 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 			<input type="submit" value="Uusi salasana">
 		</form>
 	</fieldset>
+
+	<fieldset><legend>Yhteystiedot</legend>
+		Osax Oy, Lahti<p>
+		janne @ osax.fi
+	</fieldset>
 </main>
 
 <script>
-/** Otamme tämän käyttöön, jos tämä sivusto koskaan menee ihan oikeaan asiakas käyttöön.
- * window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
- */
-
-/**
- * Tähän evästeiden tarkistus. Evästeillä voimme tallentaa pysyvää tietoa lokaalisti.
- */
+	window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
+	//TODO: Evästeet
+	//TODO: Tarkista salasanan pituus
 </script>
 
 </body>
