@@ -7,7 +7,7 @@
 </head>
 <body>
 <?php 	
-include 'header.php';
+require 'header.php';
 ?>
 <div id=tilaukset>
 	<h1 class="otsikko">Tilaukset</h1>
@@ -33,7 +33,6 @@ include 'header.php';
 					exit();
 				}
 
-				$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
 
 				$query = "	SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, 
 								SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa
@@ -44,21 +43,20 @@ include 'header.php';
 								ON tilaus_tuote.tilaus_id=tilaus.id
 							WHERE tilaus.kasitelty = 0
 							GROUP BY tilaus.id";
-				$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+				$tilaukset = $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 
-				while($row = mysqli_fetch_assoc($result)){
+				foreach ($tilaukset as $tilaus) {
 					?>
 					<fieldset>
-						<a href="tilaus_info.php?id=<?= $row["id"]?>"><span class="tilausnumero"><?= $row["id"]?>
-						</span><span class="pvm"><?= date("d.m.Y", strtotime($row["paivamaara"]))?>
-						</span><span class="tilaaja"><?= $row["etunimi"] . " " . $row["sukunimi"]?>
-						</span><span class="sum"><?= format_euros($row["summa"])?>
-						</span></a><input type="checkbox" name="ids[]" value="<?= $row['id']?>">
+						<a href="tilaus_info.php?id=<?= $tilaus->id?>"><span class="tilausnumero"><?= $tilaus->id?>
+						</span><span class="pvm"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?>
+						</span><span class="tilaaja"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?>
+						</span><span class="sum"><?= format_euros($tilaus->summa)?>
+						</span></a><input type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
 					</fieldset>
 					<?php 
 				}
 
-				mysqli_close($connection);
 			?>
 			<br>
 			<div id=submit>

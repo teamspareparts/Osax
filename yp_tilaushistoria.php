@@ -38,16 +38,16 @@ include 'header.php';
 					ON tilaus_tuote.tilaus_id=tilaus.id
 				GROUP BY tilaus.id
 				ORDER BY tilaus.id DESC";
-			$result = mysqli_query($connection, $query) or die(mysqli_error($connection));
+			$tilaukset = $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 
-			while($row = mysqli_fetch_assoc($result)){
+			foreach ($tilaukset as $tilaus){
 				echo '<fieldset>';
-				echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
-					'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
-					'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
-					'</span><span class="sum">' . format_euros($row["summa"]) .
+				echo '<a href="tilaus_info.php?id=' . $tilaus->id . '"><span class="tilausnumero">' . $tilaus->id .
+					'</span><span class="pvm">' . date("d.m.Y", strtotime($tilaus->paivamaara)) .
+					'</span><span class="tilaaja">' . $tilaus->etunimi . ' ' . $tilaus->sukunimi .
+					'</span><span class="sum">' . format_euros($tilaus->summa) .
 					'</span>';
-				if ($row["kasitelty"] == 1) {
+				if ($tilaus->kasitelty == 1) {
 					echo 'OK';
 				} else {
 					echo '<span style="color:red">EI</span>';
