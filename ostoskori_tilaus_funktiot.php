@@ -106,13 +106,11 @@ function order_products ( array $products, mysqli $connection, /* int */ $kaytta
 					('$tilaus_id', '$pysyva_etunimi', '$pysyva_sukunimi', '$pysyva_sahkoposti', '$pysyva_puhelin', '$pysyva_yritys', '$pysyva_katuosoite', '$pysyva_postinumero', '$pysyva_postitoimipaikka');";
 	mysqli_query($connection, $query);
 
-	/**
-	 * Laitan sähköpostin lähetyksen kommentiksi niin kukaan ei lähettele vahingossa sähköpostia
-	 */
+
 	//lähetetään tilausvahvistus asiakkaalle
-	//laheta_tilausvahvistus($_SESSION["email"], $products, $order_id);
+	laheta_tilausvahvistus($_SESSION["email"], $products, $tilaus_id);
 	//lähetetään tilaus ylläpidolle
-	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $order_id);
+	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
 	return true;
 }
 

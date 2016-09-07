@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
@@ -103,16 +103,20 @@ function getAmBrandAddress($brandNo) {
 }
 
 //
-// Hakee tuotteet annetuen tuotenumeron (articleNo) perusteella
+// Hakee tuotteet annetuen tuotenumeron (articleNo) perusteella.
+// Jos ei exact, haetaan myös vertailunumerolla, oe-numerolla, ean-numerolla yms.
+// Jos exact, haetaan vai tuotenumerolla.
 //
-function getArticleDirectSearchAllNumbersWithState($number) {
+function getArticleDirectSearchAllNumbersWithState($number, $exact) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
+    $numberType = $exact ? 0 : 10;
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
 		'articleCountry' => TECDOC_COUNTRY,
 		'provider' => TECDOC_PROVIDER,
 		'articleNumber' => $number,
-		'numberType' => 10, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
+        'searchExact' => $exact,
+		'numberType' => $numberType, //10: mikä tahansa numerotyyppi, 0:tuotenumero
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -242,12 +246,9 @@ function merge_products_with_tecdoc($products) {
 }
 
 
-/**
- * Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa.
- * @param array $catalog_products <p> Tuote-array, johon liitetaan lisätieto.
- * @param boolean $also_basic_info <p> Jos TRUE: merge myös kuvat ja infot
- */
-function merge_catalog_with_tecdoc( array $catalog_products, /*boolean*/ $also_basic_info) {
+//Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa
+//jos $all_info: merge myös oe, kuvat, ean ja infot
+function merge_catalog_with_tecdoc($catalog_products, $also_basic_info) {
 
     if ($also_basic_info){
 	    foreach ($catalog_products as $catalog_product) {
@@ -262,10 +263,9 @@ function merge_catalog_with_tecdoc( array $catalog_products, /*boolean*/ $also_b
 }
 
 
-/**
- * Hakee kaikki automerkit.
- * @return array <p> Automerkit
- */
+
+
+//hakee kaikki automerkit
 function getManufacturers() {
 	$function = 'getManufacturers';
 	$params = [
@@ -360,7 +360,9 @@ function merge_products_with_optional_data($articles) {
 	foreach ($articles as $article){
 		$product = getOptionalData($article->articleId);
 		$article->thumburl = get_thumbnail_url($product[0]);
+		//$article->ean = get_ean_number($product[0]);
 		$article->infos = get_infos($product[0]);
+		//$article->oe = get_oe_number($product[0]);
 	}
 }
 

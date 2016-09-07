@@ -58,9 +58,9 @@ function hyvaksy_eula () {
 }
 
 function hylkaa_eula () {
-	alert( "Olemme pahoillamme, että et pidä nykyisistä ehdoista.\n"
+	/*alert( "Olemme pahoillamme, että et pidä nykyisistä ehdoista.\n"
 		+ "OK:n klikkaamisen jälkeen sinut kirjataan ulos sivustosta.\n"
-		+ "Kiitos yhteistyöstäsi.");
+		+ "Kiitos yhteistyöstäsi.");*/
 	window.location="./logout.php?redir=10";
 }
 </script>

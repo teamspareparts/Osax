@@ -6,7 +6,7 @@
 	<style type="text/css">
 			.class #id tag {}
 			#tilaus_info_container {
-				background-color: whitesmoke;
+				background-color: #FFFFFF;
 			}
 			#tilaus_toimitusosoite {
 				padding-left: 0.5em;
@@ -30,7 +30,7 @@ require 'apufunktiot.php';
 function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 	$query = "
 		SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
-			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti,
+			kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys,
 			CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 			CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 			tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
@@ -47,6 +47,8 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 			ON tuote.id=tilaus_tuote.tuote_id
 		LEFT JOIN tilaus_toimitusosoite AS tmo
 			ON tmo.tilaus_id = tilaus.id
+		LEFT JOIN yritys
+			ON yritys.id = kayttaja.yritys_id
 		WHERE tilaus.id = :order_id ";
 
 	$values = [ 'order_id' => $tilaus_id ];
@@ -118,14 +120,15 @@ if ( $products) {
 				<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot["id"])?></td>
 					<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot["paivamaara"]))?></td></tr>
 				<tr><td>Tilaaja: <?= $tilaus_tiedot["etunimi"] . " " . $tilaus_tiedot["sukunimi"]?></td>
-					<!--<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td>--></tr>
+					<td>Yritys: <?= $tilaus_tiedot["yritys"]?></td></tr>
 				<tr><td>Tuotteet: <?= $tilaus_tiedot["kpl"]?></td>
 					<td>Summa:
 						<?= format_euros( $tilaus_tiedot["summa"] + $tilaus_tiedot["pysyva_rahtimaksu"])?>
 						( ml. rahtimaksu )
 					</td></tr>
+				<tr><td class="small_note">Kaikki hinnat sisältävät ALV:n</td><td></td></tr>
 			</table>
-			<p class="small_note">Kaikki hinnat sisältävät ALV:n</p>
+
 		</div>
 		<div id="tilaus_toimitusosoite">
 			<span>Toimitusosoite</span>

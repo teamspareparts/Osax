@@ -17,7 +17,7 @@ include 'header.php';
 
 		<form>
 		<fieldset class="lista_info">
-			<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="yritys">Yritys</span><span class="sum">Summa</span>Käsitelty</p>
+			<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="sum">Summa</span>Käsitelty</p>
 		</fieldset>
 
 			<?php
@@ -29,7 +29,7 @@ include 'header.php';
 			}
 
 			$query = "
-				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, kayttaja.yritys, 
+				SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, 
 					SUM( tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))) AS summa 
 				FROM tilaus 
 				LEFT JOIN kayttaja 
@@ -45,7 +45,6 @@ include 'header.php';
 				echo '<a href="tilaus_info.php?id=' . $row["id"] . '"><span class="tilausnumero">' . $row["id"] .
 					'</span><span class="pvm">' . date("d.m.Y", strtotime($row["paivamaara"])) .
 					'</span><span class="tilaaja">' . $row["etunimi"] . ' ' . $row["sukunimi"] .
-					'</span><span class="yritys">' . $row["yritys"] .
 					'</span><span class="sum">' . format_euros($row["summa"]) .
 					'</span>';
 				if ($row["kasitelty"] == 1) {

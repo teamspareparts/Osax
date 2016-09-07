@@ -1,4 +1,4 @@
-@CHARSET "UTF-8";
+﻿@CHARSET "UTF-8";
 
 /********************************************
 	General application
@@ -66,7 +66,9 @@ input { padding: 3pt; }
 	white-space: nowrap;
 }
 
-/* Navigointipalkki */
+/********************************************
+	Navigointipalkki 
+*********************************************/
 #navigationbar {
 	background: #2f5cad;
 	width: auto;
@@ -127,7 +129,7 @@ input { padding: 3pt; }
 .dropdown-content {
 	display: none;
 	position: absolute;
-	background-color: #0561e9;
+	background-color: #2f5cad;
 	min-width: 130px;
 	box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
 	padding: 0 0;
@@ -416,7 +418,7 @@ th {
 	font-size: 130%;
 	font-weight: normal;
 	text-shadow: 0 1px 0 #368;
-	background-color: #1d7ae2;
+	background-color: #2f5cad;
 	color: #fff;
 	margin: 0;
 	padding-top: 5pt;
@@ -544,48 +546,59 @@ th {
 /**************************************************
 	Tuotehaku-sivun infonapin tyylittely
 **************************************************/
+span.info-box {
+	display: inline-block;
+	line-height: 16px;
+	color: White;
+	font-size: 13px;
+	font-weight: bold;
+	text-align: center;
+	position: relative;
+}
+
 span.question {
-  cursor: pointer;
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  background-color: #89A4CC;
-  line-height: 16px;
-  color: White;
-  font-size: 13px;
-  font-weight: bold;
-  border-radius: 8px;
-  text-align: center;
-  position: relative;
-  vertical-align: top;
+  	cursor: pointer;
+  	display: inline-block;
+  	width: 16px;
+  	height: 16px;
+  	background-color: #89A4CC;
+  	line-height: 16px;
+  	color: White;
+  	font-size: 13px;
+  	font-weight: bold;
+  	border-radius: 8px;
+  	text-align: center;
+  	position: relative;
+  	vertical-align: top;
 }
 span.question:hover { background-color: #3D6199; }
 div.tooltip {
-  background-color: #3D6199;
-  color: White;
-  position: absolute;
-  left: 25px;
-  top: -25px;
-  z-index: 1000000;
-  width: 250px;
-  border-radius: 5px;
+  	background-color: #3D6199;
+  	color: White;
+  	position: absolute;
+  	left: 25px;
+  	top: -16px;
+  	z-index: 1000000;
+  	/*width: 250px;*/
+  	border-radius: 5px;
 }
 div.tooltip:before {
 	border: 6px solid transparent;
 	border-right-color: #3D6199;
 	border-left-width: 0;
 	content: "";
-  display: block;
-  height: 0;
-  width: 0;
-  line-height: 0;
-  position: absolute;
-  top: 40%;
-  left: -6px;
+  	display: block;
+  	height: 0;
+  	width: 0;
+  	line-height: 0;
+  	position: absolute;
+  	top: 40%;
+  	left: -6px;
 }
 div.tooltip p {
-  margin: 10px;
-  color: White;
+  	margin: 10px;
+  	color: White;
+	white-space: nowrap;
 }
 
 
@@ -628,9 +641,9 @@ Asiakaslista
 
 
 
-/*****************************
-MODAL-ikkuna (tuotteen tiedot)
-******************************/
+/****************************************
+Tuotteen MODAL-ikkuna (tuotteen tiedot)
+****************************************/
 .row {
 	display: flex;
 }
@@ -671,6 +684,11 @@ MODAL-ikkuna (tuotteen tiedot)
 	color: black;
 }
 
+.car_dropdown_content {
+	display: none;
+}
+
+
 /*****************
 Loading-icon
 ******************/
@@ -685,6 +703,10 @@ Loading-icon
 	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. */
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
+
+/**************************
+Toimittajien listaukseen
+**************************/
 
 .floating-box {
 	display: inline-block;

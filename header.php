@@ -52,7 +52,6 @@ check_login_status();
 					<div class="dropdown-content">
 						<li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
 						<li><a><span>raportit</span></a></li>
-						<li><a><span>jne jne...</span></a></li>
 					</div>
 				</div>
 			<?php } else { ?>

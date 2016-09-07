@@ -169,8 +169,7 @@ $(document).ready(function(){
 	//Näytetään ohjeet kun hiiri viedään kysymysmerkin päälle.
 	$("span.question").hover(function () {
 		$(this).append('<div class="tooltip">' +
-						'<p>Tiedostossa oltava 6 saraketta.</p>' +
-						'<p>Erottimena oltava ";".</p>' +
+						'<p>Tiedostossa oltava 6 saraketta & erottimena oltava ";".</p>' +
 						'<p>Jos tiedostossa on otsikkorivi merkkaa valintaruutu.</p>' +
 						'</div>');
 	}, function () {

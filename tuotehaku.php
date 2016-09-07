@@ -139,7 +139,7 @@ if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));
 
-	$products = getArticleDirectSearchAllNumbersWithState($number); // haetaan kaikki linkitetyt tuotteet
+	$products = getArticleDirectSearchAllNumbersWithState($number, (!empty($_GET['exact']))); // haetaan kaikki linkitetyt tuotteet
 
 	// Filtteröidään catalogin tuotteet kahteen listaan: Niihin jotka ovat valikoimassa ja niihin, jotka eivät ole.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
@@ -176,7 +176,8 @@ echo handle_shopping_cart_action();
 		<div class="tuotekoodihaku">
 			Tuotenumerolla haku:<br>
 			<form action="tuotehaku.php" method="get" class="haku">
-				<input id="search" type="text" name="haku" placeholder="Tuotenumero"><br>
+				<input id="search" type="text" name="haku" placeholder="Tuotenumero">
+				<span class="info-box"><input id="exact" type="checkbox" name="exact" /></span><br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
@@ -191,13 +192,13 @@ echo handle_shopping_cart_action();
 					<option value="">-- Malli --</option>
 				</select><br>
 				<select id="car" name="car" disabled="disabled" title="Auto">
-					<option value="">-- Auto --</option>
+					<option value="">-- Tyyppi --</option>
 				</select><br>
 				<select id="osaTyyppi" name="osat" disabled="disabled" title="Osastyyppi">
-					<option value="">-- Osat --</option>
+					<option value="">-- Tuoteryhmä --</option>
 				</select><br>
 				<select id="osat_alalaji" name="osat_alalaji" disabled="disabled" title="Tyypin alalaji">
-					<option value="">-- Osien alalaji --</option>
+					<option value="">-- Tuoteryhmä --</option>
 				</select>
 				<br>
 				<input type="submit" class="nappi" value="HAE" id="ajoneuvohaku">
@@ -221,6 +222,9 @@ echo handle_shopping_cart_action();
 				<th>Info</th>
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
+				<?php if (is_admin()) : ?>
+					<th class="number">Ostohinta</th>
+				<?php endif;?>
 				<th>Kpl</th>
 				<th></th>
 				<th></th>
@@ -242,6 +246,9 @@ echo handle_shopping_cart_action();
 					</td>
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
+					<?php if (is_admin()) : ?>
+						<td class="number"><?=format_integer($product->sisaanostohinta)?></td>
+					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
@@ -264,7 +271,9 @@ echo handle_shopping_cart_action();
 				<th>Info</th>
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
-				<th></th>
+				<?php if (is_admin()) : ?>
+					<th class="number">Ostohinta</th>
+				<?php endif;?>
 				<th></th>
 			</tr>
 			</thead>
@@ -284,10 +293,12 @@ echo handle_shopping_cart_action();
 					</td>
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
+					<?php if (is_admin()) : ?>
+						<td class="number"><?=format_integer($product->sisaanostohinta)?></td>
+					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons">info</i></a>
-					<td></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -331,10 +342,11 @@ echo handle_shopping_cart_action();
 			<div class="modal-header" style="height: 35px;">
 				<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
-				<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 400px;">
+				<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 450px;">
 					<li class="active"><a data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
 					<li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
 					<li><a data-toggle="tab" href="#menu3">Vertailunumerot</a></li>
+					<li><a data-toggle="tab" href="#menu4">Autot</a></li>
 				</ul>
 			</div>
 
@@ -343,6 +355,9 @@ echo handle_shopping_cart_action();
 					<div id="menu1" class="tab-pane fade in active"></div>
 					<div id="menu2" class="tab-pane fade text-center"></div>
 					<div id="menu3" class="tab-pane fade"></div>
+					<div id="menu4" class="tab-pane fade">
+						<br><div id="dd" class="car_dropdown"></div> <!-- Dropdown -->
+					</div>
 				</div>
 			</div>
 
@@ -735,6 +750,98 @@ echo handle_shopping_cart_action();
 			$("#menu3").append('\ ' +comparableNumbers+ '\ ');
 		}
 
+
+
+		function getLinkedManufacturers(articleId){
+			var functionName = "getArticleLinkedAllLinkingTargetManufacturer";
+			var params = {
+				"articleCountry" : TECDOC_COUNTRY,
+				"provider" : TECDOC_MANDATOR,
+				"articleId" : articleId,
+				"linkingTargetType" : "P"
+			};
+			params = toJSON(params);
+			tecdocToCatPort[functionName] (params, function (response){
+				for(i=0; i<response.data.array.length; i++) {
+					$(".car_dropdown").append("<span style='cursor:pointer;' onClick=\"showCars(this)\">"+response.data.array[i].manuName+"</span>" +
+						"<div class='car_dropdown_content' id='"+response.data.array[i].manuName+"'></div><br>");
+				}
+				getLinkedVehicleIds(id);
+			})
+		}
+
+		//Haetaan linkitettyjen autojen ID:t
+		function getLinkedVehicleIds( articleId ) {
+			var functionName = "getArticleLinkedAllLinkingTarget3";
+			var params = {
+				"articleCountry" : TECDOC_COUNTRY,
+				"lang" : TECDOC_LANGUAGE,
+				"provider" : TECDOC_MANDATOR,
+				"articleId" : articleId,
+				"linkingTargetType" : "P"
+			};
+			params = toJSON(params);
+			tecdocToCatPort[functionName] (params, function (response){
+				var articleIdPairs = [];
+				if ( response.data != "" ) {
+					response = response.data.array[0];
+					for (i = 0; i < response.articleLinkages.array.length; i++) {
+						var pair = {
+							"articleLinkId" : response.articleLinkages.array[i].articleLinkId,
+							"linkingTargetId" : response.articleLinkages.array[i].linkingTargetId
+						}
+						articleIdPairs.push(pair);
+						if (articleIdPairs.length == 25) {
+							getLinkedVehicleInfos(articleId, articleIdPairs);
+							articleIdPairs = [];
+						}
+					}
+				}
+				getLinkedVehicleInfos(articleId, articleIdPairs);
+			});
+		}
+
+		//Haetaan linkitettyjen autojen tiedot
+		function getLinkedVehicleInfos( articleId, articleIdPairs ) {
+			var functionName = "getArticleLinkedAllLinkingTargetsByIds3";
+			var params = {
+				"articleCountry" : TECDOC_COUNTRY,
+				"lang" : TECDOC_LANGUAGE,
+				"provider" : TECDOC_MANDATOR,
+				"articleId" : articleId,
+				"linkingTargetType" : "P",
+				"linkedArticlePairs" : {
+					"array" : articleIdPairs
+				}
+			};
+			params = toJSON(params);
+			tecdocToCatPort[functionName] (params, addLinkedVehiclesToModal);
+		}
+
+		function addLinkedVehiclesToModal(response) {
+
+			var carlist = "<div style='font-size: 12px;'>";
+			for (i=0; i<response.data.array.length ; i++) {
+				var yearTo = "";
+				if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo != 'undefined') {
+					yearTo = addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
+				}
+				$("#" + response.data.array[i].linkedVehicles.array[0].manuDesc).append("<li style='font-size: 14px;'>" +
+					response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
+					response.data.array[i].linkedVehicles.array[0].carDesc + " " +
+					addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
+					yearTo + "</li>"));
+				//carlist += "<p>" + response.data.array[i].linkedVehicles.array[0].manuDesc + " " +
+				//response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
+				//response.data.array[i].linkedVehicles.array[0].carDesc + " " +
+				//addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom) + "-" +
+				//addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo) + "</p>";
+			}
+			$("#menu4").append(carlist);
+		}
+
+
+
 		//avataan modal ja pysäytetään spinning icon
 		function showModal() {
 			//lopetetaan spinning iconin näyttäminen
@@ -774,13 +881,7 @@ echo handle_shopping_cart_action();
 
 		//Lisätään tuote modaliin sisältö
 		$("#menu1").append('\
-			<br> \
-			<div class="left">'+img+'</div> \
-			<div id="middle"> \
-			<div id="perus_infot"> \
-			<span style="font-weight:bold;">'+name+'</span><br>'+articleNo+'<br>'+brand+'<br><br> \
-			</div> \
-			<br>'+infos+'<br><br>'+documents+' \
+			<br>\
 			<div class="row">\
 			    <div style="display: inline-block;">\
 			        '+img+'\
@@ -794,8 +895,6 @@ echo handle_shopping_cart_action();
 			        </div>\
 			    </div>\
 			</div>\
-			\
-			\
 		');
 		$("#menu2").append('\
 				<br> \
@@ -808,10 +907,22 @@ echo handle_shopping_cart_action();
 			'+OEtable+' \
 		');
 
+
 		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
 		getComparableNumber(articleNo);
-
 		showModal(); //näytetään modal
+
+		getLinkedManufacturers(id);
+
+	}
+	function showCars(elmnt){
+		if ($("#" + elmnt.innerHTML).css("display") == "none") {
+			$("#" + elmnt.innerHTML).css("display", "block");
+		}
+		else {
+			$("#" + elmnt.innerHTML).css("display", "none");
+		}
+
 	}
 	/**
 	 * Apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun vuosiluvut parempaan muotoon
@@ -830,9 +941,7 @@ echo handle_shopping_cart_action();
 	function ostopyynnon_varmistus( product_id ) {
 		var vahvistus;
 		if ( product_id ) {
-			vahvistus = confirm( "Tuote on loppuunmyyty tai poistettu valikoimasta.\n"
-				+ "Olisitko halunnut tilata tuotteen? Jos klikkaat OK, ostopyyntösi kirjataan ylös ylläpitoa varten.\n"
-				+ "Ostopyyntö ei ole sitova.");
+			vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla.");
 			if ( vahvistus ) {
 				$.post("ajax_requests.php",
 					{	tuote_ostopyynto: product_id }
@@ -841,7 +950,6 @@ echo handle_shopping_cart_action();
 		} else {
 			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
 			//TODO: Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
-			//TODO: Brandin nimi, tuotteen nimi
 //			$.post("ajax_requests.php",
 //				{	tuote_hankintapyynto: true,
 //					tuote_articleNo: ??,
@@ -992,11 +1100,12 @@ echo handle_shopping_cart_action();
 		}); //#ajoneuvomallihaku.submit
 
 		//info-nappulan sisältö
-		$("span.question").hover(function () {
-			$(this).append('<div class="tooltip"><p>Mahdollista infoa käyttäjälle...</p></div>');
+		$("span.info-box").hover(function () {
+			$(this).append('<div class="tooltip"><p>Tarkka haku</p></div>');
 		}, function () {
 			$("div.tooltip").remove();
 		});
+
 
 		$('.clickable')
 			.css('cursor', 'pointer')
@@ -1013,6 +1122,7 @@ echo handle_shopping_cart_action();
 			$( "#menu1" ).empty();
 			$( "#menu2" ).empty();
 			$( "#menu3" ).empty();
+			$( "#dd" ).empty();
 		});
 
 		//Käytetään eri muotoilua, koska dynaaminen content
@@ -1068,7 +1178,7 @@ echo handle_shopping_cart_action();
 		getPartTypes(car);
 		getChildNodes(car, osat);
 
-		setTimeout(setSelected ,700);
+		setTimeout(setSelected ,1000);
 
 		function setSelected(){
 			$("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
@@ -1083,6 +1193,11 @@ echo handle_shopping_cart_action();
 	if ( qs["haku"] ){
 		var search = qs["haku"];
 		$("#search").val(search);
+	}
+
+	if ( qs["exact"] ){
+		var exact = qs["exact"];
+		$("#exact").prop("checked", true);
 	}
 
 </script>
