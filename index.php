@@ -85,11 +85,11 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$"
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="{3,255}$"
 				   required autofocus><br>
 			<br>
 			<label>Salasana:</label><br>
-			<input type="password" name="password" placeholder="password" pattern="^{3,255}$" required><br>
+			<input type="password" name="password" placeholder="password" pattern="{3,255}$" required><br>
 			<br>
 			<input type="hidden" name="mode" value="login">
 			<input type="submit" value="Kirjaudu sisään">
