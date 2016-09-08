@@ -99,7 +99,7 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="^{3,255}$"
+			<input type="email" name="email" placeholder="yourname@email.com" pattern="{3,255}$"
 				   required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">

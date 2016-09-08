@@ -177,7 +177,7 @@ echo handle_shopping_cart_action();
 			Tuotenumerolla haku:<br>
 			<form action="tuotehaku.php" method="get" class="haku">
 				<input id="search" type="text" name="haku" placeholder="Tuotenumero">
-				<span class="info-box"><input id="exact" type="checkbox" name="exact" /></span><br>
+				<span class="info-box"><input id="exact" type="checkbox" name="exact" title="Tarkka haku" /></span><br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
@@ -223,7 +223,7 @@ echo handle_shopping_cart_action();
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
 				<?php if (is_admin()) : ?>
-					<th class="number">Ostohinta</th>
+					<th class="number">Ostohinta ALV0%</th>
 				<?php endif;?>
 				<th>Kpl</th>
 				<th></th>
@@ -247,7 +247,7 @@ echo handle_shopping_cart_action();
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<?php if (is_admin()) : ?>
-						<td class="number"><?=format_integer($product->sisaanostohinta)?></td>
+						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
 					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
@@ -272,7 +272,7 @@ echo handle_shopping_cart_action();
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
 				<?php if (is_admin()) : ?>
-					<th class="number">Ostohinta</th>
+					<th class="number">Ostohinta ALV0%</th>
 				<?php endif;?>
 				<th></th>
 			</tr>
@@ -294,7 +294,7 @@ echo handle_shopping_cart_action();
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<?php if (is_admin()) : ?>
-						<td class="number"><?=format_integer($product->sisaanostohinta)?></td>
+						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
 					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(<?=$product->id?>);">

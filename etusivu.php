@@ -14,22 +14,24 @@ function debug ($var) {print_r($var);var_dump($var);}
 
 //TODO: PhpDoc
 function jaottele_uutiset ( &$news ) {
-	$mainokset = array();
-	$uutiset = array();
+	$foos = $things = $some_more_stuff = array();
 	foreach ( $news as $item ) {
 		switch ( $item->tyyppi ) {
 			case 0:
-				$mainokset[] = $item;
+				$foos[] = $item;
 				break;
 			case 1:
-				$uutiset[] = $item;
+				$things[] = $item;
+				break;
+			case 2:
+				$some_more_stuff[] = $item;
 				break;
 			default:
 				echo "Something went wrong. Uutisen tyyppiä ei löytynyt.";
 		}
 	}
 
-	return [$mainokset, $uutiset];
+	return [$foos, $things, $some_more_stuff];
 }
 
 $sql_query = "SELECT tyyppi, otsikko, teksti, pvm 
@@ -72,10 +74,6 @@ $fp_content = jaottele_uutiset($news);
 		.center_section {
 			flex-grow: 3;
 		}
-		.etusivu_content_otsikko {
-			text-align: center;
-			margin: 0.5em 0.5em;
-		}
 	</style>
 </head>
 <body>
@@ -91,26 +89,25 @@ $fp_content = jaottele_uutiset($news);
 	<?php endif; ?>
 	<div class="etusivu_content">
 		<section class="left_section">
-			<h4 class="etusivu_content_otsikko">Mainoksia</h4>
 			<?php if ( $fp_content[0] ) : ?>
-			<ul><?php foreach ( $fp_content[0] as $mainos ) : ?>
+			<ul><?php foreach ( $fp_content[0] as $uutinen ) : ?>
 				<li>
 					<div class="news_headline">
-						<?= $mainos->otsikko ?>
+						<?= $uutinen->otsikko ?>
 					</div>
 					<div class="news_content">
-						<?= $mainos->teksti ?>
-						<?= $mainos->pvm ?>
+						<?= $uutinen->teksti ?>
+						<?= $uutinen->pvm ?>
 					</div>
 				</li>
 				<?php endforeach; ?>
 			</ul>
 			<?php else : ?>
-				<div> Ei uutisia </div>
+				<div> Ei sisältöä </div>
 			<?php endif; ?>
 		</section>
+
 		<section class="center_section">
-			<h4 class="etusivu_content_otsikko">Uutisia</h4>
 			<?php if ( $fp_content[1] ) : ?>
 			<ul><?php foreach ( $fp_content[1] as $uutinen ) : ?>
 					<li>
@@ -125,12 +122,27 @@ $fp_content = jaottele_uutiset($news);
 				<?php endforeach; ?>
 			</ul>
 			<?php else : ?>
-			<div> Ei uutisia </div>
+			<div> Ei sisältöä </div>
 			<?php endif; ?>
-
 		</section>
+
 		<section class="right_section">
-			<h4 class="etusivu_content_otsikko">[Reserved for later other uses, for now at least]</h4>
+			<?php if ( $fp_content[2] ) : ?>
+				<ul><?php foreach ( $fp_content[2] as $uutinen ) : ?>
+					<li>
+						<div class="news_headline">
+							<?= $uutinen->otsikko ?>
+						</div>
+						<div class="news_content">
+							<?= $uutinen->teksti ?>
+							<?= $uutinen->pvm ?>
+						</div>
+					</li>
+				<?php endforeach; ?>
+				</ul>
+			<?php else : ?>
+				<div> Ei sisältöä </div>
+			<?php endif; ?>
 		</section>
 	</div>
 </main>

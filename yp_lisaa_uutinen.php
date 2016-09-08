@@ -4,8 +4,9 @@ require 'tietokanta.php';
 function debug ($var) {echo "<pre>";print_r($var);var_dump($var);echo "</pre>";}
 
 if ( isset($_POST['new_news']) ) {
+	echo "<pre>";
 	$db->query( "INSERT INTO etusivu_uutinen (otsikko, tyyppi, teksti) VALUES (?,?,?)",
-		[$_POST['text_headline'],$_POST['text_type'],$_POST['text_content']] );
+		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_content']] );
 	header("location:etusivu.php?test"); exit;
 }
 ?>
@@ -42,8 +43,9 @@ if ( isset($_POST['new_news']) ) {
 
 			<select title="Tekstin sisällön tyyppi" name="text_type" required>
 				<option value="" disabled selected>--- Valitse tekstin tyyppi ---</option>
-				<option value="0">Mainos (vasen kolumni)</option>
-				<option value="1">Uutinen (keskimmäinen kolumni)</option>
+				<option value="0">Vasen kolumni</option>
+				<option value="1">Keskimmäinen kolumni</option>
+				<option value="2">Oikea kolumni</option>
 			</select>
 
 			<textarea maxlength="10000" placeholder="TEKSTIN SISÄLTÖ" rows="10" name="text_content"
