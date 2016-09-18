@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `postitoimipaikka` varchar(255) DEFAULT '',
   `maa` VARCHAR(200) DEFAULT 'Suomi',
   `aktiivinen` tinyint(1) DEFAULT '1',
+  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
+  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '1000',
   /*
   Osalinkillä on myös faxnumero, ERP-numero, jälleenmyyjän ERP-numero, ja autofutur-asiakasnumero,
   mutta koska en tiedä mitä noilla tekisi en oikein halua lisätä niitä tietokantaan

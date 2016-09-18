@@ -1,26 +1,22 @@
 <?php
-/**
- * Tarkistaa onko käyttäjä kirjautunut sisään.
- * Jos käyttäjä ei ole kirjautunut sisään, funktio heittää hänet ulos.
- * Muussa tapauksessa funktio ei tee mitään.
+/*
+ * //TODO: This is for backwards compatibility.
  */
-function check_login_status() {
-	if ( empty($_SESSION['email']) ) {
-	    header('Location: index.php?redir=4'); exit; //Et ole kirjautunut sisään
-	}
-}
+if ( !function_exists("check_login_status") ) {
+	function check_login_status() {
+		if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; } }
 
-/**
- * Tarkistaa onko käyttäjä admin.
- * Onko admin-arvo asetettu Session-datassa.
- * @return Boolean <p> Onko arvo asetettu ja TRUE.
- */
-function is_admin() {
-	return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
-}
+	function is_admin() { return isset($_SESSION['admin']) && $_SESSION['admin'] == 1; }
 
-session_start();
-check_login_status();
+	/*
+	* Aloitetaan sessio ja tarkistetaan kirjautuminen jo ennen kaikkea muuta
+	*/
+	session_start(); check_login_status(); include 'luokat/user.class.php';
+
+	$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
+	$user = new User(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']), $_SESSION['id']);
+	$cart = new Ostoskori(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']), $user->yritys_id);
+}
 ?>
 
 <div class="header_container">
@@ -30,8 +26,8 @@ check_login_status();
 		</div>
 
 		<div id="head_info">
-			Tervetuloa takaisin, <?= $_SESSION['koko_nimi'] ?><br>
-			Kirjautuneena: <?= $_SESSION['email'] ?>
+			Tervetuloa takaisin, <?= $user->kokoNimi() ?><br>
+			Kirjautuneena: <?= $user->sahkoposti ?>
 		</div>
 
 		<!-- TODO: Korjaa tyylittelyä -->
@@ -42,6 +38,7 @@ check_login_status();
 				</div>
 				<div>
 					Ostoskori<br>
+					Tuotteita: <?= $cart->montako_tuotetta ?> (Kpl:<?= $cart->montako_tuotetta_kpl_maara_yhteensa ?>)
 				</div>
 			</a>
 		</div>

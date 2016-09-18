@@ -1,15 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="fi">
-<head>
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<meta charset="UTF-8">
-	<title>Omat Tiedot</title>
-</head>
-<body>
-<?php include("header.php");
-
-require 'tietokanta.php';
+﻿<?php
+require '_start.php'; global $db, $user, $cart, $yritys;
 
 //Päivitetäänkö omat tiedot
 $huomautus = null;
@@ -41,8 +31,18 @@ $yritys = $db->query($query, [$yritys_id], FETCH_ALL, PDO::FETCH_OBJ);
 if (count($yritys) == 1) {
 	$yritys = $yritys[0];
 }
-
 ?>
+
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<meta charset="UTF-8">
+	<title>Omat Tiedot</title>
+</head>
+<body>
+<?php require("header.php"); ?>
 
 <h1 class="otsikko">Omat Tiedot</h1>
 <div id="lomake">

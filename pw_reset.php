@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
-	<meta charset="UTF-8">
-	<title>Password reset</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-</head>
-<body>
-<?php require 'tietokanta.php';
+<?php
+require 'tietokanta.php';
 
 /**
  * @param DByhteys $db
@@ -40,17 +31,14 @@ function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_has
 	return $pw_reset;
 }
 
-
 /**
  * @param DByhteys $db
  * @param stdClass $pw_reset
  * @return array|bool|stdClass
  */
 function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
-	$sql_q = "	SELECT	id, sahkoposti
-				FROM	kayttaja
-				WHERE	id = ? ";
-	$row = $db->query( $sql_q, [$pw_reset->kayttaja_id], NULL, PDO::FETCH_OBJ );
+	$row = $db->query( "SELECT id, sahkoposti FROM kayttaja WHERE id = ? LIMIT 1",
+		[$pw_reset->kayttaja_id] );
 
 	if ( !$row ) { header("location:index.php?redir=98"); exit(); }
 
@@ -76,23 +64,37 @@ function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_sal
 }
 
 if ( empty($_GET['id']) ) {
-	header("location:index.php"); exit();
+	if ( empty($_SESSION['id']) ) {
+		header("location:etusivu.php"); exit();
+	} else header("location:index.php"); exit();
 }
+
 date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
 $error = FALSE;
 $reset_id_hash = sha1( $_GET['id'] );
 $pw_reset = tarkista_pw_reset_key_ja_aika( $db, $reset_id_hash ); // Tässä kohtaa heitetään ulos, jos FALSE.
-$user = hae_kayttaja( $db, $pw_reset );
+$reset_user = hae_kayttaja( $db, $pw_reset );
 
 if ( !empty($_POST['reset']) ) {
 	if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
-		db_vaihda_salasana( $db, $user, $_POST['new_password'], $reset_id_hash );
+		db_vaihda_salasana( $db, $reset_user, $_POST['new_password'], $reset_id_hash );
 		header("location:index.php?redir=8"); exit;
 	} else {
 		$error = TRUE;
 	}
 }
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
+	<meta charset="UTF-8">
+	<title>Password reset</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body>
+
 <main class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
@@ -104,7 +106,7 @@ if ( !empty($_POST['reset']) ) {
 
 	<fieldset><legend> Salasanan vaihto </legend>
 		<form action="pw_reset.php?id=<?=$_GET['id']?>" method="post" accept-charset="utf-8">
-			<?= $user->sahkoposti // Muistutuksena käyttajalle ?>
+			<?= $reset_user->sahkoposti // Muistutuksena käyttajalle ?>
 			<br><br>
 			<label for="uusi_salasana">Uusi salasana</label>
 			<input type="password" name="new_password" id="uusi_salasana" pattern=".{6,}"

@@ -1,5 +1,4 @@
 <?php
-define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään
 /**
  * Luokka Tietokannan yhteyden käsittelyä varten PDO:n avulla.
  *
@@ -61,6 +60,7 @@ class DByhteys {
 	public function __construct( /*string*/ $username, /*string*/ $password,
 			/*string*/ $database, /*string*/ $host = 'localhost' ) {
 
+		define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään
 		$this->pdo_dsn = "mysql:host={$host};dbname={$database};charset=utf8";
 		$this->connection = new PDO(
 				$this->pdo_dsn, $username, $password, $this->pdo_options );
@@ -87,9 +87,9 @@ class DByhteys {
 	 * 				<li>PDO::FETCH_OBJ (huom. default jo valmiiksi</li>
 	 * 				<li>PDO::FETCH_LAZY</li>
 	 * 		</ul>
-	 * @return boolean|stdClass <p> Palauttaa arrayn, jos esim. SELECT.<br>
+	 * @return array|boolean|stdClass <p> Palauttaa arrayn, jos esim. SELECT.<br>
 	 * 		Palauttaa boolean, jos esim. INSERT tai DELETE.<br>Palauttaa objektin, jos haetaan vain yksi,
-	 * 		ja palautusmuotona on PDO::FETCH_OBJ.
+	 * 		ja palautusmuotona on PDO::FETCH_OBJ. //TODO: Update doc
 	 */
 	public function query( /*string*/ $query, array $values = NULL,
 			/*bool*/ $fetch_All_Rows = FALSE, /*int*/ $returnType = NULL ) {

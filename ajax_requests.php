@@ -3,25 +3,14 @@
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
  */
 
-include "tietokanta.php";
-session_start();
+require "_start.php";
 
 /**
  * Ostoskorin toimintaa varten
  */
-if ( !empty($_POST['ostoskori_toiminto']) ) {
-	include "ostoskori.class.php";
-	$cart = new Ostoskori( $_SESSION['yritys_id'], $db, -1 );
-	$cart_product = str_replace(" ", "", $_POST['ostoskori_tuote']);
-
-	switch ($_POST['ostoskori_toiminto']) {
-		case "lisaa" :
-			$cart->lisaa_tuote( $cart_product, $_POST['ostoskori_maara'] );
-			break;
-		case "poista" :
-			$cart->poista_tuote( $cart_product );
-			break;
-	}
+if ( isset($_POST['ostoskori_toiminto']) ) {
+	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], -1 ); //FIXME: Se luo jo cartin _startissa. Korjaa.
+	$cart->lisaa_tuote( $_POST['tuote_id'], $_POST['kpl_maara'] );
 }
 
 /**

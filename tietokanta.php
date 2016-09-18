@@ -1,5 +1,5 @@
 <?php
-require 'tietokanta/db_yhteys_luokka.class.php';
+require_once 'luokat/db_yhteys_luokka.class.php';
 //
 // Tietokannan asetukset
 //

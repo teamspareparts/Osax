@@ -1,18 +1,9 @@
 <?php
-require 'tietokanta.php';
-session_start();
-
-if ( empty($_SESSION['email']) ) {
-	header('Location: index.php?redir=4'); exit; //Ei ole kirjautunut sisään
-}
-
-$user_id = $_SESSION['id'];
+require '_start.php'; global $db, $user, $cart, $yritys;
 
 if ( isset($_POST['vahvista_eula']) ) {
-	$sql_query = "	UPDATE	kayttaja
-					SET		vahvista_eula = '0'
-					WHERE	id = '$user_id';";
-	$result = mysqli_query($connection, $sql_query) or die(mysqli_error($connection));
+	$db->query( "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?",
+		[$user->id] );
 	header('Location:etusivu.php'); exit;
 }
 

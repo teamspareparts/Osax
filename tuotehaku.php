@@ -1,34 +1,8 @@
-﻿<!DOCTYPE html>
-<html lang="fi">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<link rel="stylesheet" href="css/bootstrap.css">
-
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<!-- https://design.google.com/icons/ -->
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
-	<script src="js/jsmodal-1.0d.min.js"></script>
-	<title>Tuotehaku</title>
-</head>
-<body>
-<?php require 'header.php';
+﻿<?php
+require '_start.php';
 require 'tecdoc_asetukset.php';
-require 'tecdoc.php'; // Sisältää tecdoc_asetukset.php
+require 'tecdoc.php';
 require 'apufunktiot.php';
-require 'tietokanta.php';
-require 'ostoskori_lomake.php'; //TODO: Poista tämä, korvaa luokalla
-require 'ostoskori.class.php';
 
 /**
  * Palauttaa Autovalmistajat selectiin. Vaatii TecDoc-yhteyden.
@@ -73,44 +47,25 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 		$row = $db->query( $query, [$product->articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
-		    $product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
+			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$not_in_catalog[] = $product;
 		}
 		if ( $row && !in_array($row->id, $ids) ) {
-            $ids[] = $row->id;
-            $row->articleId = $product->articleId;
-            $row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
-            $row->brandName = $product->brandName;
-            if (($row->varastosaldo >= $row->minimimyyntiera) && ($row->varastosaldo != 0)) {
-                $catalog_products[] = $row;
-            } else {
-                $not_available_catalog_products[] = $row;
-            }
-        }
+			$ids[] = $row->id;
+			$row->articleId = $product->articleId;
+			$row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
+			$row->brandName = $product->brandName;
+			if (($row->varastosaldo >= $row->minimimyyntiera) && ($row->varastosaldo != 0)) {
+				$catalog_products[] = $row;
+			} else {
+				$not_available_catalog_products[] = $row;
+			}
+		}
 	}
 	merge_catalog_with_tecdoc($catalog_products, false);
-    merge_catalog_with_tecdoc($not_available_catalog_products, false);
+	merge_catalog_with_tecdoc($not_available_catalog_products, false);
 
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
-}
-
-/**
- * Palauttaa merkkijonona linkin ostoskoriin.
- * @return string <p> Linkki ostoskoriin, HTML:nä
- * //TODO: Poista tämä, korvaa luokalla
- */
-function printOstoskoriLinkki() {
-	$cart_count = isset($_SESSION['cart'])
-		? count($_SESSION['cart'])
-		: 0;
-
-	$cart_contents = ($cart_count !== 1)
-		? "{$cart_count} tuotetta"
-		: "1 tuote";
-
-	$returnString = "<a href='ostoskori.php'>Ostoskori ({$cart_contents}) </a>";
-
-	return $returnString;
 }
 
 /** Järjestetään tuotteet hinnan mukaan
@@ -122,18 +77,16 @@ function sortProductsByPrice( $catalog_products ){
 	 * @param $b
 	 * @return bool
 	 */
-    function cmpPrice($a, $b) {
-        return ($a->hinta > $b->hinta);
-    }
-    usort($catalog_products, "cmpPrice");
-    return $catalog_products;
+	function cmpPrice($a, $b) {
+		return ($a->hinta > $b->hinta);
+	}
+	usort($catalog_products, "cmpPrice");
+	return $catalog_products;
 }
 
-//$cart = new Ostoskori( $_SESSION['yritys_id'], $db, 0 ); //TODO: Uusi ostoskori
 $haku = FALSE;
 $manufs = getManufacturers();
 $catalog_products = array();
-$feedback = ""; //TODO: Yritä muistaa mikä tämän tarkoitus oli. Luultavasti ostoskori toiminnan tulostus
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
@@ -144,9 +97,9 @@ if ( !empty($_GET['haku']) ) {
 	// Filtteröidään catalogin tuotteet kahteen listaan: Niihin jotka ovat valikoimassa ja niihin, jotka eivät ole.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
-    $not_available = $filtered_product_arrays[1];
+	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
-    $catalog_products = sortProductsByPrice($catalog_products);
+	$catalog_products = sortProductsByPrice($catalog_products);
 }
 
 if ( !empty($_GET["manuf"]) ) {
@@ -155,29 +108,51 @@ if ( !empty($_GET["manuf"]) ) {
 	$selectPartType = $_GET["osat_alalaji"];
 
 	$products = getArticleIdsWithState($selectCar, $selectPartType);
-    $filtered_product_arrays = filter_catalog_products( $db, $products );
-    $catalog_products = $filtered_product_arrays[0];
-    $not_available = $filtered_product_arrays[1];
-    $not_in_catalog = $filtered_product_arrays[2];
-    $catalog_products = sortProductsByPrice($catalog_products);
+	$filtered_product_arrays = filter_catalog_products( $db, $products );
+	$catalog_products = $filtered_product_arrays[0];
+	$not_available = $filtered_product_arrays[1];
+	$not_in_catalog = $filtered_product_arrays[2];
+	$catalog_products = sortProductsByPrice($catalog_products);
 }
-echo handle_shopping_cart_action();
 ?>
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<link rel="stylesheet" href="css/bootstrap.css">
+
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<!-- https://design.google.com/icons/ -->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
+	<script src="js/jsmodal-1.0d.min.js"></script>
+	<title>Tuotehaku</title>
+</head>
+<body>
+<?php require 'header.php' ?>
 
 <main class="main_body_container">
 	<header class="tuotehaku_header">
 		<span class="end ostoskorilinkki">
-			<span class="end ostoskorilinkki"><?= printOstoskoriLinkki() ?></span>
-			<!-- TODO: Korvaa uudella luokalla -->
-<!--			<a href='ostoskori.php'>-->
-<!--				<i class="material-icons">shopping_cart</i> Kpl: --><?= "" ?><!--</a></span>-->
+			<a href='ostoskori.php'>
+				<i class="material-icons">shopping_cart</i> Kpl: <?= $cart->montako_tuotetta ?></a></span>
 	</header>
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
 			Tuotenumerolla haku:<br>
 			<form action="tuotehaku.php" method="get" class="haku">
 				<input id="search" type="text" name="haku" placeholder="Tuotenumero">
-				<span class="info-box"><input id="exact" type="checkbox" name="exact" /></span><br>
+				<span class="info-box"><input id="exact" type="checkbox" name="exact" title="Tarkka haku"/></span><br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
@@ -204,14 +179,12 @@ echo handle_shopping_cart_action();
 				<input type="submit" class="nappi" value="HAE" id="ajoneuvohaku">
 			</form>
 		</div>
-
-		<span><?= $feedback?></span>
 	</section>
 
 	<section class="hakutulokset">
 	<?php if ( $haku ) : ?>
 		<h4>Yhteensä löydettyjä tuotteita:
-			<?=count($catalog_products)+count($not_available)+count($not_in_catalog)?></h4>
+			<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h4>
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
@@ -252,10 +225,11 @@ echo handle_shopping_cart_action();
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
 					<td class="toiminnot">
+						<!-- //TODO: Disable nappi, ja väritä tausta -->
 						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
 							<i class="material-icons">add_shopping_cart</i>Osta</a></td>
 				</tr>
-			<?php endforeach; ?>
+			<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
 			</tbody>
 		</table>
 		<?php endif; //if $catalog_products
@@ -761,6 +735,7 @@ echo handle_shopping_cart_action();
 			};
 			params = toJSON(params);
 			tecdocToCatPort[functionName] (params, function (response){
+				var i;
 				for(i=0; i<response.data.array.length; i++) {
 					$(".car_dropdown").append("<span style='cursor:pointer; display:block' onClick=\"showCars(this,"+articleId+")\" data-list-filled='false' data-manuId="+response.data.array[i].manuId+">"+response.data.array[i].manuName+"</span>" +
 						"<div class='car_dropdown_content' id='"+response.data.array[i].manuName+"'></div>");
@@ -873,16 +848,17 @@ echo handle_shopping_cart_action();
         };
         params = toJSON(params);
         tecdocToCatPort[functionName] (params, function (response){
-            var articleIdPairs = [];
+            var pair, i;
+			var articleIdPairs = [];
             if ( response.data != "" ) {
                 response = response.data.array[0];
-                for (var i = 0; i < response.articleLinkages.array.length; i++) {
-                    var pair = {
+                for (i = 0; i < response.articleLinkages.array.length; i++) {
+                    pair = {
                         "articleLinkId" : response.articleLinkages.array[i].articleLinkId,
                         "linkingTargetId" : response.articleLinkages.array[i].linkingTargetId
                     };
                     articleIdPairs.push(pair);
-                    if (articleIdPairs.length == 25) {
+                    if ( articleIdPairs.length == 25 ) {
                         getLinkedVehicleInfos(articleId, articleIdPairs);
                         articleIdPairs = [];
                     }
@@ -949,16 +925,13 @@ echo handle_shopping_cart_action();
 			}
 		} else {
 			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
-			//TODO: Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
+			//  Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
 //			$.post("ajax_requests.php",
 //				{	tuote_hankintapyynto: true,
 //					tuote_articleNo: ??,
 //					tuote_brandNo: ?? }
 //			);
-			alert("Tietokannassa tuotteen ostopyyntö on tallennettu meidän ID:n mukaan, " +
-				"ei TecDoc:in ID:n. Joten sen takia et pysty tekemään ostopyyntöä tällä hetkellä." +
-				"Uusi taulu hankintapyyntöjä varten on tekeillä, mutta se saattaa vaatia (?) " +
-				"uuden ID-systeemin odottelua.");
+			alert("Hankintapyyntö on tekeillä. Kiitos kärsivällisyydestäsi.");
 		}
 	}
 
@@ -966,15 +939,15 @@ echo handle_shopping_cart_action();
 	 * Tämän pitäisi lisätä tuote ostoskoriin...
 	 * @param product_id
 	 */
-	function addToShoppingCart_new( product_id ) { //TODO: käytä tätä uudessa ostoskorissa
+	function addToShoppingCart( product_id ) {
 		var kpl_maara = $("#maara_" + product_id).val();
 		if ( kpl_maara > 0 ) {
-			$.post("test_php.php",
+			$.post("ajax_requests.php",
 				{	ostoskori_toiminto: "lisaa",
 					tuote_id: product_id,
 					kpl_maara: kpl_maara }
 			);
-			alert("Tuote lisätty ostoskoriin. Huom., että ostoskorin laskuri päivittyy vasta sivun latauksessa tällä hetkellä.")
+			alert("Tuote lisätty ostoskoriin. Huom. ostoskorin laskuri päivittyy vasta sivun latauksessa tällä hetkellä.")
 		}
 	}
 

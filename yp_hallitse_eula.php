@@ -1,3 +1,9 @@
+<?php
+require '_start.php'; global $db, $user, $cart, $yritys;
+if (!is_admin()) {
+	header("Location:etusivu.php"); exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -17,14 +23,7 @@
     <title>EULA</title>
 </head>
 <body>
-<?php
-require 'header.php';
-require 'tietokanta.php';
-if (!is_admin()) {
-    header("Location:etusivu.php");
-    exit();
-}
-?>
+<?php require 'header.php'; ?>
 <main class="main_body_container">
     <h1>EULA</h1>
     <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>

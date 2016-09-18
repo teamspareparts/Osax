@@ -5,10 +5,10 @@
  * ns. 'etusivulle' menevät redirectit tälle sivulle.
  */
 if ( !isset( $_GET['test'] ) ) {
-	header("Location:tuotehaku.php"); exit();
+	header( "Location:tuotehaku.php" ); exit();
 }
 
-require 'tietokanta.php';
+require '_start.php'; global $db, $user, $cart, $yritys;
 
 function debug ($var) {print_r($var);var_dump($var);}
 

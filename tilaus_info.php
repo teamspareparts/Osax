@@ -1,21 +1,4 @@
-﻿<!DOCTYPE html>
-<html lang="fi">
-<head>
-	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
-	<style type="text/css">
-			.class #id tag {}
-			#tilaus_info_container {
-				background-color: #FFFFFF;
-			}
-			#tilaus_toimitusosoite {
-				padding-left: 0.5em;
-			}
-	</style>
-	<title>Tilaus-info</title>
-</head>
-<body>
-<?php include 'header.php';
+﻿<?php require '_start.php';
 require 'tietokanta.php';
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -25,7 +8,7 @@ require 'apufunktiot.php';
  * Tiedot tilaajaasta, tilauksen päivämäärä jne., plus toimitusosoite
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return array; tilauksen tiedot, pois lukien tuotteet
+ * @return stdClass; tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 	$query = "
@@ -61,7 +44,7 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
  * //	Hajoaa, jos liikaa tuotteita haetaan.
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return array <p> tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
+ * @return array <p> Array of objects. tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
  */
 function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 	$query = "
@@ -72,7 +55,7 @@ function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 		LEFT JOIN tuote
 			ON tuote.id = tilaus_tuote.tuote_id
 		WHERE tilaus_id = ? ";
-	return ( $db->query($query, [$tilaus_id], FETCH_ALL, PDO::FETCH_OBJ) );
+	return ( $db->query( $query, [$tilaus_id], FETCH_ALL ) );
 }
 
 
@@ -102,7 +85,27 @@ if ( !($tilaus_tiedot["sahkoposti"] == $_SESSION["email"]) ) {
 $products = get_products_in_tilaus( $db, $tilaus_id );
 if ( $products) {
 	merge_catalog_with_tecdoc($products, true);
-} else { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
+}
+?>
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="css/styles.css">
+	<style type="text/css">
+			.class #id tag {}
+			#tilaus_info_container {
+				background-color: #FFFFFF;
+			}
+			#tilaus_toimitusosoite {
+				padding-left: 0.5em;
+			}
+	</style>
+	<title>Tilaus-info</title>
+</head>
+<body>
+<?php include 'header.php';
+if ( !$products) { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
 
 <main class="main_body_container">
