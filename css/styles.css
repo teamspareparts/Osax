@@ -59,11 +59,18 @@ input { padding: 3pt; }
 }
 
 .header_top #head_info {
-	flex-grow: 1;
+	width: 22em;
 	font-size: 18px;
 	color: #2f5cad;
 	margin: auto;			/* Keskittää sisällön */
 	white-space: nowrap;
+}
+
+.header_top #head_cart {
+	flex-grow: 1;
+	font-size: 18px;
+	color: #2f5cad;
+	margin: auto auto auto 0.5em; /* Keskittää sisällön */
 }
 
 /********************************************

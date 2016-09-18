@@ -11,13 +11,15 @@
 
 <?php
 session_start();
-if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan onko uudellenohjaus
+if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :  // Tarkistetaan onko uudellenohjaus
 
 	if ( !empty($_SESSION['email']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
 	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
 
-	/** Error-boxin väritys. Muuta haluamaasi väriin. Jos haluat muuttaa vain yksittäisen
-	 * boxin värin, niin muuta suoraan style-merkkijonoon. */
+	/*
+	 * Error-boxin väritys. Muuta haluamaasi väriin. Jos haluat muuttaa vain yksittäisen
+	 * boxin värin, niin muuta suoraan style-merkkijonoon.
+	 */
 	$colors = [
 		'warning' => 'red',
 		'success' => 'green',
@@ -69,37 +71,38 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 
 		99=> array(
 				"otsikko" => " Kirjautuminen ",
-				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php?test">Linkki etusivulle</a></p>
+				"teksti" => 'Olet jo kirjautunut sisään.<p><a href="etusivu.php">Linkki etusivulle</a></p>
 							<p><a href="logout.php">Kirjaudu ulos</a></p>',
 				"style" => "style='color:{$colors['note']};'"),
 	];
-?>
-	<!-- Muuttujat hiljennetty, jotta se ei mene tulostamaan virhettä, jos joku rupeaa leikkimään URL:illa -->
-	<fieldset id=error <?= @$modes_array[$mode]['style'] ?>><legend> <?= @$modes_array[$mode]['otsikko'] ?> </legend>
-		<p> <?= $modes_array[$mode]['teksti'] ?> </p>
-	</fieldset>
-<?php endif; //!empty redir ?>
+
+	if ( in_array( $mode, $modes_array ) ) : ?>
+		<fieldset id=error <?= $modes_array[$mode]['style'] ?>><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
+			<p> <?= $modes_array[$mode]['teksti'] ?> </p>
+		</fieldset>
+<?php endif; //in_array()
+endif; //!empty redir ?>
 
 <!-- <main class="login_container"> -->
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="{3,255}$"
+			<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{8,255}$"
 				   required autofocus><br>
 			<br>
 			<label>Salasana:</label><br>
-			<input type="password" name="password" placeholder="password" pattern="{3,255}$" required><br>
-			<br>
+			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
+			<br><br>
 			<input type="hidden" name="mode" value="login">
-			<input type="submit" value="Kirjaudu sisään">
+			<input type="submit" value="Kirjaudu sisään" id="login_submit">
 		</form>
 	</fieldset>
 
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="yourname@email.com" pattern="{3,255}$"
+			<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{3,255}$"
 				   required autofocus ><br>
 			<br>
 			<input type="hidden" name="mode" value="password_reset">
@@ -116,7 +119,6 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['email']) ) :	// Tarkistetaan on
 <script>
 	window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
 	//TODO: Evästeet
-	//TODO: Tarkista salasanan pituus
 </script>
 
 </body>

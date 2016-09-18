@@ -30,7 +30,7 @@ function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_has
 
 	$difference = $interval->y + $interval->m + $interval->d + $interval->h; // Lasketaan aikojen erotus
 
-	//TODO: Tässä oli alunperin 4. Oliko se tarkoituksellista?
+	//TODO: Tässä oli alunperin 4. Oliko se tarkoituksellista? Tarkista tämä vielä kerran.
 	/**
 	 * Default aika, jonka jälkeen avain vanhenee: 1 tunti
 	 * HUOM! Allaolevaa lukua pitää muutta tietokannan asetusten mukaan
@@ -94,7 +94,7 @@ if ( !empty($_POST['reset']) ) {
 }
 ?>
 <main class="login_container">
-	<img src="img/osax-Logo.jpg" alt="Osax.fi">
+	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
 	<?php if ( $error ) : ?>
 		<fieldset id=error><legend> Salasana ja varmistus eivät täsmää </legend>

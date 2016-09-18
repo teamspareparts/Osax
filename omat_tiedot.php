@@ -14,20 +14,18 @@ require 'tietokanta.php';
 //Päivitetäänkö omat tiedot
 $huomautus = null;
 if (isset($_POST['uudet_tiedot'])){
-    $huomautus = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh']);
+	$huomautus = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh']);
 }
 elseif (isset($_POST['new_password'])) {
-    $huomautus = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
+	$huomautus = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
 }
 
 
 
 //käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
-global $db;
-$tbl_name = 'kayttaja';
 
 $email = $_SESSION['email'];
-$query = "SELECT * FROM $tbl_name WHERE sahkoposti= ? ";
+$query = "SELECT * FROM kayttaja WHERE sahkoposti= ? ";
 $tiedot = $db->query($query, [$email], FETCH_ALL, PDO::FETCH_OBJ)[0];
 $email = $tiedot->sahkoposti;
 $enimi = $tiedot->etunimi;
@@ -41,7 +39,7 @@ $yritys_id = $tiedot->yritys_id;
 $query = "SELECT * FROM $tbl_name WHERE id = ? ";
 $yritys = $db->query($query, [$yritys_id], FETCH_ALL, PDO::FETCH_OBJ);
 if (count($yritys) == 1) {
-    $yritys = $yritys[0];
+	$yritys = $yritys[0];
 }
 
 ?>

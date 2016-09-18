@@ -27,7 +27,6 @@ check_login_status();
 	<div class="header_top">
 		<div id="head_logo">
 			<img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
-			<!-- TODO: Uusi logo, muuta headerin tausta valkoiseksi -->
 		</div>
 
 		<div id="head_info">
@@ -35,7 +34,17 @@ check_login_status();
 			Kirjautuneena: <?= $_SESSION['email'] ?>
 		</div>
 
-		<!-- TODO: Lisää ostoskorin linkki tähän, jos pystyy -->
+		<!-- TODO: Korjaa tyylittelyä -->
+		<div id="head_cart">
+			<a href='ostoskori.php' class="flex_row">
+				<div style="margin:auto 5px;">
+					<i class="material-icons">shopping_cart</i>
+				</div>
+				<div>
+					Ostoskori<br>
+				</div>
+			</a>
+		</div>
 	</div>
 
 	<div id="navigationbar">
@@ -49,6 +58,7 @@ check_login_status();
 		        <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
 				<div class="dropdown">
 					<li><a><span>Muut</span></a></li> <!-- //TODO: Lisää dropdown-ikoni -->
+					<!-- //FIXME: Element <li> is not allowed here -->
 					<div class="dropdown-content">
 						<li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
 						<li><a><span>raportit</span></a></li>

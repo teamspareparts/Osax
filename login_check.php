@@ -1,9 +1,11 @@
 <?php
-/** Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
- * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle. */
+/**
+ * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
+ * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
+ */
 require 'tietokanta.php';
 require 'email.php';
-require 'IP.php';
+require 'luokat/IP.class.php';
 require 'tecdoc.php';
 
 /**
@@ -104,51 +106,50 @@ if ( empty($_POST["mode"]) ) {
 $mode = $_POST["mode"];
 $email = isset($_POST["email"])
 	? trim($_POST["email"]) : NULL;
-$password = isset($_POST["password"])
+$password = (isset($_POST["password"]) && strlen($_POST["password"]) < 300)
 	? trim($_POST["password"]) : NULL;
 $salasanan_voimassaoloaika = 180;
 
 date_default_timezone_set("Europe/Helsinki");
-session_start();
-
 
 /*************************
  *  Sisäänkirjautuminen  *
  *************************/
 if ( $mode == "login" ) {
-	
+	session_start();
+
 	// Haetaan käyttäjän tiedot
 	$sql_query = "	SELECT	id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo, 
 						voimassaolopvm,	viime_sijainti, yritys_id,
 						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
-	$user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
+	$login_user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
 	
-	if ( $user ) {
-		beginning_user_checks( $user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
+	if ( $login_user ) {
+		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
 		// Jos läpi tarkistuksista...
 		
-   		$_SESSION['email']	= $user->sahkoposti;
-   		$_SESSION['id']		= $user->id;
-   		$_SESSION['admin']	= $user->yllapitaja;
-   		$_SESSION['demo']	= $user->demo;
-   		$_SESSION['koko_nimi'] = $user->koko_nimi;
-		$_SESSION['yritys_id'] = $user->yritys_id;
+   		$_SESSION['email']	= $login_user->sahkoposti;
+   		$_SESSION['id']		= $login_user->id;
+   		$_SESSION['admin']	= $login_user->yllapitaja;
+   		$_SESSION['demo']	= $login_user->demo;
+   		$_SESSION['koko_nimi'] = $login_user->koko_nimi;
+		$_SESSION['yritys_id'] = $login_user->yritys_id;
    		
 //   		check_IP_address( $db, $user->id, $user_info->viime_sijainti );
 
    		/** Tarkistetaan salasanan voimassaoloaika */ 		
-   		$time_then 	= new DateTime( $user->salasana_vaihdettu ); // muunnettuna DateTime-muotoon
+   		$time_then 	= new DateTime( $login_user->salasana_vaihdettu ); // muunnettuna DateTime-muotoon
 		$time_now	= new DateTime();
 		//Jos salasana vanhentunut tai salasana on uusittava
-   		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) || $user->salasana_uusittava ) {
-   			password_reset( $db, $user, 'expired' );
+   		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) || $login_user->salasana_uusittava ) {
+   			password_reset( $db, $login_user, 'expired' );
    		}
    		
    		else { //JOS KAIKKI OK->
             addDynamicAddress();
-   			if ( $user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...
+   			if ( $login_user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...
    			header("Location:tuotehaku.php"); exit;
    		}
 	   
@@ -165,11 +166,11 @@ elseif ( $mode == "password_reset" ) {
 	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm
 					FROM	kayttaja
 					WHERE	sahkoposti = ?";
-	$user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
+	$login_user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
 	
-	if ( $user ) {
-		beginning_user_checks( $user, NULL, TRUE );
-		password_reset( $db, $user, 'reset' );
+	if ( $login_user ) {
+		beginning_user_checks( $login_user, NULL, TRUE );
+		password_reset( $db, $login_user, 'reset' );
 	} else {
 		header("Location:index.php?redir=1"); //Sähköpostia ei löytynyt
 		exit();
