@@ -2,7 +2,7 @@
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `sahkoposti` varchar(255) NOT NULL, -- UNIQUE KEY
   `salasana_hajautus` varchar(100) NOT NULL,
-  `salasana_vaihdettu` datetime DEFAULT NULL,
+  `salasana_vaihdettu` TIMESTAMP DEFAULT NULL,
   `etunimi` varchar(20) DEFAULT NULL,
   `sukunimi` varchar(20) DEFAULT NULL,
   `yritys_id` int(11) DEFAULT NULL, -- Foreign K
@@ -11,11 +11,11 @@
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
   `demo` tinyint(1) NOT NULL DEFAULT '0', -- Välikaikainen tunnus sivuston demoamista varten
   `viime_sijainti` varchar(100) DEFAULT '',
-  `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `voimassaolopvm` datetime DEFAULT NULL, -- Miten pitkään tunnus on voimassa, jos demo = 1
+  `luotu` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `voimassaolopvm` TIMESTAMP DEFAULT NULL, -- Miten pitkään tunnus on voimassa, jos demo = 1
   `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
-  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '50', -- Default 1000
+  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '1000',
   `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `kayttaja_id` int(11) NOT NULL, -- Foreign KEY
   `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
-  `paivamaara` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `paivamaara` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
 CREATE TABLE IF NOT EXISTS `pw_reset` (
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
   `reset_key_hash` varchar(40) NOT NULL, -- PK
-  `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `reset_exp_aika` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
   PRIMARY KEY (`kayttaja_id`, `reset_key_hash`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP, -- PK
+  `pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
   `articleNo` varchar(20) NOT NULL, -- PK
   `brandNo` int(11) NOT NULL, -- PK
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `pvm` DATETIME DEFAULT CURRENT_TIMESTAMP, -- PK
+  `pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`articleNo`, `brandNo`, `kayttaja_id`, `pvm`)
   /* Jotenkin minusta tuntuu, että ei pitäisi olla SQL-taulua neljällä PK:lla */
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `maaraalennus_kpl` int(11) DEFAULT '0',
   `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
   `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
-  `voimassaolopvm` datetime DEFAULT NULL, -- Jos tarjouksella on vanhenemisraja
+  `voimassaolopvm` TIMESTAMP DEFAULT NULL, -- Jos tarjouksella on vanhenemisraja
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
