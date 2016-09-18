@@ -19,26 +19,43 @@ if (!is_admin()) {
 <div class="container">
 
 <?php
+/**
+ * Hakee kaikkien tietokannasta löytyvien valmistajien valmistajien id:t
+ * ja hinnastojen sisäänajopäivämäärät.
+ * @return array|bool|stdClass
+ */
 function hae_hinnaston_sisaanajo_pvm(){
 	global $db;
-	$query = "SELECT brandId, sisaanajo_pvm FROM valmistajan_hinnaston_sisaanajo";
+	$query = "SELECT brandId, hinnaston_sisaanajo_pvm, valmistajan_id FROM valmistaja";
 	return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 }
 
+/**
+ * Sorttaus algoritmi merkkijonoille.
+ * @param $a
+ * @param $b
+ * @return int
+ */
 function cmp($a, $b) {
 	return strcmp($a->brandName, $b->brandName);
 }
 
+//Haetaan kaikki valmistajat
 $brands = getAmBrands();
+//Järjestetään aakkosten mukaan
 usort($brands, "cmp");
-$paivamaarat = hae_hinnaston_sisaanajo_pvm();
+$valmistajat = hae_hinnaston_sisaanajo_pvm();
 
+
+//Tulostetaan "laatikot", jotka sisältävät kuvan, nimen, id:n ja hinnaston sisäänajopäivämäärän
 foreach ($brands as $brand) {
-	$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-	echo '<div class="floating-box clickable" data-brandId="'.$brand->brandId.'" data-brandName="'.$brand->brandName.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
-	foreach ($paivamaarat as $pvm) {
-		if ( $pvm->brandId == $brand->brandId ) {
-			$date = new DateTime($pvm->sisaanajo_pvm);
+	foreach ($valmistajat as $valmistaja) {
+		if ( $valmistaja->brandId == $brand->brandId ) {
+			$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
+			echo '<div class="floating-box clickable" data-valmistajaId="'.$valmistaja->valmistajan_id.'" data-brandId="'.$brand->brandId.'" data-brandName="'.$brand->brandName.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
+			echo "ID: <b>" . $valmistaja->valmistajan_id . "</b><br> ";
+			if (!isset($valmistaja->hinnaston_sisaanajo_pvm)) continue;
+			$date = new DateTime($valmistaja->hinnaston_sisaanajo_pvm);
 			echo "Päivitetty: " . $date->format('d.m.Y');
 		}
 	}
@@ -51,58 +68,24 @@ foreach ($brands as $brand) {
 
 <script type="text/javascript">
 $(document).ready(function(){
-	
-	/*$('.clickable').click(function(){
-		var brandId = $(this).closest('tr').attr('data-val');
-		var brandName = $(this).closest('tr').children("td:nth-child(2)").text();
 
-		//luodaan form
-		var form = document.createElement("form");
-		form.setAttribute("method", "GET");
-		form.setAttribute("action", "toimittajan_hallinta.php");
-
-		//brandId
-		var field1 = document.createElement("input");
-        field1.setAttribute("type", "hidden");
-        field1.setAttribute("name", "brandId");
-        field1.setAttribute("value", brandId);
-        form.appendChild(field1);
-
-        //brandName
-        var field2 = document.createElement("input");
-        field2.setAttribute("type", "hidden");
-        field2.setAttribute("name", "brandName");
-        field2.setAttribute("value", brandName);
-        form.appendChild(field2);
-
-		//form submit
-		document.body.appendChild(form);
-	    form.submit();
-
-	    //-> Toimittajan hallintaan
-	});*/
-
+	//Submit form
 	$('.clickable').click(function(){
 		var brandId = $(this).attr('data-brandId');
 		var brandName = $(this).attr('data-brandName');
+		var valmistajaId = $(this).attr('data-valmistajaId');
 
 		var form = document.createElement("form");
 		form.setAttribute("method", "GET");
 		form.setAttribute("action", "toimittajan_hallinta.php");
 
-		//brandId
-		var field1 = document.createElement("input");
-		field1.setAttribute("type", "hidden");
-		field1.setAttribute("name", "brandId");
-		field1.setAttribute("value", brandId);
-		form.appendChild(field1);
+		//brandId	(Tecdocista saatava)
+		var field = document.createElement("input");
+		field.setAttribute("type", "hidden");
+		field.setAttribute("name", "brandId");
+		field.setAttribute("value", brandId);
+		form.appendChild(field);
 
-		//brandName
-		var field2 = document.createElement("input");
-		field2.setAttribute("type", "hidden");
-		field2.setAttribute("name", "brandName");
-		field2.setAttribute("value", brandName);
-		form.appendChild(field2);
 
 		//form submit
 		document.body.appendChild(form);

@@ -197,9 +197,12 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `valmistajan_hinnaston_sisaanajo` (
-  `brandId` int(11) NOT NULL, -- PK;
-  `sisaanajo_pvm` DATETIME NOT NULL,
+CREATE TABLE IF NOT EXISTS `valmistaja` (
+  `brandId` int(11) NOT NULL, -- PK;  Tecdocista saatava id
+  `brandName` varchar(50) NOT NULL,
+  `valmistajan_id` int(11) NOT NULL, -- UNIQUE K;  Käsin syötettävä kolminumeroinen id
+  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
+  `hinnaston_sisaanajo_pvm` DATETIME DEFAULT NULL,
   PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
