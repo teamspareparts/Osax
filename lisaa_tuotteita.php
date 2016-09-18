@@ -46,10 +46,9 @@ $brandName = $_GET['brandName'];
 
 function paivita_hinnaston_sisaanluku_pvm($brandId){
 	global $db;
-	$query = "	INSERT INTO valmistajan_hinnaston_sisaanajo (brandId, sisaanajo_pvm)
- 				VALUES (?, NOW()) 
- 				ON DUPLICATE KEY
- 				UPDATE sisaanajo_pvm = NOW();";
+	$query = "	UPDATE valmistaja
+	 			SET hinnaston_sisaanajo_pvm = NOW()
+ 				WHERE brandId = ? ";
 	$db->query($query, [$brandId]);
 }
 

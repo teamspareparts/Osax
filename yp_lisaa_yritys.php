@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
@@ -77,11 +77,11 @@ if (!is_admin()) {
     function db_lisaa_yritys($yritys_nimi, $y_tunnus, $email,
                               $puh, $osoite, $postinumero, $postitoimipaikka, $maa){
 
-            //Palvelimeen liittyminen
+
         global $db;
         $tbl_name = 'yritys';
 
-        //Tarkastetaan onko samannimistä käyttäjätunnusta
+        //Tarkastetaan onko samannimistä yritystä
         $query = "SELECT * FROM $tbl_name WHERE y_tunnus= ? OR nimi= ? ";
         $result = $db->query($query, [$y_tunnus, $yritys_nimi], FETCH_ALL, PDO::FETCH_OBJ);
 
@@ -109,8 +109,9 @@ if (!is_admin()) {
             //JOS tietokannassa on duplikaatteja...
             echo "ERROR";
         }
-        //Luodaan yritykselle ostoskori
-        $db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
+	//Luodaan yritykselle ostoskori
+	$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
+
     }
     ?>
 </div>

@@ -761,9 +761,9 @@ echo handle_shopping_cart_action();
 			};
 			params = toJSON(params);
 			tecdocToCatPort[functionName] (params, function (response){
-				for(i=0; i<response.data.array.length; i++) {
+				for(var i=0; i<response.data.array.length; i++) {
 					$(".car_dropdown").append("<span style='cursor:pointer; display:block' onClick=\"showCars(this,"+articleId+")\" data-list-filled='false' data-manuId="+response.data.array[i].manuId+">"+response.data.array[i].manuName+"</span>" +
-						"<div class='car_dropdown_content' id='"+response.data.array[i].manuName+"'></div>");
+						"<div class='car_dropdown_content' id=manufacturer-"+response.data.array[i].manuId+"></div>");
 				}
 				//getLinkedVehicleIds(articleId);
 			})
@@ -840,6 +840,7 @@ echo handle_shopping_cart_action();
 
 		//Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
 		getComparableNumber(articleNo);
+		//Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
         getLinkedManufacturers(articleId);
 		showModal(); //näytetään modal
 
@@ -850,14 +851,14 @@ echo handle_shopping_cart_action();
         //Haetaan autot, jos niitä ei ole vielä haettu
         if (elmnt.getAttribute("data-list-filled") == "false") {
             elmnt.setAttribute("data-list-filled", "true");
-            $("#"+elmnt.innerHTML).addClass("loader");
+            $("#manufacturer-"+elmnt.getAttribute('data-manuId')).addClass("loader");
             getLinkedVehicleIds(articleId, elmnt.getAttribute("data-manuId"));
         }
-        if ($("#" + elmnt.innerHTML).css("display") == "none") {
-            $("#" + elmnt.innerHTML).css("display", "block");
+        if ($("#manufacturer-"+elmnt.getAttribute('data-manuId')).css("display") == "none") {
+            $("#manufacturer-"+elmnt.getAttribute('data-manuId')).css("display", "block");
         }
         else {
-            $("#" + elmnt.innerHTML).css("display", "none");
+            $("#manufacturer-"+elmnt.getAttribute('data-manuId')).css("display", "none");
         }
     }
     //Haetaan linkitettyjen autojen ID:t
@@ -910,13 +911,13 @@ echo handle_shopping_cart_action();
     }
 
     function addLinkedVehiclesToModal(response) {
-        $("#"+response.data.array[0].linkedVehicles.array[0].manuDesc).removeClass("loader");
+        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
         for (var i=0; i<response.data.array.length ; i++) {
             var yearTo = "";
             if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo != 'undefined') {
                 yearTo = addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
             }
-            $("#" + response.data.array[i].linkedVehicles.array[0].manuDesc).append("<li style='font-size: 14px;'>" +
+            $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
                 response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
                 response.data.array[i].linkedVehicles.array[0].carDesc + " " +
                 addSlash(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +

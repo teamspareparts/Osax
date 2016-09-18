@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require 'tietokanta.php';
 session_start();
 
@@ -34,7 +34,7 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 		<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
 	</div>
 	<div id="head_logo">
-		<h1>LOGO</h1>
+		<img src="img/osax_logo.jpg" />
 	</div>
 </header>
 	

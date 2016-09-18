@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/styles.css">
     <style type="text/css">
-        .class #id tag {}
-        #tuote_tiedosto, #eula_tiedosto {
+        #eula_tiedosto {
             border: 1px dashed;
             border-radius: 6px;
         }
-        #tuote_tiedosto:hover, #eula_tiedosto:hover {
+        #eula_tiedosto:hover {
             border-color: cadetblue;
         }
     </style>
@@ -34,7 +33,7 @@ if (!is_admin()) {
         <form action="#" method="post" enctype="multipart/form-data">
             Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt"/>
             <input id="submit_eula" type="submit" name="submit" value="Submit" disabled/>
-            <a href="http://www.osax.fi/eula.txt" download="nykyinen_EULA" style="margin-left:100px">Lataa nykyinen EULA</a>
+            <a href="http://www.osax.fi/eula.txt" download="eula" style="margin-left:100px">Lataa nykyinen EULA</a>
         </form>
     </fieldset>
 </main>
@@ -49,12 +48,13 @@ if(isset($_FILES['eula']['name'])) {
     if(!$_FILES['eula']['error']) {
 
         $target_dir = ""; //jos ladataan johonkin kansioon kuten "eula/"
-        $target_file = $target_dir . basename($_FILES["eula"]["name"]);
+
+        //$target_file = $target_dir . basename($_FILES["eula"]["name"]);
+        $target_file = $target_dir . "eula.txt";
 
         // Uusien asiakkaiden on vahvistettava uusi eula.
-        global $connection;
         $query = "UPDATE kayttaja SET vahvista_eula=1";
-        mysqli_query($connection, $query);
+        $db->query($query);
 
         // Onnistuiko tiedoston siirtäminen serverille
         if (move_uploaded_file($_FILES['eula']['tmp_name'], $target_file)) {
