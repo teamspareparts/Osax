@@ -143,7 +143,7 @@ if ( $mode == "login" ) {
 
 	// Haetaan käyttäjän tiedot
 	$sql_query = "	SELECT	id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo, 
-						voimassaolopvm,	viime_sijainti, yritys_id,
+						voimassaolopvm,	viime_sijainti, yritys_id, salasana_vaihdettu, salasana_uusittava,
 						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
@@ -155,9 +155,7 @@ if ( $mode == "login" ) {
 		
    		$_SESSION['email']	= $login_user->sahkoposti;
    		$_SESSION['id']		= $login_user->id;
-   		$_SESSION['admin']	= $login_user->yllapitaja;
-   		$_SESSION['demo']	= $login_user->demo;
-   		$_SESSION['koko_nimi'] = $login_user->koko_nimi;
+   		$_SESSION['admin']	= $login_user->yllapitaja; //TODO: Tämän voisi korvata luokan metodilla
 		$_SESSION['yritys_id'] = $login_user->yritys_id;
    		
 //   		check_IP_address( $db, $user->id, $user_info->viime_sijainti );
@@ -166,7 +164,8 @@ if ( $mode == "login" ) {
    		$time_then 	= new DateTime( $login_user->salasana_vaihdettu ); // muunnettuna DateTime-muotoon
 		$time_now	= new DateTime();
 		//Jos salasana vanhentunut tai salasana on uusittava
-   		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) || $login_user->salasana_uusittava ) {
+   		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) ||
+			$login_user->salasana_uusittava ) {
    			password_reset( $db, $login_user, 'expired' );
    		}
    		

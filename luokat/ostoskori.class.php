@@ -86,7 +86,7 @@ class Ostoskori {
 	/**
 	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin. Hakee vain ID:n ja kpl-maaran.
 	 * @param boolean $kaikki_tiedot <p> Haetaanko kaikki tiedot (tuotteet & kappalemäärä),
-	 * 		vai vain montako eri tuotetta ostoskorissa on ( COUNT(tuote_id) ).
+	 * 		vai vain montako eri tuotetta ostoskorissa on ( COUNT(tuote_id) ja SUM(kpl_maara) ).
 	 */
 	public function hae_ostoskorin_sisalto ( /*boolean*/ $kaikki_tiedot = FALSE ) {
 		if ( !$kaikki_tiedot ) {
