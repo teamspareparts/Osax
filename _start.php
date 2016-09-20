@@ -19,6 +19,12 @@ function is_admin() {
 	return isset($_SESSION['admin']) && $_SESSION['admin'] == 1;
 }
 
+/**
+ * For debuggin. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
+ * @param $var
+ */
+function debug($var){echo"<br><pre>";print_r($var);echo"<br>";var_dump($var);echo"</pre><br>";}
+
 /*
  * Aloitetaan sessio ja tarkistetaan kirjautuminen jo ennen kaikkea muuta
  */

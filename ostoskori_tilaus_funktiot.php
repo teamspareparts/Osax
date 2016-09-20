@@ -17,16 +17,15 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 
 	if ( !empty( $cart->tuotteet ) ) {
 		$ids = implode( ',', array_keys( $cart->tuotteet ) );
-		$query = "
-			SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, alennusera_prosentti,
-				(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
-				ALV_kanta.prosentti AS alv_prosentti
-			FROM	tuote
-			LEFT JOIN	ALV_kanta
-				ON		tuote.ALV_kanta = ALV_kanta.kanta
-			WHERE 	tuote.id IN ({$ids})"; //TODO: Unsafe use of sql-statements
+		$sql = "SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, 
+					alennusera_prosentti, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+					ALV_kanta.prosentti AS alv_prosentti
+				FROM	tuote
+				LEFT JOIN ALV_kanta
+					ON tuote.ALV_kanta = ALV_kanta.kanta
+				WHERE 	tuote.id IN ({$ids})"; //TODO: Unsafe use of sql-statements
 
-		$rows = $db->query( $query, NULL, DByhteys::FETCH_ALL );
+		$rows = $db->query( $sql, NULL, DByhteys::FETCH_ALL );
 
 		if ( $rows ) {
 			foreach ( $rows as $row ) {
@@ -233,16 +232,16 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /*bool*/ $osto
 
 /**
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
- * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu.<br>
+ * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu | ei toimitusosoitetta.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
  * @param array $products
- * @param int $tmo_arr_count <p>
+ * @param int $user_addr_count <p> Kuinka monta toimitusosoitetta käyttäjällä on.
  * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
- * 		Onko käyttäjän profiilissa toimitusosoitteita. Ei tarvita ostoskorissa. Pakollinen tilauksen vahvistuksessa.
+ *        Onko käyttäjän profiilissa toimitusosoitteita. Ei tarvita ostoskorissa. Pakollinen tilauksen vahvistuksessa.
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		array $products, /*int*/ $tmo_arr_count, /* bool */ $ostoskori = TRUE ) {
+		array $products, /*int*/ $user_addr_count, /* bool */ $ostoskori = TRUE ) {
 	$enough_in_stock = TRUE;
 	$enough_ordered = TRUE;
 	$tuotteita_ostoskorissa = TRUE;
@@ -254,7 +253,7 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 		$linkki = 'onClick="laheta_Tilaus();"';
 	}
 
-	if ( $tmo_arr_count < 1 ) {
+	if ( $user_addr_count < 1 ) {
 		$tmo_valittu = false;
 		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
 	}

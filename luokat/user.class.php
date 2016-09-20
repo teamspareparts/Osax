@@ -28,12 +28,12 @@ class User {
 	 */
 	function __construct ( DByhteys $db, /*int*/ $user_id ) {
 		$this->id = $user_id;
-		$sql_q = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
-						 yllapitaja, demo, voimassaolopvm, salasana_uusittava 
-				  FROM kayttaja 
-				  WHERE id = ?
-				  LIMIT 1";
-		$foo = $db->query( $sql_q, [$user_id] );
+		$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
+				  	yllapitaja, demo, voimassaolopvm, salasana_uusittava 
+				FROM kayttaja 
+				WHERE id = ?
+				LIMIT 1";
+		$foo = $db->query( $sql, [$user_id] );
 
 		$this->yritys_id = $foo->yritys_id;
 		$this->sahkoposti = $foo->sahkoposti;
@@ -62,9 +62,9 @@ class User {
 	 */
 	function kokoNimi() {
 		$str = ( (strlen($this->etunimi) > 15)
-				? (substr($this->etunimi, 0, 1) . ".")
-				: $this->etunimi )
-			. " " . $this->sukunimi;
+			? (substr($this->etunimi, 0, 1) . ".")
+			: $this->etunimi )
+			. " {$this->sukunimi}";
 
 		if ( strlen($str) > 30 ) {
 			$str = substr($str, 0, 26) . "...";
@@ -84,8 +84,8 @@ class User {
 	 */
 	function haeToimitusosoitteet ( DByhteys $db, /*int*/ $to_id = -1 ) {
 		if ( $to_id == -2 ) {
-			$sql = "SELECT COUNT(osoite_id) FROM toimitusosoite WHERE kayttaja_id = ? ";
-			$this->toimitusosoitteet['count'] = $db->query( $sql, [$this->id] );
+			$sql = "SELECT COUNT(osoite_id) AS count FROM toimitusosoite WHERE kayttaja_id = ? ";
+			$this->toimitusosoitteet['count'] = $db->query( $sql, [$this->id] )->count;
 
 		} elseif ( $to_id == -1 ) {
 			$sql = "SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, 

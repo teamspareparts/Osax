@@ -4,11 +4,7 @@ require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'ostoskori_tilaus_funktiot.php';
 
-$user->haeToimitusosoitteet( $db, -2 ); //Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
-$products = get_products_in_shopping_cart( $db, $cart );
-$sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
-$cart_feedback = "";
-
+// Normaalisti tämä tulisi muuttujien jälkeen vasta, mutta koska k.o. muuttujat käyttävät $cart-oliota...
 if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_id = $_POST['ostoskori_tuote'];
 	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
@@ -18,7 +14,7 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 		} else {
 			$cart_feedback = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 		}
-	} elseif ( $tuote_kpl == 0 ) {
+	} elseif ( $tuote_kpl == 0 ) { //TODO: Tarkista miten tämä käyttäytyy NULLin kanssa
 		if ( $cart->poista_tuote( $tuote_id ) ) {
 			$cart_feedback = '<p class="success">Tuote poistettu ostoskorista.</p>';
 		} else {
@@ -26,6 +22,11 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 		}
 	}
 }
+
+$user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
+$products = get_products_in_shopping_cart( $db, $cart );
+$sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
+$cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -66,10 +67,13 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
-					<input id="maara_<?= $product->id ?>" name="maara_<?= $product->id ?>" class="maara number" type="number" value="<?= $product->cartCount ?>" min="0" title="Kappalemäärä">
+					<input id="maara_<?= $product->id ?>" name="maara_<?= $product->id ?>"
+						   class="maara number" type="number" value="<?= $product->cartCount ?>"
+						   min="0" title="Kappalemäärä">
 				</td>
 				<td><?= laske_era_alennus_palauta_huomautus( $product )?></td>
-				<td class="toiminnot"><a class="nappi" href="javascript:void(0)" onclick="cartAction('<?= $product->id?>')">Päivitä</a></td>
+				<td class="toiminnot"><a class="nappi" href="javascript:void(0)"
+										 onclick="cartAction('<?= $product->id?>')">Päivitä</a></td>
 			</tr>
 		<?php endforeach;
 		$rahtimaksu = hae_rahtimaksu( $yritys, $sum );  ?>
