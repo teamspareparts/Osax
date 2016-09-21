@@ -1,14 +1,14 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
-
-if ( isset($_POST['vahvista_eula']) ) {
-	$db->query( "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?",
-		[$user->id] );
-	header('Location:etusivu.php'); exit;
-}
+session_start();
+if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
 $txt_tiedosto = __DIR__.'/eula.txt';
-$eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
+$eula_txt = @file_get_contents( $txt_tiedosto, false, NULL, 0 );
+
+if ( !$eula_txt ) {
+	$eula_txt = "Oikeaa käyttöoikeussopimusta ei löytynyt. Ole hyvä ja ilmoita ylläpitäjälle.\n
+		Jos olet ylläpitäjä, niin sinun varmaan kannattaisi päivittää uusi käyttöoikeussopimus serverille.";
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -39,18 +39,20 @@ $eula_txt = file_get_contents( $txt_tiedosto, false, NULL, 0 );
 	</div>
 </main>
 
-<form class="hidden" id="vahvista_eula_form" action="#" method=post>
-	<input type=hidden name="vahvista_eula">
-</form>
-
 <script>
-function hyvaksy_eula () {
-	document.getElementById("vahvista_eula_form").submit();
-}
+	function hyvaksy_eula () {
+		$.post("ajax_requests.php",
+			{	eula_vahvista: true,
+				user_id: <?=$_SESSION['id']?>
+			}
+		);
+		document.getElementById("vahvista_eula_form").submit();
+		window.location="./etusivu.php";
+	}
 
-function hylkaa_eula () {
-	window.location="./logout.php?redir=10";
-}
+	function hylkaa_eula () {
+		window.location="./logout.php?redir=10";
+	}
 </script>
 
 </body>

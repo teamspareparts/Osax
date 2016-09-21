@@ -17,8 +17,8 @@ if ( isset($_POST['ostoskori_toiminto']) ) {
  * Tuotteen ostospyyntöä varten.
  */
 elseif ( !empty($_POST['tuote_ostopyynto']) ) {
-	$sql = 'INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id )
-			VALUES ( ?, ? ) ';
+	$sql = "INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id )
+			VALUES ( ?, ? )";
 	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
 }
 
@@ -27,7 +27,15 @@ elseif ( !empty($_POST['tuote_ostopyynto']) ) {
  * ei ole vielä meidän tietokannassa, joten sillä on erillinen taulu.
  */
 elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
-	$sql = 'INSERT INTO tuote_hankintapyynto (articleNo, brandNo, kayttaja_id )
-			VALUES ( ?, ?, ? ) ';
+	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandNo, kayttaja_id )
+			VALUES ( ?, ?, ? )";
 	$db->query( $sql, [$_POST['tuote_articleNo'], $_POST['tuote_brandNo'], $_SESSION['id']] );
+}
+
+/**
+ * Eulan vahvistus
+ */
+elseif ( !empty($_POST['vahvista_eula']) ) {
+	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
+	$db->query( $sql, [$_POST['user_id']] );
 }

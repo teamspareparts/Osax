@@ -1,3 +1,22 @@
+<?php
+require './luokat/laskutiedot.class.php';
+require './tietokanta.php';
+date_default_timezone_set('Europe/Helsinki');
+
+$lasku = new Laskutiedot( $db );
+
+if ( !empty($_POST['tilaus']) || !empty($_GET['getLaskuID']) ) {
+	$lasku->haeTilauksenTiedot( (isset($_POST['tilaus']) ? $_POST['tilaus'] : $_GET['getLaskuID']) );
+	$lasku_S = $lasku->tulostaLasku();
+}
+
+$asiakas = $lasku->getAsiakas();
+$yritys = $lasku->getYritys();
+$tmo = $lasku->getToimitusosoite();
+$tuotteet = $lasku->getTuotteet();
+$hinta = $lasku->getHintatiedot();
+$i = 0; //Tuotteiden numerointia varten
+?>
 <!doctype html>
 <html lang="fi">
 <head>
@@ -62,25 +81,6 @@
 	</style>
 </head>
 <body>
-<?php
-require './laskutiedot.class.php';
-require './tietokanta.php';
-date_default_timezone_set('Europe/Helsinki');
-
-$lasku = new Laskutiedot( $db );
-
-if ( !empty($_POST['tilaus']) || !empty($_GET['getLaskuID']) ) {
-	$lasku->haeTilauksenTiedot( (isset($_POST['tilaus']) ? $_POST['tilaus'] : $_GET['getLaskuID']) );
-	$lasku_S = $lasku->tulostaLasku();
-}
-
-$asiakas = $lasku->getAsiakas();
-$yritys = $lasku->getYritys();
-$tmo = $lasku->getToimitusosoite();
-$tuotteet = $lasku->getTuotteet();
-$hinta = $lasku->getHintatiedot();
-$i = 0; //Tuotteiden numerointia varten
-?>
 
 <header>
 	<h3>Alustava laskutietojen etsintä, ja testaus. WIP.</h3>
@@ -192,7 +192,6 @@ $i = 0; //Tuotteiden numerointia varten
 			</div>
 		</section>
 	</div>
-
 </main>
 <body>
 <html>
