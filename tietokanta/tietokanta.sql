@@ -127,7 +127,7 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   PRIMARY KEY (`kayttaja_id`, `osoite_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-/* Valikoimassa olevaa tuotetta varten */
+/* Valikoimassa olevaa tuotetta varten (varastosaldo == 0) */
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
@@ -135,13 +135,14 @@ CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-/* Ei-valikoimassa olevat tuotteet.
-   Taulua ei voida ottaa käyttöön ennen kuin uusi tuote-ID on toteutettu? */
+/* Ei-valikoimassa olevat tuotteet. */
 CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
   `articleNo` varchar(20) NOT NULL, -- PK
   `brandNo` int(11) NOT NULL, -- PK
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- PK
+  `korvaava_okey` boolean NOT NULL DEFAULT 1,
+  `selitys` varchar(1000) DEFAULT NULL,
+  `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`articleNo`, `brandNo`, `kayttaja_id`, `pvm`)
   /* Jotenkin minusta tuntuu, että ei pitäisi olla SQL-taulua neljällä PK:lla */
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -149,6 +150,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `tuote_id` int(11) DEFAULT NULL, -- Foreign KEY
+  `yritys_id` int(11) DEFAULT NULL, -- Foreign KEY
   `kayttaja_id` int(11) DEFAULT NULL, -- Foreign KEY
   `maaraalennus_kpl` int(11) DEFAULT '0',
   `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
@@ -167,10 +169,9 @@ CREATE TABLE IF NOT EXISTS `ostoskori` (
 CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   `ostoskori_id` int(11) NOT NULL, -- PK; Foreign K
   `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `kpl_maara` int(11) DEFAULT '1',
+  `kpl_maara` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
-
 
 CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK;

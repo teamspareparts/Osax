@@ -3,14 +3,24 @@
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
  */
 
-require "_start.php";
+session_start();
+if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
+
+require "luokat/db_yhteys_luokka.class.php";
+$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
+$db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
+/**
+ * @var String <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
+ * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.
+ */
+$result = NULL;
 
 /**
  * Ostoskorin toimintaa varten
  */
 if ( isset($_POST['ostoskori_toiminto']) ) {
-	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], -1 ); //FIXME: Se luo jo cartin _startissa. Korjaa.
-	$cart->lisaa_tuote( $_POST['tuote_id'], $_POST['kpl_maara'] );
+	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], -1 );
+	$result = $cart->lisaa_tuote( $db, $_POST['tuote_id'], $_POST['kpl_maara'] );
 }
 
 /**
@@ -19,7 +29,7 @@ if ( isset($_POST['ostoskori_toiminto']) ) {
 elseif ( !empty($_POST['tuote_ostopyynto']) ) {
 	$sql = "INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id )
 			VALUES ( ?, ? )";
-	$db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
+	$result = $db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
 }
 
 /**
@@ -27,9 +37,10 @@ elseif ( !empty($_POST['tuote_ostopyynto']) ) {
  * ei ole vielä meidän tietokannassa, joten sillä on erillinen taulu.
  */
 elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
-	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandNo, kayttaja_id )
-			VALUES ( ?, ?, ? )";
-	$db->query( $sql, [$_POST['tuote_articleNo'], $_POST['tuote_brandNo'], $_SESSION['id']] );
+	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandNo, selitys, korvaava_okey, kayttaja_id )
+			VALUES ( ?, ?, ?, ?, ? )";
+	$result = $db->query( $sql,
+		[$_POST['articleNo'], $_POST['brandNo'], $_POST['selitys'], $_POST['korvaava_okey'], $_SESSION['id']] );
 }
 
 /**
@@ -37,5 +48,7 @@ elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
  */
 elseif ( !empty($_POST['vahvista_eula']) ) {
 	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
-	$db->query( $sql, [$_POST['user_id']] );
+	$result = $db->query( $sql, [$_POST['user_id']] );
 }
+
+echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle js-scriptille.

@@ -185,6 +185,7 @@ if ( !empty($_GET["manuf"]) ) {
 	<?php if ( $haku ) : ?>
 		<h4>Yhteensä löydettyjä tuotteita:
 			<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h4>
+
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
@@ -225,9 +226,9 @@ if ( !empty($_GET["manuf"]) ) {
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
 					<td class="toiminnot">
-						<!-- //TODO: Disable nappi, ja väritä tausta -->
-						<a class="nappi" href="javascript:void(0)" onclick="addToShoppingCart(<?=$product->id?>)">
-							<i class="material-icons">add_shopping_cart</i>Osta</a></td>
+						<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
+						<button class="nappi" onclick="addToShoppingCart(<?=$product->id?>)">
+							<i class="material-icons">add_shopping_cart</i>Osta</button></td>
 				</tr>
 			<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
 			</tbody>
@@ -269,9 +270,9 @@ if ( !empty($_GET["manuf"]) ) {
 					<?php if (is_admin()) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
 					<?php endif;?>
-					<td style="padding-top: 0; padding-bottom: 0;">
-						<a href="javascript:void(0);" onClick="ostopyynnon_varmistus(<?=$product->id?>);">
-							<i class="material-icons">info</i></a>
+					<td id="tuote_ostopyynto_<?=$product->id?>">
+						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
+							<i class="material-icons">info</i></button>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -292,8 +293,11 @@ if ( !empty($_GET["manuf"]) ) {
 				<tr data-val="<?=$product->articleId?>">
 					<td class="clickable"><?=$product->articleNo?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-					<td><a href="javascript:void(0);" onClick="ostopyynnon_varmistus(null);">
-						<i class="material-icons">help_outline</i></a></td>
+					<td><button id="tuote_hnktpyynto_<?=$product->articleId?>"
+								onClick="hankintapyynnon_varmistus(
+									<?=$product->articleNo?>, <?=$product->brandName?>, <?=$product->articleId?>,
+									'', 1);">
+						<i class="material-icons">help_outline</i></button></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -737,7 +741,7 @@ if ( !empty($_GET["manuf"]) ) {
 			tecdocToCatPort[functionName] (params, function (response){
 				var i;
 				for(i=0; i<response.data.array.length; i++) {
-					$(".car_dropdown").append("<span style='cursor:pointer; display:block' onClick=\"showCars(this,"+articleId+")\" data-list-filled='false' data-manuId="+response.data.array[i].manuId+">"+response.data.array[i].manuName+"</span>" +
+					$(".car_dropdown").append("<span style='cursor:pointer; display:block;' onClick=\"showCars(this,"+articleId+")\" data-list-filled='false' data-manuId="+response.data.array[i].manuId+">"+response.data.array[i].manuName+"</span>" +
 						"<div class='car_dropdown_content' id=manufacturer-"+response.data.array[i].manuId+"></div>");
 				}
 				//getLinkedVehicleIds(articleId);
@@ -912,28 +916,59 @@ if ( !empty($_GET["manuf"]) ) {
 	}
 
 	/**
-	 * Lähettää POST:ina formin. Vastaanotto puolella INSERT ostopyyntö tietokantaan.
-	 * @param product_id <p> Halutun tuotteen ID
+	 * Tallentaa ostospyynnön tietokantaan
+	 * @param {int} product_id - Halutun tuotteen ID
 	 */
 	function ostopyynnon_varmistus( product_id ) {
-		var vahvistus;
-		if ( product_id ) {
-			vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla.");
-			if ( vahvistus ) {
-				$.post("ajax_requests.php",
-					{	tuote_ostopyynto: product_id }
-				);
-			}
-		} else {
-			//TODO: hankintapyyntö. Uusi ID-systeemi. Plus mistä ihmeestä minä nuo kaksi Numeroa saan?
-			//  Oh, ja lisäksi tekstikenttä, ja "käykö korvaava tuote?" check-box
-//			$.post("ajax_requests.php",
-//				{	tuote_hankintapyynto: true,
-//					tuote_articleNo: ??,
-//					tuote_brandNo: ?? }
-//			);
-			alert("Hankintapyyntö on tekeillä. Kiitos kärsivällisyydestäsi.");
+		var vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
+		if ( vahvistus ) {
+			$.post(
+				"ajax_requests.php",
+				{ tuote_ostopyynto: product_id },
+				function( data ) {
+					if ( data === "true" ) {
+						$("#tuote_ostopyynto_" + product_id)
+							.css("background-color","green")
+							.addClass("disabled");
+					} else {
+						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+					}
+				}
+			);
 		}
+	}
+
+	/**
+	 * Tallentaa hankintapyynnön tietokantaan.
+	 * @param {string} articleNo
+	 * @param {string} brandNo
+	 * @param {string} articleId
+	 * @param {string} selitys - Käyttäjän antama selitys/syy hankintapyynnölle
+	 * @param {boolean} korvaava_okey - Käykö korvaava tuote
+	 */
+	function hankintapyynnon_varmistus( articleNo, brandNo, articleId, selitys, korvaava_okey ) {
+		//TODO: selitys-/syy-tekstikenttä, ja "käykö korvaava tuote?" check-box
+		var vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
+		if ( vahvistus ) {
+			$.post("ajax_requests.php",
+				{	tuote_hankintapyynto: true,
+					articleNo: articleNo,
+					brandNo: brandNo,
+					selitys: selitys,
+					korvaava_okey: korvaava_okey
+					},
+				function( data ) {
+					if ( data === "true" ) {
+						$("#tuote_hnktpyynto_" + articleId)
+							.css("background-color","green")
+							.addClass("disabled");
+					} else {
+						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+					}
+				}
+			);
+		}
+		alert("Hankintapyyntö on tekeillä. Kiitos kärsivällisyydestäsi.");
 	}
 
 	/**

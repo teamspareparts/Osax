@@ -46,7 +46,6 @@ if ( !$eula_txt ) {
 				user_id: <?=$_SESSION['id']?>
 			}
 		);
-		document.getElementById("vahvista_eula_form").submit();
 		window.location="./etusivu.php";
 	}
 
