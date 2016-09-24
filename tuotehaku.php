@@ -16,7 +16,7 @@ function printManufSelectOptions ( array $manufs ) {
 		foreach ( $manufs as $manuf ) {
 			$returnString .= "<option value='$manuf->manuId'>$manuf->manuName</option>";
 		}
-	} else $returnString = "<script>alert('TecDoc ei vastaa.');</script>";
+	} else { $returnString = "<script>alert('TecDoc ei vastaa.');</script>"; }
 
 	return $returnString;
 }
@@ -341,7 +341,7 @@ if ( !empty($_GET["manuf"]) ) {
 
 <!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta
  		tecdocin metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon
- 		heti funktion alussa. -->
+ 		heti funktion alussa. //TODO: Pitäisikö tämä korjata? -->
 <!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
 	var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;

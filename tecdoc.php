@@ -387,7 +387,7 @@ function get_ean_number( $product ) {
  */
 function get_infos( $product ) {
 	return (!empty($product->immediateAttributs)
-		? $product->eanNumber->array
+		? $product->immediateAttributs->array
 		: []);
 }
 
