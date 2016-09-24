@@ -136,9 +136,9 @@ CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 /* Ei-valikoimassa olevat tuotteet. */
-CREATE TABLE IF NOT EXISTS `tuote_hankintapyyntö` (
+CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `articleNo` varchar(20) NOT NULL, -- PK
-  `brandNo` int(11) NOT NULL, -- PK
+  `brandName` varchar(30) NOT NULL, -- PK
   `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,

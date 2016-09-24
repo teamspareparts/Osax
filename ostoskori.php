@@ -9,13 +9,13 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_id = $_POST['ostoskori_tuote'];
 	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
 	if ( $tuote_kpl > 0 ) {
-		if ( $cart->lisaa_tuote( $tuote_id, $tuote_kpl ) ) {
+		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
 			$cart_feedback = '<p class="success">Ostoskori päivitetty.</p>';
 		} else {
 			$cart_feedback = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 		}
 	} elseif ( $tuote_kpl == 0 ) { //TODO: Tarkista miten tämä käyttäytyy NULLin kanssa
-		if ( $cart->poista_tuote( $tuote_id ) ) {
+		if ( $cart->poista_tuote( $db, $tuote_id ) ) {
 			$cart_feedback = '<p class="success">Tuote poistettu ostoskorista.</p>';
 		} else {
 			$cart_feedback = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
@@ -68,7 +68,7 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td style="padding-top: 0; padding-bottom: 0;">
 					<input id="maara_<?= $product->id ?>" name="maara_<?= $product->id ?>"
-						   class="maara number" type="number" value="<?= $product->cartCount ?>"
+						   class="maara number" type="number" value="<?=$product->cartCount?>"
 						   min="0" title="Kappalemäärä">
 				</td>
 				<td><?= laske_era_alennus_palauta_huomautus( $product )?></td>
@@ -101,7 +101,6 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">
 	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">
 </form>
-
 <script>
 
 	/**
@@ -110,9 +109,9 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 	 * @param id
 	 */
 	function cartAction(id) {
-		var count = $('#maara_' + id).value;
-		$('#ostoskori_tuote').value = id;
-		$('#ostoskori_maara').value = count;
+		var count = document.getElementById('maara_' + id).value;
+		document.getElementById('ostoskori_tuote').value = id;
+		document.getElementById('ostoskori_maara').value = count;
 		document.ostoskorilomake.submit();
 	}
 

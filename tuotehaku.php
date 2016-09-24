@@ -220,7 +220,7 @@ if ( !empty($_GET["manuf"]) ) {
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
-					<td class="toiminnot">
+					<td class="toiminnot" id="tuote_cartAdd_<?=$product->id?>">
 						<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
 						<button class="nappi" onclick="addToShoppingCart(<?=$product->id?>)">
 							<i class="material-icons">add_shopping_cart</i>Osta</button></td>
@@ -290,8 +290,8 @@ if ( !empty($_GET["manuf"]) ) {
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 					<td><button id="tuote_hnktpyynto_<?=$product->articleId?>"
 								onClick="hankintapyynnon_varmistus(
-									<?=$product->articleNo?>, <?=$product->brandName?>, <?=$product->articleId?>,
-									'', 1);">
+									'<?=$product->articleNo?>', '<?=$product->brandName?>',
+									'<?=$product->articleId?>');">
 						<i class="material-icons">help_outline</i></button></td>
 				</tr>
 			<?php endforeach; ?>
@@ -934,26 +934,26 @@ if ( !empty($_GET["manuf"]) ) {
 	}
 
 	/**
-	 * Tallentaa hankintapyynnön tietokantaan.
+	 * Tallentaa hankintapyynnön tietokantaan (Käyttäjältä varmistuksen kysymisen jälkeen).
 	 * @param {string} articleNo
 	 * @param {string} brandNo
 	 * @param {string} articleId
-	 * @param {string} selitys - Käyttäjän antama selitys/syy hankintapyynnölle
-	 * @param {boolean} korvaava_okey - Käykö korvaava tuote
-	 */
-	function hankintapyynnon_varmistus( articleNo, brandNo, articleId, selitys, korvaava_okey ) {
-		//TODO: selitys-/syy-tekstikenttä, ja "käykö korvaava tuote?" check-box
-		var vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
+	 */ //TODO: Selitys-tekstikenttä, ja Käykö korvaava -checkbox. jQuery UI?
+	function hankintapyynnon_varmistus( articleNo, brandNo, articleId ) {
+		var vahvistus, selitys, korvaava_okey;
+		vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
+			korvaava_okey = confirm( "Kelpaako korvaava tuote?" );
+			selitys = prompt( "Syy, miksi olisit halunnut tämä tuotteen? (Vapaaehtoinen)" );
 			$.post("ajax_requests.php",
 				{	tuote_hankintapyynto: true,
 					articleNo: articleNo,
 					brandNo: brandNo,
 					selitys: selitys,
-					korvaava_okey: korvaava_okey
-					},
+					korvaava_okey: korvaava_okey },
 				function( data ) {
 					if ( data === "true" ) {
+						console.log( articleNo + " " + brandNo + " " + selitys + " " + korvaava_okey );
 						$("#tuote_hnktpyynto_" + articleId)
 							.css("background-color","green")
 							.addClass("disabled");
@@ -974,11 +974,22 @@ if ( !empty($_GET["manuf"]) ) {
 		var kpl_maara = $("#maara_" + product_id).val();
 		if ( kpl_maara > 0 ) {
 			$.post("ajax_requests.php",
-				{	ostoskori_toiminto: "lisaa",
+				{	ostoskori_toiminto: true,
 					tuote_id: product_id,
-					kpl_maara: kpl_maara }
+					kpl_maara: kpl_maara },
+				function( data ) {
+					console.debug(data);
+					if ( data === "true" ) {
+						$("#tuote_cartAdd_" + product_id)
+							.css("background-color","green")
+							.addClass("disabled");
+						alert("Tuote lisätty ostoskoriin. Huom. ostoskorin laskuri päivittyy " +
+							"vasta sivun latauksessa tällä hetkellä.")
+					} else {
+						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+					}
+				}
 			);
-			alert("Tuote lisätty ostoskoriin. Huom. ostoskorin laskuri päivittyy vasta sivun latauksessa tällä hetkellä.")
 		}
 	}
 

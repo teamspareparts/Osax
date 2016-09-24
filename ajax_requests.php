@@ -19,6 +19,7 @@ $result = NULL;
  * Ostoskorin toimintaa varten
  */
 if ( isset($_POST['ostoskori_toiminto']) ) {
+	require "luokat/ostoskori.class.php";
 	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], -1 );
 	$result = $cart->lisaa_tuote( $db, $_POST['tuote_id'], $_POST['kpl_maara'] );
 }
@@ -37,10 +38,10 @@ elseif ( !empty($_POST['tuote_ostopyynto']) ) {
  * ei ole vielä meidän tietokannassa, joten sillä on erillinen taulu.
  */
 elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
-	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandNo, selitys, korvaava_okey, kayttaja_id )
+	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandName, selitys, korvaava_okey, kayttaja_id )
 			VALUES ( ?, ?, ?, ?, ? )";
 	$result = $db->query( $sql,
-		[$_POST['articleNo'], $_POST['brandNo'], $_POST['selitys'], $_POST['korvaava_okey'], $_SESSION['id']] );
+		[$_POST['articleNo'], $_POST['brandNo'], $_POST['selitys'], (int)$_POST['korvaava_okey'], $_SESSION['id']] );
 }
 
 /**
@@ -51,4 +52,4 @@ elseif ( !empty($_POST['vahvista_eula']) ) {
 	$result = $db->query( $sql, [$_POST['user_id']] );
 }
 
-echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle js-scriptille.
+echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.

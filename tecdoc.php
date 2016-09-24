@@ -296,7 +296,7 @@ function getManufacturers() {
  * @param $groupID
  * @return array
  */
-function getArticleIdsWithState( $carID, $groupID) {
+function getArticleIdsWithState( $carID, $groupID ) {
 	$function = 'getArticleIdsWithState';
 	$params = [
 			'articleCountry' => TECDOC_COUNTRY,
