@@ -7,6 +7,7 @@ if ( !function_exists("check_login_status") ) {
 	function is_admin(){return isset($_SESSION['admin']) && $_SESSION['admin']==1;}
 	session_start(); check_login_status(); include 'luokat/user.class.php';
 	$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
+	include 'luokat/db_yhteys_luokka.class.php'; include 'luokat/ostoskori.class.php';
 	$user = new User(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']),$_SESSION['id']);
 	$cart = new Ostoskori(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']),$user->yritys_id);
 }

@@ -142,11 +142,6 @@ if ( !empty($_GET["manuf"]) ) {
 <?php require 'header.php' ?>
 
 <main class="main_body_container">
-	<header class="tuotehaku_header">
-		<span class="end ostoskorilinkki">
-			<a href='ostoskori.php'>
-				<i class="material-icons">shopping_cart</i> Kpl: <?= $cart->montako_tuotetta ?></a></span>
-	</header>
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
 			Tuotenumerolla haku:<br>

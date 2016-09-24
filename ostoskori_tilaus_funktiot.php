@@ -13,7 +13,7 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 	$products = [];
 
 	//Tarkistetaan, että tuotteiden ID:t on haettu ostoskorissa, ja jos ei, niin tehdään se.
-	if ( $cart->cart_mode != 1 ) { $cart->hae_ostoskorin_sisalto( TRUE ); }
+	if ( $cart->cart_mode != 1 ) { $cart->hae_ostoskorin_sisalto( $db, TRUE ); }
 
 	if ( !empty( $cart->tuotteet ) ) {
 		$ids = implode( ',', array_keys( $cart->tuotteet ) );
