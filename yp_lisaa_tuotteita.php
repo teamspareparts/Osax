@@ -16,7 +16,7 @@ function paivita_hinnaston_sisaanluku_pvm( DByhteys $db, $brandId ){
 if (!is_admin()) {
 	header("Location:etusivu.php"); exit();
 }
-if ( !empty($_GET['brandId']) ) {
+if ( empty($_GET['brandId']) ) {
 	header("Location:toimittajat.php"); exit();
 }
 
@@ -38,9 +38,9 @@ $brandName = $_GET['brandName'];
 
 <main class="main_body_container">
 	<h1 class="otsikko"><?= $brandName?></h1>
-	<p>T‰ll‰ sivulla voit sis‰‰nlukea valmistajan hinnaston.<span class="question">?</span></p>
+	<p>T√§ll√§ sivulla voit sis√§√§nlukea valmistajan hinnaston.<span class="question">?</span></p>
 
-	<fieldset><legend>Lis‰‰ tuotteita</legend>
+	<fieldset><legend>Lis√§√§ tuotteita</legend>
 		<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
 			Luettava tiedosto: <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv"/>
 			<input id=submit_tuote type="submit" name="submit" value="Submit" disabled/>
@@ -60,10 +60,10 @@ $brandName = $_GET['brandName'];
 
 
 /**
- * Tuotteita sis‰lt‰v‰n tiedoston k‰sittely
+ * Tuotteita sis√§lt√§v√§n tiedoston k√§sittely
  */
 if(isset($_FILES['tuotteet']['name'])) {
-	//Jos ei virheit‰...
+	//Jos ei virheit√§...
 	if(!$_FILES['tuotteet']['error']) {
 		
 		$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
@@ -71,7 +71,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 
 		global $connection;
 		set_time_limit(60);
-		//Hyp‰t‰‰n ensimm‰isen rivin yli jos otsikkorivi
+		//Hyp√§t√§√§n ensimm√§isen rivin yli jos otsikkorivi
 		if (isset($_POST['otsikkorivi'])){
 			$row = -1;
 		}
@@ -80,20 +80,20 @@ if(isset($_FILES['tuotteet']['name'])) {
 		}
 		$failed_inserts = 0;
 		echo "<table>";
-		echo "<th>Tuote</th><th>Ostohinta</th><th>Myyntihinta</th><th>Vero ID</th><th>Myyntier‰</th><th>KPL</th>";
+		echo "<th>Tuote</th><th>Ostohinta</th><th>Myyntihinta</th><th>Vero ID</th><th>Myyntier√§</th><th>KPL</th>";
 		while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 			if ($row == -1){$row++;continue;}
 			$row++;
 			//rivin sarakkeiden lkm
 			$num = count($data);
 			if ($num != 6) {
-				echo "<tr><td><span style='color: red;'>Tuotetta rivill‰ " . $row . " ei voitu lis‰t‰.</span></td></tr>";
+				echo "<tr><td><span style='color: red;'>Tuotetta rivill√§ " . $row . " ei voitu lis√§t√§.</span></td></tr>";
 				$failed_inserts++;
 				continue;
 			}
-			//J‰rjestet‰‰n tuotteet aina j‰rjestykseen
+			//J√§rjestet√§√§n tuotteet aina j√§rjestykseen
 			//1:tuote	2:ostohinta	3:myyntihinta
-			//4:vero(%)	5:minimimyyntier‰	6:kpl
+			//4:vero(%)	5:minimimyyntier√§	6:kpl
 			$row_order = array();
 			$row_order[0] = strval($data[$_POST["s0"]]);
 			$row_order[1] = doubleval(str_replace(",", ".", $data[$_POST["s1"]]));
@@ -131,7 +131,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 
 <script type="text/javascript">
 
-	//TODO: jQuerylla on oma jQuery.inArray()-funktio. Onko t‰ll‰ jokin tarkoitus?
+	//TODO: jQuerylla on oma jQuery.inArray()-funktio. Onko t√§ll√§ jokin tarkoitus?
 	function in_array(needle, haystack) {
 		var i;
 		for ( i in haystack ) {
@@ -150,7 +150,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 		sarake.options.add(new Option("Ostohinta", 1));
 		sarake.options.add(new Option("Myyntihinta", 2));
 		sarake.options.add(new Option("Verokanta", 3));
-		sarake.options.add(new Option("Minimimyyntier‰", 4));
+		sarake.options.add(new Option("Minimimyyntier√§", 4));
 		sarake.options.add(new Option("Kpl", 5));
 		$("#select" + i + " option[value=" + i + "]").attr('selected', 'selected');
 	}
@@ -177,7 +177,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 			return true;
 		});
 
-		//N‰ytet‰‰n ohjeet kun hiiri vied‰‰n kysymysmerkin p‰‰lle.
+		//N√§ytet√§√§n ohjeet kun hiiri vied√§√§n kysymysmerkin p√§√§lle.
 		$("span.question").hover(function () {
 			$(this).append('<div class="tooltip">' +
 							'<p>Tiedostossa oltava 6 saraketta & erottimena oltava ";".</p>' +

@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
-  PRIMARY KEY (`articleNo`, `brandNo`, `kayttaja_id`, `pvm`)
+  PRIMARY KEY (`articleNo`, `brandName`, `kayttaja_id`, `pvm`)
   /* Jotenkin minusta tuntuu, että ei pitäisi olla SQL-taulua neljällä PK:lla */
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -187,25 +187,18 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `email` varchar(50) DEFAULT '',
   `fax` varchar(50) DEFAULT '',
   `www_url` varchar(50) DEFAULT '',
-  `www_kayttajatunnus` varchar(50) DEFAULT '',
-  `www_salasana` varchar(50) DEFAULT '',
+  `tilaustapa` varchar(50) DEFAULT '',
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   `brandId` int(11) NOT NULL, -- PK;
-  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
-  PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
+  `hankintapaikka_id` int(11) NOT NULL,  -- PK
+  `brandName` varchar(50) NOT NULL,
+  `hinnaston_sisaanajo_pvm` DATETIME DEFAULT NULL,
+  PRIMARY KEY (`brandId`, `hankintapaikka_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `valmistaja` (
-  `brandId` int(11) NOT NULL, -- PK;  Tecdocista saatava id
-  `brandName` varchar(50) NOT NULL,
-  `valmistajan_id` int(11) NOT NULL, -- UNIQUE K;  Käsin syötettävä kolminumeroinen id
-  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
-  `hinnaston_sisaanajo_pvm` DATETIME DEFAULT NULL,
-  PRIMARY KEY (`brandId`), UNIQUE KEY (`brandId`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   `id` INT(11) NOT NULL AUTO_INCREMENT, -- PK

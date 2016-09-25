@@ -265,9 +265,9 @@ if ( !empty($_GET['manuf']) ) {
 					<?php foreach ( $products as $product ) : ?>
 						<tr data-val="<?=$product->articleId?>">
 							<td class="clickable thumb">
-								<img src="<?=$product->thumburl?>" alt="<?=$product->genericArticleName?>"></td>
+								<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 							<td class="clickable"><?=$product->articleNo?></td>
-							<td class="clickable"><?=$product->brandName?><br><?=$product->genericArticleName?></td>
+							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 							<td class="clickable">
 								<?php foreach ( $product->infos as $info ) :
 									echo (!empty($info->attrName) ? $info->attrName : "") . " " .
@@ -277,7 +277,7 @@ if ( !empty($_GET['manuf']) ) {
 							</td>
 							<td class="toiminnot">
 								<a class="nappi" href='javascript:void(0)'
-								   onclick="showAddDialog('<?=$article->articleNo?>', <?=$article->brandNo?>)">Lisää</a></td>
+								   onclick="showAddDialog('<?=$product->articleNo?>', <?=$product->brandNo?>)">Lisää</a></td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>

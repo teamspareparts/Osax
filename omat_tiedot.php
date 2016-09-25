@@ -38,6 +38,7 @@ if (count($yritys) == 1) {
 <head>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<meta charset="UTF-8">
 	<title>Omat Tiedot</title>
 </head>

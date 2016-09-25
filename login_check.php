@@ -61,29 +61,6 @@ function check_IP_address ( DByhteys $db, stdClass $user ) {
 }
 
 /**
- * Tarkistaa onko TecDociin lisätty uusia valmistajia.
- * (Tarvitaan, koska jokaiselle valmistajalle tulee manuaalisesti määrittää
- *  uniikit kolminumeroiset ID:t sisäänkirjautumisen yhteydessä)
- * @param DByhteys $db
- * @return bool
- */
-function check_if_new_brands( DByhteys $db){
-    $brandsInTecdoc = getAmBrands();
-    $currentBrands = $db->query("SELECT * FROM valmistaja");
-    if (!$currentBrands) return true;
-    foreach ($brandsInTecdoc as $tbrand){
-        foreach ($currentBrands as $cbrand){
-            if ($tbrand->brandId == $cbrand->brandId){
-                continue 2;
-            }
-            return true; //uusi valmistaja
-        }
-    }
-
-    return false;
-}
-
-/**
  * Resetoidaan käyttäjän salasana, joko käyttäjän toimesta, tai ylläpidollisista syistä.
  * Lähettää käyttäjälle linkin sähköpostilla pw_reset-sivulle, tai jos salasana vanhentunut:
  *  ohjaa suoraan kyseiselle sivulle.
@@ -173,10 +150,6 @@ if ( $mode == "login" ) {
             addDynamicAddress();
 
 			if ( $login_user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...
-
-            if ( $_SESSION['admin'] && check_if_new_brands( $db ) ) { //Jos uusia valmistajia aktivoitu...
-            	header("Location:login_check_brands.php"); exit;
-            }
    			header("Location:tuotehaku.php"); exit;
    		}
 	   
