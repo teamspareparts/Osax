@@ -40,73 +40,6 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 }
 
 /**
- * Tilaa ostoskorissa olevat tuotteet
- *
- * @param array $products
- * @param DByhteys $db
- * @param User $user
- * @param float $pysyva_rahtimaksu
- * @param int $to_id <p> toimitusosoitteen ID, joka tallennetaan pysyviin tietoihin.
- * @return bool <p> onnistuiko tilaaminen
- */
-function order_products ( array $products, DByhteys $db, User $user, /*float*/ $pysyva_rahtimaksu, /*int*/ $to_id) {
-
-	if ( empty($products) ) {
-		return false;
-	}
-
-	$result = $db->query( "INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)",
-		[$user->id, $pysyva_rahtimaksu] );
-
-	if ( !$result ) {
-		return false;
-	}
-
-	$tilaus_id = mysqli_insert_id($connection); //FIXME: PDO vastike?
-
-	// Lisätään tilaukseen liittyvät tuotteet
-
-	$db->prepare_stmt("
-		INSERT INTO tilaus_tuote
-			(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
-		VALUES
-			(?, ?, ?, ?, ?, ?)" );
-	foreach ($products as $product) {
-		$result = $db->run_prepared_stmt( [
-			$tilaus_id, $product->id, $product->hinta_ilman_alv, $product->alv_prosentti,
-			$product->alennusera_prosentti, $product->cartCount
-		] );
-
-		if ( !$result ) {
-
-		}
-		$db->query( "UPDATE tuote SET varastosaldo = ? WHERE id = ?",
-			[($product->varastosaldo - $product->cartCount), $product->id] );
-	}
-
-	$user->haeToimitusosoitteet( $db, $to_id );
-	//TODO: Tässä voisi käyttää SELECT INTO:a.
-	$query = "	INSERT INTO tilaus_toimitusosoite
-					(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka)
-				VALUES
-					( ?, ?, ?, ?, ?, ?, ?, ?, ? )";
-
-	$db->query( $query, [
-		$tilaus_id, $user->toimitusosoitteet['etunimi'], $user->toimitusosoitteet['sukunimi'],
-		$user->toimitusosoitteet['sahkoposti'], $user->toimitusosoitteet['puhelin'],
-		$user->toimitusosoitteet['yritys'], $user->toimitusosoitteet['katuosoite'],
-		$user->toimitusosoitteet['postinumero'], $user->toimitusosoitteet['postitoimipaikka'],
-		$user->toimitusosoitteet['maa']
-	] );
-
-	//lähetetään tilausvahvistus asiakkaalle
-	laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id );
-	//lähetetään tilaus ylläpidolle
-	//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
-	return true;
-}
-
-/**
  * //TODO: Päivitä PhpDoc
  * @param Yritys $yritys
  * @param int $tilauksen_summa
@@ -142,14 +75,16 @@ function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ost
  * @return string
  */
 function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
-	$s = '';
+	$s = '';//TODO: Check this
 	foreach ( $osoitekirja_array as $index => $osoite ) {
-		$s .= '<div> Osoite ' . $index . '<br><br> \\';
+		$s .= "
+		<div> Osoite {$index}<br><br> \\";
 
-		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']);
+		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']); //Hienompi tulostus
 
 		foreach ( $osoite as $key => $value ) {
-			$s .= '<label><span>' . ucfirst($key) . '</span></label>' . $value . '<br> \\';
+			$s .= "
+			<label><span>" . ucfirst($key) . "</span></label>{$value}<br> \\";
 		}
 		$s .= '
 			<br> \

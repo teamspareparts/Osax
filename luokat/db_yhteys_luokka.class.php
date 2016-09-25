@@ -49,6 +49,7 @@ class DByhteys {
 	protected $prepared_stmt = NULL;//Tallennettu prepared statement
 
 	const FETCH_ALL = TRUE;
+
 	/**
 	 * Konstruktori.
 	 *
@@ -60,7 +61,7 @@ class DByhteys {
 	public function __construct( /*string*/ $username, /*string*/ $password,
 			/*string*/ $database, /*string*/ $host = 'localhost' ) {
 
-		define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään
+		define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään.
 		$this->pdo_dsn = "mysql:host={$host};dbname={$database};charset=utf8";
 		$this->connection = new PDO(
 				$this->pdo_dsn, $username, $password, $this->pdo_options );
@@ -206,6 +207,14 @@ class DByhteys {
 	function __destruct() {
 		$this->close_prepared_stmt();
 		$this->connection = NULL;
+	}
+
+	/**
+	 * Palauttaa PDO-yhteyden manuaalia käyttöä varten.
+	 * @return PDO connection
+	 */
+	public function getConnection () {
+		return $this->connection;
 	}
 }
 
