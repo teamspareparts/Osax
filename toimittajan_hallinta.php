@@ -8,7 +8,8 @@ if (!is_admin()) {
 }
 //tarkastetaan onko tultu toimittajat sivulta
 $brandId = isset($_GET['brandId']) ? $_GET['brandId'] : null;
-if (!($brandName = tarkasta_onko_oikea_brand($brandId))) {
+$brandName = tarkasta_onko_oikea_brand($brandId);
+if (!($brandName)) {
 	header("Location:toimittajat.php");
 	exit();
 }
@@ -61,6 +62,7 @@ function tulosta_yhteystiedot($brandAddress){
 
 /**
  * Tallentaa uuden hankintapaikan tietokantaan.
+ * @param DByhteys $db
  * @param $id
  * @param $nimi
  * @param $katuosoite
@@ -124,8 +126,10 @@ function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
 }
 
 /**
- * Poistaa hankintapaikan ja brändin välisen linkityksen.
- * @param $hankintapaikka_id int, Hankintapaikan Id
+ * Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
+ * @param DByhteys $db
+ * @param $hankintapaikka_id
+ * @param $brandId
  */
 function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brandId){
 	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
@@ -136,10 +140,11 @@ function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_i
 
 
 /**
- * Linkittää hankintapaikan valmistajaan.
  * @param DByhteys $db
- * @param int $brandId, valmistajan ID.
- * @param int $hankintapaikkaId, hankintapaikan ID.
+ * @param $brandId
+ * @param $hankintapaikkaId
+ * @param $brandName
+ * @return array|bool|stdClass
  */
 function linkita_valmistaja_hankintapaikkaan( DByhteys $db, /*int*/ $brandId, /*int*/ $hankintapaikkaId, /*String*/ $brandName) {
 	$query = "	INSERT IGNORE INTO valmistajan_hankintapaikka
@@ -149,6 +154,7 @@ function linkita_valmistaja_hankintapaikkaan( DByhteys $db, /*int*/ $brandId, /*
 }
 
 /**
+ * @param DByhteys $db
  * @param $brandId
  */
 function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
@@ -160,40 +166,43 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
  				WHERE valmistajan_hankintapaikka.brandId = ? ";
 	$hankintapaikat = $db->query($query, [$brandId], FETCH_ALL, PDO::FETCH_OBJ);
 	$i = 1;
-	foreach( $hankintapaikat as $hankintapaikka ) : ?>
+	if (isset($hankintapaikat)) {
+		foreach( $hankintapaikat as $hankintapaikka ) : ?>
 
-		<div style="float:left; padding-right: 30px;">
-			<table>
-				<tr><th colspan='2' class='text-center'>Hankintapaikka <?=$i++?></th></tr>
-				<tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
-				<tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
-				<tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
-				<tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
-				<tr><td>Puh</td><td><?= $hankintapaikka->puhelin?></td></tr>
-				<tr><td>Fax</td><td><?= $hankintapaikka->fax?></td></tr>
-				<tr><td>URL</td><td><?= $hankintapaikka->www_url?></td></tr>
-				<tr><td>Tilaustapa</td><td><?= $hankintapaikka->tilaustapa?></td></tr>
-				<tr><th colspan='2' class='text-center'>Yhteyshenkilö</th></tr>
-				<tr><td>Nimi</td><td><?= $hankintapaikka->yhteyshenkilo_nimi?></td></tr>
-				<tr><td>Puh</td><td><?= $hankintapaikka->yhteyshenkilo_puhelin?></td></tr>
-				<tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
-				<tr>
-					<td colspan="2">
-						<form action="" method="post" class="poista_hankintapaikka_linkitys">
-							<input name="hankintapaikka_id" type="hidden" value="<?=$hankintapaikka->id?>" />
-							<input name="poista_linkitys" class="nappi" type="submit" value="Poista" style="background:#d20006; border-color:#b70004;"/>
-							<span onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>',
-								'<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
-								'<?=$hankintapaikka->maa?>','<?=$hankintapaikka->puhelin?>','<?=$hankintapaikka->fax?>',
-								'<?=$hankintapaikka->www_url?>', '<?=$hankintapaikka->yhteyshenkilo_nimi?>', '<?=$hankintapaikka->yhteyshenkilo_puhelin?>',
-								'<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</span>
-						</form>
-					</td>
-				</tr>
-				<tr><td colspan="2" class="text-center"><a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a></td></tr>
-			</table>
-		</div>
-	<?php endforeach;
+            <div style="float:left; padding-right: 30px;">
+            <form action="" method="post" class="poista_hankintapaikka_linkitys">
+                <table>
+                    <tr><th colspan='2' class='text-center'>Hankintapaikka <?=$i++?></th></tr>
+                    <tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
+                    <tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
+                    <tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
+                    <tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
+                    <tr><td>Puh</td><td><?= $hankintapaikka->puhelin?></td></tr>
+                    <tr><td>Fax</td><td><?= $hankintapaikka->fax?></td></tr>
+                    <tr><td>URL</td><td><?= $hankintapaikka->www_url?></td></tr>
+                    <tr><td>Tilaustapa</td><td><?= $hankintapaikka->tilaustapa?></td></tr>
+                    <tr><th colspan='2' class='text-center'>Yhteyshenkilö</th></tr>
+                    <tr><td>Nimi</td><td><?= $hankintapaikka->yhteyshenkilo_nimi?></td></tr>
+                    <tr><td>Puh</td><td><?= $hankintapaikka->yhteyshenkilo_puhelin?></td></tr>
+                    <tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
+                    <tr>
+                        <td colspan="2">
+                            <input name="hankintapaikka_id" type="hidden" value="<?=$hankintapaikka->id?>" />
+                            <input name="poista_linkitys" class="nappi" type="submit" value="Poista" style="background:#d20006; border-color:#b70004;"/>
+                            <span onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>',
+                                '<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
+                                '<?=$hankintapaikka->maa?>','<?=$hankintapaikka->puhelin?>','<?=$hankintapaikka->fax?>',
+                                '<?=$hankintapaikka->www_url?>', '<?=$hankintapaikka->yhteyshenkilo_nimi?>', '<?=$hankintapaikka->yhteyshenkilo_puhelin?>',
+                                '<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</span>
+                        </td>
+                    </tr>
+                    <tr><td colspan="2" class="text-center"><a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a></td></tr>
+                </table>
+
+            </form>
+            </div>
+        <?php endforeach;
+	}
 }
 
 $message = false;
@@ -207,7 +216,7 @@ if ( isset($_POST['lisaa']) ) {
 		$_POST['kaupunki'], $_POST['maa'],
 		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
-	linkita_valmistaja_hankintapaikkaan($brandId, $_POST['hankintapaikka_id'], $brandName);
+	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka_id'], $brandName);
 }
 
 elseif ( isset($_POST['poista_linkitys']) ) {
@@ -249,19 +258,18 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <title>Toimittajat</title>
 </head>
 <body>
-<br>
+<main class="main_body_container">
 <?php if ($message) : ?>
-<p class="error"><?=$message?></p>
+<p><span class="error"><?=$message?></span></p>
 <?php endif;?>
 <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;" /><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
-	<!-- <a href="lisaa_tuotteita.php?brandId=<?= $brandId?>&brandName=<?= $valmistaja->brandName?>"><span class="nappi">Lisää tuotteita</span></a> -->
 	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('.$brandId.')">
 	<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>
 </div>
 <br>
 <br>
-<div style="text-align: center; display:inline-block; margin-left: 5%;">
+<div style="text-align: center; display:inline-block;">
 
 
 
@@ -272,6 +280,7 @@ tulosta_hankintapaikat($db, $brandId);
 
 
 </div>
+</main>
 
 <script>
 	//
@@ -288,9 +297,6 @@ tulosta_hankintapaikat($db, $brandId);
 				<label><span>Hankintapaikat</span></label>\
 					<select name="hankintapaikka" id="hankintapaikka">\
 						<option value="0">-- Hankintapaikka --</option>\
-						<?php foreach ($hankintapaikat as $hankintapaikka) : ?> \
-                                <option value="<?= $hankintapaikka->id?>"><?=$hankintapaikka->hankintapaikka_id." - ".$hankintapaikka->nimi?></option> \
-                        <?php endforeach; ?> \
 					</select>\
 				<br>\
 				<input class="nappi" type="submit" name="valitse" value="Valitse"> \
@@ -345,6 +351,18 @@ tulosta_hankintapaikat($db, $brandId);
 				',
 			draggable: true
 		} );
+
+        var hankintapaikka_lista, hankintapaikka;
+        var hankintapaikat = [];
+        hankintapaikat = <?php echo json_encode($hankintapaikat);?>;
+        //Täytetään Select-Option
+        hankintapaikka_lista = document.getElementById("hankintapaikka");
+
+        for (var i = 0; i < hankintapaikat.length; i++) {
+            hankintapaikka = new Option(hankintapaikat[i].hankintapaikka_id+" - "+hankintapaikat[i].nimi, hankintapaikat[i].id);
+            hankintapaikka_lista.options.add(hankintapaikka);
+        }
+
 	}
 
 	function avaa_modal_muokkaa_hankintapaikka(hankintapaikka_id, yritys, katuosoite, postinumero, postitoimipaikka,
@@ -420,10 +438,12 @@ tulosta_hankintapaikat($db, $brandId);
             })
 			//Estetään valitsemasta jo olemassa olevaa hankintapikka ID:tä ja nimeä
 			.on('submit', '#uusi_hankintapaikka', function(e) {
-				var hankintapaikat = <?php echo json_encode($hankintapaikat); ?>;
+			    var id, nimi;
+			    var hankintapaikat = [];
+				hankintapaikat = <?php echo json_encode($hankintapaikat); ?>;
 				//Tarkastetaan onko ID tai nimi varattu
-				var id = document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
-				var nimi = document.getElementById("uusi_hankintapaikka").elements["nimi"].value;
+				id = document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
+				nimi = document.getElementById("uusi_hankintapaikka").elements["nimi"].value;
 				if (hankintapaikat.length > 0) {
 					for (var i = 0; i < hankintapaikat.length; i++) {
 						if (hankintapaikat[i].id == id) {

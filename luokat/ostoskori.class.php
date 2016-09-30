@@ -78,8 +78,7 @@ class Ostoskori {
 	 */
 	private function hae_cart_id ( DByhteys $db, /*int*/ $yritys_id ) {
 		$this->ostoskori_id =
-			$db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [$yritys_id] )
-				->id;
+			$db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [$yritys_id] );
 	}
 
 	/**

@@ -42,8 +42,11 @@ CREATE TABLE IF NOT EXISTS `yritys` (
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `articleNo` varchar(20) NOT NULL, -- UNIQUE KEY
+  `articleNo` varchar(30) NOT NULL, -- UNIQUE KEY
   `brandNo` int(11) NOT NULL, -- UNIQUE KEY
+  `hankintapaikka_id` int(11) NOT NULL, -- UNIQUE KEY
+  `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo (100-QTB249)
+  `tilaus_koodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `hinta_ilman_ALV` decimal(11,2) NOT NULL DEFAULT '0.00',
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT '0', -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT '0',
@@ -54,7 +57,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl -- Saattaa olla turha
   `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, brandNo)
+  PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, brandNo, hankintapaikka_id)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (

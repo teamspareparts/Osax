@@ -10,10 +10,23 @@ if (!is_admin()) {
  * ja hinnastojen sisäänajopäivämäärät.
  * @return array|bool|stdClass
  */
-function hae_hinnaston_sisaanajo_pvm(){
-	global $db;
-	$query = "SELECT brandId, hinnaston_sisaanajo_pvm, valmistajan_id FROM valmistaja";
-	return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
+function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
+	$query = "SELECT MAX(hinnaston_sisaanajo_pvm) as suurin_pvm FROM valmistajan_hankintapaikka WHERE brandId = ?";
+	return $db->query($query, [$brandId], NULL, PDO::FETCH_OBJ);
+}
+
+function tulosta_brandit(DByhteys $db, array $brands){
+	//Tulostetaan "laatikot", jotka sisältävät kuvan, nimen ja hinnaston sisäänajopäivämäärän
+	foreach ($brands as $brand) {
+		$pvm = hae_hinnaston_sisaanajo_pvm( $db, $brand->brandId );
+		$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
+		echo '<div class="floating-box clickable"  data-brandId="'.$brand->brandId.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
+		if ($pvm->suurin_pvm) {
+			$date = new DateTime($pvm->suurin_pvm);
+			echo "Päivitetty: " . $date->format('d.m.Y');
+		}
+		echo "</div>";
+	}
 }
 
 /**
@@ -48,26 +61,9 @@ usort($brands, "cmp");
 <?php require 'header.php'; ?>
 <h1 class="otsikko">Toimittajat</h1><br>
 <div class="container">
+<?= tulosta_brandit($db, $brands)?>
 
-
-<?php
-
-
-//Tulostetaan "laatikot", jotka sisältävät kuvan, nimen, id:n ja hinnaston sisäänajopäivämäärän
-foreach ($brands as $brand) {
-	//foreach ($valmistajat as $valmistaja) {
-	//	if ( $valmistaja->brandId == $brand->brandId ) {
-			$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-			echo '<div class="floating-box clickable"  data-brandId="'.$brand->brandId.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
-	//		if (!isset($valmistaja->hinnaston_sisaanajo_pvm)) continue;
-	//		$date = new DateTime($valmistaja->hinnaston_sisaanajo_pvm);
-	//		echo "Päivitetty: " . $date->format('d.m.Y');
-	//	}
-	//}
-	echo "</div>";
-}
-
-?>
+</div>
 
 
 
@@ -101,6 +97,5 @@ $(document).ready(function(){
 });
 
 </script>
-</div>
 </body>
 </html>

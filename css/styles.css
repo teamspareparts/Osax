@@ -26,6 +26,7 @@ input { padding: 3pt; }
 .flex_column { display: flex; flex-direction: column; }
 
 .main_body_container {
+	left:5%;
 	margin: 5px 3vw 3vw;
 	white-space: nowrap;
 	position:relative;
@@ -434,9 +435,8 @@ th {
 
 .success, .error {
 	position: relative;
-	left: 5%;
 	padding: 10pt;
-	width: 200pt;
+	width: auto;
 }
 
 .success {
@@ -718,7 +718,7 @@ Pieni spinning-icon
 ******************************/
 .loader {
 	font-size: 5px;
-	margin: 0em;
+	margin: 0;
 	width: 4em;
 	height: 4em;
 	/*border-radius: 50%;*/
