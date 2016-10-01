@@ -60,7 +60,7 @@ class User {
 	 * Palauttaa koko nimen; muotoiltuna, jos pituus liian pitkä.
 	 * @return string
 	 */
-	function kokoNimi() {
+	public function kokoNimi() {
 		$str = ( (strlen($this->etunimi) > 15)
 			? (substr($this->etunimi, 0, 1) . ".")
 			: $this->etunimi )
@@ -82,7 +82,7 @@ class User {
 	 * 			<li>  x : tietty toimitusosoite (x on osoitteen ID) </li>
 	 * 		<ul>
 	 */
-	function haeToimitusosoitteet ( DByhteys $db, /*int*/ $to_id = -1 ) {
+	public function haeToimitusosoitteet ( DByhteys $db, /*int*/ $to_id = -1 ) {
 		if ( $to_id == -2 ) {
 			$sql = "SELECT COUNT(osoite_id) AS count FROM toimitusosoite WHERE kayttaja_id = ? ";
 			$this->toimitusosoitteet['count'] = $db->query( $sql, [$this->id] )->count;
@@ -102,6 +102,24 @@ class User {
 					WHERE	kayttaja_id = ? AND osoite_id = ?
 					ORDER BY osoite_id LIMIT 1";
 			$this->toimitusosoitteet = $db->query( $sql, [$this->id, $to_id] );
+		}
+	}
+
+	/**
+	 * Vaihtaa salasanan käyttäjälle.
+	 * Salasana hajautetaan metodissa. Salasanan pitää olla vähintään 8 merkkiä pitkä.
+	 * @param DByhteys $db
+	 * @param $uusi_salasana <p> Hajauttamaton uusi salasana, vähintään 8 merkkiä pitkä.
+	 * @return bool <p> Palauttaa true, jos salasana > 8 ja vaihtaminen onnistui. Muuten false.
+	 */
+	public function vaihdaSalasana( DByhteys $db, /*string*/ $uusi_salasana ) {
+		if ( strlen($uusi_salasana) > 8 ) {
+			$hajautettu_uusi_salasana = password_hash( $uusi_salasana, PASSWORD_DEFAULT );
+			return $db->query(
+				"UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
+				[ $hajautettu_uusi_salasana, $this->id ] );
+		} else {
+			return false;
 		}
 	}
 }
