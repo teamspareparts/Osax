@@ -40,8 +40,6 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 
 /**
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
- * //TODO: Varmista, mikä on about maksimi määrä tuotteita, joka tilauksessa voi käytännössä olla
- * //	Hajoaa, jos liikaa tuotteita haetaan.
  * @param DByhteys $db
  * @param int $tilaus_id
  * @return array <p> Array of objects. tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita

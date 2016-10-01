@@ -34,7 +34,7 @@ check_login_status();
 /*
  * Ladataan sivuston käyttöön tarkoitetut luokat
  */
-require "luokat/db_yhteys_luokka.class.php"; //TODO: single quotes give warning. Why?
+require "luokat/db_yhteys_luokka.class.php";
 require "luokat/user.class.php";
 require "luokat/yritys.class.php";
 require "luokat/ostoskori.class.php";

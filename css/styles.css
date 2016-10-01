@@ -26,8 +26,7 @@ input { padding: 3pt; }
 .flex_column { display: flex; flex-direction: column; }
 
 .main_body_container {
-	left:5%;
-	margin: 5px 3vw 3vw;
+	margin: 20px 5vw 3vw;
 	white-space: nowrap;
 	position:relative;
 }

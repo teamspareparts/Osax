@@ -1,20 +1,13 @@
 <?php
 print("<pre>");
-//
-// Tämä tiedosto alustaa tietokannan siten, että järjestelmä on sen jälkeen käyttövalmis.
-// Oletuksena tietokantaan luodaan uusi ylläpitäjä, jonka käyttäjätunnus ja salasana on admin.
-// Voit halutessasi muokata käyttäjätunnusta ja salasanaa alla olevilla muuttujilla.
-//
-$data = parse_ini_file("src/tietokanta/db-config.ini.php", true);
 
-$db = new DByhteys( $data['user'], $data['pass'], $data['name'], $data['host'] );
-$mysqli = mysqli_connect( $data['host'], $data['user'], $data['pass'], $data['name'] )
+$data = parse_ini_file("../tietokanta/db-config.ini.php", true);
+require '../luokat/db_yhteys_luokka.class.php';
+
+$data_db = $data['Tietokannan tiedot'];
+$db = new DByhteys( $data_db['user'], $data_db['pass'], $data_db['name'], $data_db['host'] );
+$mysqli = mysqli_connect( $data_db['host'], $data_db['user'], $data_db['pass'], $data_db['name'] )
 	or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
-
-// Ei tehdä mitään, jos tietokanta on jo alustettu
-if ( $db->query( "SELECT 1 FROM kayttaja LIMIT 1" ) ) {
-	die('Tietokanta on jo alustettu!');
-}
 
 // Luodaan tietokannan taulut // MySQLi, koska PDO ei pysty multi_queryyn
 if (mysqli_multi_query($mysqli, file_get_contents('tietokanta.sql'))) {
@@ -22,7 +15,11 @@ if (mysqli_multi_query($mysqli, file_get_contents('tietokanta.sql'))) {
 } else {
     echo 'Jokin meni pieleen tietokantaa alustettaessa<br>Virhe: ' . mysqli_error($mysqli) .
 		'<br>Tarkista tietokanta ja suorita tarvittaessa <i>tietokanta.sql</i> käsin.';
-	exit;
+}
+
+// Ei tehdä mitään, jos tietokanta on jo alustettu
+if ( $db->query( "SELECT 1 FROM kayttaja LIMIT 1" ) ) {
+	die('Tietokanta on jo alustettu!');
 }
 
 
@@ -39,8 +36,8 @@ for ( $i=0; $i<count($data['Admin tunnukset']['kayttajatunnus']); $i++ ) {
 // Luodaan ylläpitäjälle yritys ja ostoskori
 $result = $db->query(
 	"INSERT INTO yritys (nimi, y_tunnus) VALUES (?,?)",
-	[	$data['[Admin tunnukset']['y_nimi'],
-		$data['[Admin tunnukset']['y_tunnus']
+	[	$data['Admin tunnukset']['y_nimi'],
+		$data['Admin tunnukset']['y_tunnus']
 	] );
 $result = $db->query(
 	"INSERT INTO ostoskori (yritys_id) VALUES (?)",

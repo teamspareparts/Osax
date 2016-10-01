@@ -6,11 +6,63 @@ $huomautus = null;
 if (isset($_POST['uudet_tiedot'])){
 	$huomautus = db_paivita_tiedot($_POST['email'], $_POST['etunimi'], $_POST['sukunimi'], $_POST['puh']);
 }
+
 elseif (isset($_POST['new_password'])) {
 	$huomautus = vaihda_salasana($_SESSION['id'], $_POST['new_password'], $_POST['confirm_new_password']);
 }
 
+/**
+//result:
+//-1	Salasanat eivät täsmää
+//2		Salasana vaihdettu
+ * @param $id
+ * @param $asiakas_uusi_salasana
+ * @param $asiakas_varmista_uusi_salasana
+ * @return int
+ */
+function vaihda_salasana($id, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
+	global $db;
+	$tbl_name="kayttaja";				// Taulun nimi
+	$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
 
+	if ($asiakas_uusi_salasana != $asiakas_varmista_uusi_salasana){
+		return -2; // salasanat eivät täsmää
+	}
+	else {
+		if ($asiakas_uusi_salasana != "" && $asiakas_varmista_uusi_salasana != ""){
+			$query = "UPDATE $tbl_name SET salasana_hajautus= ?
+				WHERE id= ? ";
+			if ($db->query($query, [$hajautettu_uusi_salasana, $id])) return 2;
+		}
+	}
+	return -1;
+}
+
+
+/**
+//result:
+//1		tiedot päivitetty
+ * @param $email
+ * @param $asiakas_etunimi
+ * @param $asiakas_sukunimi
+ * @param $asiakas_puh
+ * @return int
+ */
+function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh){
+	$tbl_name="kayttaja";				// Taulun nimi
+	$asiakas_sposti = $email;
+	global $db;
+
+	//päivitetään tietokantaan
+	$query = "
+            UPDATE $tbl_name 
+            SET etunimi= ? , sukunimi= ? , puhelin= ?
+  		    WHERE sahkoposti= ? ";
+	if ($db->query($query, [$asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_sposti])){
+		return 1;
+	}
+	return -1;
+}
 
 //käydään hakemassa tietokannasta tiedot lomakkeen esitäyttöä varten
 
@@ -132,48 +184,7 @@ if (count($yritys) == 1) {
         default :
             continue;
 	}
-	
-	//result:
-	//-1	Salasanat eivät täsmää
-	//2		Salasana vaihdettu
-	function vaihda_salasana($id, $asiakas_uusi_salasana, $asiakas_varmista_uusi_salasana){
-		global $db;
-		$tbl_name="kayttaja";				// Taulun nimi
-		$hajautettu_uusi_salasana = password_hash($asiakas_uusi_salasana, PASSWORD_DEFAULT);
-		
-		if ($asiakas_uusi_salasana != $asiakas_varmista_uusi_salasana){
-			return -2; // salasanat eivät täsmää
-		}
-		else {
-			if ($asiakas_uusi_salasana != "" && $asiakas_varmista_uusi_salasana != ""){
-				$query = "UPDATE $tbl_name SET salasana_hajautus= ?
-				WHERE id= ? ";
-                if ($db->query($query, [$hajautettu_uusi_salasana, $id])) return 2;
-			}
-		}
-		return -1;
-	}
-	
 
-	//result:
-	//1		tiedot päivitetty
-	function db_paivita_tiedot($email, $asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh){
-		$tbl_name="kayttaja";				// Taulun nimi
-		$asiakas_sposti = $email;
-        global $db;
-
-        //päivitetään tietokantaan
-        $query = "
-            UPDATE $tbl_name 
-            SET etunimi= ? , sukunimi= ? , puhelin= ?
-  		    WHERE sahkoposti= ? ";
-        if ($db->query($query, [$asiakas_etunimi, $asiakas_sukunimi, $asiakas_puh, $asiakas_sposti])){
-            return 1;
-        }
-        return -1;
-
-
-	}
 
 ?>
 
