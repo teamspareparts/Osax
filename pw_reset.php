@@ -124,16 +124,27 @@ if ( !empty($_POST['reset']) ) {
 </main>
 
 <script>
-	/** Salasanojen tarkastus reaaliajassa */
-	$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
-		$('#pw_submit').prop('disabled', true);
-		if ( $('#uusi_salasana').val() == $('#vahv_uusi_salasana').val() ) {
-			$('#check').html('<i class="material-icons">done</i>').css('color', 'green');
-			$('#pw_submit').prop('disabled', false);
-		} else {
-			$('#check').html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red');
-		}
-	});
+	$(document).ready(function() {
+		var pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
+		var newPassword = $('#uusi_salasana'); // Ditto
+		var pwCheck = $('#check'); // Ditto
+
+		/** Salasanojen tarkastus reaaliajassa */
+		$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
+			pwSubmit.prop('disabled', true);
+			if ( newPassword.val().length >= 8 ) {
+				if ( newPassword.val() == $('#vahv_uusi_salasana').val() ) {
+					pwCheck.html('<i class="material-icons">done</i>Salasana OK.').css('color', 'green');
+					pwSubmit.prop('disabled', false);
+				} else {
+					pwCheck.html('<i class="material-icons">warning</i>Salasanat eivät täsmää.').css('color', 'red');
+				}
+			} else {
+				pwCheck.html('<i class="material-icons">warning</i>Salasanat min. pituus on 8 merkkiä.')
+					.css('color', 'red');
+			}
+		});
+	}
 </script>
 
 </body>

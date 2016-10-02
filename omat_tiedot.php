@@ -121,6 +121,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<meta charset="UTF-8">
 	<title>Omat Tiedot</title>
@@ -129,16 +130,12 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 <?php require("header.php"); ?>
 
 <main id="lomake">
-
 	<?= $feedback ?>
+
 	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
 		<fieldset><legend>Nykyiset tiedot</legend>
-			<br>
 			<label><span>Sähköposti</span></label>
-			<p style="display: inline; font-size: 16px;">
-				<?= $user->sahkoposti ?>
-			</p>
-
+			<p style="display: inline; font-size: 16px;"><?= $user->sahkoposti ?></p>
 			<?php if ( $user->demo ) : ?>
 				<br><br><label><span>Voimassa</span></label>
 				<p style="display: inline; font-size: 16px;">
@@ -155,31 +152,35 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				   title="Vain aakkosia">
 			<br><br>
 			<label><span>Puhelin</span></label>
-			<input name="puh" type="text" pattern=".{1,20}" value="<?= $user->puhelin ?>">
-			<br><br>
-			<br>
+			<input name="puh" type="text" pattern=".{1,20}" value="<?= $user->puhelin ?>" title="Vain numeroita">
+			<br><br><br>
 
 			<div id="submit">
 				<input type="hidden" name="uudet_tiedot">
 				<input name="submit" value="Päivitä tiedot" type="submit">
 			</div>
 		</fieldset>
-	</form><br>
-
-	<br>
-	<form action="#" name="uusi_salasana" method="post" accept-charset="utf-8">
-	<fieldset><legend>Vaihda salasana</legend>
-		<label><span>Uusi salasana</span></label>
-		<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-		<br><br>
-		<label><span>Vahvista salasana</span></label>
-		<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 6 merkkiä.">
-		<br><br><br>
-		<div id="submit">
-			<input name="submit" value="Vaihda salasana" type="submit">
-		</div>
-	</fieldset>
 	</form>
+
+	<br><br>
+
+	<form action="#" name="uusi_salasana" method="post" accept-charset="utf-8">
+		<fieldset><legend>Vaihda salasana</legend>
+			<label><span>Uusi salasana</span></label>
+			<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 8 merkkiä."
+				   id="uusi_salasana">
+			<br><br>
+			<label><span>Vahvista salasana</span></label>
+			<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 8 merkkiä."
+				   id="vahv_uusi_salasana"><br>
+			<span id="check"></span>
+			<br><br><br>
+			<div id="submit">
+				<input name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
+			</div>
+		</fieldset>
+	</form>
+
 	<br><br>
 
 	<fieldset style="display:inline-block; text-align:left;"><Legend>Osoitekirja</legend>
@@ -302,17 +303,39 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	 * @param osoite_id
 	 * @return Boolean false, jos kayttaja ei paina OK:ta.
 	 */
-	function vahvista_Osoitteen_Poistaminen(osoite_id) {
-		var form_ID = "poista_Osoite_Form_" + osoite_id;
+	function vahvista_Osoitteen_Poistaminen( osoite_id ) {
 		var vahvistus = confirm( "Oletko varma, että haluat poistaa osoitteen?\n"
 			+ "Tätä toimintoa ei voi perua jälkeenpäin.\n"
 			+ "(Huom. Osoitetietoja ei poisteta mahdollisista tilaustiedoista.)");
 		if ( vahvistus === true ) {
-			document.getElementById(form_ID).submit();
+			document.getElementById("poista_Osoite_Form_" + osoite_id).submit();
 		} else {
 			return false;
 		}
 	}
+
+
+	$(document).ready(function() {
+		var pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
+		var newPassword = $('#uusi_salasana'); // Ditto
+		var pwCheck = $('#check'); // Ditto
+
+		/** Salasanojen tarkastus reaaliajassa */
+		$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
+			pwSubmit.prop('disabled', true).addClass('disabled');
+			if ( newPassword.val().length >= 8 ) {
+				if ( newPassword.val() === $('#vahv_uusi_salasana').val() ) {
+					pwCheck.html('<i class="material-icons">done</i>Salasana OK.').css('color', 'green');
+					pwSubmit.prop('disabled', false);
+				} else {
+					pwCheck.html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red');
+				}
+			} else {
+				pwCheck.html('<i class="material-icons">warning</i>Salasanat min. pituus on 8 merkkiä.')
+					.css('color', 'red');
+			}
+		});
+	});
 </script>
 
 </body>

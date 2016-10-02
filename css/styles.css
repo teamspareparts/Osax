@@ -37,6 +37,7 @@ input { padding: 3pt; }
 	vertical-align: text-top;
 }
 
+.center { text-align: center; }
 .end { text-align: end; }
 /********************************************
 	Header

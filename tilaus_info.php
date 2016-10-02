@@ -33,8 +33,8 @@ function hae_tilauksen_tiedot ( DByhteys $db, /* int */ $tilaus_id ) {
 		LEFT JOIN yritys
 			ON yritys.id = kayttaja.yritys_id
 		WHERE tilaus.id = :order_id ";
-
 	$values = [ 'order_id' => $tilaus_id ];
+
 	return ( $db->query($query, $values) );
 }
 
@@ -53,6 +53,7 @@ function get_products_in_tilaus( DByhteys $db, /* int */ $tilaus_id) {
 		LEFT JOIN tuote
 			ON tuote.id = tilaus_tuote.tuote_id
 		WHERE tilaus_id = ? ";
+
 	return ( $db->query( $query, [$tilaus_id], FETCH_ALL ) );
 }
 

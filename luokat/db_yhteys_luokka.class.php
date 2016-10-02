@@ -104,14 +104,13 @@ class DByhteys {
 		if ( $q_type === "SELECT" ) { //Jos select, haetaan array
 			if ( $fetch_All_Rows ) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
 				$result = $stmt->fetchAll( $returnType );
-				$stmt->closeCursor();
 
 			} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
 				$result = $stmt->fetch( $returnType );
-				$stmt->closeCursor();
 			}
 		} //Jos ei, palautetaan boolean execute()-metodilta
 
+		$stmt->closeCursor();
 		return $result;
 	}
 
