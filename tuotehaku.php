@@ -109,10 +109,11 @@ function sortProductsByPrice( $catalog_products ){
  * @return bool
  */
 function tarkasta_etuliite(/*String*/ $number){
-    if (strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3))){
+    if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
         return true;
-    }
-    return false;
+    } else {
+		return false;
+	}
 }
 
 /**
@@ -209,7 +210,6 @@ if ( !empty($_GET["manuf"]) ) {
 <main class="main_body_container">
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
-			<!--Tuotenumerolla haku:<br>-->
 			<form action="tuotehaku.php" method="get" class="haku">
                 <div class="inline-block">
                     <label for="search">Hakunumero:</label>

@@ -129,12 +129,8 @@ function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ 
 	$request =	[$function => $params];
 	$response = _send_json($request);
 
-	// Pyyntö epäonnistui
-	if ($response->status !== 200) {
-		return [];
-	}
-
-	if (isset($response->data->array)) {
+	//Pyyntö onnistui
+	if ( $response->status === 200 && !empty($response->data->array) ) {
 		return $response->data->array;
 	}
 
