@@ -210,7 +210,7 @@ if(isset($_FILES['tuotteet']['name'])) {
 			var valinnat = [];
 			for ( i=0; i<6; i++ ) {
 				valinta = $("#select" + i +" option:selected").val();
-				if($.inArray(valinta, valinnat)) {
+				if($.inArray(valinta, valinnat) !== -1) {
 					e.preventDefault();
 					alert("Tarkasta sarakkeiden valinnat.");
 					return false;

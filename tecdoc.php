@@ -107,14 +107,14 @@ function getAmBrandAddress( $brandNo ) {
 }
 
 /**
- * Hakee tuotteet annetuen tuotenumeron (articleNo) perusteella.
- * Toinen parametri määrittelee haun tarkkuutta.
+ * Hakee tuotteet annetun tuotenumeron (articleNo) ja hakutyypin perusteella.
+ * Kolmas parametri määrittelee haun tarkkuutta.
  * @param string $number
+ * @param int $search_type <p>
  * @param boolean $exact <p> Haetaanko vain tuotenumerolla.
- * 		Jos false, hakee myös vertailu-, OE-, ja EAN-numerolla (yms.)
  * @return array
  */
-function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*bool*/ $exact ) {
+function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type, /*bool*/ $exact ) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
@@ -122,7 +122,7 @@ function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*bool*/
 		'provider' => TECDOC_PROVIDER,
 		'articleNumber' => $number,
         'searchExact' => $exact,
-		'numberType' => ($exact ? 0 : 10), //10: mikä tahansa numerotyyppi, 0:tuotenumero
+		'numberType' => $search_type, //10: mikä tahansa numerotyyppi, 0:tuotenumero, 3:vertailut
 	];
 
 	// Lähetetään JSON-pyyntö
@@ -154,7 +154,7 @@ function findMoreInfoByArticleNo( $number ) {
 			'provider' => TECDOC_PROVIDER,
 			'articleNumber' => $number,
 			'searchExact' => true,
-			'numberType' => 0, // mikä tahansa numerotyyppi (OE, EAN, vertailunumero, jne.)
+			'numberType' => 0,
 	];
 
 	// Lähetetään JSON-pyyntö

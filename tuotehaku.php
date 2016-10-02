@@ -1,6 +1,5 @@
-﻿<?php
+<?php
 require '_start.php';
-require 'tecdoc_asetukset.php';
 require 'tecdoc.php';
 require 'apufunktiot.php';
 
@@ -29,37 +28,57 @@ function printManufSelectOptions ( array $manufs ) {
  * @param DByhteys $db <p> Tietokantayhteys
  * @param array $products <p> Tuote-array, josta etsitään aktivoidut tuotteet.
  * @return array <p> Kolme arrayta:
- * 		[0]: saatavilla olevat tuotteet, jotka löytyvät catalogista; [1]: ei saatavilla olevat tuotteet;
+ * 		[0]: saatavilla olevat tuotteet, jotka löytyvät catalogista;
+ *      [1]: ei saatavilla olevat tuotteet;
  * 		[2]: tuotteet, jotka eivät löydy catalogista
  */
 function filter_catalog_products ( DByhteys $db, array $products ) {
+
+    /**
+     * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
+     * @param DByhteys $db
+     * @param stdClass $product
+     * @return array|bool|stdClass
+     */
+    function get_product_from_database(DByhteys $db, stdClass $product){
+        $query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+			    		FROM 	tuote 
+		  	  	    	JOIN 	ALV_kanta
+		    				ON	tuote.ALV_kanta = ALV_kanta.kanta
+				    	WHERE 	tuote.articleNo = ?
+					        AND tuote.brandNo = ?
+					 	    AND tuote.aktiivinen = 1 ";
+
+        return $db->query($query, [$product->articleNo, $product->brandNo], FETCH_ALL, PDO::FETCH_OBJ);
+    }
+
+
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
 	$ids = $articleIds = array();
 
+    //Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
-		$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-					FROM 	tuote 
-					JOIN 	ALV_kanta
-						ON	tuote.ALV_kanta = ALV_kanta.kanta
-					WHERE 	tuote.articleNo = ?
-					 	AND tuote.brandNo = ?
-					 	AND tuote.aktiivinen = 1 ";
-		$row = $db->query( $query, [$product->articleNo, $product->brandNo], NULL, PDO::FETCH_OBJ );
+        $row = get_product_from_database($db, $product);
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$not_in_catalog[] = $product;
 		}
-		if ( $row && !in_array($row->id, $ids) ) {
-			$ids[] = $row->id;
-			$row->articleId = $product->articleId;
-			$row->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
-			$row->brandName = $product->brandName;
-			if (($row->varastosaldo >= $row->minimimyyntiera) && ($row->varastosaldo != 0)) {
-				$catalog_products[] = $row;
-			} else {
-				$not_available_catalog_products[] = $row;
-			}
+		if ( $row ) {
+		    //Kaikki löytyneet tuotteet (eri hankintapaikat)
+            foreach ($row as $tuote) {
+                if (!in_array($tuote->id, $ids)){
+                    $ids[] = $tuote->id;
+                    $tuote->articleId = $product->articleId;
+                    $tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
+                    $tuote->brandName = $product->brandName;
+                    if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
+                       $catalog_products[] = $tuote;
+                    } else {
+                        $not_available_catalog_products[] = $tuote;
+                    }
+                }
+            }
 		}
 	}
 	merge_catalog_with_tecdoc($catalog_products, false);
@@ -84,18 +103,68 @@ function sortProductsByPrice( $catalog_products ){
 	return $catalog_products;
 }
 
+/**
+ * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
+ * @param $number
+ * @return bool
+ */
+function tarkasta_etuliite(/*String*/ $number){
+    if (strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3))){
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Jakaa hakunumeron etuliitteeseen ja hakunumeroon
+ * @param int $number reference
+ * @param int $etuliite reference
+ */
+function halkaise_hakunumero(&$number, &$etuliite){
+    $etuliite = substr($number, 0, 3);
+    $number = substr($number, 4);
+}
+
+
 $haku = FALSE;
 $manufs = getManufacturers();
-$catalog_products = array();
+$products = $catalog_products = $not_in_catalog = $not_available = [];
 
 if ( !empty($_GET['haku']) ) {
-	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
-	$number = addslashes(str_replace(" ", "", $_GET['haku']));
+	$haku = TRUE; // Hakutulosten tulostamista varten.
+	$number = addslashes(str_replace(" ", "", $_GET['haku']));  //hakunumero
+    $etuliite = null;                                           //mahdollinen etuliite
+    //TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
+    //TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 
-	$products = getArticleDirectSearchAllNumbersWithState($number, (!empty($_GET['exact']))); // haetaan kaikki linkitetyt tuotteet
 
-	// Filtteröidään catalogin tuotteet kahteen listaan: Niihin jotka ovat valikoimassa ja niihin, jotka eivät ole.
-	$filtered_product_arrays = filter_catalog_products( $db, $products );
+	$numerotyyppi = isset($_GET['numerotyyppi']) ? $_GET['numerotyyppi'] : null;	//numerotyyppi
+    $exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
+	switch ($numerotyyppi) {
+		case 'all':
+            if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
+			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
+			break;
+		case 'articleNo':
+            if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
+			$products = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);
+			break;
+		case 'comparable':
+            if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
+			$products1 = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
+			$products2 = getArticleDirectSearchAllNumbersWithState($number, 3, $exact);	//vertailut
+			$products = array_merge($products1, $products2);
+			break;
+		case 'oe':
+			$products = getArticleDirectSearchAllNumbersWithState($number, 1, $exact);
+			break;
+		default:	//jos numerotyyppiä ei ole määritelty (= joku on ruvennut leikkimään GET parametrilla)
+            $products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
+			break;
+	}
+
+	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
+	$filtered_product_arrays = filter_catalog_products( $db, $products, $etuliite );
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
@@ -118,36 +187,54 @@ if ( !empty($_GET["manuf"]) ) {
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/jsmodal-light.css">
+    <link rel="stylesheet" href="css/bootstrap.css">
 
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<!-- https://design.google.com/icons/ -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
-	<script src="js/jsmodal-1.0d.min.js"></script>
-	<title>Tuotehaku</title>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
+    <script src="js/jsmodal-1.0d.min.js"></script>
+    <title>Tuotehaku</title>
 </head>
 <body>
-<?php require 'header.php' ?>
-
+<?php require 'header.php'?>
 <main class="main_body_container">
 	<section class="flex_row">
 		<div class="tuotekoodihaku">
-			Tuotenumerolla haku:<br>
+			<!--Tuotenumerolla haku:<br>-->
 			<form action="tuotehaku.php" method="get" class="haku">
-				<input id="search" type="text" name="haku" placeholder="Tuotenumero">
-				<span class="info-box"><input id="exact" type="checkbox" name="exact" title="Tarkka haku"/></span><br>
+                <div class="inline-block">
+                    <label for="search">Hakunumero:</label>
+                    <br>
+				    <input id="search" type="text" name="haku" placeholder="Tuotenumero">
+                </div>
+                <div class="inline-block">
+                    <label for="numerotyyppi">Numerotyyppi:</label>
+                    <br>
+				    <select id="numerotyyppi" name="numerotyyppi">
+				    	<option value="all">Kaikki numerot</option>
+				    	<option value="articleNo">Tuotenumero</option>
+				    	<option value="comparable">Tuotenumero + vertailut</option>
+				    	<option value="oe">OE-numerot</option>
+				    </select>
+                </div>
+                <div class="inline-block">
+                    <label for="exact">Hakutyyppi:</label>
+                    <br>
+                    <select id="hakutyyppi" name="exact">
+                        <option value="true">Tarkka</option>
+                        <option value="false">Samankaltainen</option>
+                    </select>
+                </div>
+                <br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
@@ -203,7 +290,7 @@ if ( !empty($_GET["manuf"]) ) {
 				<tr data-val="<?=$product->articleId?>">
 					<td class="clickable thumb">
 						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
-					<td class="clickable"><?=$product->articleNo?></td>
+					<td class="clickable"><?=$product->tuotekoodi?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 					<td class="clickable">
 						<?php foreach ( $product->infos as $info ) :
@@ -251,7 +338,7 @@ if ( !empty($_GET["manuf"]) ) {
 				<tr data-val="<?=$product->articleId?>">
 					<td class="clickable thumb">
 						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
-					<td class="clickable"><?=$product->articleNo?></td>
+					<td class="clickable"><?=$product->tuotekoodi?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 					<td class="clickable">
 						<?php foreach ( $product->infos as $info ) :
@@ -587,7 +674,7 @@ if ( !empty($_GET["manuf"]) ) {
 					result += "<tr>";
 					result += "" +
 						"<td style='font-size:14px;'>"+array[i].brandName+"</td>" +
-						"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+array[i].oeNumber+"' style='color:black;'>"+array[i].oeNumber+"</a></td>";
+						"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+array[i].oeNumber+"&numerotyyppi=oe&exact=on' style='color:black;'>"+array[i].oeNumber+"</a></td>";
 					result += "</tr>";
 				}
 				result += "</table>";
@@ -704,13 +791,13 @@ if ( !empty($_GET["manuf"]) ) {
 				"<table style='margin-left:auto; margin-right:auto;'>" +
 				"<th colspan='2' class='text-center'>Vertailunumerot</th>" +
 				"<tr><td style='font-size:14px;'>"+brand+"</td>" +
-				"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+articleNo+"' style='color:black;'>"+articleNo+"</a></td></tr>";
+				"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+articleNo+"&numerotyyppi=comparable&exact=on' style='color:black;'>"+articleNo+"</a></td></tr>";
 
 			if ( response.length !== 0 ) {
 				for ( i=0; i<response.length; i++ ) {
 					comparableNumbers += "<tr>";
 					comparableNumbers += "<td style='font-size:14px;'>"+response[i].brandName+"</td>" +
-						"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+response[i].articleNo+"' style='color:black;'>"
+						"<td style='font-size:14px;'><a href='tuotehaku.php?haku="+response[i].articleNo+"&numerotyyppi=comparable&exact=on' style='color:black;'>"
 						+response[i].articleNo+"</a></td>";
 					comparableNumbers += "</tr>";
 				}
@@ -1210,10 +1297,22 @@ if ( !empty($_GET["manuf"]) ) {
 		$("#search").val(search);
 	}
 
+	if( qs["numerotyyppi"] ){
+		var number_type = qs["numerotyyppi"];
+        if (number_type == "all" || number_type == "articleNo" ||
+            number_type == "comparable" || number_type == "oe") {
+            $("#numerotyyppi").val(number_type);
+        }
+	}
+
 	if ( qs["exact"] ){
 		var exact = qs["exact"];
-		$("#exact").prop("checked", true);
+        if (exact == "true" || exact == "false") {
+            $("#hakutyyppi").val(exact);
+        }
 	}
+
+
 
 </script>
 

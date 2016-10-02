@@ -25,6 +25,10 @@ input { padding: 3pt; }
 .flex_row { display: flex; flex-direction: row; }
 .flex_column { display: flex; flex-direction: column; }
 
+.inline-block{
+	display: inline-block;
+}
+
 .main_body_container {
 	margin: 20px 5vw 3vw;
 	white-space: nowrap;
@@ -369,15 +373,17 @@ input { padding: 3pt; }
 /*************************************************
 
 	//TODO: selitä mikä tämä on
+	//=sekalaisia.... Pitäisi järjestää loogisesti.
+	//Teen myöhemmin.
 
 **************************************************/
 .haku {
 	/*margin-left: 5%;*/
 }
 
-.haku input[type=text] {
+.haku input[type=text], #hakutyyppi, #numerotyyppi{
 	padding: 5pt;
-	font-size: 120%;
+	font-size: 100%;
 	border: 1px solid #1d7ae2;
 }
 
@@ -824,3 +830,5 @@ Sivustus (pagination) (requires bootstrap)
 	border: 0;
 	width: 2.7rem;
 }
+
+
