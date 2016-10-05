@@ -12,7 +12,7 @@ class Ostoskori {
 	 * ]
 	 * </code>
 	 * Indesit kokonaislukuja (0 ja 1)
-	 * @var array <p> Ostoskorissa olevat tuotteet.
+	 * @var int[] <p> Ostoskorissa olevat tuotteet.
 	 */
 	public $tuotteet = NULL;
 
@@ -56,18 +56,20 @@ class Ostoskori {
 	 * 		</ul>
 	 */
 	function __construct ( DByhteys $db, /*int*/ $yritys_id, /*int*/ $cart_mode = 0 ) {
-		$this->yritys_id = $yritys_id;
-		$this->hae_cart_id( $db, $yritys_id );
-		$this->cart_mode = $cart_mode;
-		switch ( $cart_mode ) {
-			case -1:
-				break; // Do nothing
-			case 0 :
-				$this->hae_ostoskorin_sisalto( $db, FALSE );
-				break;
-			case 1 :
-				$this->hae_ostoskorin_sisalto( $db, TRUE );
-				break;
+		if ( $yritys_id !== NULL ) {
+			$this->yritys_id = $yritys_id;
+			$this->hae_cart_id( $db, $yritys_id );
+			$this->cart_mode = $cart_mode;
+			switch ( $cart_mode ) {
+				case -1:
+					break; // Do nothing
+				case 0 :
+					$this->hae_ostoskorin_sisalto( $db, FALSE );
+					break;
+				case 1 :
+					$this->hae_ostoskorin_sisalto( $db, TRUE );
+					break;
+			}
 		}
 	}
 
@@ -98,7 +100,7 @@ class Ostoskori {
 			$this->montako_tuotetta_kpl_maara_yhteensa = $row->kpl_maara;
 		} else {
 			$this->montako_tuotetta_kpl_maara_yhteensa = 0; // Varmuuden vuoksi nollataan
-			$this->montako_tuotetta = 0; // Varmuuden vuoksi nollataan
+			$this->montako_tuotetta = 0; // Ditto
 			$this->tuotteet = array();
 			$sql = "SELECT tuote_id, kpl_maara
 					FROM   ostoskori_tuote
@@ -106,7 +108,7 @@ class Ostoskori {
 			$db->prepare_stmt( $sql );
 			$db->run_prepared_stmt( [$this->ostoskori_id] );
 			$row = $db->get_next_row( );
-			while ( $row ) {
+			while ( $row ) { //TODO: Miksei vaan [$row->tuote_id][] = $row; ?
 				$this->tuotteet[$row->tuote_id][] = $row->tuote_id;
 				$this->tuotteet[$row->tuote_id][] = $row->kpl_maara;
 				$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
@@ -168,5 +170,13 @@ class Ostoskori {
 	public function tyhjenna_kori( DByhteys $db ) {
 		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?",
 			[$this->ostoskori_id] );
+	}
+
+	/**
+	 * Palauttaa, onko olio käytettävissä, eikä NULL.
+	 * @return bool
+	 */
+	public function isValid () {
+		return ( $this->ostoskori_id !== NULL );
 	}
 }

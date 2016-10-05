@@ -5,7 +5,7 @@
  */
 class User {
 
-	public $id;
+	public $id = NULL;
 	public $yritys_id = 0;
 
 	public $sahkoposti = '';
@@ -18,34 +18,41 @@ class User {
 	public $demo = FALSE;
 	public $voimassaolopvm = NULL;
 	public $salasana_uusittava = NULL;
-
-	public $toimitusosoitteet = NULL;
+	/** @var stdClass[] */
+	public $toimitusosoitteet = array();
 
 	/**
-	 * user constructor.
+	 * user constructor.<p>
+	 * Hakee käyttäjän tiedot tietokannasta.
+	 * Jos 1. parametri on NULL, niin ei tee mitään. Jos ei löydä yritystä ID:llä, niin kaikki
+	 *  olion arvot pysyvät default arvoissaan. Testaa, löytyikö yritys tarkastamalla, onko ID == NULL.
 	 * @param DByhteys $db
 	 * @param int $user_id
 	 */
 	function __construct ( DByhteys $db, /*int*/ $user_id ) {
-		$this->id = $user_id;
-		$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
-				  	yllapitaja, demo, voimassaolopvm, salasana_uusittava 
-				FROM kayttaja 
-				WHERE id = ?
-				LIMIT 1";
-		$foo = $db->query( $sql, [$user_id] );
+		if ( $user_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
+			$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
+				  		yllapitaja, demo, voimassaolopvm, salasana_uusittava 
+					FROM kayttaja 
+					WHERE id = ?
+					LIMIT 1";
+			$foo = $db->query( $sql, [ $user_id ] );
 
-		$this->yritys_id = $foo->yritys_id;
-		$this->sahkoposti = $foo->sahkoposti;
+			if ( $foo ) { // Varmistetaan, että jokin asiakas löytyi
+				$this->id = $foo->id;
+				$this->yritys_id = $foo->yritys_id;
+				$this->sahkoposti = $foo->sahkoposti;
 
-		$this->etunimi = $foo->etunimi;
-		$this->sukunimi = $foo->sukunimi;
-		$this->puhelin = $foo->puhelin;
+				$this->etunimi = $foo->etunimi;
+				$this->sukunimi = $foo->sukunimi;
+				$this->puhelin = $foo->puhelin;
 
-		$this->yllapitaja = $foo->yllapitaja;
-		$this->demo = $foo->demo;
-		$this->voimassaolopvm = $foo->voimassaolopvm;
-		$this->salasana_uusittava = $foo->salasana_uusittava;
+				$this->yllapitaja = $foo->yllapitaja;
+				$this->demo = $foo->demo;
+				$this->voimassaolopvm = $foo->voimassaolopvm;
+				$this->salasana_uusittava = $foo->salasana_uusittava;
+			}
+		}
 	}
 
 	/**
@@ -53,7 +60,7 @@ class User {
 	 * @return bool <p> Ylläpitäjä-arvon tarkistuksen tulos
 	 */
 	public function isAdmin () {
-		return $this->yllapitaja;
+		return ($this->yllapitaja === 1);
 	}
 
 	/**
@@ -121,5 +128,13 @@ class User {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * Palauttaa, onko olio käytettävissä, eikä NULL.
+	 * @return bool
+	 */
+	public function isValid () {
+		return ( $this->id !== NULL );
 	}
 }

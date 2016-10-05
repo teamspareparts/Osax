@@ -5,7 +5,7 @@
  */
 class Yritys {
 
-	public $id;
+	public $id = NULL;
 
 	public $nimi = '';
 	public $sahkoposti = '';
@@ -21,30 +21,45 @@ class Yritys {
 	public $ilm_toim_sum_raja = 0.00;
 
 	/**
-	 * Yritys constructor.
+	 * Yritys constructor. <p>
+	 * Hakee yrityksen tiedot tietokannasta.
+	 * Jos 1. parametri on NULL, niin ei tee mitään. Jos ei löydä yritystä ID:llä, niin kaikki
+	 *  olion arvot pysyvät default arvoissaan. Testaa, löytyikö yritys metodilla .isValid().
 	 * @param DByhteys $db
-	 * @param $yritys_id
+	 * @param int $yritys_id
 	 */
 	function __construct ( DByhteys $db, /*int*/ $yritys_id ) {
-		$this->id = $yritys_id;
-		$sql_q = "SELECT id, nimi, sahkoposti, puhelin, y_tunnus, 
-					katuosoite, postinumero, postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja
-				  FROM yritys
-				  WHERE id = ?
-				  LIMIT 1";
-		$foo = $db->query( $sql_q, [$yritys_id] );
+		if ( $yritys_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
+			$sql = "SELECT id, nimi, sahkoposti, puhelin, y_tunnus, 
+						katuosoite, postinumero, postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja
+					FROM yritys
+					WHERE id = ?
+					LIMIT 1";
+			$foo = $db->query( $sql, [$yritys_id] );
 
-		$this->nimi = $foo->nimi;
-		$this->sahkoposti = $foo->sahkoposti;
-		$this->puhelin = $foo->puhelin;
-		$this->y_tunnus = $foo->y_tunnus;
+			if ( $foo ) { // Varmistetaan, että jokin yritys löytyi
+				$this->id 			= $foo->id;
+				$this->nimi			= $foo->nimi;
+				$this->sahkoposti	= $foo->sahkoposti;
+				$this->puhelin		= $foo->puhelin;
+				$this->y_tunnus		= $foo->y_tunnus;
 
-		$this->katuosoite = $foo->katuosoite;
-		$this->postinumero = $foo->postinumero;
-		$this->postitoimipaikka = $foo->postitoimipaikka;
-		$this->maa = $foo->maa;
+				$this->katuosoite	= $foo->katuosoite;
+				$this->postinumero	= $foo->postinumero;
+				$this->postitoimipaikka = $foo->postitoimipaikka;
+				$this->maa			= $foo->maa;
 
-		$this->rahtimaksu = $foo->rahtimaksu;
-		$this->ilmainen_toimitus_summa_raja = $foo->ilmainen_toimitus_summa_raja;
+				$this->rahtimaksu	= $foo->rahtimaksu;
+				$this->ilmainen_toimitus_summa_raja = $foo->ilmainen_toimitus_summa_raja;
+			}
+		}
+	}
+
+	/**
+	 * Palauttaa, onko olio käytettävissä, eikä NULL.
+	 * @return bool
+	 */
+	public function isValid () {
+		return ( $this->id !== NULL );
 	}
 }
