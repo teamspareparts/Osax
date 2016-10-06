@@ -163,7 +163,6 @@ input { padding: 3pt; }
 	left: 5%;
 }
 
-
 /********************************************
 	Painikkeiden ulkoasu
 ********************************************/
@@ -268,6 +267,46 @@ input { padding: 3pt; }
 /********************************************
 	Kaikkien lomakkeitten (form) tyylittely
 *********************************************/
+.lomake { /* keskitetään form */
+	display: block;
+	text-align: center;
+}
+
+.lomake form {
+	display: inline-block;
+	text-align: left;
+}
+
+.lomake form label {
+	float: left;
+	width: 220px;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.lomake fieldset {
+	width: 450px;
+	border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	margin: 0 0 10px 0;
+	border: 1px solid;
+	padding: 20px;
+}
+
+.lomake fieldset legend {
+	text-align: left;
+	font-size: 20px;
+}
+
+.required:after { /* Lisää punaisen asteriskin vaadittujen kenttien kohdalle */
+	content:" *";
+	color: red;
+}
+
+/**
+	Poista kaikki tämä jälkeen!
+*/
 /* keskitetään form */
 #lomake {
 	display: block;
@@ -309,24 +348,10 @@ input { padding: 3pt; }
 	color: red;
 }
 
-#lomake input {
-}
-
 /* Asetellaan "submit"-painike */
 #lomake #submit {
 	display: block;
 	text-align: center;
-}
-
-#lomake #submit input[type=submit] {
-	background: #4479BA;
-	border-color: #20538D;
-}
-
-#lomake #submit input[type=submit]:HOVER {
-	background: #356094;
-	border: solid 1px #2A4E77;
-	cursor: pointer;
 }
 
 
