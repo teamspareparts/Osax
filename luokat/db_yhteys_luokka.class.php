@@ -108,9 +108,9 @@ class DByhteys {
 			} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
 				$result = $stmt->fetch( $returnType );
 			}
+			$stmt->closeCursor();
 		} //Jos ei, palautetaan boolean execute()-metodilta
 
-		$stmt->closeCursor();
 		return $result;
 	}
 

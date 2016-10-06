@@ -5,7 +5,7 @@ require 'apufunktiot.php';
 /**
  * @param DByhteys $db
  * @param User $user
- * @return array|stdClass
+ * @return stdClass[]
  */
 function hae_tilaukset ( DByhteys $db, User $user ) {
 	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
@@ -35,11 +35,6 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
 	<title>Tilaushistoria</title>
-	<style>
-		*[data-href] {
-			cursor: pointer;
-		}
-	</style>
 </head>
 <body>
 <?php include 'header.php'; ?>
@@ -81,9 +76,11 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 
 <script>
 	$(function(){
-		$('*[data-href]').click(function(){
-			window.location = $(this).data('href');
-			return false;
+		$('*[data-href]')
+			.css('cursor', 'pointer')
+			.click(function(){
+				window.location = $(this).data('href');
+				return false;
 		});
 	});
 </script>

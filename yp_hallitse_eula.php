@@ -1,14 +1,39 @@
 <?php
 require '_start.php'; global $db, $user, $cart, $yritys;
-if (!is_admin()) {
+
+if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
+}
+
+$feedback = '';
+/** Tiedoston käsittely */
+if ( isset($_FILES['eula']['name']) ) {
+
+    if ( !$_FILES['eula']['error'] ) { // Jos ei virheitä...
+		$target_file = "eula.txt"; //TODO: Pitäisikö eula olla jossain muussa kansiossa?
+
+		$query = "UPDATE kayttaja SET vahvista_eula = 1"; // Käyttäjien on vahvistettava uusi eula.
+		$db->query( $query ); //Ditto
+
+		// Onnistuiko tiedoston siirtäminen serverille
+		if ( move_uploaded_file( $_FILES['eula']['tmp_name'], $target_file ) ) {
+			$feedback = "<p class='success'>EULA päivitetty onnistuneesti.</p>";
+		} else {
+			$feedback = "<p class='error'>EULAn päivittäminen epäonnistui.</p>";
+		}
+
+	} else {// Jos virhe tiedoston latauksessa...
+		$feedback = "Error: " . $_FILES['eula']['error'];
+	}
 }
 ?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
+    <title>EULA</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <style type="text/css">
         #eula_tiedosto {
             border: 1px dashed;
@@ -18,8 +43,6 @@ if (!is_admin()) {
             border-color: cadetblue;
         }
     </style>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <title>EULA</title>
 </head>
 <body>
 <?php require 'header.php'; ?>
@@ -35,46 +58,11 @@ if (!is_admin()) {
             <a href="http://www.osax.fi/eula.txt" download="eula" style="margin-left:100px">Lataa nykyinen EULA</a>
         </form>
     </fieldset>
+
+    <?= $feedback ?>
 </main>
 
-<?php
-/**
- * Tiedoston käsittely
- */
-
-if(isset($_FILES['eula']['name'])) {
-    // Jos ei virheitä...
-    if(!$_FILES['eula']['error']) {
-
-        $target_dir = ""; //jos ladataan johonkin kansioon kuten "eula/"
-
-        //$target_file = $target_dir . basename($_FILES["eula"]["name"]);
-        $target_file = $target_dir . "eula.txt";
-
-        // Uusien asiakkaiden on vahvistettava uusi eula.
-        $query = "UPDATE kayttaja SET vahvista_eula=1";
-        $db->query($query);
-
-        // Onnistuiko tiedoston siirtäminen serverille
-        if (move_uploaded_file($_FILES['eula']['tmp_name'], $target_file)) {
-            echo "<p class='success'>EULA päivitetty onnistuneesti.</p>";
-        } else {
-            echo "<p class='error'>EULAn päivittäminen epäonnistui.</p>";
-        }
-
-    }
-    // Jos virhe tiedoston latauksessa...
-    else
-    {
-        echo "Error: " . $_FILES['eula']['error'];
-    }
-}
-
-
-
-?>
 <script type="text/javascript">
-
     $(document).ready(function(){
         $('#eula_tiedosto').on("change", function() {
             $('#submit_eula').prop('disabled', !$(this).val());

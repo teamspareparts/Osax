@@ -155,9 +155,9 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 			<input name="puh" type="text" pattern=".{1,20}" value="<?= $user->puhelin ?>" title="Vain numeroita">
 			<br><br><br>
 
-			<div id="submit">
+			<div class="center">
 				<input type="hidden" name="uudet_tiedot">
-				<input name="submit" value="Päivitä tiedot" type="submit">
+				<input class="nappi" name="submit" value="Päivitä tiedot" type="submit">
 			</div>
 		</fieldset>
 	</form>
@@ -175,8 +175,8 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				   id="vahv_uusi_salasana"><br>
 			<span id="check"></span>
 			<br><br><br>
-			<div id="submit">
-				<input name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
+			<div class="center">
+				<input class="nappi" name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
 			</div>
 		</fieldset>
 	</form>
@@ -205,7 +205,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				</form>
 			</div><hr>
 		<?php endforeach; ?>
-		<div id="submit">
+		<div class="center">
 			<input class="nappi" type="button" value="Lisää uusi toimitusosoite"
 				   onClick="avaa_Modal_toimitusosoite_lisaa_uusi();">
 		</div>
