@@ -3,68 +3,50 @@ require '_start.php'; global $db, $user, $cart, $yritys;
 
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
-} elseif ( !empty($_GET['yritys_id']) ) {
-	$yritys_id = 0;
 }
 
-if (isset($_POST['spoksti'])){
+$yritys_id = !empty($_GET['yritys_id']) ? $_GET['yritys_id'] : 0;
+
+if (isset($_POST['sposti'])){
 	$demo = !empty($_POST['demo_user']) ? '1' : '0';			// Onko demokäyttäjä?
-	$paivat = !empty($_POST['paivat']) ? $_POST['paivat'] : '0';// Demokäyttäjän käyttöaika
+	$paivat = !empty($_POST['paivat']) ? (int)$_POST['paivat'] : '0';// Demokäyttäjän käyttöaika
 
-	$result = db_lisaa_asiakas($_POST, $demo, $paivat);
-	if($result == -1){
-		echo "Sähköposti varattu.";
-	}
-	elseif ($result == -2){
-		echo "Salasanat eivät täsmää.";
-	}
-	else{
-		header("Location:yp_asiakkaat.php?yritys_id=".$_GET['yritys_id']);
-	}
-}
+	// Tarkistetaan, että halutulla sähköpostilla ei ole jo aktivoitua käyttäjää.
+	$sql = "SELECT id FROM kayttaja WHERE sahkoposti=? AND aktiivinen=1 LIMIT 1";
+	$row = $db->query( $sql, [$_POST['sposti']] );
 
-//return:
-//-2	salasanat ei täsmää
-//-1	käyttäjätunnus on jo olemassa
-//1		lisäys onnistui
-//2		kayttaja aktivoitu uudelleen
-function db_lisaa_aksiakas($variables, $demo, $paivat){
-	$asiakas_hajautettu_salasana = password_hash($asiakas_salasana, PASSWORD_DEFAULT);
+	if ( !$row ) {
+		if ( $demo !== 1 && $paivat < 1 ) { // Varmuuden vuoksi, tarkastetaan käyttöajan järjellisyys
+			$ss_strlen = strlen( $_POST['password'] );
+			if ( $ss_strlen > 8 && $ss_strlen < 300 ) {
+				if ( $_POST['password'] === $_POST['confirm_password'] ) {
+					$salasana_hajt = password_hash( $_POST['password'], PASSWORD_DEFAULT );
 
+					unset($_POST['submit']); //Poistetaan turha array-index.
+					$sql = "INSERT INTO kayttaja 
+								( sahkoposti,  etunimi, sukunimi, puhelin, salasana_hajautus, demo, yritys_id,
+								voimassaolopvm, salasana_uusittava )
+							VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, '1' )
+							ON DUPLICATE KEY UPDATE 
+								sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
+								puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 
+								demo=VALUES(demo), yritys_id=VALUES(yritys_id), voimassaolopvm=NOW()+INTERVAL ? DAY,
+								salasana_uusittava='1', aktiivinen='1' ";
 
-	//Tarkastetaan, että salasana ja vahvistussalasana ovat samat.
-	if ($asiakas_salasana != $asiakas_varmista_salasana){
-		return -2;	//salasanat ei täsmää
-	}else {
-		//Palvelimeen liittyminen
-		$connection = mysqli_connect(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME) or die("Connection error:" . mysqli_connect_error());
-		$tbl_name = 'kayttaja';
-		//Tarkastetaan onko samannimistä käyttäjätunnusta
-		$query = "SELECT * FROM $tbl_name WHERE sahkoposti='$asiakas_sposti';";
-		$result = mysqli_query($connection, $query);
-		$count = mysqli_num_rows($result);
-		$row = mysqli_fetch_assoc($result);
-
-
-
-		if($count != 0 && $row["aktiivinen"] == 1) {
-			return -1; //käyttäjänimi varattu
+					if ( $db->query($sql, $_POST) ) {
+						header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&fb=success"); exit;
+					}
+				} else {
+					$feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
+				}
+			} else {
+				$feedback = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
+			}
+		} else {
+			$feedback = "<p class='error'>Demoaika (päivät) väärin.</p>";
 		}
-		elseif ($count != 0 && $row["aktiivinen"] == 0){
-			$query = "UPDATE $tbl_name 
-				  					SET yritys_id=$yritys_id, aktiivinen=1, etunimi='$asiakas_etunimi', sukunimi='$asiakas_sukunimi',puhelin='$asiakas_puh',
-			  						salasana_hajautus='$asiakas_hajautettu_salasana', salasana_vaihdettu=NOW(), demo='$demo', voimassaolopvm=NOW()+INTERVAL '$paivat' DAY, salasana_uusittava=1
-		  							WHERE sahkoposti='$asiakas_sposti'";
-			$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));
-			return 2;	//kayttaja aktivoitu
-		}
-		else {
-			//lisätään tietokantaan
-			$query = "	INSERT INTO $tbl_name (yritys_id, salasana_hajautus, salasana_vaihdettu, etunimi, sukunimi, sahkoposti, puhelin, demo, voimassaolopvm, salasana_uusittava)
-		      					VALUES ('$yritys_id', '$asiakas_hajautettu_salasana', NOW(), '$asiakas_etunimi', '$asiakas_sukunimi', '$asiakas_sposti', '$asiakas_puh', '$demo', NOW()+INTERVAL '$paivat' DAY, 1)";
-			$result = mysqli_query($connection, $query) or die("Error:" . mysqli_error($connection));;
-			return 1;	//kaikki ok
-		}
+	} else {
+		$feedback = "<p class='error'>Kyseisellä sähköpostilla on jo aktivoitu käyttäjä. ID: {$row->id}</p>";
 	}
 }
 ?>
@@ -79,7 +61,8 @@ function db_lisaa_aksiakas($variables, $demo, $paivat){
 </head>
 <body>
 <?php require 'header.php'; ?>
-<main class="main_body_container lomake">
+<main class="main_body_container lomake flex_column">
+	<a class="nappi" href="yp_asiakkaat.php?yritys_id=1">Takaisin</a>
 	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Uuden käyttäjän tiedot</legend>
 			<br>
@@ -94,9 +77,6 @@ function db_lisaa_aksiakas($variables, $demo, $paivat){
 			<br><br>
 			<label for="puh"> Puhelin </label>
 			<input id="puh" name="puh" type="text" pattern=".{1,20}">
-			<br><br>
-			<label for="ynimi"> Yrityksen nimi </label>
-			<input id="ynimi" name="yritysnimi" type="text" pattern=".{1,50}">
 			<br><br>
 			<label for="ss" class="required"> Salasana </label>
 			<input id="ss" name="password" type="password" pattern=".{6,}"
@@ -114,7 +94,7 @@ function db_lisaa_aksiakas($variables, $demo, $paivat){
 			<input name="paivat" type="number" value="7" class="" min="1" maxlength="4" id="paivat"
 				   title="Kuinka monta päivää aktiivinen">
 
-			<input name="yritys_id" type="hidden" value="<?=$_GET['yritys_id']?>" />
+			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" />
 			<br><br>
 			<span class="small_note"> <span style="color:red;">*</span> = pakollinen kenttä</span>
 			<br>
@@ -136,7 +116,6 @@ function db_lisaa_aksiakas($variables, $demo, $paivat){
 		/** Demo-valinnan alustusta */
 		$("#paivat").addClass('disabled');		// Otetaan pvm-input pois käytöstä aluksi
 		$("#inner_label").addClass('disabled');	//Ditto
-
 		/** Testiasiakas-valinta
 			Onko päivät-valinta disabled? */
 		$("#demo").change(function(){
@@ -149,15 +128,13 @@ function db_lisaa_aksiakas($variables, $demo, $paivat){
 			}
 		});
 
-
-
 		/** Salasanojen tarkastus reaaliajassa */
 		$('#ss, #vahv_ss').on('keyup', function () {
 			pwSubmit.prop('disabled', true).addClass('disabled');
 			if ( newPassword.val().length >= 8 ) {
 				if ( newPassword.val() === $('#vahv_ss').val() ) {
 					pwCheck.html('<i class="material-icons">done</i>Salasana OK.').css('color', 'green');
-					pwSubmit.prop('disabled', false);
+					pwSubmit.prop('disabled', false).removeClass('disabled');
 				} else {
 					pwCheck.html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red');
 				}

@@ -34,7 +34,7 @@ class User {
 			$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
 				  		yllapitaja, demo, voimassaolopvm, salasana_uusittava 
 					FROM kayttaja 
-					WHERE id = ?
+					WHERE id = ? AND aktiivinen = 1
 					LIMIT 1";
 			$foo = $db->query( $sql, [ $user_id ] );
 
