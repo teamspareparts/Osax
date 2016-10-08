@@ -34,7 +34,7 @@ if (isset($_POST['sposti'])){
 								salasana_uusittava='1', aktiivinen='1' ";
 
 					if ( $db->query($sql, $_POST) ) {
-						header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&fb=success"); exit;
+						header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&feedback=success"); exit;
 					}
 				} else {
 					$feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
@@ -62,7 +62,9 @@ if (isset($_POST['sposti'])){
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container lomake flex_column">
-	<a class="nappi" href="yp_asiakkaat.php?yritys_id=1">Takaisin</a>
+	<?= !empty($feedback) ? $feedback : '' ?>
+	<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>"
+	   style="color:#000; background-color:#c5c5c5; border-color:#000;">Takaisin</a><br><br>
 	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Uuden käyttäjän tiedot</legend>
 			<br>
@@ -76,15 +78,15 @@ if (isset($_POST['sposti'])){
 			<input id="snimi" name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}">
 			<br><br>
 			<label for="puh"> Puhelin </label>
-			<input id="puh" name="puh" type="text" pattern=".{1,20}">
+			<input id="puh" name="puh" type="text" pattern="((\+|00)?\d{5}|)(\s?\d){10}">
 			<br><br>
 			<label for="ss" class="required"> Salasana </label>
-			<input id="ss" name="password" type="password" pattern=".{6,}"
-				   title="Pituus min 6 merkkiä." required>
+			<input id="ss" name="password" type="password" pattern=".{8,300}"
+				   title="Pituus min 8 merkkiä." required>
 			<br><br>
 			<label for="vahv_ss" class="required"> Vahvista salasana </label>
-			<input id="vahv_ss" name="confirm_password" type="password" pattern=".{6,}"
-				   title="Pituus min 6 merkkiä." required><br>
+			<input id="vahv_ss" name="confirm_password" type="password" pattern=".{8,300}"
+				   title="Pituus min 8 merkkiä." required><br>
 			<span id="check"></span>
 			<br><br><br>
 			<label for="demo"> Testiasiakas </label>

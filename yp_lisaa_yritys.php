@@ -1,119 +1,84 @@
-﻿<!DOCTYPE html>
+﻿<?php
+require '_start.php'; global $db, $user, $cart, $yritys;
+
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+    header("Location:tuotehaku.php"); exit();
+}
+
+/** Lisätään yrityksen tiedot tietokantaan */
+if (isset($_POST['nimi'])) {
+	// Tarkistetaan, että halutulla tiedoilla ei ole jo aktivoitua yritystä.
+	$sql = "SELECT id FROM yritys WHERE (y_tunnus=? OR nimi=?) AND aktiivinen=1 LIMIT 1";
+	$row = $db->query( $sql, [$_POST['y_tunnus'],$_POST['nimi']] );
+
+	if ( !$row ) {
+		unset($_POST['submit']); //Poistetaan turha array-index. Rikkoo SQL-haun.
+		$sql = "INSERT INTO yritys 
+					( nimi, y_tunnus, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka, maa )
+				VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
+				ON DUPLICATE KEY UPDATE 
+					nimi=VALUES(nimi), y_tunnus=VALUES(y_tunnus), sahkoposti=VALUES(sahkoposti), 
+					puhelin=VALUES(puhelin), katuosoite=VALUES(katuosoite), postinumero=VALUES(postinumero), 
+					postitoimipaikka=VALUES(postitoimipaikka), maa=VALUES(maa), aktiivinen='1' ";
+
+		if ( $db->query($sql, $_POST) ) {
+			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
+			header("Location:yp_yritykset.php?feedback=success"); exit;
+		}
+	} else {
+		$feedback = "<p class='error'>Kyseisellä Y-tunnuksella tai nimellä on jo aktivoitu yritys. ID: {$row->id}</p>";
+	}
+}
+?>
+<!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
+	<title>Yritykset</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <title>Yritykset</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
-<?php
-require 'header.php';
-require 'tietokanta.php';
-if (!is_admin()) {
-    header("Location:tuotehaku.php");
-    exit();
-}
-
-?>
-<h1 class="otsikko">Lisää yritys</h1>
-<br><br>
-<div id="lomake">
-    <form action="yp_lisaa_yritys.php" name="uusi_yritys" method="post" accept-charset="utf-8">
-        <fieldset><legend>Uuden yrityksen tiedot</legend>
-            <br>
-            <label><span>Yritys<span class="required">*</span></span></label>
-            <input name="nimi" type="text" pattern="{3,40}" placeholder="Yritys Oy" required="required" />
-            <br><br>
-            <label><span>Y-tunnus<span class="required">*</span></span></label>
-            <input name="y_tunnus" type="text" pattern=".{9}" placeholder="1234567-8" required="required" />
-            <br><br>
-            <label><span>Sähköposti</span></label>
-            <input name="email" type="email" placeholder="email@email.com" />
-            <br><br>
-            <label><span>Puhelin</span></label>
-            <input name="puh" type="text" pattern=".{4,20}" placeholder="050 123 4567" />
-            <br><br>
-            <label><span>Katuosoite</span></label>
-            <input name="osoite" type="text" pattern=".{1,50}" placeholder="Katuosoite 1" />
-            <br><br>
-            <label><span>Postinumero</span></label>
-            <input name="postinumero" type="text" placeholder="10100" />
-            <br><br>
-            <label><span>Postitoimipaikka</span></label>
-            <input name="postitoimipaikka" type="text" placeholder="HELSINKI" />
-            <br><br>
-            <label><span>Maa</span></label>
-            <input name="maa" type="text" placeholder="FI" >
-
-            <br><br><br>
-
-            <div id="submit">
-                <input name="submit" value="Lisää Yritys" type="submit">
-            </div>
-        </fieldset>
-
-    </form><br><br>
-
-    <?php
-
-    if (isset($_POST['nimi'])) {
-        $result = db_lisaa_yritys($_POST['nimi'], $_POST['y_tunnus'], $_POST['email'], $_POST['puh'],
-            $_POST['osoite'], $_POST['postinumero'], $_POST['postitoimipaikka'], $_POST['maa']);
-        if ($result == -1) {
-            echo "Yritys on jo olemassa.";
-        } elseif ($result == 2) {
-            echo "Yritys aktivoitu.";
-        } else {
-            echo "Yritys lisätty.";
-        }
-    }
-
-
-    //return:
-    //-1	yritys on jo olemassa
-    //1		lisäys onnistui
-    //2		yritys aktivoitu uudelleen
-    function db_lisaa_yritys($yritys_nimi, $y_tunnus, $email,
-                              $puh, $osoite, $postinumero, $postitoimipaikka, $maa){
-
-
-        global $db;
-        $tbl_name = 'yritys';
-
-        //Tarkastetaan onko samannimistä yritystä
-        $query = "SELECT * FROM $tbl_name WHERE y_tunnus= ? OR nimi= ? ";
-        $result = $db->query($query, [$y_tunnus, $yritys_nimi], FETCH_ALL, PDO::FETCH_OBJ);
-
-        if (count($result) == 0){
-            //lisätään tietokantaan
-            $query = "INSERT INTO $tbl_name (nimi, y_tunnus, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka, maa)
-		  				VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)";
-            $result = $db->query($query, [$yritys_nimi, $y_tunnus, $email, $puh, $osoite, $postinumero, $postitoimipaikka, $maa]);
-            return 1;	//yritys lisätty
-        }
-        elseif (count($result) == 1) {
-            if ($result[0]->aktiivinen == 1) {
-                return -1;  //duplikaatti
-            }
-            else {
-                $query = "UPDATE  $tbl_name 
-		  				  SET     aktiivinen=1, nimi= ?, y_tunnus=?, sahkoposti=? , puhelin=? ,
-	  						      katuosoite=? , postinumero=? , postitoimipaikka=? , maa=? 
-  						  WHERE   y_tunnus=? OR nimi=? ";
-                $result = $db->query( $query, [$yritys_nimi, $y_tunnus, $email, $puh, $osoite, $postinumero, $postitoimipaikka, $maa, $y_tunnus, $yritys_nimi]);
-                return 2;	//yritys aktivoitu
-            }
-        }
-        else {
-            //JOS tietokannassa on duplikaatteja...
-            echo "ERROR";
-        }
-	//Luodaan yritykselle ostoskori
-	$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
-
-    }
-    ?>
-</div>
+<?php require 'header.php'; ?>
+<main class="main_body_container lomake flex_column">
+	<?= !empty($feedback) ? $feedback : '' ?>
+	<a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
+		Takaisin</a><br><br>
+	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
+		<fieldset><legend>Uuden käyttäjän tiedot</legend>
+			<br>
+			<label for="yritys" class="required"> Yritys </label>
+			<input id="yritys" name="nimi" type="text" pattern=".{3,40}" placeholder="Yritys Oy" required>
+			<br><br>
+			<label for="ytunnus" class="required" > Y-tunnus </label>
+			<input id="ytunnus" name="y_tunnus" type="text" pattern=".{9}" placeholder="1234567-8" required>
+			<br><br>
+			<label for="email"> Sähköposti </label>
+			<input id="email" name="email" type="text" pattern=".{3,250}">
+			<br><br>
+			<label for="puh"> Puhelin </label>
+			<input id="puh" name="puh" type="text" pattern="((\+)?\d{3}|)( ?\d){10}" placeholder="050 123 4567">
+			<br><br>
+			<label for="addr"> Katuosoite </label>
+			<input id="addr" name="osoite" type="text" pattern=".{1,50}" placeholder="Katuosoite 1">
+			<br><br>
+			<label for="pnum"> Postinumero </label>
+			<input id="pnum" name="postinumero" type="text" placeholder="10100">
+			<br><br>
+			<label for="ptoimipaikka"> Postitoimipaikka </label>
+			<input id="ptoimipaikka" name="postitoimipaikka" type="text" placeholder="HELSINKI">
+			<br><br>
+			<label for="maa"> Maa </label>
+			<input id="maa" name="maa" type="text" placeholder="FI" >
+			<br><br>
+			<span class="small_note"> <span style="color:red;">*</span> = pakollinen kenttä</span>
+			<br>
+			<div class="center">
+				<input class="nappi" name="submit" value="Lisää asiakas" type="submit">
+			</div>
+		</fieldset>
+	</form><br><br>
+</main>
 </body>
 </html>

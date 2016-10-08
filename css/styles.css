@@ -170,7 +170,7 @@ input { padding: 3pt; }
 #lista #submit input[type=submit],
 #lomake #submit input[type=submit] {
 	padding: 8px 15px;
-	color: #FFF;
+	color: #FFF; /* TODO: Wait, tää on ollut valkoinen koko tämä ajan? What the hell is going on here?! */
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
 	border-radius: 4px;
@@ -478,7 +478,7 @@ th {
 	background-color: #FFBABA;
 }
 
-.nappi {
+.nappi {  /* //TODO: Täällä on kaksi nappia. Miksi? */
 	background: #4479BA;
 	border-color: #20538D;
 	text-decoration: none;

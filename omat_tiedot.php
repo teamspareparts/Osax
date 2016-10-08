@@ -152,7 +152,8 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				   title="Vain aakkosia">
 			<br><br>
 			<label><span>Puhelin</span></label>
-			<input name="puh" type="text" pattern=".{1,20}" value="<?= $user->puhelin ?>" title="Vain numeroita">
+			<input name="puh" type="tel" value="<?= $user->puhelin ?>" title="Vain numeroita"
+				   pattern="((\+|00)?\d{5}|)(\s?\d){10}">
 			<br><br><br>
 
 			<div class="center">
