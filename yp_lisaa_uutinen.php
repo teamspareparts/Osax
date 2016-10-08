@@ -1,10 +1,12 @@
 <?php
-require 'tietokanta.php';
+require '_start.php'; global $db, $user, $cart, $yritys;
 
-function debug ($var) {echo "<pre>";print_r($var);var_dump($var);echo "</pre>";}
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+	header("Location:etusivu.php"); exit();
+}
 
 if ( isset($_POST['new_news']) ) {
-	echo "<pre>";
+	//TODO keep spaces, remove linebreaks
 	$db->query( "INSERT INTO etusivu_uutinen (otsikko, tyyppi, teksti) VALUES (?,?,?)",
 		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_content']] );
 	header("location:etusivu.php?test"); exit;
@@ -14,18 +16,11 @@ if ( isset($_POST['new_news']) ) {
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
+	<title>Lisää uutinen</title>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<!-- https://design.google.com/icons/ -->
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-	<title>Osax - Etusivu</title>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style>
-		main, div, section {
-			border: 1px solid;
-		}
 		.fp_content_form input[type=text], select, textarea {
 			padding: 5px;
 			margin: 5px;
@@ -41,8 +36,8 @@ if ( isset($_POST['new_news']) ) {
 			<input type="text" id="otsikko" title="Tekstin otsikko" placeholder="TEKSTIN OTSIKKO"
 				   maxlength="50" name="text_headline" required>
 
-			<select title="Tekstin sisällön tyyppi" name="text_type" required>
-				<option value="" disabled selected>--- Valitse tekstin tyyppi ---</option>
+			<select title="Tekstin sisällön sijainti" name="text_type" required>
+				<option value="" disabled selected>--- Valitse tekstin sijainti ---</option>
 				<option value="0">Vasen kolumni</option>
 				<option value="1">Keskimmäinen kolumni</option>
 				<option value="2">Oikea kolumni</option>
@@ -56,12 +51,6 @@ if ( isset($_POST['new_news']) ) {
 
 		</form>
 	</fieldset>
-	<?php
-
-	if ( isset($_POST['new_news']) ) {
-		debug($_POST);
-	}
-	?>
 </main>
 
 </body>
