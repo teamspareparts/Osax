@@ -112,15 +112,17 @@ function getAmBrandAddress( $brandNo ) {
  * @param string $number
  * @param int $search_type <p>
  * @param boolean $exact <p> Haetaanko vain tuotenumerolla.
+ * @param int $brandNo = NULL <p>
  * @return array
  */
-function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type, /*bool*/ $exact ) {
+function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type, /*bool*/ $exact, /*int*/ $brandNo = NULL ) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
 		'articleCountry' => TECDOC_COUNTRY,
 		'provider' => TECDOC_PROVIDER,
 		'articleNumber' => $number,
+        'brandNo' => $brandNo,
         'searchExact' => $exact,
 		'numberType' => $search_type, //10: mikä tahansa numerotyyppi, 0:tuotenumero, 3:vertailut
 	];
@@ -129,41 +131,14 @@ function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ 
 	$request =	[$function => $params];
 	$response = _send_json($request);
 
-	//Pyyntö onnistui
-	if ( $response->status === 200 && !empty($response->data->array) ) {
+    //Pyyntö onnistui
+    if ( $response->status === 200 && !empty($response->data->array) ) {
 		return $response->data->array;
 	}
 
 	return [];
 }
 
-/**
- * Catalogin tuotteiden hakua varten. Etsitään lisätiedot articleNo perusteella
- * @param $number
- * @return stdClass
- */
-function findMoreInfoByArticleNo( $number ) {
-	$function = 'getArticleDirectSearchAllNumbersWithState';
-	$params = [
-			'lang' => TECDOC_LANGUAGE,
-			'articleCountry' => TECDOC_COUNTRY,
-			'provider' => TECDOC_PROVIDER,
-			'articleNumber' => $number,
-			'searchExact' => true,
-			'numberType' => 0,
-	];
-
-	// Lähetetään JSON-pyyntö
-	$request =	[$function => $params];
-	$response = _send_json($request);
-
-	//Pyyntö onnistui
-	if ( $response->status === 200 && !empty($response->data->array) ) {
-		return $response->data->array[0];
-	}
-
-	return NULL;
-}
 
 /**
  * Hakee tuotteet annettujen tunnisteiden (articleId) perusteella.
@@ -196,69 +171,6 @@ function getDirectArticlesByIds4( $ids ) { //TODO: Miksi nimessä on nelonen?
 	return $response->data->array;
 }
 
-/**
- * Palauttaa annetun tuotteen kuvan URL:n
- * @param $product
- * @param bool $small
- * @return string
- */
-function get_thumbnail_url( $product, /*bool*/ $small = true) {
-	if (empty($product->articleThumbnails)) {
-		return 'img/ei-kuvaa.png';
-	}
-	$thumb_id = $product->articleThumbnails->array[0]->thumbDocId;
-	return TECDOC_THUMB_URL . $thumb_id . '/' . ($small ? 1 : 0);
-}
-
-/**
- * Hakee tuotteiden ID:iden perusteella TecDocista kunkin tuotteen tiedot ja yhdistää ne
- * @param $products
- */
-function merge_products_with_tecdoc( $products ) {
-	// Kerätään tuotteiden ID:t taulukkoon
-	$ids = array();
-	foreach ($products as $product) {
-		$ids[] = $product->id;
-	}
-
-	// Haetaan tuotteiden tiedot TecDocista ID:iden perusteella
-	$id_chunks = array_chunk($ids, 25); //25 kpl erissä
-	$tecdoc_products = [];
-	foreach ( $id_chunks as $id_chunk ) {
-		$tecdoc_products = array_merge($tecdoc_products, getDirectArticlesByIds4($id_chunk));
-	}
-
-	// Yhdistetään TecDocista saatu data $products-taulukkoon
-	foreach ( $tecdoc_products as $tecdoc_product ) {
-		foreach ( $products as $product ) {
-			if ( $product->id == $tecdoc_product->directArticle->articleId ) {
-				$product->directArticle = $tecdoc_product->directArticle;
-				$product->articleThumbnails = $tecdoc_product->articleThumbnails;
-				$product->ean = get_ean_number($tecdoc_product);
-				$product->infos = get_infos($tecdoc_product);
-				$product->thumburl = get_thumbnail_url($tecdoc_product);
-				$product->oe = get_oe_number($tecdoc_product);
-			}
-		}
-	}
-}
-
-/**
- * Yhdistää catalogin (tietokannan) tuotteet tecdocin datan kanssa
- * @param array $catalog_products
- * @param boolean $also_basic_info <p> Merge myös OE, kuvat, EAN ja infot.
- */
-function merge_catalog_with_tecdoc( /*array*/ $catalog_products, /*bool*/ $also_basic_info ) {
-    if ($also_basic_info){
-	    foreach ( $catalog_products as $catalog_product ) {
-            $response = findMoreInfoByArticleNo( $catalog_product->articleNo );
-            $catalog_product->articleId = $response->articleId;
-            $catalog_product->brandName = $response->brandName;
-            $catalog_product->articleName = $response->articleName;
-        }
-    }
-	merge_products_with_optional_data( $catalog_products );
-}
 
 /**
  * Hakee kaikki automerkit.
@@ -321,7 +233,7 @@ function getArticleIdsWithState( $carID, $groupID ) {
  * @return array
  */
 function getOptionalData( $id ) {
-	$function = 'getDirectArticlesByIds4';
+	$function = 'getDirectArticlesByIds7';
 	$params = [
 			'lang' => TECDOC_LANGUAGE,
 			'articleCountry' => TECDOC_COUNTRY,
@@ -346,36 +258,49 @@ function getOptionalData( $id ) {
 	return [];
 }
 
+
+
 /**
- * Funktio yhdistää olemassa olevaan tuotteeseen Infot ja kuvan url:in.
- * Huom! Listassa olevilla tuotteilla oltava ominaisuus articleId.
- * @param $articles
+ * Yhdistää catalogin tuotteille perustiedot tecdocista (TecdocID, brandin nimi, artikkelin nimi).
+ * @param array $catalog_products
  */
-function merge_products_with_optional_data( $articles ) {
-	foreach ($articles as $article){
-		$product = getOptionalData($article->articleId);
-		$article->thumburl = get_thumbnail_url($product[0]);
-		$article->infos = get_infos($product[0]);
+function get_basic_product_info( /*array*/ $catalog_products ) {
+    foreach ( $catalog_products as $catalog_product ) {
+        //var_dump($catalog_product);
+        $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo)[0];
+        $catalog_product->articleId = $response->articleId;
+        $catalog_product->brandName = $response->brandName;
+        $catalog_product->articleName = $response->articleName;
+    }
+}
+
+/**
+ * Funktio yhdistää tuotteeseen Infot ja kuvan url:in.
+ * Huom! Listassa olevilla tuotteilla oltava ominaisuus articleId.
+ * @param $products
+ */
+function merge_products_with_optional_data( $products ) {
+	foreach ($products as $product){
+		$response = getOptionalData($product->articleId);
+		$product->thumburl = get_thumbnail_url($response[0]);
+		$product->infos = get_infos($response[0]);
 	}
 }
 
 /**
- * @param $id
- * @return array
+ * Palauttaa annetun tuotteen kuvan URL:n
+ * @param $product
+ * @param bool $small
+ * @return string
  */
-function get_oe_by_id( $id){
-	return get_oe_number( getOptionalData($id)[0] );
+function get_thumbnail_url( $product, /*bool*/ $small = true) {
+    if (empty($product->articleThumbnails)) {
+        return 'img/ei-kuvaa.png';
+    }
+    $thumb_id = $product->articleThumbnails->array[0]->thumbDocId;
+    return TECDOC_THUMB_URL . $thumb_id . '/' . ($small ? 1 : 0);
 }
 
-/**
- * @param $product <p> getDirectArticlesByIds4-funktiosta saatu tuote.
- * @return string <p> EAN-numero, jos olemassa. Muuten tyhjä.
- */
-function get_ean_number( $product ) {
-	return (!empty($product->eanNumber)
-		? $product->eanNumber->array[0]->eanNumber
-		: '');
-}
 
 /**
  * @param $product <p> getDirectArticlesByIds4-funktiosta saatu tuote.
@@ -388,11 +313,11 @@ function get_infos( $product ) {
 }
 
 /**
- * @param $product <p> getDirectArticlesByIds4-funktiosta saatu tuote.
+ * @param $product <p> getOptionalData-funktiosta saatu vastaus.
  * @return array <p> OE-numerot, jos olemassa. Muuten tyhjä array.
  */
 function get_oe_number( $product ) {
-	$oeNumbers = array();
+	$oeNumbers = [];
 	if ( !empty($product->oenNumbers) ) {
 		for ($i=0; $i < count($product->oenNumbers->array); $i++){
 			$oeNumbers[] = strval($product->oenNumbers->array[$i]->oeNumber);

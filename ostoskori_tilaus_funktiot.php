@@ -16,23 +16,25 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 	if ( $cart->cart_mode != 1 ) { $cart->hae_ostoskorin_sisalto( $db, TRUE ); }
 
 	if ( !empty( $cart->tuotteet ) ) {
-		$ids = implode( ',', array_keys( $cart->tuotteet ) );
-		$sql = "SELECT	id, articleNo, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, 
+	    $ids = array_keys( $cart->tuotteet );
+        $placeholders = str_repeat('?, ', count($cart->tuotteet) - 1) . '?';
+		$sql = "SELECT	id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, 
 					alennusera_prosentti, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 					ALV_kanta.prosentti AS alv_prosentti
 				FROM	tuote
 				LEFT JOIN ALV_kanta
 					ON tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	tuote.id IN ({$ids})"; //TODO: Unsafe use of sql-statements
+				WHERE 	tuote.id IN ( $placeholders )";
 
-		$rows = $db->query( $sql, NULL, DByhteys::FETCH_ALL );
+		$rows = $db->query( $sql, $ids, FETCH_ALL );
 
 		if ( $rows ) {
 			foreach ( $rows as $row ) {
 				$row->cartCount = $cart->tuotteet[$row->id][1];
 				$products[] = $row;
 			}
-			merge_catalog_with_tecdoc($products, true);
+			//Haetaan tuotteille tarkemmat tiedot tecdocista
+            get_basic_product_info($products);
 		}
 	}
 

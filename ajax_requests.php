@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
  */
@@ -14,14 +14,21 @@ $db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
  * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.
  */
 $result = NULL;
-
 /**
  * Ostoskorin toimintaa varten
  */
 if ( isset($_POST['ostoskori_toiminto']) ) {
+
 	require "luokat/ostoskori.class.php";
-	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], -1 );
+	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], 0 );
 	$result = $cart->lisaa_tuote( $db, $_POST['tuote_id'], $_POST['kpl_maara'] );
+    if ( $result ) {
+        $result = [
+            'success' => true,
+            'tuotteet_kpl' => $cart->hae_tuotteiden_maara(),
+            'yhteensa_kpl' => $cart->hae_kaikkien_tuotteiden_kappalemaara(),
+        ];
+    }
 }
 
 /**
@@ -47,9 +54,12 @@ elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
 /**
  * Eulan vahvistus
  */
-elseif ( !empty($_POST['eula_vahvista']) ) {
+elseif ( !empty($_POST['vahvista_eula']) ) {
 	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
 	$result = $db->query( $sql, [$_POST['user_id']] );
 }
 
+//Paluuarvo JSON-muodossa
+header('Content-Type: application/json');
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
+exit();
