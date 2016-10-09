@@ -73,14 +73,7 @@ if (isset($_POST['ids'])){
                 <tr><th>Yritys</th><th>Y-tunnus</th><th>Osoite</th><th>Maa</th><th class="smaller_cell">Poista</th><th class=smaller_cell></th></tr>
 
                 <?php
-
-
-
-                $query = "SELECT * FROM yritys";
-                $yritykset = $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
-
                 //listataan kaikki tietokannasta löytyvät yritykset
-                //Yritystä painamalla pääsee yrityksen asiakkaisiin
                 foreach ($yritykset as $y) :
                     if ($y->aktiivinen == 1) : ?>
 

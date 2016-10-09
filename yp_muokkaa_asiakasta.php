@@ -80,18 +80,7 @@
 				<input name="id" value="<?= $id?>" type="hidden"/>
 		</fieldset>
 	</form><br><br>
-	
-	<form action="#" method="post">
-		<fieldset><legend>Asiakkaan rahtimaksu</legend>
-			<label>Kumpikin arvo euroina (€). Nollan kohdalla ilmainen toimitus aina. Default-arvot: 15 €; 1000 €. (Testausta varten 15 €; 50 €)</label><br><br>
-			<label><span>Rahtimaksu:</span></label>
-				<input name="rahtimaksu" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $rahtimaksu; ?>" title="Anna käyttäjäkohtainen rahtimaksu euroina (€).">
-			<label><span>Ilmaisen toimituksen raja:</span></label>
-				<input name="ilmainen_toimitus" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $ilmainen_toimitus; ?>" title="Ilmaisen toimituksen raja euroina (€).">
-			<input name="muokkaa_rahtimaksu" value="Muokkaa asiakaskohtaista rahtimaksua" type="submit">
-			<input name="id" value="<?= $id?>" type="hidden"/>
-		</fieldset>
-	</form>
+
 	<?php 
 	
 	if (isset($_SESSION['result'])){
@@ -118,13 +107,6 @@
 	}
 	elseif (isset($_POST['reset_password'])) {
 		$result = pakota_salasanan_vaihto($_POST['id']);
-		$_SESSION['result'] = $result;
-		//Ladataan sivu uudelleen, jotta kenttien tiedot päivittyvät
-		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
-		exit;
-	}
-	elseif (isset($_POST['muokkaa_rahtimaksu'])) {
-		$result = muuta_rahtimaksu($_POST['rahtimaksu'], $_POST['ilmainen_toimitus']);
 		$_SESSION['result'] = $result;
 		//Ladataan sivu uudelleen, jotta kenttien tiedot päivittyvät
 		header("Location: http://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}");
@@ -164,15 +146,6 @@
 		return 2;
 	}
 
-	function muuta_rahtimaksu($rahtimaksu, $ilmainen_toimitus){
-		global $connection;
-		global $id;
-		$query = "	UPDATE	kayttaja 
-					SET 	rahtimaksu = '$rahtimaksu', ilmainen_toimitus_summa_raja = '$ilmainen_toimitus'
-					WHERE	id='$id';";
-		mysqli_query($connection, $query) or die(mysqli_error($connection));
-		return 1;
-	}
 ?>
 </div>
 

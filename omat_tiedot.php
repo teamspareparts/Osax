@@ -94,9 +94,8 @@ if ( isset($_POST['uudet_tiedot']) ){
 }
 
 elseif ( !empty($_POST['new_password']) ) {
-	if ( strlen($_POST['new_password']) > 8 ) {
+	if ( strlen($_POST['new_password']) >= 8 ) {
 		if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
-
 			if ( $user->vaihdaSalasana( $db, $_POST['new_password'] ) ) {
 				$_SESSION['feedback'] = "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
 

@@ -120,7 +120,7 @@ class User {
 	 * @return bool <p> Palauttaa true, jos salasana > 8 ja vaihtaminen onnistui. Muuten false.
 	 */
 	public function vaihdaSalasana( DByhteys $db, /*string*/ $uusi_salasana ) {
-		if ( strlen($uusi_salasana) > 8 ) {
+		if ( strlen($uusi_salasana) >= 8 ) {
 			$hajautettu_uusi_salasana = password_hash( $uusi_salasana, PASSWORD_DEFAULT );
 			return $db->query(
 				"UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
