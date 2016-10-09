@@ -2,7 +2,7 @@
 require '_start.php'; global $db, $user, $cart, $yritys;
 require 'apufunktiot.php';
 
-if ( $user->isAdmin() ) {
+if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php");exit();
 }
 

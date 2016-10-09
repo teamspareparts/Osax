@@ -1,47 +1,79 @@
+
+<?php
+require '_start.php'; global $db, $user, $cart, $yritys;
+
+$yritys = new Yritys( $db, (!empty($_GET['id']) ? (int)$_GET['id'] : null));
+if ( !$user->isAdmin() || !$yritys->isValid() ) {
+    header("Location:etusivu.php"); exit();
+}
+
+/**
+ * @param $yritys_nimi
+ * @param $y_tunnus
+ * @param $email
+ * @param $puh
+ * @param $osoite
+ * @param $postinumero
+ * @param $postitoimipaikka
+ * @param $maa
+ * @return array|bool|stdClass
+ */
+function db_muokkaa_yritysta(DByhteys $db, $yritys_nimi, $y_tunnus, $email,
+                             $puh, $osoite, $postinumero, $postitoimipaikka, $maa){
+
+    //Tarkastetaan onko samannimistä käyttäjätunnusta
+    $query = "UPDATE yritys 
+                  SET sahkoposti= ?, puhelin = ?, katuosoite = ?, 
+                      postinumero = ?, postitoimipaikka= ?, maa = ?
+                  WHERE y_tunnus= ? AND nimi= ?";
+    return $db->query($query, [$email, $puh, $osoite, $postinumero, $postitoimipaikka, $maa, $y_tunnus, $yritys_nimi]);
+}
+
+
+function muuta_rahtimaksu(DByhteys $db, array $values){
+    $query = "	UPDATE	yritys 
+					SET 	rahtimaksu = ?, ilmainen_toimitus_summa_raja = ?
+					WHERE	id= ?";
+    return $db->query($query, [$values["rahtimaksu"], $values["ilmainen_toimitus"], $values["id"]]);
+}
+
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+unset($_SESSION["feedback"]);
+
+if (isset($_POST['muokkaa_yritysta'])) {
+    $result = db_muokkaa_yritysta($db, $_POST['nimi'], $_POST['y_tunnus'], $_POST['email'], $_POST['puh'],
+        $_POST['osoite'], $_POST['postinumero'], $_POST['postitoimipaikka'], $_POST['maa']);
+    $_SESSION["feedback"] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
+    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+    exit();
+}
+elseif (isset($_POST['muokkaa_rahtimaksu'])) {
+    muuta_rahtimaksu($db, $_POST);
+    $_SESSION['feedback'] = "<p class='success'>Rahtimaksu ja ilmaisen toimituksen raja päivitetty.</p>";
+    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+    exit();
+}
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="fi">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <title>Yritykset</title>
 </head>
 <body>
-<?php
-require 'header.php';
-require 'tietokanta.php';
-$id = isset($_GET['id']) ? (int)$_GET['id'] : null;
-if (!is_admin() || !$id) {
-    header("Location:yp_yritykset.php");
-    exit();
-}
-
-//Päivitetäänkö yrityksen tiedot
-$result = null;
-if (isset($_POST['email'])) {
-    $result = db_muokkaa_yritysta($_POST['nimi'], $_POST['y_tunnus'], $_POST['email'], $_POST['puh'],
-        $_POST['osoite'], $_POST['postinumero'], $_POST['postitoimipaikka'], $_POST['maa']);
-}
-
-
-//Haetaan yrityksen tiedot
-$query = "	SELECT *
-			FROM yritys 
-			WHERE id= ? ";
-
-$yritys = $db->query( $query, [$id], FETCH_ALL, PDO::FETCH_OBJ );
-if (count($yritys) == 1) {
-    $yritys = $yritys[0];
-}
-else{   //JOS id:llä ei löydy tietokannasta ohjataan takaisin
-    header("Location:yp_yritykset.php");
-    exit();
-}
-?>
+<?php require 'header.php'?>
 
 <h1 class="otsikko">Muokkaa yritystä</h1>
-<br><br>
-<div id="lomake">
+<main class="main_body_container lomake">
+    <?= $feedback ?>
+    <a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
+        Takaisin</a><br><br>
     <form action="" name="muokkaa_yritysta" method="post" accept-charset="utf-8">
         <fieldset><legend>Muokkaa yrityksen tietoja</legend>
             <br>
@@ -70,40 +102,30 @@ else{   //JOS id:llä ei löydy tietokannasta ohjataan takaisin
             <input name="maa" type="text" value="<?= $yritys->maa?>" />
             <input name="nimi" type="hidden" value="<?= $yritys->nimi?>" />
             <input name="y_tunnus" type="hidden" value="<?= $yritys->y_tunnus?>" />
-
-            <br><br><br>
-
-            <div id="submit">
-                <input name="submit" value="Tallenna" type="submit">
+            <br><br>
+            <div class="center">
+                <input class="nappi" name="muokkaa_yritysta" value="Muokkaa yritystä" type="submit">
             </div>
         </fieldset>
+    </form>
+    <br><br>
+    <form action="#" method="post">
+        <fieldset><legend>Yrityksen rahtimaksu</legend>
+            <span>Kumpikin arvo euroina (€). <br> Nollan kohdalla ilmainen toimitus aina.</span>
+            <br><br>
+            <label><span>Rahtimaksu:</span></label>
+            <input name="rahtimaksu" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $yritys->rahtimaksu; ?>" title="Anna käyttäjäkohtainen rahtimaksu euroina (€).">
+            <br>
+            <label><span>Ilmaisen toimitus:</span></label>
+            <input name="ilmainen_toimitus" type="number" step="0.01" min="0" pattern=".{1,10}" value="<?= $yritys->ilmainen_toimitus_summa_raja; ?>" title="Ilmaisen toimituksen raja euroina (€).">
+            <br>
+            <div class="center">
+                <input name="muokkaa_rahtimaksu" value="Muokkaa rahtimaksua" type="submit" class="nappi">
+            </div>
+            <input name="id" value="<?= $id?>" type="hidden"/>
+        </fieldset>
+    </form>
 
-    </form><br><br>
-
-    <?php
-
-    if ($result) {
-        echo "Tiedot päivitetty.";
-    }
-
-
-
-    function db_muokkaa_yritysta($yritys_nimi, $y_tunnus, $email,
-                             $puh, $osoite, $postinumero, $postitoimipaikka, $maa){
-
-        global $db;
-        $tbl_name = 'yritys';
-
-        //Tarkastetaan onko samannimistä käyttäjätunnusta
-        $query = "UPDATE $tbl_name 
-                  SET sahkoposti= ?, puhelin = ?, katuosoite = ?, 
-                      postinumero = ?, postitoimipaikka= ?, maa = ?
-                  WHERE y_tunnus= ? AND nimi= ?";
-        return $db->query($query, [$email, $puh, $osoite, $postinumero, $postitoimipaikka, $maa, $y_tunnus, $yritys_nimi]);
-
-
-    }
-    ?>
-</div>
+</main>
 </body>
 </html>

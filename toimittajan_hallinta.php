@@ -113,13 +113,17 @@ function muokkaa_hankintapaikkaa(DByhteys $db, $hankintapaikka_id, $katuosoite, 
  * @return array|bool
  */
 function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
-	//Tarkastetaan onko linkityksiä brändeihin
-	$query = "SELECT * FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? ";
-	$linkitykset = $db->query($query, [$hankintapaikka_id], FETCH_ALL, PDO::FETCH_OBJ);
-	if (count($linkitykset)>0) {
+	//Tarkastetaan onko linkityksiä tuotteisiin...
+	$query = "SELECT * FROM tuote where hankintapaikka_id = ? ";
+	$linkitykset = $db->query($query, [$hankintapaikka_id], FETCH_ALL);
+	if ( count($linkitykset) > 0 ) {
 		return false;
 	}
-	//TODO: Tarkasta onko hankintapaikalla tuotteita, jolloin ei saa poistaa!
+
+	//Poistetaan linkitykset hankintapaikkaan
+	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? ";
+	$db->query($query, [$hankintapaikka_id]);
+	//Poistetaan hankintapaikka
 	$query = "DELETE FROM hankintapaikka WHERE id = ? ";
 	$db->query($query, [$hankintapaikka_id]);
 	return true;
@@ -205,7 +209,8 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
 	}
 }
 
-$message = false;
+$message = isset($_SESSION["message"]) ? $_SESSION["message"] : "";
+unset($_SESSION["message"]);
 
 //Haetaan brändin yhteystiedot ja logon osoite
 $brandAddress = getAmBrandAddress($brandId)[0];
@@ -217,25 +222,35 @@ if ( isset($_POST['lisaa']) ) {
 		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka_id'], $brandName);
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 
 elseif ( isset($_POST['poista_linkitys']) ) {
 	poista_hankintapaikka_linkitys($db, $_POST['hankintapaikka_id'], $brandId);
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 
 elseif( isset($_POST['valitse']) ) {
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka'], $brandName);
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 elseif( isset($_POST['muokkaa']) ) {
 	muokkaa_hankintapaikkaa($db, $_POST['hankintapaikka_id'], $_POST['katuosoite'], $_POST['postinumero'],
 		$_POST['kaupunki'], $_POST['maa'],
 		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 elseif( isset($_POST['poista'])){
 	if ( !poista_hankintapaikka($db, $_POST['hankintapaikka']) ) {
-		$message = "Hankintapaikkaa ei voitu poistaa, koska osa brändeistä käyttää sitä!";
+		$_SESSION["message"] = "Hankintapaikkaa ei voitu poistaa, koska siihen on linkitetty tuotteita!";
 	}
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 
 

@@ -7,6 +7,7 @@ require 'ostoskori_tilaus_funktiot.php'; //Sisältää kaikki ennen tässä tied
 
 $feedback = '';
 $products = get_products_in_shopping_cart( $db, $cart );
+$user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
 if ( empty($products) ) { header("location:ostoskori.php"); exit; }
 
 if ( !empty($_POST['vahvista_tilaus']) ) {
@@ -19,10 +20,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		//Tuotteiden pysyvä tallennus tietokantaan
 		$db->prepare_stmt( '
-			INSERT INTO tilaus_tuote
-				(tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
-			VALUES
-				(?, ?, ?, ?, ?, ?)' );
+			INSERT INTO tilaus_tuote (tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
+			VALUES (?, ?, ?, ?, ?, ?)' );
 		foreach ( $products as $product ) {
 			$result = $db->run_prepared_stmt( [
 				$tilaus_id, $product->id, $product->hinta_ilman_alv, $product->alv_prosentti,
@@ -60,9 +59,12 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 <!DOCTYPE html>
 <html lang="fi">
 <head>
+	<meta charset="UTF-8">
+	<title>Vahvista tilaus</title>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 		.peruuta {
@@ -70,8 +72,6 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			border-color: #b70004;
 		}
 	</style>
-	<meta charset="UTF-8">
-	<title>Vahvista tilaus</title>
 </head>
 <body>
 <?php require 'header.php'; ?>
@@ -82,12 +82,12 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		<table>
 			<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 			<?php
+			$sum = 0;
 			foreach ( $products as $product ) {
 				$product->hinta = tarkista_hinta_era_alennus( $product );
-				$sum += $product->hinta * $product->cartCount;?>
-				<!-- HTML -->
+				$sum += $product->hinta * $product->cartCount; ?>
 				<tr>
-					<td><?= $product->articleNo?></td><!-- Tuotenumero -->
+					<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
 					<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
 					<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
 					<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
