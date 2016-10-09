@@ -151,11 +151,9 @@ class Ostoskori {
 		} // Jos vaikka joku ei ymmärrä mitä "poista_tuote"-metodi mahdollisesti tekee.
 		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara) VALUE ( ?, ?, ? )
  				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara)";
-		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara]);
+		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara] );
 
-        $sql = "SELECT COUNT(tuote_id) AS tuotteet_kpl FROM ostoskori_tuote WHERE ostoskori_id = ? ";
-        $this->montako_tuotetta = $db->query( $sql, [$this->ostoskori_id] )->tuotteet_kpl;
-        $this->montako_tuotetta_kpl_maara_yhteensa += $kpl_maara;
+ 		$this->hae_ostoskorin_sisalto( $db, false );
 
 		if ( $result && ($this->cart_mode == 1) ) { // Jos successful delete, ja tuotteet haettu olioon.
 			$this->tuotteet[$tuote_id][1] = $kpl_maara; // Päivitetään lokaali kpl-määrä
