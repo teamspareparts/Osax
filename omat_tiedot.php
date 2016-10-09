@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart, $yritys;
 
 /**
@@ -258,7 +258,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				<label>Sähköposti</label>\
 					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
 				<label>Puhelin</label>\
-					<input name="puhelin" type="tel" pattern=".{1,20}" placeholder="Edellinen puhelinumero"><br>\
+					<input name="puhelin" type="text" pattern=".{1,20}" placeholder="Edellinen puhelinumero"><br>\
 				<label>Yritys</label>\
 					<input name="yritys" type="text" pattern=".{3,50}" placeholder="Edellinen yritys"><br>\
 				<label>Katuosoite</label>\

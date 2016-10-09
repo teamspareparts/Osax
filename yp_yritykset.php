@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
     <title>Yritykset</title>
 </head>
 <body>
 <?php
+    require '_start.php'; global $db, $user, $cart, $yritys;
     require 'header.php';
-    require 'tietokanta.php';
     if (!is_admin()) {
         header("Location:tuotehaku.php");
         exit();
@@ -31,11 +32,9 @@
 
                 <?php
 
-                $tbl_name="yritys";				// Taulun nimi
 
-                //global $connection;
 
-                $query = "SELECT * FROM $tbl_name";
+                $query = "SELECT * FROM yritys";
                 $yritykset = $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 
                 //listataan kaikki tietokannasta löytyvät yritykset

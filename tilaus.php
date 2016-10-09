@@ -7,6 +7,7 @@ require 'ostoskori_tilaus_funktiot.php'; //Sisältää kaikki ennen tässä tied
 
 $feedback = '';
 $products = get_products_in_shopping_cart( $db, $cart );
+$user->haeToimitusosoitteet($db, -2);
 if ( empty($products) ) { header("location:ostoskori.php"); exit; }
 
 if ( !empty($_POST['vahvista_tilaus']) ) {
@@ -63,6 +64,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 		.peruuta {
@@ -82,12 +84,13 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		<table>
 			<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
 			<?php
+			$sum = 0;
 			foreach ( $products as $product ) {
 				$product->hinta = tarkista_hinta_era_alennus( $product );
 				$sum += $product->hinta * $product->cartCount;?>
 				<!-- HTML -->
 				<tr>
-					<td><?= $product->articleNo?></td><!-- Tuotenumero -->
+					<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
 					<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
 					<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
 					<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->

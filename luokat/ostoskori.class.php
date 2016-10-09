@@ -154,9 +154,10 @@ class Ostoskori {
  				ON DUPLICATE KEY UPDATE kpl_maara = ? ";
 		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara, $kpl_maara]);
 
-        $sql = "SELECT COUNT(*) AS tuotteet_kpl FROM ostoskori_tuote WHERE ostoskori_id = ? ";
-        $this->montako_tuotetta = $db->query( $sql, [$this->ostoskori_id], NULL, PDO::FETCH_OBJ)->tuotteet_kpl;
-        $this->montako_tuotetta_kpl_maara_yhteensa += $kpl_maara;
+        $sql = "SELECT COUNT(*) AS tuotteet_kpl, SUM(kpl_maara) AS tuotteet_kpl_yhteensa FROM ostoskori_tuote WHERE ostoskori_id = ? ";
+        $kappaleet = $db->query( $sql, [$this->ostoskori_id], NULL, PDO::FETCH_OBJ);
+        $this->montako_tuotetta = $kappaleet->tuotteet_kpl;
+        $this->montako_tuotetta_kpl_maara_yhteensa = $kappaleet->tuotteet_kpl_yhteensa;
 
 		if ( $result && ($this->cart_mode == 1) ) { // Jos successful delete, ja tuotteet haettu olioon.
 			$this->tuotteet[$tuote_id][1] = $kpl_maara; // Päivitetään lokaali kpl-määrä
