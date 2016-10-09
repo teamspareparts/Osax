@@ -50,7 +50,7 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
 				 postinumero, postitoimipaikka, maa, kayttaja_id, osoite_id)
 			VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
-	return $db->query( $sql, $variables );
+	return $db->query($sql, array_values($variables));
 }
 
 /**
@@ -60,6 +60,8 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
  * @return bool
  */
 function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
+	echo "MOIIII";
+	echo $osoite_id . "OK";
 	$osoite_id_viimeinen = count($user->toimitusosoitteet) - 1;
 
 	$sql = "DELETE FROM toimitusosoite
@@ -77,18 +79,21 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
 	return false;
 }
 
-$feedback = "";
 $user->haeToimitusosoitteet( $db, -1 );
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "<p></p>";
+unset($_SESSION['feedback']);
 
 if ( isset($_POST['uudet_tiedot']) ){
 	$sql = "UPDATE kayttaja 
             SET etunimi = ? , sukunimi = ? , puhelin = ?
   		    WHERE sahkoposti = ?";
 	if ( $db->query($sql, [$_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $user->sahkoposti])){
-		$feedback = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
+		$_SESSION['feedback'] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
 	} else {
-		$feedback = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
+		$_SESSION['feedback'] = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
 	}
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 
 elseif ( !empty($_POST['new_password']) ) {
@@ -96,23 +101,33 @@ elseif ( !empty($_POST['new_password']) ) {
 		if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
 
 			if ( $user->vaihdaSalasana( $db, $_POST['new_password'] ) ) {
-				$feedback = "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
+				$_SESSION['feedback'] = "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
 
-			} else { $feedback = "<p class='error'>Salasanan vaihtaminen epäonnistui tuntemattomasta syystä.</p>"; }
-		} else { $feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>"; }
-	} else { $feedback = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
+			} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vaihtaminen epäonnistui tuntemattomasta syystä.</p>"; }
+		} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vahvistus ei täsmää.</p>"; }
+	} else { $_SESSION['feedback'] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
 
 
 elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	tallenna_uudet_tiedot( $db, $user, $_POST );
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 
 } elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 
+	echo $_POST['poista_osoite'];
 } elseif ( !empty($_POST["poista_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"]);
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -201,8 +216,8 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
 					   onClick="vahvista_Osoitteen_Poistaminen(<?= $key ?>);">
 
-				<form style="display:none;" id="<?="poista_Osoite_Form_{$key}"?>" action="#" method=post>
-					<input type=hidden name=poista_osoite value="<?= $key ?>">
+				<form style="display:none;" id="<?="poista_Osoite_Form_{$key}"?>" name="poista_osoite" action="" method=post>
+					<input type=hidden name=poista_osoite value="'<?= $key ?>'">
 				</form>
 			</div><hr>
 		<?php endforeach; ?>
@@ -327,7 +342,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 			if ( newPassword.val().length >= 8 ) {
 				if ( newPassword.val() === $('#vahv_uusi_salasana').val() ) {
 					pwCheck.html('<i class="material-icons">done</i>Salasana OK.').css('color', 'green');
-					pwSubmit.prop('disabled', false);
+					pwSubmit.prop('disabled', false).removeClass('disabled');
 				} else {
 					pwCheck.html('<i class="material-icons">warning</i>Salasanat eivät täsmää').css('color', 'red');
 				}

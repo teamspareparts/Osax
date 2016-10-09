@@ -151,7 +151,7 @@ class Ostoskori {
 		} // Jos vaikka joku ei ymmärrä mitä "poista_tuote"-metodi mahdollisesti tekee.
 		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
  				VALUE ( ?, ?, ? )
- 				ON DUPLICATE KEY UPDATE kpl_maara = kpl_maara + ? ";
+ 				ON DUPLICATE KEY UPDATE kpl_maara = ? ";
 		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara, $kpl_maara]);
 
         $sql = "SELECT COUNT(*) AS tuotteet_kpl FROM ostoskori_tuote WHERE ostoskori_id = ? ";
