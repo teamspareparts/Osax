@@ -14,6 +14,7 @@ $db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
  * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.
  */
 $result = NULL;
+
 /**
  * Ostoskorin toimintaa varten
  */
@@ -59,7 +60,6 @@ elseif ( !empty($_POST['vahvista_eula']) ) {
 	$result = $db->query( $sql, [$_POST['user_id']] );
 }
 
-//Paluuarvo JSON-muodossa
-header('Content-Type: application/json');
+header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();

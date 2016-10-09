@@ -1040,7 +1040,6 @@ if ( !empty($_GET["manuf"]) ) {
 					korvaava_okey: korvaava_okey },
 				function( data ) {
 					if ( data === true ) {
-						console.log( articleNo + " " + brandNo + " " + selitys + " " + korvaava_okey );
 						$("#tuote_hnktpyynto_" + articleId)
 							.css("background-color","green")
 							.addClass("disabled");
@@ -1065,12 +1064,14 @@ if ( !empty($_GET["manuf"]) ) {
 					tuote_id: product_id,
 					kpl_maara: kpl_maara },
 				function( data ) {
-					console.debug(data);
 					if ( data.success === true ) {
+						$("#tuote_cartAdd_" + product_id)
+							.css("background-color","green")
+							.addClass("disabled");
 						$("#head_cart_tuotteet").text(data.tuotteet_kpl);
 						$("#head_cart_kpl").text(data.yhteensa_kpl);
 					} else {
-						alert("ERROR: Tuotteen lisääminen ei onnistunut.")
+						alert("ERROR: Tuotteen lisääminen ei onnistunut.");
 					}
 				}
 			);

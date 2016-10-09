@@ -112,10 +112,11 @@ function getAmBrandAddress( $brandNo ) {
  * @param string $number
  * @param int $search_type <p>
  * @param boolean $exact <p> Haetaanko vain tuotenumerolla.
- * @param int $brandNo = NULL <p>
+ * @param int $brandNo [optional], default = NULL <p>
  * @return array
  */
-function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type, /*bool*/ $exact, /*int*/ $brandNo = NULL ) {
+function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type,
+													/*bool*/ $exact, /*int*/ $brandNo = NULL ) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
