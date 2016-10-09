@@ -1,6 +1,5 @@
 <?php
 require '_start.php'; global $db, $user, $cart, $yritys;
-
 /**
  * @param DByhteys $db
  * @param User $user
@@ -60,8 +59,6 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
  * @return bool
  */
 function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
-	echo "MOIIII";
-	echo $osoite_id . "OK";
 	$osoite_id_viimeinen = count($user->toimitusosoitteet) - 1;
 
 	$sql = "DELETE FROM toimitusosoite
@@ -167,8 +164,8 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				   title="Vain aakkosia">
 			<br><br>
 			<label><span>Puhelin</span></label>
-			<input name="puh" type="tel" value="<?= $user->puhelin ?>" title="Vain numeroita"
-				   pattern="((\+|00)?\d{5}|)(\s?\d){10}">
+			<input name="puh" type="text" value="<?= $user->puhelin ?>" title="Vain numeroita"
+				   pattern="((\+|00)?\d{5}|)(\s?\d){10, 15}">
 			<br><br><br>
 
 			<div class="center">

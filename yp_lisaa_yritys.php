@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart, $yritys;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
@@ -21,7 +21,7 @@ if (isset($_POST['nimi'])) {
 					puhelin=VALUES(puhelin), katuosoite=VALUES(katuosoite), postinumero=VALUES(postinumero), 
 					postitoimipaikka=VALUES(postitoimipaikka), maa=VALUES(maa), aktiivinen='1' ";
 
-		if ( $db->query($sql, $_POST) ) {
+		if ( $db->query($sql, array_values($_POST)) ) {
 			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
 			header("Location:yp_yritykset.php?feedback=success"); exit;
 		}
@@ -46,7 +46,7 @@ if (isset($_POST['nimi'])) {
 	<a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
 		Takaisin</a><br><br>
 	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
-		<fieldset><legend>Uuden käyttäjän tiedot</legend>
+		<fieldset><legend>Uuden asiakasyrityksen tiedot</legend>
 			<br>
 			<label for="yritys" class="required"> Yritys </label>
 			<input id="yritys" name="nimi" type="text" pattern=".{3,40}" placeholder="Yritys Oy" required>
@@ -55,7 +55,7 @@ if (isset($_POST['nimi'])) {
 			<input id="ytunnus" name="y_tunnus" type="text" pattern=".{9}" placeholder="1234567-8" required>
 			<br><br>
 			<label for="email"> Sähköposti </label>
-			<input id="email" name="email" type="text" pattern=".{3,250}">
+			<input id="email" name="email" type="text" pattern=".{3,250}" placeholder="osoite@osoite">
 			<br><br>
 			<label for="puh"> Puhelin </label>
 			<input id="puh" name="puh" type="text" pattern="((\+)?\d{3}|)( ?\d){10}" placeholder="050 123 4567">
@@ -75,7 +75,7 @@ if (isset($_POST['nimi'])) {
 			<span class="small_note"> <span style="color:red;">*</span> = pakollinen kenttä</span>
 			<br>
 			<div class="center">
-				<input class="nappi" name="submit" value="Lisää asiakas" type="submit">
+				<input class="nappi" name="submit" value="Lisää yritys" type="submit">
 			</div>
 		</fieldset>
 	</form><br><br>
