@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /*
  * //TODO: This is for backwards compatibility.
  */
@@ -32,7 +32,8 @@ if ( !function_exists("check_login_status") ) {
 				</div>
 				<div>
 					Ostoskori<br>
-					Tuotteita: <?= $cart->montako_tuotetta ?> (Kpl:<?= $cart->montako_tuotetta_kpl_maara_yhteensa ?>)
+					Tuotteita: <span id="head_cart_tuotteet"><?= $cart->montako_tuotetta ?></span>
+					(Kpl:<span id="head_cart_kpl"><?= $cart->montako_tuotetta_kpl_maara_yhteensa ?></span>)
 				</div>
 			</a>
 		</div>

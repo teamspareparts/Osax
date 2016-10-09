@@ -81,8 +81,8 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
             }
 		}
 	}
-	merge_catalog_with_tecdoc($catalog_products, false);
-	merge_catalog_with_tecdoc($not_available_catalog_products, false);
+	merge_products_with_optional_data( $catalog_products );
+	merge_products_with_optional_data( $not_available_catalog_products );
 
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
@@ -1008,7 +1008,7 @@ if ( !empty($_GET["manuf"]) ) {
 				"ajax_requests.php",
 				{ tuote_ostopyynto: product_id },
 				function( data ) {
-					if ( data === "true" ) {
+					if ( data === true ) {
 						$("#tuote_ostopyynto_" + product_id)
 							.css("background-color","green")
 							.addClass("disabled");
@@ -1039,7 +1039,7 @@ if ( !empty($_GET["manuf"]) ) {
 					selitys: selitys,
 					korvaava_okey: korvaava_okey },
 				function( data ) {
-					if ( data === "true" ) {
+					if ( data === true ) {
 						console.log( articleNo + " " + brandNo + " " + selitys + " " + korvaava_okey );
 						$("#tuote_hnktpyynto_" + articleId)
 							.css("background-color","green")
@@ -1066,19 +1066,18 @@ if ( !empty($_GET["manuf"]) ) {
 					kpl_maara: kpl_maara },
 				function( data ) {
 					console.debug(data);
-					if ( data === "true" ) {
-						$("#tuote_cartAdd_" + product_id)
-							.css("background-color","green")
-							.addClass("disabled");
-						alert("Tuote lisätty ostoskoriin. Huom. ostoskorin laskuri päivittyy " +
-							"vasta sivun latauksessa tällä hetkellä.")
+					if ( data.success === true ) {
+						$("#head_cart_tuotteet").text(data.tuotteet_kpl);
+						$("#head_cart_kpl").text(data.yhteensa_kpl);
 					} else {
-						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+						alert("ERROR: Tuotteen lisääminen ei onnistunut.")
 					}
 				}
 			);
 		}
 	}
+
+
 
 	$(document).ready(function(){
 		$("#manufacturer").on("change", function(){

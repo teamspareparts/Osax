@@ -61,7 +61,7 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 			$product->hinta = tarkista_hinta_era_alennus( $product );
 			$sum += $product->hinta * $product->cartCount; ?>
 			<tr>
-				<td><?= $product->articleNo?></td><!-- Tuotenumero -->
+				<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
 				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
 				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
 				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->

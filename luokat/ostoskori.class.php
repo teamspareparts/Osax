@@ -73,6 +73,7 @@ class Ostoskori {
 		}
 	}
 
+
 	/**
 	 * Hakee yrityksen ostoskorin ID:n
 	 * @param DByhteys $db
@@ -84,7 +85,23 @@ class Ostoskori {
 			->id;
 	}
 
-	/**
+    /**
+     * Palauttaa ostoskorissa olevien tuotteiden määrän.
+     * @return int tuotteiden maara
+     */
+    public function hae_tuotteiden_maara() {
+        return $this->montako_tuotetta;
+    }
+
+    /**
+     * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
+     * @return int kaikkien tuotteiden kappalemäärä
+     */
+    public function hae_kaikkien_tuotteiden_kappalemaara() {
+        return $this->montako_tuotetta_kpl_maara_yhteensa;
+    }
+
+        /**
 	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin. Hakee vain ID:n ja kpl-maaran.
 	 * @param DByhteys $db
 	 * @param boolean $kaikki_tiedot <p> Haetaanko kaikki tiedot (tuotteet & kappalemäärä),
@@ -134,8 +151,12 @@ class Ostoskori {
 		} // Jos vaikka joku ei ymmärrä mitä "poista_tuote"-metodi mahdollisesti tekee.
 		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
  				VALUE ( ?, ?, ? )
- 				ON DUPLICATE KEY UPDATE kpl_maara=VALUES(kpl_maara)";
-		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara] );
+ 				ON DUPLICATE KEY UPDATE kpl_maara = kpl_maara + ? ";
+		$result = $db->query( $sql, [$this->ostoskori_id, $tuote_id, $kpl_maara, $kpl_maara]);
+
+        $sql = "SELECT COUNT(*) AS tuotteet_kpl FROM ostoskori_tuote WHERE ostoskori_id = ? ";
+        $this->montako_tuotetta = $db->query( $sql, [$this->ostoskori_id], NULL, PDO::FETCH_OBJ)->tuotteet_kpl;
+        $this->montako_tuotetta_kpl_maara_yhteensa += $kpl_maara;
 
 		if ( $result && ($this->cart_mode == 1) ) { // Jos successful delete, ja tuotteet haettu olioon.
 			$this->tuotteet[$tuote_id][1] = $kpl_maara; // Päivitetään lokaali kpl-määrä
