@@ -41,7 +41,7 @@ if (isset($_POST['nimi'])) {
 </head>
 <body>
 <?php require 'header.php'; ?>
-<main class="main_body_container lomake flex_column">
+<main class="main_body_container lomake">
 	<?= !empty($feedback) ? $feedback : '' ?>
 	<a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
 		Takaisin</a><br><br>

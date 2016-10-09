@@ -6,7 +6,6 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 }
 
 if ( isset($_POST['new_news']) ) {
-	//TODO keep spaces, remove linebreaks
 	$db->query( "INSERT INTO etusivu_uutinen (otsikko, tyyppi, teksti) VALUES (?,?,?)",
 		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_content']] );
 	header("location:etusivu.php?test"); exit;

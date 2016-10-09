@@ -61,7 +61,7 @@ if (isset($_POST['sposti'])){
 </head>
 <body>
 <?php require 'header.php'; ?>
-<main class="main_body_container lomake flex_column">
+<main class="main_body_container lomake">
 	<?= !empty($feedback) ? $feedback : '' ?>
 	<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>"
 	   style="color:#000; background-color:#c5c5c5; border-color:#000;">Takaisin</a><br><br>
