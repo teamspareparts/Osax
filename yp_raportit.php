@@ -1,12 +1,23 @@
+<?php
+require '_start.php'; global $db, $user, $cart, $yritys;
+?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Raportit</title>
 </head>
 <body>
 <?php include("header.php");?>
-<h1 class="otsikko">Raportit</h1>
+<main class="main_body_container">
+
+</main>
+<script>
+	$(document).ready(function(){
+	});
+</script>
 </body>
 </html>

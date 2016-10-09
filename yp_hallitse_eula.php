@@ -33,7 +33,8 @@ if ( isset($_FILES['eula']['name']) ) {
     <meta charset="UTF-8">
     <title>EULA</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <style type="text/css">
         #eula_tiedosto {
             border: 1px dashed;
