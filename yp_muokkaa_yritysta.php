@@ -87,7 +87,8 @@ elseif (isset($_POST['muokkaa_rahtimaksu'])) {
             <input name="email" type="email" value="<?= $yritys->sahkoposti?>" />
             <br><br>
             <label><span>Puhelin</span></label>
-            <input name="puh" type="text" pattern=".{4,20}" value="<?= $yritys->puhelin?>" />
+            <input name="puh" type="text" value="<?= $yritys->puhelin?>"
+                   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
             <br><br>
             <label><span>Katuosoite</span></label>
             <input name="osoite" type="text" pattern=".{1,50}" value="<?= $yritys->katuosoite?>" />

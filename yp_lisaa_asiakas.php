@@ -78,7 +78,7 @@ if (isset($_POST['sposti'])){
 			<input id="snimi" name="sukunimi" type="text" pattern="[a-zA-Z]{3,20}">
 			<br><br>
 			<label for="puh"> Puhelin </label>
-			<input id="puh" name="puh" type="text" pattern="((\+|00)?\d{5}|)(\s?\d){10}">
+			<input id="puh" name="puh" type="text" pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
 			<br><br>
 			<label for="ss" class="required"> Salasana </label>
 			<input id="ss" name="password" type="password" pattern=".{8,300}"

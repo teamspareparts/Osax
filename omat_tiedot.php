@@ -129,13 +129,13 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 <!DOCTYPE html>
 <html lang="fi">
 <head>
+	<meta charset="UTF-8">
+	<title>Omat Tiedot</title>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
-	<meta charset="UTF-8">
-	<title>Omat Tiedot</title>
 </head>
 <body>
 <?php require("header.php"); ?>
@@ -164,7 +164,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 			<br><br>
 			<label><span>Puhelin</span></label>
 			<input name="puh" type="tel" value="<?= $user->puhelin ?>" title="Vain numeroita"
-				   pattern="((\+|00)?\d{5}|)(\s?\d){10}">
+				   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
 			<br><br><br>
 
 			<div class="center">
@@ -179,11 +179,11 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	<form action="#" name="uusi_salasana" method="post" accept-charset="utf-8">
 		<fieldset><legend>Vaihda salasana</legend>
 			<label><span>Uusi salasana</span></label>
-			<input name="new_password" type="password" pattern=".{6,}" title="Pituus min 8 merkkiä."
+			<input name="new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
 				   id="uusi_salasana">
 			<br><br>
 			<label><span>Vahvista salasana</span></label>
-			<input name="confirm_new_password" type="password" pattern=".{6,}" title="Pituus min 8 merkkiä."
+			<input name="confirm_new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
 				   id="vahv_uusi_salasana"><br>
 			<span id="check"></span>
 			<br><br><br>
@@ -254,7 +254,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				<label>Sähköposti</label>\
 					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
 				<label>Puhelin</label>\
-					<input name="puhelin" type="tel" pattern=".{1,20}" placeholder="Edellinen puhelinumero"><br>\
+					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="Edellinen puhelinumero"><br>\
 				<label>Yritys</label>\
 					<input name="yritys" type="text" pattern=".{3,50}" placeholder="Edellinen yritys"><br>\
 				<label>Katuosoite</label>\
@@ -289,7 +289,7 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 				<label>Sähköposti</label>\
 					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
 				<label>Puhelin</label>\
-					<input name="puhelin" type="tel" pattern=".{1,20}" placeholder="000 1234 789" required><br>\
+					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="000 1234 789" required><br>\
 				<label>Yritys</label>\
 					<input name="yritys" type="text" pattern=".{3,50}" placeholder="Yritys Oy"><br>\
 				<label>Katuosoite</label>\

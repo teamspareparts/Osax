@@ -58,7 +58,8 @@ if (isset($_POST['nimi'])) {
 			<input id="email" name="email" type="text" pattern=".{3,250}" placeholder="osoite@osoite">
 			<br><br>
 			<label for="puh"> Puhelin </label>
-			<input id="puh" name="puh" type="tel" pattern="((\+)?\d{3}|)( ?\d){10}" placeholder="050 123 4567">
+			<input id="puh" name="puh" type="tel" placeholder="050 123 4567"
+				   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
 			<br><br>
 			<label for="addr"> Katuosoite </label>
 			<input id="addr" name="osoite" type="text" pattern=".{1,50}" placeholder="Katuosoite 1">
