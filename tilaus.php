@@ -38,8 +38,9 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, 
 				pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka)
 			SELECT ?, etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
-			FROM toimitusosoite",
-			[$tilaus_id] );
+			FROM toimitusosoite 
+			WHERE kayttaja_id = ? AND osoite_id = ?",
+			[$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
 
 		//lähetetään tilausvahvistus asiakkaalle
 		//TODO: Luo lasku. Tulossa... joskus. When it's done.
@@ -63,8 +64,9 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	<title>Vahvista tilaus</title>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="js/jsmodal-1.0d.min.js"></script>
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 		.peruuta {
@@ -78,53 +80,52 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 <main class="main_body_container">
 	<h1 class="otsikko">Vahvista tilaus</h1>
 	<?= $feedback ?>
-	<div class="tulokset">
-		<table>
-			<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
-			<?php
-			$sum = 0;
-			foreach ( $products as $product ) {
-				$product->hinta = tarkista_hinta_era_alennus( $product );
-				$sum += $product->hinta * $product->cartCount; ?>
-				<tr>
-					<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
-					<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
-					<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
-					<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
-					<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
-					<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->
-					<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_palauta_huomautus( $product, FALSE )?></td>
-				</tr><?php
-			}
-			$rahtimaksu = hae_rahtimaksu( $yritys, $sum ); ?>
-			<tr id="rahtimaksu_listaus">
-				<td>---</td>
-				<td>Rahtimaksu</td>
-				<td>---</td>
-				<td class="number"><?= format_euros( $rahtimaksu[0] )?></td>
-				<td class="number">---</td>
-				<td class="number">1</td>
-				<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, FALSE )?></td>
-			</tr>
-		</table>
-		<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
-			<div id=tilausvahvistus_maksutiedot style="width:20em; margin:auto;">
-				<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
-				<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
-				<span class="small_note">Kaikki hinnat sis. ALV</span>
-			</div>
-			<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
-				<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled(
-					count($user->toimitusosoitteet) ) ?>
-			</div>
-			<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1; margin:auto;">
-				<!-- Osoitteen tulostus -->
-			</div>
+	<table>
+		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
+		<?php
+		$sum = 0;
+		foreach ( $products as $product ) {
+			$product->hinta = tarkista_hinta_era_alennus( $product );
+			$sum += $product->hinta * $product->cartCount; ?>
+			<tr>
+				<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
+				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
+				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
+				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
+				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
+				<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->
+				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_palauta_huomautus( $product, FALSE )?></td>
+			</tr><?php
+		}
+		$rahtimaksu = hae_rahtimaksu( $yritys, $sum ); ?>
+		<tr id="rahtimaksu_listaus">
+			<td>---</td>
+			<td>Rahtimaksu</td>
+			<td>---</td>
+			<td class="number"><?= format_euros( $rahtimaksu[0] )?></td>
+			<td class="number">---</td>
+			<td class="number">1</td>
+			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, FALSE )?></td>
+		</tr>
+	</table>
+	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
+		<div id=tilausvahvistus_maksutiedot style="width:20em; margin:auto;">
+			<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
+			<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
+			<span class="small_note">Kaikki hinnat sis. ALV</span>
 		</div>
-
-		<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $products, FALSE )// Varmistetaan, että tuotteita on varastossa ja ainakin minimimyyntierän verran?>
-		<p><a class="nappi peruuta" href="ostoskori.php">Palaa takaisin</a></p>
+		<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
+			<?= tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled(
+				count($user->toimitusosoitteet) ) ?>
+		</div>
+		<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1; margin:auto;">
+			<!-- Osoitteen tulostus -->
+		</div>
 	</div>
+
+	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled(
+		$products, count($user->toimitusosoitteet), FALSE )?>
+	<p><a class="nappi peruuta" href="ostoskori.php">Palaa takaisin</a></p>
 </main>
 <form class="hidden" id="laheta_tilaus_form" action="#" method=post>
 	<input type=hidden id="toimitusosoite_form_input" name="toimitusosoite_id" value="">
@@ -132,15 +133,14 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	<input type=hidden name="vahvista_tilaus" value="true">
 </form>
 
-<script src="js/jsmodal-1.0d.min.js"></script>
 <script>
-	//TODO: Check this
-	var osoitekirja = <?= json_encode( $user->toimitusosoitteet, TRUE )?>;
+	var osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
+	console.log( osoitekirja );
 
 	function avaa_Modal_valitse_toimitusosoite() {
 		Modal.open({
 			content:  ' \
-				<?= toimitusosoitteiden_Modal_tulostus( $user )?> \
+//				<?//= toimitusosoitteiden_Modal_tulostus( $user->toimitusosoitteet )?>// \
 				',
 			draggable: true
 		});

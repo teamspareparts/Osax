@@ -100,7 +100,7 @@ class User {
 					FROM	toimitusosoite
 					WHERE	kayttaja_id = ?
 					ORDER BY osoite_id";
-			$this->toimitusosoitteet = $db->query( $sql, [$this->id], DByhteys::FETCH_ALL );
+			$this->toimitusosoitteet = $db->query( $sql, [$this->id], DByhteys::FETCH_ALL, PDO::FETCH_ASSOC );
 
 		} elseif ( $to_id >= 0 ) {
 			$sql = "SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, 
