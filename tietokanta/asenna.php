@@ -6,15 +6,17 @@ require '../luokat/db_yhteys_luokka.class.php';
 
 $data_db = $data['Tietokannan tiedot'];
 $db = new DByhteys( $data_db['user'], $data_db['pass'], $data_db['name'], $data_db['host'] );
-$mysqli = mysqli_connect( $data_db['host'], $data_db['user'], $data_db['pass'], $data_db['name'] )
-	or die('Tietokantayhteyttä ei voitu muodostaa: ' . mysqli_connect_error());
+$f = file('tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
-// Luodaan tietokannan taulut // MySQLi, koska PDO ei pysty multi_queryyn
-if (mysqli_multi_query($mysqli, file_get_contents('tietokanta.sql'))) {
-    echo 'Tietokanta alustettiin onnistuneesti.<br>';
-} else {
-    echo 'Jokin meni pieleen tietokantaa alustettaessa<br>Virhe: ' . mysqli_error($mysqli) .
-		'<br>Tarkista tietokanta ja suorita tarvittaessa <i>tietokanta.sql</i> käsin.';
+foreach ( $f as $k => $v ) { // Poistetaan .sql-tiedoston kommentit
+	$f[$k] = strstr($v, '--', true) ?: $v;
+}
+
+$db_file = explode( ";", implode("", $f) ); // Muunnetaan jokainen query omaan indexiin
+foreach ( $db_file as $sql ) {
+	if ( !empty($sql) ) {
+		$db->query( $sql );
+	}
 }
 
 // Ei tehdä mitään, jos tietokanta on jo alustettu

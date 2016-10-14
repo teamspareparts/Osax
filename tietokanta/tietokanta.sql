@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS `kayttaja` (
+CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `sahkoposti` varchar(255) NOT NULL, -- UNIQUE KEY
   `salasana_hajautus` varchar(100) NOT NULL,
@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS `tuote` (
 
 CREATE TABLE IF NOT EXISTS `kayttaja_tuote` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  `kayttaja_id` int(11) NOT NULL, -- PK Foreign K
+  `tuote_id` int(11) NOT NULL, -- PK Foreign K
   `hinta` decimal(11,2) NOT NULL,
   PRIMARY KEY (`id`, `kayttaja_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
 CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
-  `tilaus_id` int(11) NOT NULL, -- PK; Foreign K
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  `tilaus_id` int(11) NOT NULL, -- PK Foreign K
+  `tuote_id` int(11) NOT NULL, -- PK Foreign K
   `pysyva_hinta` decimal(11,2) NOT NULL,
   `pysyva_alv` decimal(3,2) NOT NULL,
   `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT '0.00',
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
-  `tilaus_id` int(11) NOT NULL, -- PK; Foreign K
+  `tilaus_id` int(11) NOT NULL, -- PK Foreign K
   `pysyva_etunimi` varchar(255) NOT NULL,
   `pysyva_sukunimi` varchar(255) NOT NULL,
   `pysyva_sahkoposti` varchar(255) NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `pw_reset` (
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `kayttaja_id` int(11) NOT NULL, -- PK Foreign K
   `reset_key_hash` varchar(40) NOT NULL, -- PK
   `reset_exp_aika` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `kaytetty` tinyint(1) NOT NULL DEFAULT 0, -- Onko avain jo käytetty
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `ALV_kanta` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `kayttaja_id` int(11) NOT NULL, -- PK Foreign K
   `osoite_id` tinyint(2) NOT NULL, -- PK
   `etunimi` varchar(255) DEFAULT '',
   `sukunimi` varchar(255) DEFAULT '',
@@ -128,8 +128,8 @@ CREATE TABLE IF NOT EXISTS `toimitusosoite` (
 
 /* Valikoimassa olevaa tuotetta varten (varastosaldo == 0) */
 CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `tuote_id` int(11) NOT NULL, -- PK Foreign K
+  `kayttaja_id` int(11) NOT NULL, -- PK Foreign K
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
 CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `articleNo` varchar(20) NOT NULL, -- PK
   `brandName` varchar(30) NOT NULL, -- PK
-  `kayttaja_id` int(11) NOT NULL, -- PK; Foreign K
+  `kayttaja_id` int(11) NOT NULL, -- PK Foreign K
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
@@ -166,14 +166,14 @@ CREATE TABLE IF NOT EXISTS `ostoskori` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
-  `ostoskori_id` int(11) NOT NULL, -- PK; Foreign K
-  `tuote_id` int(11) NOT NULL, -- PK; Foreign K
+  `ostoskori_id` int(11) NOT NULL, -- PK Foreign K
+  `tuote_id` int(11) NOT NULL, -- PK Foreign K
   `kpl_maara` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`ostoskori_id`, `tuote_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `hankintapaikka` (
-  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK;
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `nimi` varchar(11) NOT NULL, -- UNIQUE K
   `katuosoite` varchar(50) DEFAULT '',
   `postinumero` varchar(11) DEFAULT '',
@@ -191,7 +191,7 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
-  `brandId` int(11) NOT NULL, -- PK;
+  `brandId` int(11) NOT NULL, -- PK
   `hankintapaikka_id` int(11) NOT NULL,  -- PK
   `brandName` varchar(50) NOT NULL,
   `hinnaston_sisaanajo_pvm` DATETIME DEFAULT NULL,
