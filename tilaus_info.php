@@ -131,11 +131,13 @@ if ( !$products) { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 	</div>
 	<br>
 	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th>
-			<th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th>
-			<th class="number">Kpl</th></tr>
-		<?php
-		foreach ($products as $product) {?>
+		<thead>
+			<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th>
+				<th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th>
+				<th class="number">Kpl</th></tr>
+		</thead>
+		<tbody>
+		<?php foreach ($products as $product) : ?>
 			<tr>
 				<td><?= $product->articleNo?></td>
 				<td><?= $product->articleName?></td>
@@ -146,20 +148,20 @@ if ( !$products) { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 				<td class="number"><?= tulosta_alennus_tuotelistaan( (float)$product->pysyva_alennus )?></td>
 				<td class="number"><?= $product->kpl?></td>
 			</tr>
-		<?php } ?>
-
-		<tr style="background-color:#cecece;">
-			<td>---</td>
-			<td>Rahtimaksu</td>
-			<td>Posti / Itella</td>
-			<td class="number"><?= format_euros( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
-			<td class="number">---</td>
-			<td class="number">0 %</td>
-			<td class="number">
-				<?php if ($tilaus_tiedot->pysyva_rahtimaksu===0) { echo "Ilmainen toimitus"; } else { echo "---"; } ?>
-			</td>
-			<td class="number">---</td>
-		</tr>
+		<?php endforeach; ?>
+			<tr style="background-color:#cecece;">
+				<td>---</td>
+				<td>Rahtimaksu</td>
+				<td>Posti / Itella</td>
+				<td class="number"><?= format_euros( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
+				<td class="number">---</td>
+				<td class="number">0 %</td>
+				<td class="number">
+					<?= ($tilaus_tiedot->pysyva_rahtimaksu===0) ? "Ilmainen toimitus" : "---" ?>
+				</td>
+				<td class="number">---</td>
+			</tr>
+		</tbody>
 	</table>
 </main>
 
