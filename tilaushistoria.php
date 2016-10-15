@@ -8,27 +8,16 @@ require 'apufunktiot.php';
  * @return stdClass[]
  */
 function hae_tilaukset ( DByhteys $db, User $user ) {
-//	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty,
-//				SUM(tilaus_tuote.kpl) AS kpl,
-//				SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))
-//					* (1-tilaus_tuote.pysyva_alennus) ) ) AS summa
-//			FROM tilaus
-//			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id = tilaus.id
-//			WHERE kayttaja_id = ?";
+	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty,
+				SUM(tilaus_tuote.kpl) AS kpl,
+				SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))
+					* (1-tilaus_tuote.pysyva_alennus) ) ) AS summa
+			FROM tilaus
+			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id = tilaus.id
+			WHERE kayttaja_id = ?
+			GROUP BY tilaus.id";
 
-	$sql = "SELECT id, paivamaara, kasitelty FROM tilaus WHERE kayttaja_id = ?";
-	$tilaukset = $db->query( $sql, [$user->id], DByhteys::FETCH_ALL );
-
-	foreach ( $tilaukset as $key => $row ) {
-		$sql = "SELECT SUM(kpl) AS kpl, SUM(kpl*((pysyva_hinta*(1+pysyva_alv))*(1-pysyva_alennus))) AS summa
-				FROM tilaus_tuote
-				WHERE tilaus_id = ?";
-		$result = $db->query( $sql, [$row->id] );
-		$tilaukset[$key]->kpl = $result->kpl;
-		$tilaukset[$key]->summa = $result->summa;
-	}
-
-	return $tilaukset;
+	return $db->query( $sql, [$user->id], DByhteys::FETCH_ALL );
 }
 
 // Jos käyttäjä on admin, ja tarkoitus hakea asiakkaan tilaukset
