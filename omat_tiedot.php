@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 /**
  * @param DByhteys $db
  * @param User $user
@@ -76,6 +76,7 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
 	else return false;
 }
 
+$yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -1 );
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 unset($_SESSION['feedback']);
@@ -89,8 +90,6 @@ if ( isset($_POST['uudet_tiedot']) ){
 	} else {
 		$_SESSION['feedback'] = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
 	}
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 
 elseif ( !empty($_POST['new_password']) ) {
@@ -102,25 +101,20 @@ elseif ( !empty($_POST['new_password']) ) {
 			} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vaihtaminen epäonnistui tuntemattomasta syystä.</p>"; }
 		} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vahvistus ei täsmää.</p>"; }
 	} else { $_SESSION['feedback'] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 
 
 elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	tallenna_uudet_tiedot( $db, $user, $_POST );
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 
 } elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 
 } elseif ( !empty($_POST["poista_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"]);
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
+}
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takaisin-napilla.
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 }
 ?>
 <!DOCTYPE html>
