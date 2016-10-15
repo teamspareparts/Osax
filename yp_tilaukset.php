@@ -53,7 +53,7 @@ $tilaukset = hae_tilaukset( $db );
 
 <div id="tilaukset">
 	<div id="lista">
-		<form action="yp_tilaukset.php" method="post">
+		<form method="post">
 			<fieldset class="lista_info">
 				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="sum">Summa</span>Käsitelty</p>
 			</fieldset>

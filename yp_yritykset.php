@@ -1,9 +1,7 @@
 <?php
 require '_start.php'; global $db, $user, $cart, $yritys;
-require 'header.php';
-if (!$user->isAdmin()) {
-    header("Location:tuotehaku.php");
-    exit();
+if ( !$user->isAdmin() ) {
+    header("Location:tuotehaku.php"); exit();
 }
 
 /**
@@ -18,11 +16,11 @@ function db_poista_yritys(DByhteys $db, array $ids){
         $query = "UPDATE yritys
 							SET aktiivinen=0
 							WHERE id= ? ";
-        $result = $db->query($query, [$yritys_id]);
+        $db->query($query, [$yritys_id]);
         $query = "UPDATE kayttaja
 							SET aktiivinen=0
 							WHERE yritys_id= ? ";
-        $result = $db->query($query, [$yritys_id]);
+        $db->query($query, [$yritys_id]);
     }
     return true;
 }
@@ -35,7 +33,6 @@ function hae_yritykset(DByhteys $db){
     $query = "SELECT * FROM yritys";
     return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
 }
-
 
 $yritykset = hae_yritykset( $db );
 
@@ -52,12 +49,13 @@ if (isset($_POST['ids'])){
 <html lang="fi">
 <head>
     <meta charset="UTF-8">
+	<title>Yritykset</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <title>Yritykset</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
+<?php include 'header.php'; ?>
 <div id=asiakas>
     <h1 class="otsikko">Asiakasyritykset</h1>
     <div id="painikkeet">

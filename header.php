@@ -1,18 +1,3 @@
-﻿<?php
-/*
- * //TODO: This is for backwards compatibility.
- */
-if ( !function_exists("check_login_status") ) {
-	function check_login_status(){if(empty($_SESSION['id'])){header('Location: index.php?redir=4');exit;}}
-	function is_admin(){return isset($_SESSION['admin']) && $_SESSION['admin']==1;}
-	session_start(); check_login_status(); include 'luokat/user.class.php';
-	$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
-	include 'luokat/db_yhteys_luokka.class.php'; include 'luokat/ostoskori.class.php';
-	$user = new User(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']),$_SESSION['id']);
-	$cart = new Ostoskori(new DByhteys($db['user'],$db['pass'],$db['name'],$db['host']),$user->yritys_id);
-}
-?>
-
 <div class="header_container">
 	<div class="header_top">
 		<div id="head_logo">
@@ -24,7 +9,6 @@ if ( !function_exists("check_login_status") ) {
 			Kirjautuneena: <?= $user->sahkoposti ?>
 		</div>
 
-		<!-- TODO: Korjaa tyylittelyä -->
 		<div id="head_cart">
 			<a href='ostoskori.php' class="flex_row">
 				<div style="margin:auto 5px;">

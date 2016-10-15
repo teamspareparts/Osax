@@ -33,12 +33,8 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 <head>
 	<link rel="stylesheet" href="css/styles.css">
 	<meta charset="UTF-8">
-
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<!-- https://design.google.com/icons/ -->
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 		.peruuta {
@@ -102,7 +98,6 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">
 </form>
 <script>
-
 	/**
 	 * Muokkaa annetun tuotteen kpl-määrää ostoskorissa.
 	 * Jos kpl-määrä nolla (0), tuote poistetaan ostoskorista.
@@ -114,7 +109,6 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 		document.getElementById('ostoskori_maara').value = count;
 		document.ostoskorilomake.submit();
 	}
-
 </script>
 
 </body>

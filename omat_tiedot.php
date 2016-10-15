@@ -63,7 +63,7 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
 
 	$sql = "DELETE FROM toimitusosoite
 			WHERE kayttaja_id = ? AND osoite_id = ?";
-	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia sql:ta.
+	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia PDO:ta.
 	$stmt->execute( [$user->id, $osoite_id] );
 
 	if ( $stmt->rowCount() > 0 ) {
@@ -73,7 +73,7 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
 		return $db->query( $sql, [$osoite_id, $user->id, $osoite_id_viimeinen] );
 	}
 
-	return false;
+	else return false;
 }
 
 $user->haeToimitusosoitteet( $db, -1 );
@@ -117,15 +117,12 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
 	exit();
 
-	echo $_POST['poista_osoite'];
 } elseif ( !empty($_POST["poista_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"]);
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
 	exit();
 }
-
 ?>
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>

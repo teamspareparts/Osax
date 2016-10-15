@@ -49,5 +49,4 @@ $db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
  * Luodaan tarvittava oliot
  */
 $user = new User( $db, $_SESSION['id'] );
-$yritys = new Yritys( $db, $user->yritys_id );
-$cart = new Ostoskori( $db, $yritys->id );
+$cart = new Ostoskori( $db, $user->yritys_id );

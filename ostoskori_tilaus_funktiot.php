@@ -73,11 +73,11 @@ function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ost
 
 /**
  * Tulostaa kaikki osoitteet (jo valmiiksi luodusta) osoitekirjasta, ja tulostaa ne Modaliin
- * @param array $osoitekirja_array
+ * @param stdClass[] $osoitekirja_array
  * @return string
  */
 function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
-	$s = '';//TODO: Check this
+	$s = '';
 	foreach ( $osoitekirja_array as $index => $osoite ) {
 		$s .= "
 		<div> Osoite {$index}<br><br> \\";
@@ -164,7 +164,7 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /*bool*/ $osto
 			return "Eräalennus ({$alennus_prosentti} %) asetettu.";
 
 		} else { return "---"; }
-	} else { return "<span style='color:red;'>Minimyyntierä: {$product->minimimyyntiera} kpl</span>";}
+	} else { return "<span style='color:red;'>Minimyyntierä: {$product->minimimyyntiera} kpl</span>"; }
 }
 
 /**

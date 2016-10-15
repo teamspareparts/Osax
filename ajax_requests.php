@@ -55,7 +55,7 @@ elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
 /**
  * Eulan vahvistus
  */
-elseif ( !empty($_POST['vahvista_eula']) ) {
+elseif ( !empty($_POST['eula_vahvista']) ) {
 	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
 	$result = $db->query( $sql, [$_POST['user_id']] );
 }

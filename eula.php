@@ -44,8 +44,7 @@ if ( !$eula_txt ) {
 	function hyvaksy_eula () {
 		$.post("ajax_requests.php",
 			{	eula_vahvista: true,
-				user_id: <?=$_SESSION['id']?>
-			}
+				user_id: <?= $_SESSION['id'] ?> }
 		);
 		window.location="./etusivu.php";
 	}

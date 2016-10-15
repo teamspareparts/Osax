@@ -124,7 +124,7 @@ if ( $mode == "login" ) {
 						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
+	$login_user = $db->query( $sql_query, [$email], NULL );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
