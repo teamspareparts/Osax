@@ -157,7 +157,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
 			+ "Puhelinnumero: " + osoite_array['puhelin'];
 
-		document.getElementById('toimitusosoite_form_input').value = osoite_id; //Tallenetaan toimitusosoite talteen piilotettuun formiin
+		document.getElementById('toimitusosoite_form_input').value = osoite_id+1; //Tallenetaan toimitusosoite talteen piilotettuun formiin
 	}
 
 	function laheta_Tilaus () {

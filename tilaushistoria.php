@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
 /**
@@ -11,8 +11,7 @@ function hae_tilaukset ( DByhteys $db, User $user ) {
 	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, 
 				SUM(tilaus_tuote.kpl) AS kpl, 
 				SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta * (1 + tilaus_tuote.pysyva_alv))
-					* (1 - tilaus_tuote.pysyva_alennus) ) )
-					AS summa
+					* (1 - tilaus_tuote.pysyva_alennus) ) ) AS summa
 			FROM tilaus 
 			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id = tilaus.id
 			WHERE kayttaja_id = ?";
@@ -28,13 +27,14 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 	$tilaukset = hae_tilaukset( $db, $user ); //Muuten haetaan vain sis.kirj. käyttäjän tilaukset
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
 	<title>Tilaushistoria</title>
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
 <?php include 'header.php'; ?>
@@ -44,8 +44,8 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 		<p class="asiakas_info">Tilaaja: <?=$asiakas->kokoNimi()?></p>
 	<?php endif; ?>
 
-	<table>
 	<?php if ( $tilaukset ) : ?>
+	<table>
 		<thead>
 			<tr><th>Tilausnumero</th>
 				<th>Päivämäärä</th>
@@ -67,10 +67,10 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 			</tr>
 		<?php endforeach; ?>
 		</tbody>
+	</table>
 	<?php else : ?>
 		<p>Ei tehtyjä tilauksia.</p>
 	<?php endif; ?>
-	</table>
 </main>
 <br>
 

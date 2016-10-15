@@ -28,14 +28,12 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 
 		$rows = $db->query( $sql, $ids, FETCH_ALL );
 
-		if ( $rows ) {
-			foreach ( $rows as $row ) {
-				$row->cartCount = $cart->tuotteet[$row->id][1];
-				$products[] = $row;
-			}
-			//Haetaan tuotteille tarkemmat tiedot tecdocista
-            get_basic_product_info($products);
+		foreach ( $rows as $row ) {
+			$row->cartCount = $cart->tuotteet[$row->id][1];
+			$products[] = $row;
 		}
+		//Haetaan tuotteille tarkemmat tiedot tecdocista
+		get_basic_product_info($products);
 	}
 
 	return $products;
