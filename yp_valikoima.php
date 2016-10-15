@@ -1,54 +1,33 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Valikoima</title>
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<style>
-		.material-icons { /* Jakaa sivustuksen nappien ikonin ja tekstin kahdelle riville */
-			display: flex; !important;
-		}
-	</style>
-</head>
-<body>
 <?php
-require 'header.php';
-require 'tietokanta.php';
+require '_start.php'; global $db, $user, $yritys, $cart;
+
+if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 
 /**
- * @param DByhteys $db <p> Tietokanta-yhteys
+ * @param DByhteys $db
  * @param int|string $brandNo <p> Minkä brändin tuotteet haetaan.
- * 		Jos == "all", niin tulostaa kaikki tietokannassa olevat tuotteet.
+ * 		Jos === "all", niin tulostaa kaikki tietokannassa olevat tuotteet.
  * @param int $ppp <p> Montako tuotetta kerralla ruudussa.
  * @param int $offset <p> Mistä tuotteesta aloitetaan palautus.
- * @return array <p> Arrayn tuloksista objekteina
+ * @return stdClass[] <p> Tuotteet
  */
-function haeTuotteet ($db, $brandNo, $ppp, $offset) {
+function haeTuotteet ( DByhteys $db, /*int*/ $brandNo, /*int*/ $ppp, /*int*/ $offset ) {
 	if ( $brandNo !== "all") {
-		$query = "	SELECT *, 
-						( SELECT COUNT(id) FROM tuote WHERE brandNo = ? ) AS row_count
-					FROM tuote 
-					WHERE brandNo = ?
-					LIMIT {$ppp} OFFSET {$offset}";
-
-		$result = $db->query( $query, [$brandNo, $brandNo], FETCH_ALL, PDO::FETCH_OBJ );
+		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote WHERE brandNo = ?) AS row_count
+				FROM tuote 
+				WHERE brandNo = ?
+				LIMIT ? OFFSET ?";
+		$result = $db->query( $sql, [$brandNo, $brandNo, $ppp, $offset], FETCH_ALL );
 	} else {
-		$query = "	SELECT *,
-						( SELECT COUNT(id) FROM tuote ) AS row_count
-					FROM tuote
-					LIMIT {$ppp} OFFSET {$offset}";
-
-		$result = $db->query( $query, NULL, FETCH_ALL, PDO::FETCH_OBJ );
+		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote) AS row_count
+				FROM tuote
+				LIMIT ? OFFSET ?";
+		$result = $db->query( $sql, [$ppp, $offset], FETCH_ALL );
 	}
 
 	return $result;
 }
 
-if ( !is_admin() ) { header("Location:etusivu.php"); exit(); }
 $brand = isset($_GET['brand']) ? $_GET['brand'] : "all";
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Mikä sivu tuotelistauksessa
 $products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
@@ -59,13 +38,30 @@ $offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monenne
 
 $products = haeTuotteet($db, $brand, $products_per_page, $offset);
 
-$total_products = isset($products[0]->row_count) ? $products[0]->row_count : 0;
+$total_products = isset($products[0]) ? $products[0]->row_count : 0;
 if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }
 if ( $total_products !== 0 ) { $total_pages = ceil($total_products / $products_per_page);
 } else { $total_pages = 1; }
 if ( $page > $total_pages ) {
 	header("Location:yp_valikoima.php?brand={$brand}&page={$total_pages}&ppp={$products_per_page}"); exit(); }
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Valikoima</title>
+	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<style>
+		.material-icons { /* Jakaa sivustuksen nappien ikonin ja tekstin kahdelle riville */
+			display: flex; !important;
+		}
+	</style>
+</head>
+<body>
+<?php require 'header.php'; ?>
 
 <main>
 	<nav aria-label="Page navigation" class="page_nav">
@@ -209,9 +205,7 @@ if ( $page > $total_pages ) {
 
 </main>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js" integrity="sha384-ux8v3A6CPtOTqOzMKiuo3d/DomGaaClxFYdCu2HPMBEkf6x2xiDyJ7gkXU0MWwaD" crossorigin="anonymous"></script>
-<!--suppress JSUnusedAssignment -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js"></script>
 <script>
 	$(document).ready(function(){
 		var backwards = document.getElementsByClassName('backward_nav');
