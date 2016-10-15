@@ -8,42 +8,40 @@ if ( !$user->isAdmin() ) {
 $yritys_id = !empty($_GET['yritys_id']) ? $_GET['yritys_id'] : 0;
 
 if (isset($_POST['sposti'])){
-	$demo = !empty($_POST['demo_user']) ? '1' : '0';			// Onko demokäyttäjä?
-	$paivat = !empty($_POST['paivat']) ? (int)$_POST['paivat'] : '0';// Demokäyttäjän käyttöaika
-
+	$_POST['demo_user'] = !empty($_POST['demo_user']) ? '1' : '0'; // Onko demokäyttäjä?
+	$_POST['paivat'] = !empty($_POST['paivat']) ? (int)$_POST['paivat'] : '1';// Demokäyttäjän käyttöaika
+	if ( $_POST['demo_user'] === 1 && $_POST['paivat'] < 1 ) { // Tarkistetaan demoajan järjellisyys
+		$_POST['paivat'] = 3;
+	}
 	// Tarkistetaan, että halutulla sähköpostilla ei ole jo aktivoitua käyttäjää.
 	$sql = "SELECT id FROM kayttaja WHERE sahkoposti=? AND aktiivinen=1 LIMIT 1";
 	$row = $db->query( $sql, [$_POST['sposti']] );
 
 	if ( !$row ) {
-		if ( $demo !== 1 && $paivat < 1 ) { // Varmuuden vuoksi, tarkastetaan käyttöajan järjellisyys
-			$ss_strlen = strlen( $_POST['password'] );
-			if ( $ss_strlen > 8 && $ss_strlen < 300 ) {
-				if ( $_POST['password'] === $_POST['confirm_password'] ) {
-					$salasana_hajt = password_hash( $_POST['password'], PASSWORD_DEFAULT );
+		$ss_length = strlen( $_POST['password'] );
+		if ( $ss_length > 8 && $ss_length < 300 ) {
+			if ( $_POST['password'] === $_POST['confirm_password'] ) {
+				$_POST['password'] = password_hash( $_POST['password'], PASSWORD_DEFAULT );
+				unset($_POST['submit']); unset($_POST['confirm_password']);
+				$_POST[] = $_POST['paivat'];
 
-					unset($_POST['submit']); //Poistetaan turha array-index.
-					$sql = "INSERT INTO kayttaja 
-								( sahkoposti,  etunimi, sukunimi, puhelin, salasana_hajautus, demo, yritys_id,
-								voimassaolopvm, salasana_uusittava )
-							VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, '1' )
-							ON DUPLICATE KEY UPDATE 
-								sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
-								puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 
-								demo=VALUES(demo), yritys_id=VALUES(yritys_id), voimassaolopvm=NOW()+INTERVAL ? DAY,
-								salasana_uusittava='1', aktiivinen='1' ";
+				$sql = "INSERT INTO kayttaja 
+							( sahkoposti, etunimi, sukunimi, puhelin, salasana_hajautus,
+							voimassaolopvm, yritys_id, demo, salasana_uusittava )
+						VALUES ( ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, ?, '1' )
+						ON DUPLICATE KEY UPDATE 
+							sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
+							puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 
+							demo=VALUES(demo), yritys_id=VALUES(yritys_id), voimassaolopvm=NOW()+INTERVAL ? DAY,
+							salasana_uusittava='1', aktiivinen='1' ";
+				$db->query($sql, array_values($_POST));
+				header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&feedback=success"); exit;
 
-					if ( $db->query($sql, $_POST) ) {
-						header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&feedback=success"); exit;
-					}
-				} else {
-					$feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
-				}
 			} else {
-				$feedback = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
+				$feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
 			}
 		} else {
-			$feedback = "<p class='error'>Demoaika (päivät) väärin.</p>";
+			$feedback = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
 		}
 	} else {
 		$feedback = "<p class='error'>Kyseisellä sähköpostilla on jo aktivoitu käyttäjä. ID: {$row->id}</p>";

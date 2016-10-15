@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 if ( !$user->isAdmin() ) {
     header("Location:tuotehaku.php"); exit();
 }
@@ -7,12 +7,9 @@ if ( !$user->isAdmin() ) {
 /**
  * @param DByhteys $db
  * @param array $ids
- * @return bool
  */
 function db_poista_yritys(DByhteys $db, array $ids){
-
-    //Deaktivoidaan yritykset ja yrityksen asiakkaat
-    foreach ($ids as $yritys_id) {
+    foreach ($ids as $yritys_id) { //Deaktivoidaan yritykset ja yrityksen asiakkaat
         $query = "UPDATE yritys
 							SET aktiivinen=0
 							WHERE id= ? ";
@@ -22,7 +19,6 @@ function db_poista_yritys(DByhteys $db, array $ids){
 							WHERE yritys_id= ? ";
         $db->query($query, [$yritys_id]);
     }
-    return true;
 }
 
 /**
@@ -41,10 +37,7 @@ if (isset($_POST['ids'])){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
     exit();
 }
-
 ?>
-
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>

@@ -69,7 +69,6 @@ elseif (isset($_POST['muokkaa_rahtimaksu'])) {
 <body>
 <?php require 'header.php'?>
 
-<h1 class="otsikko">Muokkaa yritystä</h1>
 <main class="main_body_container lomake">
     <?= $feedback ?>
     <a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
@@ -87,7 +86,7 @@ elseif (isset($_POST['muokkaa_rahtimaksu'])) {
             <input name="email" type="email" value="<?= $yritys->sahkoposti?>" />
             <br><br>
             <label><span>Puhelin</span></label>
-            <input name="puh" type="text" value="<?= $yritys->puhelin?>"
+            <input name="puh" type="tel" value="<?= $yritys->puhelin?>"
                    pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
             <br><br>
             <label><span>Katuosoite</span></label>

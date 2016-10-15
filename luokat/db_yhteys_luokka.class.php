@@ -362,7 +362,10 @@ $db_conn->query( $query, $values_array );
  * Tässä tapauksessa niiden ei tarvitse olla samassa järjestyksessä.
  * Nimettyjä ja kysymysmerkkejä ei voi käyttää samassa queryssa.
 
-
+ * Also, huom:
+ * When passing an array of values to execute when your query contains question marks,
+ * note that the array must be keyed numerically from zero. If it is not,
+ * run array_values() on it to force the array to be re-keyed.
 
  * Esimerkissä 2 käytin FETCH_ALL muuttujaa. Se on alias TRUE:lle.
  * Define()-metodi siitä on tiedoston alussa. Tämä kohta on hieman leikkimistä minulta, myönnetään.

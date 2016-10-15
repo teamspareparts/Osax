@@ -21,11 +21,12 @@ if (isset($_POST['nimi'])) {
 					puhelin=VALUES(puhelin), katuosoite=VALUES(katuosoite), postinumero=VALUES(postinumero), 
 					postitoimipaikka=VALUES(postitoimipaikka), maa=VALUES(maa), aktiivinen='1' ";
 
-		if ( $db->query($sql, $_POST) ) {
+		if ( $db->query($sql, array_values($_POST)) ) {
 			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
 			header("Location:yp_yritykset.php?feedback=success"); exit;
 		}
 	} else {
+		//TODO: Hmm, voisko sitä SESSION feedback ideaa käyttää tässä?
 		$feedback = "<p class='error'>Kyseisellä Y-tunnuksella tai nimellä on jo aktivoitu yritys. ID: {$row->id}</p>";
 	}
 }
@@ -52,17 +53,17 @@ if (isset($_POST['nimi'])) {
 			<input id="yritys" name="nimi" type="text" pattern=".{3,40}" placeholder="Yritys Oy" required>
 			<br><br>
 			<label for="ytunnus" class="required" > Y-tunnus </label>
-			<input id="ytunnus" name="y_tunnus" type="text" pattern=".{9}" placeholder="1234567-8" required>
+			<input id="ytunnus" name="y_tunnus" type="text" pattern="(\d{7})[-][\d]" placeholder="1234567-8" required>
 			<br><br>
 			<label for="email"> Sähköposti </label>
-			<input id="email" name="email" type="text" pattern=".{3,250}" placeholder="osoite@osoite">
+			<input id="email" name="email" type="text" maxlength="200" placeholder="osoite@osoite">
 			<br><br>
 			<label for="puh"> Puhelin </label>
 			<input id="puh" name="puh" type="tel" placeholder="050 123 4567"
 				   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
 			<br><br>
 			<label for="addr"> Katuosoite </label>
-			<input id="addr" name="osoite" type="text" pattern=".{1,50}" placeholder="Katuosoite 1">
+			<input id="addr" name="osoite" type="text" maxlength="50" placeholder="Katuosoite 1">
 			<br><br>
 			<label for="pnum"> Postinumero </label>
 			<input id="pnum" name="postinumero" type="text" placeholder="10100">
