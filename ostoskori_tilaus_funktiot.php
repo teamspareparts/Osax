@@ -18,9 +18,9 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 	if ( !empty( $cart->tuotteet ) ) {
 	    $ids = array_keys( $cart->tuotteet );
         $placeholders = str_repeat('?, ', count($cart->tuotteet) - 1) . '?';
-		$sql = "SELECT	id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, alennusera_kpl, 
-					alennusera_prosentti, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
-					ALV_kanta.prosentti AS alv_prosentti
+		$sql = "SELECT	id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, 
+					alennusera_kpl, alennusera_prosentti, 
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, ALV_kanta.prosentti AS alv_prosentti
 				FROM	tuote
 				LEFT JOIN ALV_kanta
 					ON tuote.ALV_kanta = ALV_kanta.kanta
@@ -47,7 +47,7 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
  * @param int $tilauksen_summa
  * @return array <p> Rahtimaksun ja ilmaisen toimitusksen rajan, indekseillä 0 ja 1. Kumpikin float.
  */
-function hae_rahtimaksu ( Yritys $yritys, /*int*/ $tilauksen_summa ) {
+function tarkista_rahtimaksu ( Yritys $yritys, /*int*/ $tilauksen_summa ) {
 	if ( $tilauksen_summa > $yritys->ilm_toim_sum_raja ) {
 		$yritys->rahtimaksu = 0;
 	}
@@ -64,7 +64,7 @@ function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ost
 	if ( $rahtimaksu[0] == 0 ) {
 		$alennus = "Ilmainen toimitus";
 	} elseif ( $ostoskori ) {
-		$alennus = "Ilmainen toimitus " . format_euros($rahtimaksu[1]) . ":n jälkeen.";
+		$alennus = "Ilmainen toimitus <br>" . format_euros($rahtimaksu[1]) . ":n jälkeen.";
 	} else {
 		$alennus = "---"; }
 

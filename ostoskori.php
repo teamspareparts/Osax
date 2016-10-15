@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $yritys, $cart;
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'ostoskori_tilaus_funktiot.php';
@@ -10,23 +10,28 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
 	if ( $tuote_kpl > 0 ) {
 		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
-			$cart_feedback = '<p class="success">Ostoskori päivitetty.</p>';
+			$feedback = '<p class="success">Ostoskori päivitetty.</p>';
 		} else {
-			$cart_feedback = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
+			$feedback = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 		}
 	} elseif ( $tuote_kpl == 0 ) { //TODO: Tarkista miten tämä käyttäytyy NULLin kanssa
 		if ( $cart->poista_tuote( $db, $tuote_id ) ) {
-			$cart_feedback = '<p class="success">Tuote poistettu ostoskorista.</p>';
+			$feedback = '<p class="success">Tuote poistettu ostoskorista.</p>';
 		} else {
-			$cart_feedback = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
+			$feedback = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
 		}
 	}
 }
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takaisin-napilla.
+	$_SESSION['feedback'] = $feedback; header("Location: " . $_SERVER['REQUEST_URI']); exit();
+}
 
+$yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
 $products = get_products_in_shopping_cart( $db, $cart );
 $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
-$cart_feedback = ""; // Onnistuiko ostoskorin päivitys
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : ""; // Onnistuiko ostoskorin päivitys
+unset($_SESSION['feedback']);
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -49,7 +54,7 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 <?php require "header.php"; ?>
 <main class="main_body_container">
 	<h1 class="otsikko">Ostoskori</h1>
-	<?= $cart_feedback ?>
+	<?= $feedback ?>
 	<table>
 		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th>
 			<th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
@@ -72,7 +77,7 @@ $cart_feedback = ""; // Onnistuiko ostoskorin päivitys
 										 onclick="cartAction('<?= $product->id?>')">Päivitä</a></td>
 			</tr>
 		<?php endforeach;
-		$rahtimaksu = hae_rahtimaksu( $yritys, $sum );  ?>
+		$rahtimaksu = tarkista_rahtimaksu( $yritys, $sum ); ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td>

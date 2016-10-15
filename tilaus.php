@@ -1,10 +1,11 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'email.php';
 require 'ostoskori_tilaus_funktiot.php'; //Sisältää kaikki ennen tässä tiedostossa olleet PHP-funktiot
 
+$yritys = new Yritys( $db, $user->yritys_id );
 $feedback = '';
 $products = get_products_in_shopping_cart( $db, $cart );
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
@@ -97,7 +98,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_palauta_huomautus( $product, FALSE )?></td>
 			</tr><?php
 		}
-		$rahtimaksu = hae_rahtimaksu( $yritys, $sum ); ?>
+		$rahtimaksu = tarkista_rahtimaksu( $yritys, $sum ); ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td>
@@ -148,7 +149,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 	function valitse_toimitusosoite( osoite_id ) {
 		var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
-		var osoite_array = osoitekirja[osoite_id]; //TODO: Check this
+		var osoite_array = osoitekirja[osoite_id];
 		html_osoite.innerHTML = ""
 			+ "<h4 style='margin-bottom:0;'>Toimitusosoite " + osoite_id + "</h4>"
 			+ "Sähköposti: " + osoite_array['sahkoposti'] + "<br>"
@@ -168,7 +169,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			return false;
 		}
 	}
-	valitse_toimitusosoite(1);
+	valitse_toimitusosoite(0);
 </script>
 
 </body>

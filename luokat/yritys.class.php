@@ -50,7 +50,7 @@ class Yritys {
 				$this->maa			= $foo->maa;
 
 				$this->rahtimaksu	= $foo->rahtimaksu;
-				$this->ilmainen_toimitus_summa_raja = $foo->ilmainen_toimitus_summa_raja;
+				$this->ilm_toim_sum_raja = $foo->ilmainen_toimitus_summa_raja;
 			}
 		}
 	}
