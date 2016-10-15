@@ -6,10 +6,10 @@ require '_start.php'; global $db, $user, $cart;
  * @param $variables
  * @return bool
  */
-function tallenna_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables ) {
+function muokkaa_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables ) {
 	$possible_fields = [
 		'etunimi', 'sukunimi', 'sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka'];
-	$i = 0;
+	$i = 1;
 	$filtered_array = array_filter($variables); // Poistaa tyhjat
 	unset( $filtered_array['muokkaa_vanha_osoite'] ); // Ei tarvita, ja häritsee SQL-hakua lopussa
 	$len = count($filtered_array) - 1; // Sisältää jo osoite_id:n, jota ei tarvita pituudessa.
@@ -21,14 +21,14 @@ function tallenna_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables )
 			$k = htmlspecialchars( $key );
 			if ( in_array( $k, $possible_fields ) ) {
 				$sql_query .= $k . " = ?";
-				if ( $i < ($len) ) { $sql_query .= ', '; } // Jos vielä arvoja, lisätään erotin
+				if ( $i < $len ) { $sql_query .= ', '; } // Jos vielä arvoja, lisätään erotin
 				$i++;
 			}
 		}
 
 		$sql_query .= " WHERE osoite_id = ? AND kayttaja_id = ?"; //Loppuosa
 		$filtered_array[] = $user->id; // Lisätään käyttäjän ID arrayhin db->querya varten
-		return $db->query( $sql_query, $filtered_array);
+		return $db->query( $sql_query, array_values($filtered_array) );
 	}
 	return false; //Jos ei yhtään päivitettävää osaa
 }
@@ -42,14 +42,14 @@ function tallenna_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables )
 function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
 	unset( $variables['tallenna_uusi_osoite'] ); //Poistetaan turha array-index.
 	$variables[] = $user->id;
-	$variables[] = count($user->toimitusosoitteet); //Lisätään osoite-ID (viimeinen indeksi +1).
+	$variables[] = count($user->toimitusosoitteet) + 1; //Lisätään osoite-ID (viimeinen indeksi +1).
 
 	$sql = "INSERT INTO toimitusosoite
 				(etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, 
 				 postinumero, postitoimipaikka, maa, kayttaja_id, osoite_id)
 			VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
-	return $db->query( $sql, $variables );
+	return $db->query( $sql, array_values($variables) );
 }
 
 /**
@@ -58,11 +58,10 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
  * @param $osoite_id
  * @return bool
  */
-function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
-	$osoite_id_viimeinen = count($user->toimitusosoitteet) - 1;
+function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
+	$osoite_id_viimeinen = count($user->toimitusosoitteet);
 
-	$sql = "DELETE FROM toimitusosoite
-			WHERE kayttaja_id = ? AND osoite_id = ?";
+	$sql = "DELETE FROM toimitusosoite WHERE kayttaja_id = ? AND osoite_id = ?";
 	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia PDO:ta.
 	$stmt->execute( [$user->id, $osoite_id] );
 
@@ -77,7 +76,7 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id) {
 }
 
 $yritys = new Yritys( $db, $user->yritys_id );
-$user->haeToimitusosoitteet( $db, -1 );
+$user->haeToimitusosoitteet( $db, -1, true );
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 unset($_SESSION['feedback']);
 
@@ -103,15 +102,14 @@ elseif ( !empty($_POST['new_password']) ) {
 	} else { $_SESSION['feedback'] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
 }
 
-
 elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
-	tallenna_uudet_tiedot( $db, $user, $_POST );
+	muokkaa_uudet_tiedot( $db, $user, $_POST );
 
 } elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
 
 } elseif ( !empty($_POST["poista_osoite"]) ) {
-	poista_osoite( $db, $user, $_POST["poista_osoite"]);
+	poista_osoite( $db, $user, $_POST["poista_osoite"] );
 }
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takaisin-napilla.
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
@@ -127,36 +125,44 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
+	<style>
+		fieldset.muut_tiedot label {
+			float: left;
+			width: 220px;
+			font-weight: bold;
+			white-space: nowrap;
+		}
+	</style>
 </head>
 <body>
 <?php require("header.php"); ?>
 
-<main id="lomake">
+<main class="main_body_container lomake">
 	<?= $feedback ?>
 
 	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
 		<fieldset><legend>Nykyiset tiedot</legend>
-			<label><span>Sähköposti</span></label>
+			<label>Sähköposti</label>
 			<p style="display: inline; font-size: 16px;"><?= $user->sahkoposti ?></p>
 			<?php if ( $user->demo ) : ?>
-				<br><br><label><span>Voimassa</span></label>
+				<br><br><label>Voimassa</label>
 				<p style="display: inline; font-size: 16px;">
 					<?= (new DateTime($user->voimassaolopvm))->format("d.m.Y H:i:s") ?>
 				</p>
 			<?php endif; ?>
 			<br><br>
-			<label><span>Etunimi</span></label>
+			<label>Etunimi</label>
 			<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?= $user->etunimi ?>"
 				   title="Vain aakkosia.">
 			<br><br>
-			<label><span>Sukunimi</span></label>
+			<label>Sukunimi</label>
 			<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?= $user->sukunimi ?>"
 				   title="Vain aakkosia">
 			<br><br>
-			<label><span>Puhelin</span></label>
+			<label>Puhelin</label>
 			<input name="puh" type="tel" value="<?= $user->puhelin ?>" title="Vain numeroita"
 				   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
-			<br><br><br>
+			<br><br>
 
 			<div class="center">
 				<input type="hidden" name="uudet_tiedot">
@@ -169,15 +175,15 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 
 	<form action="#" name="uusi_salasana" method="post" accept-charset="utf-8">
 		<fieldset><legend>Vaihda salasana</legend>
-			<label><span>Uusi salasana</span></label>
+			<label>Uusi salasana</label>
 			<input name="new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
 				   id="uusi_salasana">
 			<br><br>
-			<label><span>Vahvista salasana</span></label>
+			<label>Vahvista salasana</label>
 			<input name="confirm_new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
 				   id="vahv_uusi_salasana"><br>
 			<span id="check"></span>
-			<br><br><br>
+			<br><br>
 			<div class="center">
 				<input class="nappi" name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
 			</div>
@@ -186,25 +192,25 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 
 	<br><br>
 
-	<fieldset style="display:inline-block; text-align:left;"><Legend>Osoitekirja</legend>
+	<fieldset class="muut_tiedot" style="display:inline-block; text-align:left;"><Legend>Osoitekirja</legend>
 		<?php foreach ( $user->toimitusosoitteet as $key => $row ) : ?>
-			<div> Osoite <?= $key+1 ?><br>
+			<div> Osoite <?= $row->osoite_id ?><br>
 				<br>
-				<label><span>Nimi</span></label><?= "{$row->etunimi} {$row->sukunimi}" ?><br>
-				<label><span>Sähköposti</span></label><?= $row->sahkoposti ?><br>
-				<label><span>Puhelin</span></label><?= $row->puhelin ?><br>
-				<label><span>Yritys</span></label><?= $row->yritys ?><br>
-				<label><span>Katuosoite</span></label><?= $row->katuosoite ?><br>
-				<label><span>Postinumero</span></label><?= $row->postinumero ?><br>
-				<label><span>Postitoimipaikka</span></label><?= $row->postitoimipaikka ?><br><br>
+				<label>Nimi</label><?= "{$row->etunimi} {$row->sukunimi}" ?><br>
+				<label>Sähköposti</label><?= $row->sahkoposti ?><br>
+				<label>Puhelin</label><?= $row->puhelin ?><br>
+				<label>Yritys</label><?= $row->yritys ?><br>
+				<label>Katuosoite</label><?= $row->katuosoite ?><br>
+				<label>Postinumero</label><?= $row->postinumero ?><br>
+				<label>Postitoimipaikka</label><?= $row->postitoimipaikka ?><br><br>
 
 				<input class="nappi" type="button" value="Muokkaa"
-					   onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $key ?>);">
+					   onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row->osoite_id ?>);">
 				<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
-					   onClick="vahvista_Osoitteen_Poistaminen(<?= $key ?>);">
+					   onClick="vahvista_Osoitteen_Poistaminen(<?= $row->osoite_id ?>);">
 
-				<form style="display:none;" id="<?="poista_Osoite_Form_{$key}"?>" name="poista_osoite" action="" method=post>
-					<input type=hidden name=poista_osoite value="'<?= $key ?>'">
+				<form style="display:none;" id="<?="poista_Osoite_Form_{$row->osoite_id}"?>" name="poista_osoite" action="" method=post>
+					<input type=hidden name=poista_osoite value="'<?= $row->osoite_id ?>'">
 				</form>
 			</div><hr>
 		<?php endforeach; ?>
@@ -215,14 +221,14 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 	</fieldset>
 
     <br><br>
-    <fieldset style="display:inline-block; text-align:left;"><legend>Yritys</legend>
-        <label><span>Nimi</span></label><?=$yritys->nimi?><br>
-        <label><span>Sähköposti</span></label><?=$yritys->sahkoposti?><br>
-        <label><span>Puhelin</span></label><?=$yritys->puhelin?><br>
-        <label><span>Katuosoite</span></label><?=$yritys->katuosoite?><br>
-        <label><span>Postinumero</span></label><?=$yritys->postinumero?><br>
-        <label><span>Postitoimipaikka</span></label><?=$yritys->postitoimipaikka?><br>
-        <label><span>Maa</span></label><?=$yritys->maa?><br>
+    <fieldset class="muut_tiedot" style="display:inline-block; text-align:left;"><legend>Yritys</legend>
+        <label>Nimi</label><?=$yritys->nimi?><br>
+        <label>Sähköposti</label><?=$yritys->sahkoposti?><br>
+        <label>Puhelin</label><?=$yritys->puhelin?><br>
+        <label>Katuosoite</label><?=$yritys->katuosoite?><br>
+        <label>Postinumero</label><?=$yritys->postinumero?><br>
+        <label>Postitoimipaikka</label><?=$yritys->postitoimipaikka?><br>
+        <label>Maa</label><?=$yritys->maa?><br>
     </fieldset>
 </main>
 

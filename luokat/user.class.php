@@ -84,26 +84,29 @@ class User {
 	 * Toisella parametrilla voit määrittää, miten paljon tietoa tarkalleen haetaan.
 	 * @param DByhteys $db
 	 * @param int $to_id [optional] <p> Hae:
-	 * 		<ul><li> -2 : vain toimitusosoitteiden määrä (COUNT(id)) </li>
-	 * 			<li> -1 : kaikki toimitusosoitteet </li>
-	 * 			<li>  x : tietty toimitusosoite (x on osoitteen ID) </li>
-	 * 		<ul>
+	 *        <ul><li> -2 : vain toimitusosoitteiden määrä (COUNT(id)) </li>
+	 *            <li> -1 : kaikki toimitusosoitteet </li>
+	 *            <li>  x : tietty toimitusosoite (x on osoitteen ID) </li>
+	 *        </ul>
+	 * @param bool $omat_tiedot <p> TEMP TODO: Korjaa kunnolla. Tämä on vain väliaikainen ratkaisu siihen,
+	 * 		että tilaus käyttää assoc_arrayta, ja omat_tiedot objektia.
 	 */
-	public function haeToimitusosoitteet ( DByhteys $db, /*int*/ $to_id = -1 ) {
+	public function haeToimitusosoitteet ( DByhteys $db, /*int*/ $to_id = -1, $omat_tiedot = false ) {
+		if ($omat_tiedot) { $retType = PDO::FETCH_OBJ; } else { $retType = PDO::FETCH_ASSOC; }
 		if ( $to_id == -2 ) {
 			$sql = "SELECT COUNT(osoite_id) AS count FROM toimitusosoite WHERE kayttaja_id = ? ";
 			$this->toimitusosoitteet['count'] = $db->query( $sql, [$this->id] )->count;
 
 		} elseif ( $to_id == -1 ) {
-			$sql = "SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, 
+			$sql = "SELECT	osoite_id, etunimi, sukunimi, sahkoposti, puhelin, yritys, 
 						katuosoite, postinumero, postitoimipaikka, maa
 					FROM	toimitusosoite
 					WHERE	kayttaja_id = ?
 					ORDER BY osoite_id";
-			$this->toimitusosoitteet = $db->query( $sql, [$this->id], DByhteys::FETCH_ALL, PDO::FETCH_ASSOC );
+			$this->toimitusosoitteet = $db->query( $sql, [$this->id], DByhteys::FETCH_ALL, $retType );
 
 		} elseif ( $to_id >= 0 ) {
-			$sql = "SELECT	etunimi, sukunimi, sahkoposti, puhelin, yritys, 
+			$sql = "SELECT	osoite_id, etunimi, sukunimi, sahkoposti, puhelin, yritys, 
 						katuosoite, postinumero, postitoimipaikka, maa
 					FROM	toimitusosoite
 					WHERE	kayttaja_id = ? AND osoite_id = ?
