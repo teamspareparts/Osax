@@ -11,7 +11,7 @@ $sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi,
 		LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id=tilaus.id
 		GROUP BY tilaus.id
 		ORDER BY tilaus.id DESC";
-$tilaukset = $db->query( $query, NULL, FETCH_ALL );
+$tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -25,34 +25,54 @@ $tilaukset = $db->query( $query, NULL, FETCH_ALL );
 <body>
 <?php include 'header.php'; ?>
 <main class="main_body_container">
+	<section>
+		<h1 class="otsikko">Tilaushistoria</h1>
+		<div id="painikkeet">
+		<a class="nappi" href="yp_tilaukset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
+			Takaisin</a>
+	</div>
+	</section>
+
+	<?php if ($tilaukset) : ?>
+	<section>
+		<table style="width:100%;">
+			<thead>
+			<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Käsitelty</th></tr>
+			</thead>
+			<tbody>
+			<?php foreach ($tilaukset as $tilaus) : ?>
+				<tr>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa)?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>">
+						<?php if ( $tilaus->kasitelty === 0 ) : ?>
+							<span style="color: red">EI</span>
+						<?php else : ?>
+							<span style="color: green">OK</span>
+						<?php endif;?>
+					</td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	</section>
+	<?php else: ?>
+	<span style="font-weight: bold;">Ei tilauksia.</span>
+	<?php endif;?>
+
 
 </main>
-<div id="tilaukset">
-	<div id="lista">
-
-		<form>
-			<fieldset class="lista_info">
-				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="sum">Summa</span>Käsitelty</p>
-			</fieldset>
-
-			<?php
-			foreach ($tilaukset as $tilaus){
-				echo '<fieldset>';
-				echo '<a href="tilaus_info.php?id=' . $tilaus->id . '"><span class="tilausnumero">' . $tilaus->id .
-					'</span><span class="pvm">' . date("d.m.Y", strtotime($tilaus->paivamaara)) .
-					'</span><span class="tilaaja">' . $tilaus->etunimi . ' ' . $tilaus->sukunimi .
-					'</span><span class="sum">' . format_euros($tilaus->summa) .
-					'</span>';
-				if ($tilaus->kasitelty == 1) {
-					echo 'OK';
-				} else {
-					echo '<span style="color:red">EI</span>';
-				}
-				echo '</a></fieldset>';
-			}
-			?>
-		</form>
-	</div>
-</div>
+<script>
+	$(function(){
+		$('*[data-href]')
+			.css('cursor', 'pointer')
+			.click(function(){
+				window.location = $(this).data('href');
+				return false;
+			});
+	});
+</script>
 </body>
 </html>

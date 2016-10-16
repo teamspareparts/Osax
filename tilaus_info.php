@@ -26,10 +26,8 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 			LEFT JOIN tuote ON tuote.id=tilaus_tuote.tuote_id
 			LEFT JOIN tilaus_toimitusosoite AS tmo ON tmo.tilaus_id = tilaus.id
 			LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
-			WHERE tilaus.id = :order_id ";
-	$values = [ 'order_id' => $tilaus_id ];
-
-	return ( $db->query($sql, $values) );
+			WHERE tilaus.id = ? ";
+	return $db->query($sql, [$tilaus_id], NULL);
 }
 
 /**
@@ -66,12 +64,17 @@ function tulosta_alennus_tuotelistaan( /*float*/ $alennus ) {
 	return $alennus;
 }
 
-$tilaus_id = $_GET["id"];
+$tilaus_id = isset($_GET["id"]) ? $_GET["id"] : 0;
 $tilaus_tiedot = hae_tilauksen_tiedot( $db, $tilaus_id );
 
-if ( !($tilaus_tiedot->sahkoposti == $_SESSION["email"]) ) {
-	if ( !$user->isAdmin() ) {
-		header("Location:tilaushistoria.php"); exit(); }
+//Tarkastetaan tilaus_id:n oikeellisuus
+if ($tilaus_tiedot->id === NULL) {
+	header("Location:etusivu.php"); exit();
+}
+
+//Ei sallita katsoa muiden tilauksia paitsi ylläpitäjänä
+if ( !($tilaus_tiedot->sahkoposti == $_SESSION["email"]) && !$user->isAdmin() ) {
+		header("Location:tilaushistoria.php"); exit();
 }
 
 $products = get_products_in_tilaus( $db, $tilaus_id );
@@ -81,33 +84,28 @@ $products = get_products_in_tilaus( $db, $tilaus_id );
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
-	<style type="text/css">
-			.class #id tag {}
-			#tilaus_info_container {
-				background-color: #FFFFFF;
-			}
-			#tilaus_toimitusosoite {
-				padding-left: 0.5em;
-			}
-	</style>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 	<title>Tilaus-info</title>
 </head>
 <body>
 <?php include 'header.php';
-if ( !$products) { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 ?>
 
 <main class="main_body_container">
-	<div id="otsikko_container" class="flex">
+	<section class="flex_row">
 		<h1 class="otsikko">Tilauksen tiedot</h1>
-		<?php if ($tilaus_tiedot->kasitelty == 0) { echo "<h4 style='color:red; display:flex; align-items:center;'>
-			Odottaa käsittelyä.</h4>"; }
-		else { echo "<h4 style='color:green; display:flex; align-items:center;'>
-			Käsitelty ja toimitettu.</h4>"; } ?>
-	</div>
+		<?php if ($tilaus_tiedot->kasitelty == 0) :?>
+			<h4 style="color:red; display:flex; align-items:center;">
+			Odottaa käsittelyä.</h4>
+		<?php else: ?>
+		<h4 style="color:green; display:flex; align-items:center;">
+			Käsitelty ja toimitettu.</h4>
+		<?php endif;?>
+	</section>
 	<!-- HTML -->
-	<div id="tilaus_info_container" class="flex">
-		<div id="tilaus_info">
+	<div class="flex_row">
+
 			<table class='tilaus_info'>
 				<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></td>
 					<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></td></tr>
@@ -118,16 +116,16 @@ if ( !$products) { echo '<p>Ei tilaukseen liitettyjä tuotteita.</p>'; }
 						<?= format_euros($tilaus_tiedot->summa + $tilaus_tiedot->pysyva_rahtimaksu)?>
 						( ml. rahtimaksu )
 					</td></tr>
-				<tr><td class="small_note">Kaikki hinnat sisältävät ALV:n</td><td></td></tr>
+				<tr><td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td></tr>
 			</table>
 
-		</div>
-		<div id="tilaus_toimitusosoite">
-			<span>Toimitusosoite</span>
-			<p>Nimi: <?= $tilaus_tiedot->tmo_koko_nimi?></p>
-			<p><?= $tilaus_tiedot->tmo_osoite?></p>
-			<p><?= "{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></p>
-		</div>
+
+			<table class="tilaus_info">
+				<tr><td>Toimitusosoite</td></tr>
+				<tr><td>Nimi: <?= $tilaus_tiedot->tmo_koko_nimi?></td></tr>
+				<tr><td><?= $tilaus_tiedot->tmo_osoite?></td></tr>
+				<tr><td><?= "{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></td></tr>
+			</table>
 	</div>
 	<br>
 	<table>

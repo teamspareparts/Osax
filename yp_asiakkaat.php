@@ -9,12 +9,11 @@ require '_start.php'; global $db, $user, $cart;
  */
 function hae_yrityksen_asiakkaat ( DByhteys $db, /*int*/ $yritys_id ) {
 	$asiakkaat = array();
-	$rows = $db->query( "SELECT id FROM kayttaja WHERE yritys_id = ?",
+	$rows = $db->query( "SELECT id FROM kayttaja WHERE yritys_id = ? AND aktiivinen = 1",
 		[$yritys_id], DByhteys::FETCH_ALL );
 	foreach ( $rows as $row ) {
 		$asiakkaat[] = new User( $db, $row->id );
 	}
-
 	return $asiakkaat;
 }
 
@@ -61,10 +60,10 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 			<a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
 				Takaisin</a>
 		</div>
-		<div class="flex_row" style="background-color:lightgrey; margin:5px; width:50%;">
-			<div style="padding: 6pt 10pt;">
+		<div class="flex_row" style="margin:5px;">
+			<div style="padding: 6pt 10pt; background-color:lightgrey;">
 				<?=$yritys->y_tunnus?><br><?=$yritys->puhelin?><br><?=$yritys->sahkoposti?></div>
-			<div style="padding: 6pt 10pt;">
+			<div style="padding: 6pt 10pt; background-color:lightgrey;">
 				<?=$yritys->katuosoite?><br><?=$yritys->postinumero?> <?=$yritys->postitoimipaikka?><br>
 				<?=$yritys->maa?></div>
 		</div>
@@ -91,7 +90,8 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 	</table>
 	<form id="poista_asiakas" method="post">
 		<div style="text-align:right;padding-top:10px;">
-			<input type="submit" value="Poista valitut asiakkaat" class="nappi" style="background-color:red;">
+			<input type="submit" value="Poista valitut asiakkaat" class="nappi"
+				   style="background-color:red; border-color: #b70004;">
 		</div>
 	</form>
 </main>

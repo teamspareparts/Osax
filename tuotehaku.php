@@ -873,7 +873,7 @@ if ( !empty($_GET["manuf"]) ) {
 		//Lisätään tuote modaliin sisältö
 		$("#menu1").append('\
 			<br>\
-			<div class="row">\
+			<div class="flex_row">\
 			    <div style="display: inline-block;">\
 			        '+img+'\
 			    </div> \
