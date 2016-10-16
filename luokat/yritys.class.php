@@ -6,6 +6,7 @@
 class Yritys {
 
 	public $id = NULL;
+    public $aktiivinen = NULL;
 
 	public $nimi = '';
 	public $sahkoposti = '';
@@ -30,7 +31,7 @@ class Yritys {
 	 */
 	function __construct ( DByhteys $db, /*int*/ $yritys_id ) {
 		if ( $yritys_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
-			$sql = "SELECT id, nimi, sahkoposti, puhelin, y_tunnus, 
+			$sql = "SELECT id, aktiivinen, nimi, sahkoposti, puhelin, y_tunnus, 
 						katuosoite, postinumero, postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja
 					FROM yritys
 					WHERE id = ?
@@ -39,6 +40,7 @@ class Yritys {
 
 			if ( $foo ) { // Varmistetaan, että jokin yritys löytyi
 				$this->id 			= $foo->id;
+                $this->aktiivinen   = $foo->aktiivinen;
 				$this->nimi			= $foo->nimi;
 				$this->sahkoposti	= $foo->sahkoposti;
 				$this->puhelin		= $foo->puhelin;
@@ -60,6 +62,6 @@ class Yritys {
 	 * @return bool
 	 */
 	public function isValid () {
-		return ( $this->id !== NULL );
+		return ( ($this->id !== NULL ) && ($this->aktiivinen != 0) );
 	}
 }

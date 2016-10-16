@@ -4,6 +4,11 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
+$asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
+if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
+	header("Location:yp_asiakkaat.php"); exit();
+}
+
 /** Asiakkaan muokkaus. */
 if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$sql = "UPDATE kayttaja SET etunimi = ?, sukunimi = ?, puhelin = ? WHERE id = ?";
@@ -19,6 +24,13 @@ if ( !empty($_POST['muokkaa_asiakas']) ) {
 				pakotettu seuraavalla kirjautumiskerralla</p>";
 }
 
+/** Asiakkaan muuttaminen pysyväksi */
+elseif ( isset($_POST['demo_away']) ) {
+	$sql = "UPDATE kayttaja SET demo = 0 WHERE id = ?";
+	$db->query( $sql, [$asiakas->id] );
+	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tili on nyt pysyvä.</p>";
+}
+
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
@@ -27,10 +39,6 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
-$asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
-if ( !$asiakas->isValid() ) {
-	header("Location:yp_asiakkaat.php"); exit();
-}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -88,6 +96,7 @@ if ( !$asiakas->isValid() ) {
 		</fieldset>
 	</form><br><br>
 
+	<?php if ($asiakas->demo) : ?>
 	<form action="#" name="muuta_demoaika" method="post">
 		<fieldset class="center"><legend> Demoajan muuttaminen </legend>
 			<label style="float:none;">Tee tilistä pysyvä:
@@ -101,6 +110,7 @@ if ( !$asiakas->isValid() ) {
 			</label>
 		</fieldset>
 	</form><br><br>
+	<?php endif;?>
 </main>
 
 </body>

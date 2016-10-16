@@ -7,6 +7,7 @@ class User {
 
 	public $id = NULL;
 	public $yritys_id = 0;
+    public $aktiivinen = NULL;
 
 	public $sahkoposti = '';
 
@@ -32,9 +33,9 @@ class User {
 	function __construct ( DByhteys $db, /*int*/ $user_id ) {
 		if ( $user_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
-				  		yllapitaja, demo, voimassaolopvm, salasana_uusittava 
+				  		yllapitaja, demo, voimassaolopvm, salasana_uusittava, aktiivinen
 					FROM kayttaja 
-					WHERE id = ? AND aktiivinen = 1
+					WHERE id = ?
 					LIMIT 1";
 			$foo = $db->query( $sql, [ $user_id ] );
 
@@ -42,6 +43,7 @@ class User {
 				$this->id = $foo->id;
 				$this->yritys_id = $foo->yritys_id;
 				$this->sahkoposti = $foo->sahkoposti;
+                $this->aktiivinen = $foo->aktiivinen;
 
 				$this->etunimi = $foo->etunimi;
 				$this->sukunimi = $foo->sukunimi;

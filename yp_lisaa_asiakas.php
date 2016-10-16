@@ -5,7 +5,11 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
+//Tarkastetaan yritys_id:n oikeellisuus
 $yritys_id = !empty($_GET['yritys_id']) ? $_GET['yritys_id'] : 0;
+if (!$db->query("SELECT id FROM yritys WHERE id = ? AND aktiivinen = 1 LIMIT 1", [$yritys_id])){
+	header("Location:yp_yritykset.php"); exit();
+}
 
 if (isset($_POST['sposti'])){
 	$_POST['demo_user'] = !empty($_POST['demo_user']) ? '1' : '0'; // Onko demokäyttäjä?
@@ -19,7 +23,7 @@ if (isset($_POST['sposti'])){
 
 	if ( !$row ) {
 		$ss_length = strlen( $_POST['password'] );
-		if ( $ss_length > 8 && $ss_length < 300 ) {
+		if ( $ss_length >= 8 && $ss_length < 300 ) {
 			if ( $_POST['password'] === $_POST['confirm_password'] ) {
 				$_POST['password'] = password_hash( $_POST['password'], PASSWORD_DEFAULT );
 				unset($_POST['submit']); unset($_POST['confirm_password']);
@@ -27,8 +31,8 @@ if (isset($_POST['sposti'])){
 
 				$sql = "INSERT INTO kayttaja 
 							( sahkoposti, etunimi, sukunimi, puhelin, salasana_hajautus,
-							voimassaolopvm, yritys_id, demo, salasana_uusittava )
-						VALUES ( ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, ?, '1' )
+							demo, voimassaolopvm, yritys_id, salasana_uusittava )
+						VALUES ( ?, ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, '1' )
 						ON DUPLICATE KEY UPDATE 
 							sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
 							puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 

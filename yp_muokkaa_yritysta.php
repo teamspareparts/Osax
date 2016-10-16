@@ -12,7 +12,7 @@ if (isset($_POST['muokkaa_yritysta'])) {
 	$sql = "UPDATE yritys 
 			SET sahkoposti = ?, puhelin = ?, katuosoite = ?, postinumero = ?, postitoimipaikka = ?, maa = ?
 			WHERE nimi = ? AND y_tunnus = ?";
-	$db->query( $query, array_values( $_POST ) );
+	$db->query( $sql, array_values( $_POST ) );
     $_SESSION["feedback"] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
 }
 
