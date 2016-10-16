@@ -19,17 +19,25 @@ function hae_yrityksen_asiakkaat ( DByhteys $db, /*int*/ $yritys_id ) {
 }
 
 $yritys = new Yritys( $db, (!empty($_GET['yritys_id']) ? $_GET['yritys_id'] : null) );
-if ( !is_admin() || !$yritys->isValid() ) {
+if ( !$user->isAdmin() || !$yritys->isValid() ) {
 	header("Location:etusivu.php");	exit();
 }
 
-//poistetaanko käyttäjä
-if ( isset($_POST['ids']) ){
-	$db->prepare_stmt( "UPDATE kayttaja SET aktiivinen=0 WHERE id = ?" );
-
-	foreach ($ids as $asiakas_id) {
+/** Käyttäjien poistaminen */
+if ( !empty($_POST['ids']) ){
+	$db->prepare_stmt( "UPDATE kayttaja SET aktiivinen = 0 WHERE id = ?" );
+	foreach ($_POST['ids'] as $asiakas_id) {
 		$db->run_prepared_stmt( [$asiakas_id] );
 	}
+	$_SESSION['feedback'] = "<p class='success'>Asiakkaat deaktivoitu</p>";
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 
 $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
@@ -60,8 +68,9 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 				<?=$yritys->katuosoite?><br><?=$yritys->postinumero?> <?=$yritys->postitoimipaikka?><br>
 				<?=$yritys->maa?></div>
 		</div>
+		<?= $feedback ?>
 	</section>
-	<table>
+	<table style="width: 100%;">
 		<thead>
 			<tr><th>Nimi</th><th>Puhelin</th><th>Sähköposti</th>
 				<th class=smaller_cell>Poista</th><th class=smaller_cell></th>
@@ -73,7 +82,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 				<td class="cell"><?=$asiakas->kokoNimi()?></td>
 				<td class="cell"><?=$asiakas->puhelin?></td>
 				<td class="cell"><?=$asiakas->sahkoposti?></td>
-				<td><label>Valitse<input form="poista_asiakas" type="checkbox" name="ids[]" value="<?=$yritys->id?>">
+				<td><label>Valitse<input form="poista_asiakas" type="checkbox" name="ids[]" value="<?=$asiakas->id?>">
 					</label></td>
 				<td><a href="yp_muokkaa_asiakasta.php?id=<?=$asiakas->id?>" class="nappi">Muokkaa</a></td>
 			</tr>

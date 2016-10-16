@@ -9,14 +9,22 @@ if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$sql = "UPDATE kayttaja SET etunimi = ?, sukunimi = ?, puhelin = ? WHERE id = ?";
 	unset($_POST['muokkaa_asiakas']); //Turha indeksi, poistetaan.
 	$db->query( $sql, array_values($_POST) );
-	$feedback = "<p class='success'>Asiakkaan tiedot päivitetty.</p>";
+	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tiedot päivitetty.</p>";
 
 /** Asiakkaan salasanan vaihto. Pakottaa asiakkaan vaihtamaan salansanan seuraavalla kirjautumisella. */
 } elseif (isset($_POST['reset_password'])) {
 	$sql = "UPDATE kayttaja SET salasana_uusittava = 1 WHERE id = ?";
 	$db->query( $sql, [$asiakas->id] );
-	$feedback = "<p class='success'>Salasana nollattu.<br>Salasanan vaihtaminen 
+	$_SESSION['feedback'] = "<p class='success'>Salasana nollattu.<br>Salasanan vaihtaminen 
 				pakotettu seuraavalla kirjautumiskerralla</p>";
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 
 $asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
@@ -36,7 +44,7 @@ if ( !$asiakas->isValid() ) {
 <body>
 <?php include("header.php"); ?>
 <main class="main_body_container lomake">
-	<?= !empty($feedback) ? $feedback : '' ?>
+	<?= $feedback ?>
 	<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?=$asiakas->yritys_id?>" style="color:#000; background-color:#c5c5c5; border-color:#000;">
 		Takaisin</a><br><br>
 	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">

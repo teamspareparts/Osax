@@ -4,39 +4,26 @@ if ( !$user->isAdmin() ) {
     header("Location:tuotehaku.php"); exit();
 }
 
-/**
- * @param DByhteys $db
- * @param array $ids
- */
-function db_poista_yritys(DByhteys $db, array $ids){
-    foreach ($ids as $yritys_id) { //Deaktivoidaan yritykset ja yrityksen asiakkaat
-        $query = "UPDATE yritys
-							SET aktiivinen=0
-							WHERE id= ? ";
-        $db->query($query, [$yritys_id]);
-        $query = "UPDATE kayttaja
-							SET aktiivinen=0
-							WHERE yritys_id= ? ";
-        $db->query($query, [$yritys_id]);
-    }
+/** Yrityksen, ja sen asiakkaiden, deaktivointi */
+if ( !empty($_POST['ids']) ) {
+	foreach ($_POST['ids'] as $yritys_id) {
+		$query = "UPDATE yritys SET aktiivinen = 0 WHERE id = ?";
+		$db->query($query, [$yritys_id]);
+		$query = "UPDATE kayttaja SET aktiivinen = 0 WHERE yritys_id = ?";
+		$db->query($query, [$yritys_id]);
+	}
+	$_SESSION['feedback'] = "<p class='success'>Yritys (ja sen asiakkaat) deaktivoitu</p>";
 }
 
-/**
- * @param DByhteys $db
- * @return array|bool|stdClass
- */
-function hae_yritykset(DByhteys $db){
-    $query = "SELECT * FROM yritys";
-    return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+    header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+    $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+    unset($_SESSION["feedback"]);
 }
 
-$yritykset = hae_yritykset( $db );
-
-if (isset($_POST['ids'])){
-    db_poista_yritys($db, $_POST['ids']);
-    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-    exit();
-}
+$yritykset = $db->query( "SELECT * FROM yritys", NULL, FETCH_ALL ); //TODO: Voisi olla tehokkaampi
 ?>
 <!DOCTYPE html>
 <html lang="fi">
