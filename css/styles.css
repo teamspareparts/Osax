@@ -167,9 +167,7 @@ input { padding: 3pt; }
 /********************************************
 	Painikkeiden ulkoasu
 ********************************************/
-.nappi,
-#lista #submit input[type=submit],
-#lomake #submit input[type=submit] {
+.nappi {
 	padding: 8px 15px;
 	color: #FFF; /* TODO: Wait, tää on ollut valkoinen koko tämä ajan? What the hell is going on here?! */
 	-webkit-border-radius: 4px;
@@ -191,46 +189,6 @@ input { padding: 3pt; }
 	font-size: 15px;
 	text-transform: uppercase;
 	font-family: 'Open Sans', sans-serif;
-}
-
-#asiakas #lista #submit input[type=submit] {
-	background: #e60005;
-	border-color: #b70004;
-}
-
-#asiakas #lista #submit input[type=submit]:HOVER {
-	background: #b70004;
-	border: solid 1px #750003;
-}
-
-#tilaukset #lista #submit input[type=submit] {
-	background: #00cc1f;
-	border-color: #008013;
-}
-
-#tilaukset #lista #submit input[type=submit]:HOVER {
-	background: #008013;
-	border: solid 1px #005e0e;
-}
-
-
-/********************************************
-	Ylläpitäjän asiakas tiluashistoria sivu
-*********************************************/
-#asiakas_tilaushistoria .asiakas_info {
-	display: block;
-	position: relative;
-	left: 5%;
-	font-size: 24px;
-
-}
-
-#asiakas_tilaushistoria .tilausnumero,
-#asiakas_tilaushistoria .pvm,
-#asiakas_tilaushistoria .tuotteet_kpl,
-#asiakas_tilaushistoria .sum {
-	display: inline-block;
-	width: 22%;
 }
 
 
@@ -465,6 +423,11 @@ th {
 	padding-bottom: 5pt;
 }
 
+.smaller_cell {
+	text-align: center;
+	width: 10%;
+}
+
 .success, .error {
 	position: relative;
 	padding: 10pt;
@@ -663,19 +626,8 @@ Muokkaa asiakasta form
 	display: none;
 }
 
-/*********************
-Asiakaslista
-**********************/
-.asiakas_lista {
-	
-	table-layout: fixed;
-	width: 100%;
-}
 
-.smaller_cell {
-	text-align: center;
-	width: 10%;
-}
+
 
 
 
@@ -684,9 +636,6 @@ Asiakaslista
 /****************************************
 Tuotteen MODAL-ikkuna (tuotteen tiedot)
 ****************************************/
-.row {
-	display: flex;
-}
 
 .center {
 	text-align: center;

@@ -50,7 +50,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
 
 		$cart->tyhjenna_kori( $db );
-		header( "location:tilaushistoria.php" );
+		header( "location:tilaushistoria.php?id=$user->id" );
 		exit;
 	}
 	else {

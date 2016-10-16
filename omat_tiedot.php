@@ -185,7 +185,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 			<span id="check"></span>
 			<br><br>
 			<div class="center">
-				<input class="nappi" name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
+				<input class="nappi disabled" name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
 			</div>
 		</fieldset>
 	</form>

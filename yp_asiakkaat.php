@@ -90,7 +90,8 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 	</table>
 	<form id="poista_asiakas" method="post">
 		<div style="text-align:right;padding-top:10px;">
-			<input type="submit" value="Poista valitut asiakkaat" class="nappi" style="background-color:red;">
+			<input type="submit" value="Poista valitut asiakkaat" class="nappi"
+				   style="background-color:red; border-color: #b70004;">
 		</div>
 	</form>
 </main>

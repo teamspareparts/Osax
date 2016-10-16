@@ -40,7 +40,15 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 <body>
 <?php include 'header.php'; ?>
 <main class="main_body_container">
-	<h1 class="otsikko">Asiakkaan Tilaushistoria</h1>
+	<section>
+		<h1 class="otsikko">Asiakkaan Tilaushistoria</h1>
+		<?php if ($user->isAdmin()) :?>
+			<div id="painikkeet">
+				<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?= $asiakas->yritys_id?>" style="color:#000; background-color:#c5c5c5; border-color:#000;">
+					Takaisin</a>
+			</div>
+		<?php endif;?>
+	</section>
 	<?php if ( $user->isAdmin() ) : ?>
 		<p class="asiakas_info">Tilaaja: <?=$asiakas->kokoNimi()?></p>
 	<?php endif; ?>

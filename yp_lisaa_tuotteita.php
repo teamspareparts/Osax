@@ -102,13 +102,13 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
         }
 
 
-        $articleNo = strval($data[$_POST["s0"]]);
+        $articleNo = str_replace(" ", "", strval($data[$_POST["s0"]]));
         $ostohinta = doubleval(str_replace(",", ".", $data[$_POST["s1"]]));
         $myyntihinta = doubleval(str_replace(",", ".", $data[$_POST["s2"]]));
         $vero_id = intval($data[$_POST["s3"]]);
         $minimimyyntiera = intval($data[$_POST["s4"]]);
         $kappaleet = intval($data[$_POST["s5"]]);
-        $tuotekoodi = $hankintapaikka_id ."-". $articleNo; //esim: 100-QTB249
+        $tuotekoodi = strval($hankintapaikka_id ."-". $articleNo); //esim: 100-QTB249
 
         $query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi) 
 	  			  VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
