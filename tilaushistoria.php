@@ -58,13 +58,13 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 		<tbody>
 		<?php foreach ( $tilaukset as $tilaus ) : ?>
 			<tr data-href="tilaus_info.php?id=<?= $tilaus->id ?>">
-				<th><?= $tilaus->id ?></th>
-				<th><?= $tilaus->paivamaara ?></th>
-				<th><?= $tilaus->kpl ?></th>
-				<th><?= format_euros($tilaus->summa) ?></th>
-				<th><?=	$tilaus->kasitelty == 1
+				<td><?= $tilaus->id ?></td>
+				<td><?= $tilaus->paivamaara ?></td>
+				<td><?= $tilaus->kpl ?></td>
+				<td><?= format_euros($tilaus->summa) ?></td>
+				<td><?=	$tilaus->kasitelty == 1
 					? "<span style='color:green;'>OK</span>"
-					: "<span style='color:red;'>EI</span>" ?></th>
+					: "<span style='color:red;'>EI</span>" ?></td>
 			</tr>
 		<?php endforeach; ?>
 		</tbody>

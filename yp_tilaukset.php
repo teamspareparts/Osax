@@ -7,7 +7,7 @@ if ( !$user->isAdmin() ) {
 }
 
 /**
- * Hakee tilausket TODO ??
+ * Hakee tilaukset
  * @param DByhteys $db
  * @return stdClass[]
  */
@@ -24,9 +24,9 @@ function hae_tilaukset( DByhteys $db ) {
 	return $db->query($sql, NULL, FETCH_ALL);
 }
 
+/** Merkitään tilaukset käsitellyiksi */
 if ( !empty($_POST['ids']) ) {
 	$db->prepare_stmt( "UPDATE tilaus SET kasitelty = 1 WHERE id = ?" );
-
 	foreach ($_POST['ids'] as $id) {
 		$db->run_prepared_stmt( [$id] );
 	}
@@ -39,41 +39,56 @@ $tilaukset = hae_tilaukset( $db );
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Tilaukset</title>
 </head>
 <body>
 <?php require 'header.php'; ?>
-<div id=tilaukset>
-	<h1 class="otsikko">Tilaukset</h1>
-	<div id="painikkeet">
-		<a href="yp_tilaushistoria.php"><span class="nappi">Tilaushistoria</span></a>
-	</div>
-	<br><br>
-</div>
+<main class="main_body_container">
+	<section>
+		<h1 class="otsikko">Tilaukset</h1>
+		<div id="painikkeet">
+			<a href="yp_tilaushistoria.php" class="nappi">Tilaushistoria</a>
+		</div>
+	</section>
 
-<div id="tilaukset">
-	<div id="lista">
-		<form method="post">
-			<fieldset class="lista_info">
-				<p><span class="tilausnumero">Tilausnro.</span><span class="pvm">Päivämäärä</span><span class="tilaaja">Tilaaja</span><span class="sum">Summa</span>Käsitelty</p>
-			</fieldset>
-
+	<section>
+		<table style="width:100%;">
+			<thead>
+			<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Merkitse käsitellyksi</th></tr>
+			</thead>
+			<tbody>
 			<?php foreach ($tilaukset as $tilaus) : ?>
-				<fieldset>
-					<a href="tilaus_info.php?id=<?= $tilaus->id?>"><span class="tilausnumero"><?= $tilaus->id?>
-					</span><span class="pvm"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?>
-					</span><span class="tilaaja"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?>
-					</span><span class="sum"><?= format_euros($tilaus->summa)?>
-					</span></a><input type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
-				</fieldset>
+				<tr>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa)?></td>
+					<td><label>Valitse<input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
+						</label></td>
+				</tr>
 			<?php endforeach; ?>
-			<br>
-			<div id=submit>
-				<input type="submit" value="Merkitse käsitellyksi">
+			</tbody>
+		</table>
+		<form id="done">
+			<div style="text-align:right;padding-top:10px;">
+				<input type="submit" value="Merkitse valitut käsitellyiksi" class="nappi"
+					   style="background-color:green;">
 			</div>
 		</form>
-	</div>
-</div>
+	</section>
+</main>
 
+<script>
+	$(function(){
+		$('*[data-href]')
+			.css('cursor', 'pointer')
+			.click(function(){
+				window.location = $(this).data('href');
+				return false;
+			});
+	});
+</script>
 </body>
 </html>
