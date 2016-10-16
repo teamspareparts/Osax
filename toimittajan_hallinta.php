@@ -1,6 +1,5 @@
 <?php
 require '_start.php';
-require 'header.php';
 require 'tecdoc.php';
 if (!is_admin()) {
 	header("Location:etusivu.php");
@@ -273,6 +272,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <title>Toimittajat</title>
 </head>
 <body>
+<?php require 'header.php';?>
 <main class="main_body_container">
 <?php if ($message) : ?>
 <p><span class="error"><?=$message?></span></p>
