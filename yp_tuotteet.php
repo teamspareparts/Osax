@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $yritys, $cart;
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc_asetukset.php';
 require 'tecdoc.php';
 require 'apufunktiot.php';

@@ -1,5 +1,5 @@
 <?php
-require '_start.php';
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 
@@ -278,9 +278,9 @@ if ( !empty($_GET["manuf"]) ) {
 				<th>Info</th>
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
-				<?php if (is_admin()) : ?>
+				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>
-				<?php endif;?>
+				<?php endif; ?>
 				<th>Kpl</th>
 				<th></th>
 			</tr>
@@ -301,7 +301,7 @@ if ( !empty($_GET["manuf"]) ) {
 					</td>
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
-					<?php if (is_admin()) : ?>
+					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
 					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
@@ -327,9 +327,9 @@ if ( !empty($_GET["manuf"]) ) {
 				<th>Info</th>
 				<th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
-				<?php if (is_admin()) : ?>
+				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>
-				<?php endif;?>
+				<?php endif; ?>
 				<th></th>
 			</tr>
 			</thead>
@@ -349,9 +349,9 @@ if ( !empty($_GET["manuf"]) ) {
 					</td>
 					<td class="number"><?=format_integer($product->varastosaldo)?></td>
 					<td class="number"><?=format_euros($product->hinta)?></td>
-					<?php if (is_admin()) : ?>
+					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-					<?php endif;?>
+					<?php endif; ?>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons">info</i></button>

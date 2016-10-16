@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 
 $yritys = new Yritys( $db, (!empty($_GET['id']) ? (int)$_GET['id'] : null));
 if ( !$user->isAdmin() || !$yritys->isValid() ) {

@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
 if ( !$user->isAdmin() ) {

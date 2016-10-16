@@ -27,7 +27,7 @@
 		<ul>
 	        <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
 	        <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
-			<?php if ( is_admin() ) { ?>
+			<?php if ( $user->isAdmin() ) : ?>
 		        <li><a href='yp_yritykset.php'><span>Yritykset</span></a></li>
 		        <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
 		        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
@@ -40,9 +40,9 @@
 						<li><a><span>raportit</span></a></li>
 					</div>
 				</div>
-			<?php } else { ?>
+			<?php else : ?>
 				<li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
-			<?php } ?>
+			<?php endif; ?>
 			<li class="last"><a href="logout.php?redir=5"><span>Kirjaudu ulos</span></a></li>
 		</ul>
 	</div>

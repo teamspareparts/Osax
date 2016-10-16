@@ -1,14 +1,9 @@
 <?php
-require '_start.php'; //global $db, $user, $cart, $yritys;
+require '_start.php'; //global $db, $user, $cart;
 require 'tecdoc.php';
 
 
-/**
- * Tehdään pakolliset tarkastukset
- */
-
-//Tarkastetaan onko admin.
-if (!is_admin()) {
+if ( $user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 

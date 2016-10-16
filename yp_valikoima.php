@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $yritys, $cart;
+require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 

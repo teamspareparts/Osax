@@ -1,9 +1,8 @@
 <?php
-require '_start.php';
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-if (!is_admin()) {
-	header("Location:etusivu.php");
-	exit();
+if ( !$user->isAdmin() ) {
+	header("Location:etusivu.php"); exit();
 }
 /**
  * Hakee kaikkien tietokannasta löytyvien valmistajien valmistajien id:t

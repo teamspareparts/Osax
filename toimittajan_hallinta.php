@@ -1,10 +1,9 @@
 <?php
-require '_start.php';
+require '_start.php'; global $db, $user, $cart;
 require 'header.php';
 require 'tecdoc.php';
-if (!is_admin()) {
-	header("Location:etusivu.php");
-	exit();
+if ( !$user->isAdmin() ) {
+	header("Location:etusivu.php"); exit();
 }
 //tarkastetaan onko tultu toimittajat sivulta
 $brandId = isset($_GET['brandId']) ? $_GET['brandId'] : null;

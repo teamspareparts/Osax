@@ -24,8 +24,8 @@ class User {
 	/**
 	 * user constructor.<p>
 	 * Hakee käyttäjän tiedot tietokannasta.
-	 * Jos 1. parametri on NULL, niin ei tee mitään. Jos ei löydä yritystä ID:llä, niin kaikki
-	 *  olion arvot pysyvät default arvoissaan. Testaa, löytyikö yritys tarkastamalla, onko ID == NULL.
+	 * Jos 2. parametri on NULL, niin ei tee mitään. Jos ei löydä käyttäjää ID:llä, niin kaikki
+	 *  olion arvot pysyvät default arvoissaan. Testaa, löytyikö käyttäjä tarkastamalla, onko ID == NULL.
 	 * @param DByhteys $db
 	 * @param int $user_id
 	 */

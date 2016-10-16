@@ -8,7 +8,7 @@ if ( !isset( $_GET['test'] ) ) {
 	header( "Location:tuotehaku.php" ); exit();
 }
 
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 
 function debug ($var) {print_r($var);var_dump($var);}
 
@@ -80,7 +80,7 @@ $fp_content = jaottele_uutiset($news);
 <?php require 'header.php'; ?>
 <main class="main_body_container">
 	<div class="ostoskori_header">Ostoskori</div>
-	<?php if (is_admin()) : ?>
+	<?php if ( $user->isAdmin() ) : ?>
 	<div class="admin_hallinta">
 		<span>Admin:</span>
 		<a class="nappi" href="yp_lisaa_uutinen.php">

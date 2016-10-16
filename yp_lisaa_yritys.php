@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; global $db, $user, $cart, $yritys;
+require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
     header("Location:tuotehaku.php"); exit();
