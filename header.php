@@ -33,7 +33,7 @@
                 <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
                 <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
 
-                <li class="dropdown"><span>Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></span> <!-- //TODO: Lisää dropdown-ikoni -->
+                <li class="dropdown"><span>Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></span>
                     <ul class="dropdown-content">
                         <li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
                         <li><a><span>raportit</span></a></li>
@@ -50,7 +50,7 @@
 
 <script type="text/javascript">
     $(".dropdown").click(function () {
-        if ( $("#dropdown_icon").text() == "arrow_drop_down" ){
+        if ( $("#dropdown_icon").text() === "arrow_drop_down" ){
             $("#dropdown_icon").text("arrow_drop_up");
             $(".dropdown-content").show();
 

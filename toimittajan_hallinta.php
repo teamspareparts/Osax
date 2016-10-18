@@ -1,6 +1,5 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'header.php';
 require 'tecdoc.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
@@ -272,6 +271,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <title>Toimittajat</title>
 </head>
 <body>
+<?php require 'header.php'; ?>
 <main class="main_body_container">
 <?php if ($message) : ?>
 <p><span class="error"><?=$message?></span></p>

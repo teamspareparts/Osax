@@ -11,8 +11,8 @@ if (!$db->query("SELECT id FROM yritys WHERE id = ? AND aktiivinen = 1 LIMIT 1",
 	header("Location:yp_yritykset.php"); exit();
 }
 
-if (isset($_POST['sposti'])){
-	$_POST['demo_user'] = !empty($_POST['demo_user']) ? '1' : '0'; // Onko demokäyttäjä?
+if ( !empty($_POST['submit']) ) {
+	$_POST['demo_user'] = (!empty($_POST['demo_user']) && $_POST['demo_user']!=='false') ? '1' : '0';
 	$_POST['paivat'] = !empty($_POST['paivat']) ? (int)$_POST['paivat'] : '1';// Demokäyttäjän käyttöaika
 	if ( $_POST['demo_user'] === 1 && $_POST['paivat'] < 1 ) { // Tarkistetaan demoajan järjellisyys
 		$_POST['paivat'] = 3;
@@ -32,7 +32,7 @@ if (isset($_POST['sposti'])){
 				$sql = "INSERT INTO kayttaja 
 							( sahkoposti, etunimi, sukunimi, puhelin, salasana_hajautus,
 							demo, voimassaolopvm, yritys_id, salasana_uusittava )
-						VALUES ( ?, ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, '1' )
+						VALUES ( ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, ?, '1' )
 						ON DUPLICATE KEY UPDATE 
 							sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
 							puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 
@@ -92,6 +92,7 @@ if (isset($_POST['sposti'])){
 			<span id="check"></span>
 			<br><br><br>
 			<label for="demo"> Testiasiakas </label>
+			<input name="demo_user" type="hidden" value="false"><!-- Tarvitaan, jos checkbox ei ole valittu -->
 			<input name="demo_user" type="checkbox" title="Asiakas aktiivinen vain määräajan." id="demo">
 			
 			<span id="inner_label" class="">Päivät:</span>
@@ -100,7 +101,7 @@ if (isset($_POST['sposti'])){
 
 			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" />
 			<br><br>
-			<span class="small_note"> <span style="color:red;">*</span> = pakollinen kenttä</span>
+			<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
 			<br>
 
 			<div class="center">
