@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -26,13 +26,13 @@ if ( !empty($_POST['submit']) ) {
 		if ( $ss_length >= 8 && $ss_length < 300 ) {
 			if ( $_POST['password'] === $_POST['confirm_password'] ) {
 				$_POST['password'] = password_hash( $_POST['password'], PASSWORD_DEFAULT );
-				unset($_POST['submit']); unset($_POST['confirm_password']);
-				$_POST[] = $_POST['paivat'];
+				$_POST[] = $_POST['paivat']; $_POST[] = $_POST['paivat'];
+				unset($_POST['submit']); unset($_POST['confirm_password']); unset($_POST["paivat"]);
 
 				$sql = "INSERT INTO kayttaja 
 							( sahkoposti, etunimi, sukunimi, puhelin, salasana_hajautus,
-							demo, voimassaolopvm, yritys_id, salasana_uusittava )
-						VALUES ( ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, ?, ?, '1' )
+							demo, yritys_id, voimassaolopvm, salasana_uusittava )
+						VALUES ( ?, ?, ?, ?, ?, ?, ?, NOW()+INTERVAL ? DAY, '1' )
 						ON DUPLICATE KEY UPDATE 
 							sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
 							puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 

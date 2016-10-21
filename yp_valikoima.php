@@ -11,13 +11,13 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
  * @param int $offset <p> Mistä tuotteesta aloitetaan palautus.
  * @return stdClass[] <p> Tuotteet
  */
-function haeTuotteet ( DByhteys $db, /*int*/ $brandNo, /*int*/ $ppp, /*int*/ $offset ) {
-	if ( $brandNo !== "all") {
+function haeTuotteet ( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id, /*int*/ $ppp, /*int*/ $offset ) {
+	if ( $brandNo !== "all" && $hankintapaikka_id !== "all") {
 		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote WHERE brandNo = ?) AS row_count
 				FROM tuote 
-				WHERE brandNo = ?
+				WHERE brandNo = ? AND hankintapaikka_id = ?
 				LIMIT ? OFFSET ?";
-		$result = $db->query( $sql, [$brandNo, $brandNo, $ppp, $offset], FETCH_ALL );
+		$result = $db->query( $sql, [$brandNo, $brandNo, $hankintapaikka_id, $ppp, $offset], FETCH_ALL );
 	} else {
 		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote) AS row_count
 				FROM tuote
@@ -29,6 +29,7 @@ function haeTuotteet ( DByhteys $db, /*int*/ $brandNo, /*int*/ $ppp, /*int*/ $of
 }
 
 $brand = isset($_GET['brand']) ? $_GET['brand'] : "all";
+$hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : "all";
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Mikä sivu tuotelistauksessa
 $products_per_page = isset($_GET['ppp']) ? (int)$_GET['ppp'] : 20; // Miten monta tuotetta per sivu näytetään.
 $other_options = "brand={$brand}&ppp={$products_per_page}"; //URL:in GET-arvojen asettamista
@@ -36,7 +37,7 @@ if ( $page < 1 ) { $page = 1; }
 if ( $products_per_page < 1 || $products_per_page > 10000 ) { $products_per_page = 20; }
 $offset = ($page-1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
 
-$products = haeTuotteet($db, $brand, $products_per_page, $offset);
+$products = haeTuotteet($db, $brand, $hankintapaikka_id, $products_per_page, $offset);
 
 $total_products = isset($products[0]) ? $products[0]->row_count : 0;
 if ( $total_products < $products_per_page ) { $products_per_page = $total_products; }

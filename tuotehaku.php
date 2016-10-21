@@ -49,12 +49,12 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 					        AND tuote.brandNo = ?
 					 	    AND tuote.aktiivinen = 1 ";
 
-        return $db->query($query, [$product->articleNo, $product->brandNo], FETCH_ALL, PDO::FETCH_OBJ);
+        return $db->query($query, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL, PDO::FETCH_OBJ);
     }
 
 
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
-	$ids = $articleIds = array();
+	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
 
     //Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
