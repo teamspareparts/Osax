@@ -60,10 +60,10 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
             <br><br>
             <label for="puh"> Puhelin </label>
             <input id="puh" name="puh" type="tel" value="<?= $yritys->puhelin?>"
-                   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
+                   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){10}">
             <br><br>
             <label for="addr"> Katuosoite </label>
-            <input id="addr" name="osoite" type="text" pattern=".{1,50}" value="<?= $yritys->katuosoite?>">
+            <input id="addr" name="osoite" type="text" maxlength="50" value="<?= $yritys->katuosoite?>">
             <br><br>
             <label for="postnum"> Postinumero </label>
             <input id="postnum" name="postinumero" type="text" value="<?= $yritys->postinumero?>">

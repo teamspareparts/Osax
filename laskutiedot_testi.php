@@ -7,14 +7,13 @@ $lasku = new Laskutiedot( $db );
 
 if ( !empty($_POST['tilaus']) || !empty($_GET['getLaskuID']) ) {
 	$lasku->haeTilauksenTiedot( (isset($_POST['tilaus']) ? $_POST['tilaus'] : $_GET['getLaskuID']) );
-	$lasku_S = $lasku->tulostaLasku();
 }
 
-$asiakas = $lasku->getAsiakas();
-$yritys = $lasku->getYritys();
-$tmo = $lasku->getToimitusosoite();
-$tuotteet = $lasku->getTuotteet();
-$hinta = $lasku->getHintatiedot();
+$asiakas = $lasku->asiakas;
+$yritys = $lasku->yritys;
+$tmo = $lasku->toimitusosoite;
+$tuotteet = $lasku->tuotteet;
+$hinta = $lasku->hintatiedot;
 $i = 0; //Tuotteiden numerointia varten
 ?>
 <!doctype html>
@@ -195,4 +194,3 @@ $i = 0; //Tuotteiden numerointia varten
 </main>
 <body>
 <html>
-
