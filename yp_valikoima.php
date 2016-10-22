@@ -7,6 +7,7 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
  * @param DByhteys $db
  * @param int|string $brandNo <p> Minkä brändin tuotteet haetaan.
  * 		Jos === "all", niin tulostaa kaikki tietokannassa olevat tuotteet.
+ * @param int|string $hankintapaikka_id
  * @param int $ppp <p> Montako tuotetta kerralla ruudussa.
  * @param int $offset <p> Mistä tuotteesta aloitetaan palautus.
  * @return stdClass[] <p> Tuotteet
@@ -52,7 +53,7 @@ if ( $page > $total_pages ) {
 	<meta charset="utf-8">
 	<title>Valikoima</title>
 	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" integrity="sha384-MIwDKRSSImVFAZCVLtU0LMDdON6KVCrZHyVQQj6e8wIEJkW4tvwqXrbMIya1vriY" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style>
