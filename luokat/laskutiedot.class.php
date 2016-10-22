@@ -46,7 +46,6 @@
 			$this->haeYritys();
 			$this->haeToimitusosoite();
 			$this->haeTuotteet();
-			$this->laskeHintatiedot();
 		}
 	}
 
@@ -118,24 +117,15 @@
 			$tuote->kpl_maara = $row->kpl;
 			$tuote->summa = ($row->maksettu_hinta * $row->kpl);
 			$this->tuotteet[] = $tuote;
-			$row = $this->db->get_next_row();
-		}
-	}
 
-	/** */function laskeHintatiedot() {
-		$this->hintatiedot['alv_perus'] = 0;
-		$this->hintatiedot['alv_maara'] = 0;
-		$this->hintatiedot['tuotteet_yht'] = 0;
-		$this->hintatiedot['summa_yhteensa'] = 0;
-
-		foreach ( $this->tuotteet as $tuote ) {
 			$this->hintatiedot['alv_perus'] += $tuote->a_hinta_ilman_alv * $tuote->kpl_maara;
 			$this->hintatiedot['alv_maara'] += ($tuote->a_hinta - $tuote->a_hinta_ilman_alv) * $tuote->kpl_maara;
 			$this->hintatiedot['tuotteet_yht'] += $tuote->summa;
-		}
 
-		$this->hintatiedot['summa_yhteensa'] = $this->hintatiedot['tuotteet_yht'] +
-												$this->hintatiedot['lisaveloitukset'];
+			$row = $this->db->get_next_row();
+		}
+		$this->hintatiedot['summa_yhteensa'] =
+			$this->hintatiedot['tuotteet_yht'] + $this->hintatiedot['lisaveloitukset'];
 	}
 }
 

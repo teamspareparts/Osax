@@ -5,11 +5,8 @@
  * Link for more info on PDO: {@link https://phpdelusions.net/pdo}<br>
  * Link to PHP-manual on PDO: {@link https://secure.php.net/manual/en/book.pdo.php}
  *
- * Tiedoston lopussa toinen luokka, jossa esimerkkejä käytöstä.
- * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa
- * ylhäällä olevassa linkissä.
- *
- * Käytän PDO:ta, koska se on yksinkertaisempaa käyttää prep. stmt:n kanssa.
+ * Tiedoston lopussa esimerkkejä käytöstä.
+ * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa ylhäällä olevassa linkissä.
  */
 class DByhteys {
 
@@ -31,12 +28,13 @@ class DByhteys {
 			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
 			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
 			PDO::ATTR_EMULATE_PREPARES   => false,
-            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8")];
+            array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"),
+			array(PDO::MYSQL_ATTR_FOUND_ROWS => true) ];
 	/**
 	 * Säilyttää yhdeyten, jota kaikki metodit käyttävät
 	 * @var PDO object
 	 */
-	protected $connection = NULL;	//PDO connection
+	protected $connection = NULL; //PDO connection
 	/**
 	 * PDO statement, prepared statementien käyttöä varten.
 	 * Tämä muuttuja on käytössä prepare_stmt(), run_prepared_stmt(),
@@ -46,7 +44,7 @@ class DByhteys {
 	 *  luokassa on aika monta asiaa, joita voisi hieman hioa.
 	 * @var PDOStatement object
 	 */
-	protected $prepared_stmt = NULL;//Tallennettu prepared statement
+	protected $prepared_stmt = NULL; //Tallennettu prepared statement
 
 	const FETCH_ALL = TRUE;
 
@@ -58,13 +56,11 @@ class DByhteys {
 	 * @param string $database
 	 * @param string $host [optional] //TODO: 'localhost' ei saata toimia.
 	 */
-	public function __construct( /*string*/ $username, /*string*/ $password,
-			/*string*/ $database, /*string*/ $host = 'localhost' ) {
-
+	public function __construct( /*string*/ $username, /*string*/ $password, /*string*/ $database,
+			/*string*/ $host = 'localhost' ) {
 		define('FETCH_ALL', TRUE); // Tämä on hieman liioittelua minulta, myönnetään.
 		$this->pdo_dsn = "mysql:host={$host};dbname={$database};charset=utf8";
-		$this->connection = new PDO(
-				$this->pdo_dsn, $username, $password, $this->pdo_options );
+		$this->connection = new PDO( $this->pdo_dsn, $username, $password, $this->pdo_options );
 	}
 
 	/**
@@ -99,19 +95,18 @@ class DByhteys {
 		$q_type = substr( ltrim($query), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
 
 		$stmt = $db->prepare( $query );		// Valmistellaan query
-		$result = $stmt->execute( $values );//Toteutetaan query varsinaisilla arvoilla
+		$stmt->execute( $values );//Toteutetaan query varsinaisilla arvoilla
 
 		if ( $q_type === "SELECT" ) { //Jos select, haetaan array
 			if ( $fetch_All_Rows ) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
-				$result = $stmt->fetchAll( $returnType );
+				return $stmt->fetchAll( $returnType );
 
 			} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
-				$result = $stmt->fetch( $returnType );
+				return $stmt->fetch( $returnType );
 			}
-			$stmt->closeCursor();
-		} //Jos ei, palautetaan boolean execute()-metodilta
-
-		return $result;
+		} else { // Palautetaan muutettujen rivien määrän.
+			return $stmt->rowCount();
+		}
 	}
 
 	/**
@@ -157,35 +152,12 @@ class DByhteys {
 
 	/**
 	 * Metodilla voi muuttaa missä muodossa kaikki luokan sql-haut palautetaan.
-	 *
 	 * Mahdolliset tyypit:
-	 * <ul>
-	 * 	<li>'enum' : an array indexed by column number as returned in your result set, starting at 0 </li>
-	 * 	<li>'object' : returns an object with variables corresponding to the column names </li>
-	 * 	<li>'key_pair' : only use with two columns. Same principle as assoc array, but first column is key. </li>
-	 * </ul>
-	 * Jos metodi kutsutaan ilman parametria, tai parametria ei tunnisteta, niin:
-	 * <ul><li>returnType = Assoc array</li></ul>
-	 * @param string $type [optional], default = NULL <p> haluttu tyyppi
+	 *        PDO::FETCH_* (niitä on aika monta)
+	 * @param int $pdo_fetch_type
 	 */
-	public function setReturnType( /* string */ $type = NULL ) {
-		switch ( $type ) {
-			case 'enum':
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_NUM );
-				break;
-			case 'both':
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_BOTH );
-				break;
-			case 'assoc':
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC );
-				break;
-			case 'key_pair':
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_KEY_PAIR );
-				break;
-			default:
-				$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ );
-				break;
-		}
+	public function setReturnType( /*int*/ $pdo_fetch_type ) {
+		$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, (int)$pdo_fetch_type );
 	}
 
 	/**
