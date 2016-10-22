@@ -5,9 +5,11 @@ if( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 $sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, kayttaja.etunimi, kayttaja.sukunimi, 
-			SUM( tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))) AS summa 
+			SUM( tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))) AS summa,
+			yritys.nimi AS yritys
 		FROM tilaus 
 		LEFT JOIN kayttaja ON kayttaja.id=tilaus.kayttaja_id
+		LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
 		LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id=tilaus.id
 		GROUP BY tilaus.id
 		ORDER BY tilaus.id DESC";
@@ -37,16 +39,17 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 	<section>
 		<table style="width:100%;">
 			<thead>
-			<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Käsitelty</th></tr>
+			<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Yritys</th><th>Tilaaja</th><th>Summa</th><th class="smaller_cell">Käsitelty</th></tr>
 			</thead>
 			<tbody>
 			<?php foreach ($tilaukset as $tilaus) : ?>
 				<tr>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->yritys?></td>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa)?></td>
-					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>">
+					<td class="smaller_cell" data-href="tilaus_info.php?id=<?= $tilaus->id ?>">
 						<?php if ( $tilaus->kasitelty === 0 ) : ?>
 							<span style="color: red">EI</span>
 						<?php else : ?>

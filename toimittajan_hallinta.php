@@ -198,8 +198,13 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
                                 '<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</span>
                         </td>
                     </tr>
-                    <tr><td colspan="2" class="text-center"><a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a></td></tr>
-                </table>
+					<tr>
+						<td colspan="2">
+							<a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a>
+							<a href="yp_valikoima.php?brand=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Valikoima</a>
+						</td>
+					</tr>
+				</table>
 
             </form>
             </div>
@@ -279,7 +284,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;" /><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
 	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('.$brandId.')">
-	<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>
+	<!--<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>-->
 </div>
 <br>
 <br>
