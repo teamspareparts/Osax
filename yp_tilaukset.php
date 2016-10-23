@@ -48,7 +48,7 @@ $tilaukset = hae_tilaukset( $db );
 	<section>
 		<h1 class="otsikko">Tilaukset</h1>
 		<div id="painikkeet">
-			<a href="yp_tilaushistoria.php" class="nappi">Tilaushistoria</a>
+			<a href="yp_tilaushistoria.php" class="nappi grey">Tilaushistoria</a>
 		</div>
 	</section>
 
@@ -73,8 +73,7 @@ $tilaukset = hae_tilaukset( $db );
 			</table>
 			<form id="done" action="" method="post">
 				<div style="text-align:right;padding-top:10px;">
-					<input name="set_done" type="submit" value="Merkitse valitut käsitellyiksi" class="nappi"
-						   style="background-color:green;">
+					<input name="set_done" type="submit" value="Merkitse valitut käsitellyiksi" class="nappi">
 				</div>
 			</form>
 		<?php else: ?>

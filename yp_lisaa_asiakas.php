@@ -65,8 +65,7 @@ if ( !empty($_POST['submit']) ) {
 <?php require 'header.php'; ?>
 <main class="main_body_container lomake">
 	<?= !empty($feedback) ? $feedback : '' ?>
-	<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>"
-	   style="color:#000; background-color:#c5c5c5; border-color:#000;">Takaisin</a><br><br>
+	<a class="nappi grey" href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>">Takaisin</a><br><br>
 	<form action="" name="uusi_asiakas" method="post" accept-charset="utf-8">
 		<fieldset><legend>Uuden käyttäjän tiedot</legend>
 			<br>

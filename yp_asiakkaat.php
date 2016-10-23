@@ -57,8 +57,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 		<h1 class="otsikko"><?=$yritys->nimi?></h1>
 		<div id="painikkeet">
 			<a href="yp_lisaa_asiakas.php?yritys_id=<?=$yritys->id?>" class="nappi"> Lisää uusi asiakas</a>
-			<a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
-				Takaisin</a>
+			<a class="nappi grey" href="yp_yritykset.php">Takaisin</a>
 		</div>
 		<div class="flex_row" style="margin:5px;">
 			<div style="padding: 6pt 10pt; background-color:lightgrey;">
@@ -90,8 +89,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 	</table>
 	<form id="poista_asiakas" method="post">
 		<div style="text-align:right;padding-top:10px;">
-			<input type="submit" value="Poista valitut asiakkaat" class="nappi"
-				   style="background-color:red; border-color: #b70004;">
+			<input type="submit" value="Poista valitut asiakkaat" class="nappi red">
 		</div>
 	</form>
 </main>

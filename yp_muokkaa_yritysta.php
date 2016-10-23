@@ -46,8 +46,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <?php require 'header.php'?>
 <main class="main_body_container lomake">
     <?= $feedback ?>
-    <a class="nappi" href="yp_yritykset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
-        Takaisin</a><br><br>
+    <a class="nappi grey" href="yp_yritykset.php">Takaisin</a><br><br>
     <form name="muokkaa_yritysta" method="post" accept-charset="utf-8">
         <fieldset><legend>Muokkaa yrityksen tietoja</legend>
             <label> Yritys </label><p style="display:inline; font-size:16px; font-weight:bold;"><?= $yritys->nimi?></p>
@@ -84,15 +83,15 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
     <br><br>
     <form method="post">
         <fieldset><legend>Yrityksen rahtimaksu</legend>
-            <span>Kumpikin arvo euroina (€). <br> Nollan kohdalla ilmainen toimitus aina.</span>
+            <span>Kumpikin arvo euroina (€). <br> Jos nolla, ilmainen toimitus aina.</span>
             <br><br>
             <label> Rahtimaksu: </label>
             <input name="rahtimaksu" type="number" step="0.01" min="0" max="100000" value="<?= $yritys->rahtimaksu ?>"
-				   title="Anna käyttäjäkohtainen rahtimaksu euroina (€).">
+				   title="Anna käyttäjäkohtainen rahtimaksu euroina (€)."> €
             <br>
             <label> Ilmaisen toimitus: </label>
             <input name="ilmainen_toimitus" type="number" step="0.01" min="0" max="100000"
-				   value="<?= $yritys->ilm_toim_sum_raja ?>" title="Ilmaisen toimituksen raja euroina (€).">
+				   value="<?= $yritys->ilm_toim_sum_raja ?>" title="Ilmaisen toimituksen raja euroina (€)."> €
             <br>
             <div class="center">
 				<input name="id" value="<?=$yritys->id?>" type="hidden">

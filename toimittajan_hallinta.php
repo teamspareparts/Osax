@@ -262,8 +262,6 @@ elseif( isset($_POST['poista'])){
 //Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
 $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 ?>
-
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>

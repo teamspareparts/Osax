@@ -206,7 +206,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 
 				<input class="nappi" type="button" value="Muokkaa"
 					   onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row->osoite_id ?>);">
-				<input class="nappi" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
+				<input class="nappi red" type="button" value="Poista" style="background:#d20006; border-color:#b70004;"
 					   onClick="vahvista_Osoitteen_Poistaminen(<?= $row->osoite_id ?>);">
 
 				<form style="display:none;" id="<?="poista_Osoite_Form_{$row->osoite_id}"?>" name="poista_osoite" action="" method=post>
@@ -262,7 +262,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Edellinen postitoimipaikka">\
 				<br><br>\
 				<input type="hidden" name="osoite_id" value= ' + osoite_id + '>\
-				<input type="submit" name="muokkaa_vanha_osoite" value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">\
+				<input class="nappi" type="submit" name="muokkaa_vanha_osoite" value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">\
 				<br>\
 			</form>\
 			',
@@ -298,7 +298,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takais
 				<label>Maa</label>\
 					<input name="maa" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Maa">\
 				<br><br>\
-				<input type="submit" name="tallenna_uusi_osoite" value="Tallenna uusi osoite">\
+				<input class="nappi" type="submit" name="tallenna_uusi_osoite" value="Tallenna uusi osoite">\
 				<br>\
 			</form>\
 			',

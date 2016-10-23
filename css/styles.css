@@ -175,11 +175,12 @@ input { padding: 3pt; }
 ********************************************/
 .nappi {
 	padding: 8px 15px;
-	color: #FFF; /* TODO: Wait, tää on ollut valkoinen koko tämä ajan? What the hell is going on here?! */
+	color: white;
+	background: #4479BA;
+	border: 1px solid #20538D;
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
 	border-radius: 4px;
-	border: solid 1px;
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.4);
 	-webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
 	-moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1px 1px rgba(0, 0, 0, 0.2);
@@ -194,9 +195,21 @@ input { padding: 3pt; }
 	font-weight: 700;
 	font-size: 15px;
 	text-transform: uppercase;
+	text-decoration: none;
 	font-family: 'Open Sans', sans-serif;
+	display: inline-block;
+	margin-top: 4px;
+	cursor: pointer;
 }
+.nappi:hover { background: #356094; border: solid 1px #2A4E77; }
 
+/** Takaisin-nappia varten */
+.nappi.grey { color:black; background-color:#BDBDBD; border-color:#212121; }
+.nappi.grey:hover { color:black; background-color: #9E9E9E; border-color:#212121; }
+
+/** Peruuta/Poista-napit */
+.nappi.red { background: #D32F2F; border-color: #B71C1C; }
+.nappi.red:hover { background: #b60000; border-color: #B71C1C; }
 
 /********************************************
 	Ylläpitäjän tilaukset sivu
@@ -446,20 +459,6 @@ th {
 
 .error {
 	background-color: #FFBABA;
-}
-
-.nappi {  /* //TODO: Täällä on kaksi nappia. Miksi? */
-	background: #4479BA;
-	border-color: #20538D;
-	text-decoration: none;
-	display: inline-block;
-	margin-top: 4px;
-}
-
-.nappi:hover {
-	background: #356094;
-	border: solid 1px #2A4E77;
-	cursor: pointer;
 }
 
 .disabled {

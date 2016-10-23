@@ -53,20 +53,17 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <?php include("header.php"); ?>
 <main class="main_body_container lomake">
 	<?= $feedback ?>
-	<a class="nappi" href="yp_asiakkaat.php?yritys_id=<?=$asiakas->yritys_id?>" style="color:#000; background-color:#c5c5c5; border-color:#000;">
-		Takaisin</a><br><br>
+	<a class="nappi grey" href="yp_asiakkaat.php?yritys_id=<?=$asiakas->yritys_id?>">Takaisin</a><br><br>
 	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
 		<fieldset><legend>Asiakkaan tiedot</legend>
 			<br>
 			<label for="email">Sähköposti</label>
-			<span style="font-size: 16px;"> <?=$asiakas->sahkoposti?> </span>
+			<span> <?=$asiakas->sahkoposti?> </span>
 
 			<?php if ($asiakas->demo) : ?>
 				<br><br>
 				<label>Voimassa</label>
-				<span style="font-size:16px;">
-					<?=(new DateTime($asiakas->voimassaolopvm))->format("d.m.Y H:i:s") ?>
-				</span>
+				<span><?=(new DateTime($asiakas->voimassaolopvm))->format("d.m.Y H:i:s") ?></span>
 			<?php endif; ?>
 			<br><br>
 			<label for="enimi">Etunimi</label>
