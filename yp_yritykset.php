@@ -53,7 +53,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
         </thead>
         <tbody>
             <?php foreach ($yritykset as $y) : ?>
-                <tr data-val="<?= $y->id ?>">
+                <tr data-id="<?= $y->id ?>">
                     <td class="cell"><?= $y->nimi ?></td>
                     <td class="cell"><?= $y->y_tunnus ?></td>
                     <td class="cell"><?= $y->katuosoite . '<br>' . $y->postinumero . ' ' . $y->postitoimipaikka ?></td>
@@ -82,7 +82,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
         //painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
         $('.cell').click(function(){
             $('tr').click(function(){
-                var id = $(this).attr('data-val');
+                var id = $(this).attr('data-id');
                 window.document.location = 'yp_asiakkaat.php?yritys_id='+id;
             });
         })

@@ -38,7 +38,7 @@ input { padding: 3pt; }
 .hidden { display: none; }
 
 .material-icons { /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
-	vertical-align: text-top;
+	vertical-align: middle;
 }
 
 .center { text-align: center; }
@@ -53,6 +53,12 @@ input { padding: 3pt; }
 	background-color: #fff;
 	display: flex;
 }
+
+.header_top a { text-decoration: none; }
+
+.header_top a:visited { color: #2f5cad; }
+
+.header_top a:hover { text-decoration: underline; }
    
 .header_top #head_logo {
 	display: flex; 			/* Pakollinen keskitystä varten */
@@ -78,6 +84,7 @@ input { padding: 3pt; }
 	color: #2f5cad;
 	margin: auto auto auto 0.5em; /* Keskittää sisällön */
 }
+
 
 /********************************************
 	Navigointipalkki 

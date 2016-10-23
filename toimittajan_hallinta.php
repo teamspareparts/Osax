@@ -283,7 +283,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <?php endif;?>
 <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;" /><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
-	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('.$brandId.')">
+	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
 	<!--<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>-->
 </div>
 <br>
