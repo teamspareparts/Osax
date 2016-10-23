@@ -11,8 +11,9 @@
 
 	public $toimitusosoite = NULL; //Object
 	public $db = NULL; //Object
-	public $tuotteet = array();
+	/**@var TuoteL[] */public $tuotteet = array();
 	public $hintatiedot = array(
+			'alv_kannat' => array(),// Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
 			'alv_perus' => 0, 		// Summa yhteensä josta alv lasketaan
 			'alv_maara' => 0, 		// yhteenlaskettu ALV-maara
 			'tuotteet_yht' => 0,	// Yhteenlaskettu summa kaikista tuotteista
@@ -28,7 +29,7 @@
 		$this->asiakas = new Asiakas();
 		$this->yritys = new YritysL();
 		$this->toimitusosoite = new Toimitusosoite();
-		$this->tuotteet[] = new Tuote();
+		$this->tuotteet[] = new TuoteL();
 		$this->haeTilauksenTiedot( $this->tilaus_nro );
 	}
 
@@ -105,18 +106,28 @@
 		$this->db->run_prepared_stmt([$this->tilaus_nro]);
 		$row = $this->db->get_next_row();
 		while ( $row ) {
-			$tuote = new Tuote();
+			$tuote = new TuoteL();
 			$tuote->id = $row->id;
 			$tuote->tuotekoodi = $row->articleNo;
 //			$tuote->tuotenimi = $row->articleNo;
 //			$tuote->valmistaja = $row->brandNo;
 			$tuote->a_hinta = round($row->maksettu_hinta, 2);
 			$tuote->a_hinta_ilman_alv = $row->pysyva_hinta * (1 - $row->pysyva_alennus);
-			$tuote->alv_prosentti = (float)$row->pysyva_alv * 100;
-			$tuote->alennus = (float)$row->pysyva_alennus * 100;
+			$tuote->alv_prosentti = (int)((float)$row->pysyva_alv * 100); // 0.24 => 24
+			$tuote->alennus = (float)$row->pysyva_alennus * 100; // 0.24 => 24
 			$tuote->kpl_maara = $row->kpl;
 			$tuote->summa = ($row->maksettu_hinta * $row->kpl);
 			$this->tuotteet[] = $tuote;
+
+			if ( !array_key_exists($tuote->alv_prosentti, $this->hintatiedot['alv_kannat']) ) {
+				$this->hintatiedot['alv_kannat'][$tuote->alv_prosentti]['kanta'] = $tuote->alv_prosentti;
+				$this->hintatiedot['alv_kannat'][$tuote->alv_prosentti]['perus'] = 0;
+				$this->hintatiedot['alv_kannat'][$tuote->alv_prosentti]['maara'] = 0;
+			}
+			$this->hintatiedot['alv_kannat'][$tuote->alv_prosentti]['perus'] +=
+				$tuote->a_hinta_ilman_alv * $tuote->kpl_maara;
+			$this->hintatiedot['alv_kannat'][$tuote->alv_prosentti]['maara'] +=
+				($tuote->a_hinta - $tuote->a_hinta_ilman_alv) * $tuote->kpl_maara;
 
 			$this->hintatiedot['alv_perus'] += $tuote->a_hinta_ilman_alv * $tuote->kpl_maara;
 			$this->hintatiedot['alv_maara'] += ($tuote->a_hinta - $tuote->a_hinta_ilman_alv) * $tuote->kpl_maara;
@@ -126,6 +137,13 @@
 		}
 		$this->hintatiedot['summa_yhteensa'] =
 			$this->hintatiedot['tuotteet_yht'] + $this->hintatiedot['lisaveloitukset'];
+	}
+
+
+	/** @param $number
+	 * @return string */
+	function float_toString ( /*float*/$number ) {
+		return number_format ( (double)$number, 2, ',', '.' );
 	}
 }
 
@@ -192,7 +210,7 @@
 	}
 }
 
-/** */class Tuote {
+/** */class TuoteL {
 	public $id = '[ID]';
 	public $tuotekoodi = '[Tuotekoodi]';
 	public $tuotenimi = '[Tuotteen nimi]';
@@ -204,11 +222,11 @@
 	public $kpl_maara = '[KPL-määrä]';
 	public $summa = '[Tuotteiden summa]';
 
-	/** */function __toString () {
-		return "<p>
-			Tuote: {$this->tuotekoodi} | {$this->tuotenimi} | {$this->valmistaja}<br>
-			Hintatiedot: {$this->a_hinta} | {$this->a_hinta_ilman_alv} | {$this->alv_prosentti} | 
-				{$this->kpl_maara} | {$this->summa}<br>
-			</p>";
+	/** */function a_hinta_toString () {
+		return number_format ( (double)$this->a_hinta, 2, ',', '.' );
+	}
+
+	/** */function summa_toString () {
+		return number_format ( (double)$this->summa, 2, ',', '.' );
 	}
 }
