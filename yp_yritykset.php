@@ -51,13 +51,15 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 			</thead>
 			<tbody>
 				<?php foreach ($yritykset as $y) : ?>
-					<tr data-val="<?= $y->id ?>">
+					<tr data-id="<?= $y->id ?>">
 						<td class="cell"><?= $y->nimi ?></td>
 						<td class="cell"><?= $y->y_tunnus ?></td>
 						<td class="cell"><?= $y->katuosoite . '<br>' . $y->postinumero . ' ' . $y->postitoimipaikka ?></td>
 						<td class="cell"><?= $y->maa ?></td>
 						<td class="smaller_cell">
-							<input form="deactivate_company" type="checkbox" name="ids[]" value="<?= $y->id ?>" />
+							<label>Valitse
+								<input form="deactivate_company" type="checkbox" name="ids[]" value="<?= $y->id ?>">
+							</label>
 						</td>
 						<td class="smaller_cell"><a href="yp_muokkaa_yritysta.php?id=<?= $y->id ?>"><span class="nappi">Muokkaa</span></a></td>
 					</tr>
@@ -66,7 +68,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 		</table>
 		<form action="" method="post" id="deactivate_company">
 			<div style="text-align:right;padding-top:10px;">
-			<input type="submit" value="Poista valitut Yritykset" class="nappi red">
+				<input type="submit" value="Poista valitut Yritykset" class="nappi red">
 			</div>
 		</form>
 	</section>
@@ -75,11 +77,10 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 
 <script type="text/javascript">
     $(document).ready(function(){
-
         //painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
         $('.cell').click(function(){
             $('tr').click(function(){
-                var id = $(this).attr('data-val');
+                var id = $(this).attr('data-id');
                 window.document.location = 'yp_asiakkaat.php?yritys_id='+id;
             });
         })

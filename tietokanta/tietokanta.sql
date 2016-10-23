@@ -198,6 +198,47 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   PRIMARY KEY (`brandId`, `hankintapaikka_id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
+  `ostotilauskirja_id` int(11) NOT NULL AUTO_INCREMENT, -- PK Foreign K
+  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
+  `tunniste` varchar(50) NOT NULL,  -- UNIQUE K -- nimi, jolla tunnistetaan
+  `rahti` decimal(11,2),
+  `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ostotilauskirja_id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
+  `ostotilauskirja_id` int(11) NOT NULL, -- PK Foreign K
+  `tuote_id` INT(11) NOT NULL, -- PK Foreign K
+  `kpl` INT(11) NOT NULL,
+  `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
+  `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
+  `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
+  PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `ostotilauskirja_` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
+  `ostotilauskirja_id` int(11) NOT NULL, -- PK Foreign K
+  `hankintapaikka_id` int(11) NOT NULL,  -- Foreign K
+  `tunniste` varchar(50) NOT NULL,  -- UNIQUE K -- nimi, jolla tunnistetaan
+  `rahti` decimal(11,2),
+  `saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ostotilauskirja_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
+  `ostotilauskirja_id` INT(11) NOT NULL, -- PK Foreign K
+  `tuote_id` INT(11) NOT NULL,
+  `kpl` INT(11) NOT NULL,
+  `ostohinta` INT(11) NOT NULL,
+  `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
+  `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
+  `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
+  PRIMARY KEY (`ostotilauskirja_id`, tuote_id)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
 CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   `id` INT(11) NOT NULL AUTO_INCREMENT, -- PK
   `tyyppi` TINYINT(1) NOT NULL DEFAULT 1,

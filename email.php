@@ -7,48 +7,58 @@
  */
 
 
-function send_email($email, $subject, $message){
+/**
+ * Sähköpostin lähetykseen käytettävä functio, jolla voi lähettää myös liitetiedostoja.
+ * @param $email    <p> Vastaanottajan sähköpostiosoite
+ * @param $subject  <p> Otsikko
+ * @param $message  <p> Viestin sisältö html-muodossa
+ * @param null $fileName    <p> Mahdollisten liitetiedostojen nimet
+ */
+
+//TODO: $fileName tilalla voisi olla myös $file, jos halutaan antaa itse tiedosto tiedostonimen sijaan
+function send_email($email, $subject, $message, $fileName=NULL){
 
 	$url = 'https://api.sendgrid.com/';
-
+	$user = "";
+	$pass = "";
+    $file = isset($fileName) ? file_get_contents(realpath($fileName)) : '';
 	
 	//sähköpostin parametrit
 	$params = array(
-			'api_user'  => "$user",
-			'api_key'   => "$pass",
+			'api_user'  => $user,
+			'api_key'   => $pass,
 			'to'        => "$email",
 			'subject'   => "$subject", //otsikko
-			'html'      => "<html><head></head><body>
-			$message </body></html>", //HTML runko
+			'html'      => "$message", //HTML runko
 			'text'      => "",
 			'from'      => "noreply@tuoteluettelo.com", //lähetysosoite
-
+            'files['.$fileName.']' => $file
 	);
+
 	$request =  $url.'api/mail.send.json';
 
 	// Luodaan curl pyyntö
-	$session = curl_init();
-	curl_setopt ($session, CURLOPT_URL, $request);
+	$session = curl_init($request);
 	// Käytetään HTTP POSTia
 	curl_setopt ($session, CURLOPT_POST, true);
 	// Runko
 	curl_setopt ($session, CURLOPT_POSTFIELDS, $params);
-	// Palauta vastaus, ei headereja
-	curl_setopt($session, CURLOPT_RETURNTRANSFER, 1);
+	// Palauta vastaus, mutta ilman headereja
+    curl_setopt($session, CURLOPT_HEADER, false);
+    // Ei käytetä SSLv3
+    curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+    curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+
 	// Lähetetään sposti
 	$response = curl_exec($session);
+    curl_close($session);
 
-
-	
-	/* // debuggaukseen
+	/* Debuggaukseen:
 	if (curl_errno($session)) {
-		print "Error: " . curl_error($session);
-	} else {
-		// Show me the result
-		var_dump($response);
-		curl_close($session);
+		print "Error: " . curl_errno($session). " " . curl_error($session);
 	}
-	print_r($response); */
+	print_r($response);
+    */
 }
 
 /**
@@ -75,16 +85,15 @@ function laheta_tilausvahvistus( /*string*/$email, array $products, /*string*/ $
 	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
 	if (empty($products)) return false;
 	foreach ($products as $product) {
-		$article = $product->directArticle;
-		$productTable .= "<tr><td>$article->articleNo</td><td>$article->brandName $article->articleName</td><td style='text-align: right;'>" . format_euros($product->hinta) . "</td><td style='text-align: right;'>$product->cartCount</td></tr>";
+		$productTable .= "<tr><td>$product->articleNo</td><td>$product->brandName $product->articleName</td><td style='text-align: right;'>" . format_euros($product->hinta) . "</td><td style='text-align: right;'>$product->cartCount</td></tr>";
 		$summa += $product->hinta * $product->cartCount;
 	}
 	$productTable .= "</table><br><br><br>";
 	$contactinfo = 'Yhteystiedot:<br>
-					Rantakylän Varaosa Oy<br>
+					Osax Oy<br>
 					Jukolankatu 19 80100 Joensuu<br>		
 					puh. 010 5485200<br>
-					toimisto@rantakylanvaraosa.fi';
+					janne@osax.fi';
 	$message = 'Tilaaja: ' . $email . '<br>Tilausnumero: ' . $tilausnro. '<br>Summa: ' . format_euros($summa) . '<br> Tilatut tuotteet:<br>' . $productTable . $contactinfo;
 	send_email($email, $subject, $message);
 
@@ -166,6 +175,7 @@ function laheta_ilmoitus_epailyttava_IP( DByhteys $db, $email, $vanha_sijainti, 
 				"Uusi sijainti:" . $uusi_sijainti;
 	
 	send_email($yp->sahkoposti, $subject, $message);
+    return true;
 }
 
 

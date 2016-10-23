@@ -90,9 +90,8 @@ $(document).ready(function(){
 		//form submit
 		document.body.appendChild(form);
 		form.submit();
-	});
-	
-	$('.clickable').css('cursor', 'pointer');
+	})
+	.css('cursor', 'pointer');
 });
 
 </script>
