@@ -17,6 +17,7 @@ require "luokat/db_yhteys_luokka.class.php";
 require "luokat/user.class.php";
 require "luokat/yritys.class.php";
 require "luokat/ostoskori.class.php";
+require "luokat/tuote.class.php";
 
 /*
  * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.

@@ -64,28 +64,20 @@ class DByhteys {
 
 	/**
 	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
-	 * Defaultina hakee yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p>
+	 * Defaultina palauttaa yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.<p>
 	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
 	 * @param string $query
 	 * @param array $values [optional], default=NULL<p>
-	 * 		muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi,
-	 * 		jotka sitten lähetetään tietokannalle.
+	 * 		Muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi, jotka sitten lähetetään tietokannalle.
 	 * @param bool $fetch_All_Rows [optional], default=FALSE<p>
-	 * 		haetaanko kaikki rivit, vai vain yksi.
+	 * 		Haetaanko kaikki rivit, vai vain yksi.
 	 * @param int $returnType [optional], default = NULL <p>
-	 * 		Missä muodossa haluat tiedot palautettavan.
-	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
-	 * 		Mahdolliset (tärkeimmät) arvot:
-	 * 		<ul>	<li>PDO::FETCH_ASSOC)</li>
-	 * 				<li>PDO::FETCH_NUM</li>
-	 * 				<li>PDO::FETCH_BOTH</li>
-	 * 				<li>PDO::FETCH_OBJ (huom. default jo valmiiksi</li>
-	 * 				<li>PDO::FETCH_LAZY</li>
-	 * 		</ul>
-	 * @return array|boolean|stdClass <p> Palauttaa arrayn, jos esim. SELECT.<br>
-	 * 		Palauttaa boolean, jos esim. INSERT tai DELETE.<br>Palauttaa objektin, jos haetaan vain yksi,
-	 * 		ja palautusmuotona on PDO::FETCH_OBJ. //TODO: Update doc
+	 * 		Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
+	 * 		 constant-muuttujat.<br>PDO::FETCH_OBJ on default jo luokan konstruktorissa.
+	 * @return array|int|stdClass <p> Palauttaa object-arrayn, jos esim. SELECT ja FETCH_ALL==true.<br>
+	 * 		Palauttaa <code>$stmt->rowCount()</code>, jos esim. INSERT tai DELETE.<br>
+	 * 		Palauttaa suoraan objektin, jos haetaan vain yksi.
 	 */
 	public function query( /*string*/ $query, array $values = NULL,
 			/*bool*/ $fetch_All_Rows = FALSE, /*int*/ $returnType = NULL ) {
@@ -133,16 +125,8 @@ class DByhteys {
 	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
 	 * Palauttaa tulokset objektina, jos ei palautustyyppiä.
 	 * @param int $returnType [optional], default = NULL <p>
-	 * 		Missä muodossa haluat tiedot palautettavan.
-	 * 		Huom. vaatii oikean muotoilun, esim. PDO::FETCH_ASSOC, ilman lainausmerkkejä.<br>
-	 * 		Mahdolliset arvot:
-	 * 		<ul>	<li>PDO::FETCH_ASSOC</li>
-	 * 				<li>PDO::FETCH_NUM</li>
-	 * 				<li>PDO::FETCH_BOTH</li>
-	 * 				<li>PDO::FETCH_OBJ (huom. default jo valmiiksi)</li>
-	 * 				<li>PDO::FETCH_LAZY</li>
-	 * 		</ul>
-	 * Niitä on muitakin, mutta nuo on tärkeimmät.
+	 * 		Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
+	 * 		 constant-muuttujat.<br>PDO::FETCH_OBJ on default jo luokan konstruktorissa.
 	 * @return stdClass
 	 */
 	public function get_next_row ( /* mixed */ $returnType = NULL ) {
@@ -153,10 +137,12 @@ class DByhteys {
 	 * Metodilla voi muuttaa missä muodossa kaikki luokan sql-haut palautetaan.
 	 * Mahdolliset tyypit:
 	 *        PDO::FETCH_* (niitä on aika monta)
-	 * @param int $pdo_fetch_type
+	 * @param int $pdo_return_type <p>
+	 * 		Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
+	 * 		 constant-muuttujat.<br>PDO::FETCH_OBJ on default jo luokan konstruktorissa.
 	 */
-	public function setReturnType( /*int*/ $pdo_fetch_type ) {
-		$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, (int)$pdo_fetch_type );
+	public function setReturnType( /*int*/ $pdo_return_type ) {
+		$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, (int)$pdo_return_type );
 	}
 
 	/**

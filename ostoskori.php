@@ -10,28 +10,31 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
 	if ( $tuote_kpl > 0 ) {
 		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
-			$feedback = '<p class="success">Ostoskori päivitetty.</p>';
+			$_SESSION["feedback"] = '<p class="success">Ostoskori päivitetty.</p>';
 		} else {
-			$feedback = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
+			$_SESSION["feedback"] = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 		}
 	} elseif ( $tuote_kpl == 0 ) { //TODO: Tarkista miten tämä käyttäytyy NULLin kanssa
 		if ( $cart->poista_tuote( $db, $tuote_id ) ) {
-			$feedback = '<p class="success">Tuote poistettu ostoskorista.</p>';
+			$_SESSION["feedback"] = '<p class="success">Tuote poistettu ostoskorista.</p>';
 		} else {
-			$feedback = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
+			$_SESSION["feedback"] = '<p class="error">Tuotteen poistaminen ei onnistunut.</p>';
 		}
 	}
 }
-if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takaisin-napilla.
-	$_SESSION['feedback'] = $feedback; header("Location: " . $_SERVER['REQUEST_URI']); exit();
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 
 $yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
 $products = get_products_in_shopping_cart( $db, $cart );
 $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
-$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : ""; // Onnistuiko ostoskorin päivitys
-unset($_SESSION['feedback']);
 ?>
 <!DOCTYPE html>
 <html lang="fi">

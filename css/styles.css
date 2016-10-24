@@ -5,7 +5,7 @@
 *********************************************/
 html{ position:relative; min-height: 100%; width:100%; /*Varmuuden varalle...*/ }
 
-html,body{ background-color: Floralwhite; /* The searing white is destroying my eyes */ }
+html,body{ background-color: Floralwhite; }
 
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
@@ -61,7 +61,6 @@ input { padding: 3pt; }
 .header_top a:hover { text-decoration: underline; }
    
 .header_top #head_logo {
-	display: flex; 			/* Pakollinen keskitystä varten */
 	margin: auto;			/* Keskittää sisällön */
 	width: 22em;
 }
@@ -161,11 +160,6 @@ input { padding: 3pt; }
     z-index: 1;
 }
 
-/** #navigationbar .dropdown:hover .dropdown-content {
-    display: none;
-} */
-
-
 /********************************************
 	Otsikon tyylittely
 ********************************************/
@@ -210,11 +204,11 @@ input { padding: 3pt; }
 }
 .nappi:hover { background: #356094; border: solid 1px #2A4E77; }
 
-/** Takaisin-nappia varten */
+/** Takaisin-nappia varten - Väri harmaa */
 .nappi.grey { color:black; background-color:#BDBDBD; border-color:#212121; }
 .nappi.grey:hover { color:black; background-color: #9E9E9E; border-color:#212121; }
 
-/** Peruuta/Poista-napit */
+/** Peruuta/Poista-napit - Väri punainen */
 .nappi.red { background: #D32F2F; border-color: #B71C1C; }
 .nappi.red:hover { background: #b60000; border-color: #B71C1C; }
 
@@ -289,57 +283,6 @@ input { padding: 3pt; }
 	color: red;
 }
 
-/**
-	Poista kaikki tämä jälkeen!
-*/
-/* keskitetään form */
-#lomake {
-	display: block;
-	text-align: center;
-}
-
-
-#lomake form {
-	display: inline-block;
-	text-align: left;
-}
-
-#lomake fieldset {
-	width: 450px;
-	border-radius: 10px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	margin: 0 0 10px 0;
-	border: 1px solid #000000;
-	padding: 20px;
-}
-
-#lomake fieldset legend {
-	text-align: left;
-	font-size: 20px;
-}
-
-
-#lomake label {
-	width: 200px;
-}
-
-#lomake label > span{
-	float: left;
-	width: 220px;
-	font-weight: bold;
-}
-#lomake label span .required {
-	color: red;
-}
-
-/* Asetellaan "submit"-painike */
-#lomake #submit {
-	display: block;
-	text-align: center;
-}
-
-
 /*************************************************
 	Listojen tyylittely (joissa käytetään checkbox)
 **************************************************/
@@ -388,10 +331,6 @@ input { padding: 3pt; }
 	//Teen myöhemmin.
 
 **************************************************/
-.haku {
-	/*margin-left: 5%;*/
-}
-
 .haku input[type=text], #hakutyyppi, #numerotyyppi{
 	padding: 5pt;
 	font-size: 100%;

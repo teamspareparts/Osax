@@ -64,4 +64,17 @@ class Yritys {
 	public function isValid () {
 		return ( ($this->id !== NULL ) && ($this->aktiivinen != 0) );
 	}
+
+	/** */function __toString () {
+	return "<p>
+		Yrityksen tiedot:<br>
+		Nimi: {$this->nimi}<br>
+		Sähköposti: {$this->sahkoposti}<br>
+		Puhelin: {$this->puhelin}<br>
+		Y-tunnus: {$this->y_tunnus}<br>
+		Osoitetiedot:<br>
+		{$this->katuosoite}<br>
+		{$this->postinumero}, {$this->postitoimipaikka}<br>
+		</p>";
+}
 }

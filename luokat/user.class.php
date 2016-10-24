@@ -142,4 +142,13 @@ class User {
 	public function isValid () {
 		return ( $this->id !== NULL );
 	}
+
+	/** */function __toString () {
+	return "<p>
+		Asiakkaan tiedot:<br>
+		Nimi: {$this->kokoNimi()}<br>
+		Sähköposti: {$this->sahkoposti}<br>
+		Puhelin: {$this->puhelin}<br>
+		</p>";
+}
 }

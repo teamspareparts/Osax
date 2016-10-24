@@ -1,17 +1,13 @@
 <?php
 require './mpdf/mpdf.php';
 require './luokat/laskutiedot.class.php';
-require './luokat/db_yhteys_luokka.class.php'; $db = new DByhteys( 'root', '', 'tuoteluettelo_database' );
-require './luokat/user.class.php'; $user = new User( $db, 4 );
-require './luokat/yritys.class.php'; $yritys = new Yritys( $db, 2 );
-require './luokat/tuote.class.php';
 
 $mpdf = new mPDF();
-$lasku = new Laskutiedot( $db, 1, $user, $yritys );
+$lasku = new Laskutiedot( $db, $tilaus_id, $user, $yritys );
 
-/** ////////////////////////////////////////////////////////////////////// */
+/** //////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
-/** ////////////////////////////////////////////////////////////////////// */
+/** //////////////////////////////////////// */
 /**
  * Laskun alkuosa. Logo, laskun tiedot ja osoitetiedot. Sen jälkeen tuotetaulukon header row.
  */
@@ -127,13 +123,14 @@ $html .= "
  * //TODO: Osax:in yritystiedot.
  */
 
-/** ////////////////////////////////////////////////////////////////////// */
+
+/** //////////////////////////////////////// */
 /** PDF:n luonti */
-/** ////////////////////////////////////////////////////////////////////// */
-/**
+/** //////////////////////////////////////// */
+/*
  * PDF-header ja footer
  * Header: "Osax Oy :: Lasku" keskitettynä
- * Footer: Päivämäärä, sivunumero ja dokumentin nimi ("lasku")
+ * Footer: Päivämäärä, sivunumero ja "Lasku"
  */
 $mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Lasku</div>');
 $mpdf->SetHTMLFooter('
@@ -146,4 +143,4 @@ $mpdf->SetHTMLFooter('
 
 $mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
 
-$mpdf->Output('lasku.pdf', 'D'); // Pakottaa tulostamaan PDF:n suoraan selaimeen.
+$mpdf->Output("Lasku_tilaus_{$lasku->tilaus_nro}.pdf",'F'); // Tulostaa PDF:n suoraan selaimeen.

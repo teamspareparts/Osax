@@ -43,8 +43,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			WHERE kayttaja_id = ? AND osoite_id = ?",
 			[$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
 
+		require 'lasku_pdf_luonti.php'; // Tulostetaan lasku ! Woo se on valmis !
 		//lähetetään tilausvahvistus asiakkaalle
-		//TODO: Luo lasku. Tulossa... joskus. When it's done.
 		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id );
 		//lähetetään tilaus ylläpidolle
 		//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
@@ -70,10 +70,6 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
-		.peruuta {
-			background:rgb(200, 70, 70);
-			border-color: #b70004;
-		}
 	</style>
 </head>
 <body>
@@ -126,7 +122,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled(
 		$products, count($user->toimitusosoitteet), FALSE )?>
-	<p><a class="nappi peruuta" href="ostoskori.php">Palaa takaisin</a></p>
+	<p><a class="nappi red" href="ostoskori.php">Palaa takaisin</a></p>
 </main>
 <form class="hidden" id="laheta_tilaus_form" action="#" method=post>
 	<input type=hidden id="toimitusosoite_form_input" name="toimitusosoite_id" value="">
