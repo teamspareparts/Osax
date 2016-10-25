@@ -14,7 +14,7 @@ foreach ( $f as $k => $v ) { // Poistetaan .sql-tiedoston kommentit
 
 $db_file = explode( ";", implode("", $f) ); // Muunnetaan jokainen query omaan indexiin
 foreach ( $db_file as $sql ) {
-	if ( !empty($sql) ) {
+	if ( !empty($sql) && strlen($sql) > 5 ) {
 		$db->query( $sql );
 	}
 }
