@@ -9,14 +9,14 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `sukunimi` varchar(20) DEFAULT NULL,
   `yritys_id` int(11) NOT NULL, -- Foreign KEY
   `puhelin` varchar(20) DEFAULT NULL,
-  `yllapitaja` tinyint(1) NOT NULL DEFAULT '0',
-  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
-  `demo` tinyint(1) NOT NULL DEFAULT '0', -- Välikaikainen tunnus sivuston demoamista varten
-  `viime_sijainti` varchar(100) DEFAULT '',
+  `yllapitaja` tinyint(1) NOT NULL DEFAULT 0,
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,
+  `demo` tinyint(1) NOT NULL DEFAULT 0, -- Välikaikainen tunnus sivuston demoamista varten
+  `viime_sijainti` varchar(100) DEFAULT NULL,
   `luotu` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `voimassaolopvm` timestamp DEFAULT 0, -- Miten pitkään tunnus on voimassa, jos demo = 1
-  `salasana_uusittava` tinyint(1) NOT NULL DEFAULT '0',
-  `vahvista_eula` tinyint(1) NOT NULL DEFAULT '1',
+  `salasana_uusittava` tinyint(1) NOT NULL DEFAULT 0,
+  `vahvista_eula` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`sahkoposti`),
   CONSTRAINT fk_kayttaja_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -25,15 +25,15 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `nimi` varchar(255) NOT NULL, -- UNIQUE KEY
   `y_tunnus` varchar(9) NOT NULL,  -- UNIQUE KEY
-  `sahkoposti` varchar(255) DEFAULT '',
-  `puhelin` varchar(20) DEFAULT '',
-  `katuosoite` varchar(255) DEFAULT '',
-  `postinumero` varchar(10) DEFAULT '',
-  `postitoimipaikka` varchar(255) DEFAULT '',
+  `sahkoposti` varchar(255) DEFAULT NULL,
+  `puhelin` varchar(20) DEFAULT NULL,
+  `katuosoite` varchar(255) DEFAULT NULL,
+  `postinumero` varchar(10) DEFAULT NULL,
+  `postitoimipaikka` varchar(255) DEFAULT NULL,
   `maa` VARCHAR(200) DEFAULT 'Suomi',
-  `aktiivinen` tinyint(1) DEFAULT '1',
-  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
-  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT '1000',
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,
+  `rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
+  `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT 1000.00,
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`, `y_tunnus`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -44,16 +44,16 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hankintapaikka_id` int(11) NOT NULL, -- FK, UK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilaus_koodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
-  `hinta_ilman_ALV` decimal(11,2) NOT NULL DEFAULT '0.00',
-  `ALV_kanta` tinyint(1) NOT NULL DEFAULT '0', -- Foreign KEY
-  `varastosaldo` int(11) NOT NULL DEFAULT '0',
-  `minimimyyntiera` int(11) NOT NULL DEFAULT '1',
-  `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT '0',
-  `yhteensa_kpl` int(11) NOT NULL DEFAULT '0', -- Tämän avulla lasketaan keskiostohinta.
-  `keskiostohinta` decimal(11,2) NOT NULL DEFAULT '0',
-  `alennusera_kpl` int(11) NOT NULL DEFAULT '0', -- Maaraalennus_kpl -- Saattaa olla turha
-  `alennusera_prosentti` decimal(3,2) NOT NULL default '0.00', -- Maaraalennus_pros -- Saattaa olla turha
-  `aktiivinen` tinyint(1) NOT NULL DEFAULT '1',
+  `hinta_ilman_ALV` decimal(11,2) NOT NULL,
+  `ALV_kanta` tinyint(1) NOT NULL DEFAULT 0, -- Foreign KEY
+  `varastosaldo` int(11) NOT NULL DEFAULT 0,
+  `minimimyyntiera` int(11) NOT NULL DEFAULT 1,
+  `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `yhteensa_kpl` int(11) NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
+  `keskiostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
+  `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
+  `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   /*CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),*/
   CONSTRAINT fk_tuote_alvKanta FOREIGN KEY (`ALV_kanta`) REFERENCES `ALV_kanta`(`kanta`)
@@ -62,9 +62,9 @@ CREATE TABLE IF NOT EXISTS `tuote` (
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `kayttaja_id` int(11) NOT NULL, -- Foreign KEY
-  `kasitelty` tinyint(1) NOT NULL DEFAULT '0',
+  `kasitelty` tinyint(1) NOT NULL DEFAULT 0,
   `paivamaara` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT '15',
+  `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   PRIMARY KEY (`id`),
   CONSTRAINT fk_tilaus_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
@@ -114,14 +114,14 @@ CREATE TABLE IF NOT EXISTS `ALV_kanta` (
 CREATE TABLE IF NOT EXISTS `toimitusosoite` (
   `kayttaja_id` int(11) NOT NULL, -- PK, FK
   `osoite_id` tinyint(2) NOT NULL, -- PK
-  `etunimi` varchar(255) DEFAULT '',
-  `sukunimi` varchar(255) DEFAULT '',
-  `sahkoposti` varchar(255) DEFAULT '',
-  `puhelin` varchar(20) DEFAULT '',
-  `yritys` varchar(50) DEFAULT '',
-  `katuosoite` varchar(255) DEFAULT '',
-  `postinumero` varchar(10) DEFAULT '',
-  `postitoimipaikka` varchar(255) DEFAULT '',
+  `etunimi` varchar(255) DEFAULT NULL,
+  `sukunimi` varchar(255) DEFAULT NULL,
+  `sahkoposti` varchar(255) DEFAULT NULL,
+  `puhelin` varchar(20) DEFAULT NULL,
+  `yritys` varchar(50) DEFAULT NULL,
+  `katuosoite` varchar(255) NOT NULL, -- Not null, koska se on osoite.
+  `postinumero` varchar(10) NOT NULL, -- Ditto
+  `postitoimipaikka` varchar(255) NOT NULL, -- Ditto
   `maa` varchar(200) DEFAULT 'Suomi',
   PRIMARY KEY (`kayttaja_id`, `osoite_id`),
   CONSTRAINT fk_toimitusosoite_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
@@ -151,12 +151,12 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `tuote_id` int(11) DEFAULT NULL, -- Foreign KEY
-  `yritys_id` int(11) DEFAULT NULL, -- Foreign KEY
-  `kayttaja_id` int(11) DEFAULT NULL, -- Foreign KEY
-  `maaraalennus_kpl` int(11) DEFAULT '0',
-  `maaraalennus_prosentti` decimal(3,2) DEFAULT '0.00',
-  `yleinenalennus_prosentti` decimal(3,2) DEFAULT '0.00',
+  `tuote_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
+  `yritys_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
+  `kayttaja_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
+  `maaraalennus_kpl` int(11) DEFAULT 0,
+  `maaraalennus_prosentti` decimal(3,2) DEFAULT 0.00,
+  `yleinenalennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `voimassaolopvm` timestamp NULL DEFAULT NULL, -- Jos tarjouksella on vanhenemisraja
   PRIMARY KEY (`id`),
   CONSTRAINT fk_tuoteErikoishinta_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`),
@@ -174,7 +174,7 @@ CREATE TABLE IF NOT EXISTS `ostoskori` (
 CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   `ostoskori_id` int(11) NOT NULL, -- PK, FK
   `tuote_id` int(11) NOT NULL, -- PK, FK
-  `kpl_maara` int(11) NOT NULL DEFAULT '1',
+  `kpl_maara` int(11) NOT NULL DEFAULT 1,
   PRIMARY KEY (`ostoskori_id`, `tuote_id`),
   CONSTRAINT fk_ostoskoriTuote_ostoskori FOREIGN KEY (`ostoskori_id`) REFERENCES `ostoskori`(`id`),
   CONSTRAINT fk_ostoskoriTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
@@ -216,7 +216,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
-	FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
+	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
