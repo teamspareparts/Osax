@@ -4,8 +4,10 @@
     Modalin saa näkyviin kutsumalla funktiota productModal ja
     antamalla sille parametriksi tuotteen id:n.
 
----------------------------------------------------------------------------->
+    Vaatii jQueryn, Tecdocin jsonEndpointin ja bootstrap3.
 
+---------------------------------------------------------------------------->
+<?php require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -40,8 +42,13 @@
 <div id="cover"></div>
 
 
-
+<!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
 <script type="text/javascript">
+    var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
+    var TECDOC_COUNTRY = <?= json_encode(TECDOC_COUNTRY); ?>;
+    var TECDOC_LANGUAGE = <?= json_encode(TECDOC_LANGUAGE); ?>;
+    var TECDOC_THUMB_URL = <?= json_encode(TECDOC_THUMB_URL); ?>;
+
     /**
      * Haetaan tuotteen tiedot annetulla id:llä
      * @param id
@@ -298,9 +305,9 @@
 			    </div>\
 			</div>\
 		');
-        $("#menu2").append(imgs);
+        $("#menu2").append("<br>" + imgs);
 
-        $("#menu3").append(OEtable);
+        $("#menu3").append("<br>" + OEtable);
 
 
         //Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
@@ -327,4 +334,111 @@
             car_dropdown.css("display", "none");
 		}
 	}
+
+    //Haetaan linkitettyjen autojen ID:t
+    function getLinkedVehicleIds( articleId, manuId ) {
+        var functionName = "getArticleLinkedAllLinkingTarget3";
+        var params = {
+            "articleCountry" : TECDOC_COUNTRY,
+            "lang" : TECDOC_LANGUAGE,
+            "provider" : TECDOC_MANDATOR,
+            "articleId" : articleId,
+            "linkingTargetManuId" : manuId,
+            "linkingTargetType" : "P"
+        };
+        params = toJSON(params);
+        tecdocToCatPort[functionName] (params, function (response){
+            var pair, i;
+            var articleIdPairs = [];
+            if ( response.data != "" ) {
+                response = response.data.array[0];
+                for (i = 0; i < response.articleLinkages.array.length; i++) {
+                    pair = {
+                        "articleLinkId" : response.articleLinkages.array[i].articleLinkId,
+                        "linkingTargetId" : response.articleLinkages.array[i].linkingTargetId
+                    };
+                    articleIdPairs.push(pair);
+                    if ( articleIdPairs.length == 25 ) {
+                        getLinkedVehicleInfos(articleId, articleIdPairs);
+                        articleIdPairs = [];
+                    }
+                }
+            }
+            getLinkedVehicleInfos(articleId, articleIdPairs);
+        });
+    }
+
+    //Haetaan linkitettyjen autojen tiedot
+    function getLinkedVehicleInfos( articleId, articleIdPairs ) {
+        var functionName = "getArticleLinkedAllLinkingTargetsByIds3";
+        var params = {
+            "articleCountry" : TECDOC_COUNTRY,
+            "lang" : TECDOC_LANGUAGE,
+            "provider" : TECDOC_MANDATOR,
+            "articleId" : articleId,
+            "linkingTargetType" : "P",
+            "linkedArticlePairs" : {
+                "array" : articleIdPairs
+            }
+        };
+        params = toJSON(params);
+        tecdocToCatPort[functionName] (params, addLinkedVehiclesToModal);
+    }
+
+    function addLinkedVehiclesToModal(response) {
+        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
+        for (var i=0; i<response.data.array.length ; i++) {
+            var yearTo = "";
+            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo != 'undefined') {
+                yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
+            }
+            $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
+                response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
+                response.data.array[i].linkedVehicles.array[0].carDesc + " " +
+                addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
+                    yearTo + "</li>"));
+        }
+    }
+
+    /**
+     * Apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun vuosiluvut parempaan muotoon
+     * @param text
+     * @returns {string}
+     */
+    function addSlashes(text) {
+        text = String(text);
+        return (text.substr(0, 4) + "/" + text.substr(4));
+    }
+
+
+
+
+
+    $('#myModal').on('hidden.bs.modal', function () {
+        $( "#menu1" ).empty();
+        $( "#menu2" ).empty();
+        $( "#menu3" ).empty();
+        $( "#dd" ).empty();
+    });
+
+    //Käytetään eri muotoilua, koska dynaaminen content
+    $(document.body)
+        .on('mouseover', '#asennusohje', function(){
+            $(this).css("text-decoration", "underline"); })
+        .on('mouseout', '#asennusohje', function(){
+            $(this).css("text-decoration", "none");
+        });
+
+    //avaa tuotteen kuvan isona uuteen ikkunaan
+    $(document.body).on('click', '.kuva', function(){
+        var src = this.src;
+        var w = this.naturalWidth;
+        var h = this.naturalHeight;
+
+        var left = (screen.width/2)-(w/2);
+        var top = (screen.height/2)-(h/2);
+        //TODO: will this change work? myWindow =
+        window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+    }); //close click
+
 </script>
