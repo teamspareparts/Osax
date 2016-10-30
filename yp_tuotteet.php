@@ -3,7 +3,6 @@ require_once '_start.php'; global $db, $user, $cart;
 require_once 'tecdoc.php';
 require_once 'apufunktiot.php';
 
-
 /**
  * Lisää uuden tuotteen tietokantaan.
  * Jos tuote on jo tietokannassa, päivittää uudet tiedot, ja asettaa aktiiviseksi.
@@ -13,16 +12,16 @@ require_once 'apufunktiot.php';
  */
 function add_product_to_catalog( DByhteys $db, /*array*/ $val ) {
 	$sql = "INSERT INTO tuote 
-				(articleNo, brandNo, hinta_ilman_ALV, ALV_kanta, varastosaldo, minimimyyntiera, alennusera_kpl, 
-					alennusera_prosentti) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
+				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, yhteensa_kpl, keskiostohinta) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
 			ON DUPLICATE KEY 
-				UPDATE articleNo=VALUES(articleNo), brandNo=VALUES(brandNo), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
+				UPDATE sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
 					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
 					minimimyyntiera=VALUES(minimimyyntiera), alennusera_kpl=VALUES(alennusera_kpl),
 					alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
 	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
+		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10] ] );
 }
 
 /**
@@ -42,14 +41,15 @@ function remove_product_from_catalog( DByhteys $db, /*int*/ $id) {
  * @param array $val
  * @return bool <p> onnistuiko muutos. Tosin heittää exceptionin, jos jotain menee vikaan haussa.
  */
+//TODO: keskiostohinnan ja yhteensa_kpl muokkaus valmiiksi
 function modify_product_in_catalog( DByhteys $db, /*array*/ $val ) {
 	$sql = "UPDATE tuote 
-			SET hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, minimimyyntiera = ?, 
+			SET sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, minimimyyntiera = ?, 
 				alennusera_kpl = ?, alennusera_prosentti = ?
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6] ] );
+		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
 }
 
 /**
@@ -82,7 +82,7 @@ function hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko ( $db ) {
 
     $return_string = '<select name="hankintapaikka_lista">';
     foreach ( $rows as $hp ) {
-        $return_string .= "<option name=\"alv\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
+        $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
     }
     $return_string .= "</select>";
 
@@ -122,16 +122,16 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	}
 
 
-	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
+	$catalog_products = $all_products = array();
 	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
 
 	//Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
 		$row = get_product_from_database($db, $product);
-		if ( !$row && !in_array($product->articleId, $articleIds)) {
+		if (!in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
-			$not_in_catalog[] = $product;
+			$all_products[] = $product;
 		}
 		if ( $row ) {
 			//Kaikki löytyneet tuotteet (eri hankintapaikat)
@@ -141,19 +141,14 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 					$tuote->articleId = $product->articleId;
 					$tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 					$tuote->brandName = $product->brandName;
-					if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
-						$catalog_products[] = $tuote;
-					} else {
-						$not_available_catalog_products[] = $tuote;
-					}
+                    $catalog_products[] = $tuote;
 				}
 			}
 		}
 	}
 	merge_products_with_optional_data( $catalog_products );
-	merge_products_with_optional_data( $not_available_catalog_products );
 
-	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
+	return [$catalog_products, $all_products];
 }
 
 /** Järjestetään tuotteet hinnan mukaan
@@ -197,7 +192,50 @@ function halkaise_hakunumero(&$number, &$etuliite){
 
 
 $haku = FALSE;
-$products = $catalog_products = $not_in_catalog = $not_available = [];
+$products = $catalog_products = $all_products = [];
+
+if ( !empty($_POST['lisaa']) ) {
+    $tuotekoodi = (str_pad($_POST['hankintapaikka_lista'], 3, "0", STR_PAD_LEFT) .
+                    "-" . str_replace(" ", "", strval($_POST['articleNo'])));
+    $array = [
+        str_replace(" ", "", strval($_POST['articleNo'])),
+        intval($_POST['brandNo']),
+        intval($_POST['hankintapaikka_lista']),
+        $tuotekoodi,
+        floatval($_POST['ostohinta']),
+        floatval($_POST['hinta']),
+        intval($_POST['alv_lista']),
+        intval($_POST['varastosaldo']),
+        intval($_POST['minimimyyntiera']),
+        intval($_POST['alennusera_kpl']),
+        (floatval($_POST['alennusera_prosentti']) / 100),
+    ];
+    if ( add_product_to_catalog( $db, $array ) ) {
+        $feedback = '<p class="success">Tuote lisätty!</p>';
+    } else { $feedback = '<p class="error">Tuotteen lisäys epäonnistui!</p>'; }
+
+} elseif ( !empty($_GET['poista']) ) {
+    if ( remove_product_from_catalog( $db, $_GET['poista'] ) ) {
+        $feedback = '<p class="success">Tuote poistettu!</p>';
+    } else { $feedback = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
+
+} elseif ( !empty($_POST['muokkaa']) ) {
+    $array = [
+        $_POST['ostohinta'],
+        $_POST['hinta'],
+        $_POST['alv_lista'],
+        $_POST['varastosaldo'],
+        $_POST['minimimyyntiera'],
+        $_POST['alennusera_kpl'],
+        ($_POST['alennusera_prosentti'] / 100),
+        $_POST['id']
+    ];
+    if ( modify_product_in_catalog( $db, $array ) ) {
+        echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
+    } else {
+        echo '<p class="error">Tuotteen muokkaus epäonnistui!</p>';
+    }
+}
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -235,12 +273,11 @@ if ( !empty($_GET['haku']) ) {
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
-	$not_available = $filtered_product_arrays[1];
-	$not_in_catalog = $filtered_product_arrays[2];
+	$all_products = $filtered_product_arrays[1];
 	$catalog_products = sortProductsByPrice($catalog_products);
 }
 
-if ( !empty($_GET["manuf"]) ) {
+else if ( !empty($_GET["manuf"]) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$selectCar = $_GET["car"];
 	$selectPartType = $_GET["osat_alalaji"];
@@ -248,10 +285,13 @@ if ( !empty($_GET["manuf"]) ) {
 	$products = getArticleIdsWithState($selectCar, $selectPartType);
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
-	$not_available = $filtered_product_arrays[1];
-	$not_in_catalog = $filtered_product_arrays[2];
+	$all_products = $filtered_product_arrays[1];
 	$catalog_products = sortProductsByPrice($catalog_products);
 }
+
+
+
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -315,10 +355,10 @@ if ( !empty($_GET["manuf"]) ) {
 	<section class="hakutulokset">
 		<?php if ( $haku ) : ?>
 			<h4>Yhteensä löydettyjä tuotteita:
-				<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h4>
+				<?=count($catalog_products) + count($all_products) ?></h4>
 
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
-				<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
+				<h2>Valikoimassa: (<?=count($catalog_products)?>)</h2>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>
 					<tr><th>Kuva</th>
@@ -327,9 +367,7 @@ if ( !empty($_GET["manuf"]) ) {
 						<th>Info</th>
 						<th class="number">Saldo</th>
 						<th class="number">Hinta (sis. ALV)</th>
-						<?php if ( $user->isAdmin() ) : ?>
-							<th class="number">Ostohinta ALV0%</th>
-						<?php endif; ?>
+                        <th class="number">Ostohinta ALV0%</th>
 						<th>Kpl</th>
 						<th></th>
 					</tr>
@@ -350,68 +388,29 @@ if ( !empty($_GET["manuf"]) ) {
 							</td>
 							<td class="number"><?=format_integer($product->varastosaldo)?></td>
 							<td class="number"><?=format_euros($product->hinta)?></td>
-							<?php if ( $user->isAdmin() ) : ?>
-								<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-							<?php endif;?>
+                            <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
 							<td style="padding-top: 0; padding-bottom: 0;">
 								<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 									   type="number" value="0" min="0" title="Kappale-määrä"></td>
-							<td class="toiminnot" id="tuote_cartAdd_<?=$product->id?>">
+							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
-								<button class="nappi" onclick="addToShoppingCart(<?=$product->id?>)">
-									<i class="material-icons">add_shopping_cart</i>Osta</button></td>
+								<button class="nappi" onclick="showRemoveDialog(<?=$product->id?>)">
+                                    Poista</button><br>
+                                <button class="nappi" onclick="showModifyDialog(<?=$product->id?>,
+                                    '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
+                                    '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
+                                    '<?=$product->minimimyyntiera?>', '<?=$product->alennusera_kpl?>',
+                                    '<?=$product->alennusera_prosentti?>')">
+                                    Muokkaa</button>
+                            </td>
 						</tr>
 					<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
 					</tbody>
 				</table>
 			<?php endif; //if $catalog_products
 
-			if ( $not_available) : // Tulokset (ei saatavilla) ?>
-				<h2>Ei varastossa: (<?=count($not_available)?>)</h2>
-				<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
-					<thead>
-					<tr><th>Kuva</th>
-						<th>Tuotenumero</th>
-						<th>Tuote</th>
-						<th>Info</th>
-						<th class="number">Saldo</th>
-						<th class="number">Hinta (sis. ALV)</th>
-						<?php if ( $user->isAdmin() ) : ?>
-							<th class="number">Ostohinta ALV0%</th>
-						<?php endif; ?>
-						<th></th>
-					</tr>
-					</thead>
-					<tbody>
-					<?php foreach ($not_available as $product) : ?>
-						<tr data-val="<?=$product->articleId?>">
-							<td class="clickable thumb">
-								<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
-							<td class="clickable"><?=$product->tuotekoodi?></td>
-							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-							<td class="clickable">
-								<?php foreach ( $product->infos as $info ) :
-									echo (!empty($info->attrName) ? $info->attrName : "") . " " .
-										(!empty($info->attrValue) ? $info->attrValue : "") .
-										(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
-								endforeach; ?>
-							</td>
-							<td class="number"><?=format_integer($product->varastosaldo)?></td>
-							<td class="number"><?=format_euros($product->hinta)?></td>
-							<?php if ( $user->isAdmin() ) : ?>
-								<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-							<?php endif; ?>
-							<td id="tuote_ostopyynto_<?=$product->id?>">
-								<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
-									<i class="material-icons">info</i></button>
-						</tr>
-					<?php endforeach; ?>
-					</tbody>
-				</table>
-			<?php endif; //if $not_available catalog products
-
-			if ( $not_in_catalog) : //Tulokset (ei katalogissa)?>
-				<h2>Ei valikoimassa: (<?=count($not_in_catalog)?>)</h2>
+			if ( $all_products) : //Tulokset (ei katalogissa)?>
+				<h2>Kaikki tuotteet: (<?=count($all_products)?>)</h2>
 				<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
 					<thead>
 					<tr><th>Tuotenumero</th>
@@ -420,7 +419,7 @@ if ( !empty($_GET["manuf"]) ) {
 					</tr>
 					</thead>
 					<tbody>
-					<?php foreach ($not_in_catalog as $product) : ?>
+					<?php foreach ($all_products as $product) : ?>
 						<tr data-val="<?=$product->articleId?>">
 							<td class="clickable"><?=$product->articleNo?></td>
 							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
@@ -430,9 +429,9 @@ if ( !empty($_GET["manuf"]) ) {
 					<?php endforeach; ?>
 					</tbody>
 				</table>
-			<?php endif; //if $not_in_catalog products
+			<?php endif; //if $all_products
 
-			if ( !$catalog_products && !$not_available && !$not_in_catalog ) : ?>
+			if ( !$catalog_products && !$all_products ) : ?>
 				<h2>Ei tuloksia.</h2>
 			<?php endif; //if ei tuloksia?>
 
@@ -449,21 +448,26 @@ if ( !empty($_GET["manuf"]) ) {
      */
     function showAddDialog( articleNo, brandNo ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
+        var hankintapaikka_valikko = <?php echo json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Lisää tuote</div> \
-				<form action="yp_tuotteet.php" name="lisayslomake" method="post"> \
-					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
+				<form action="" name="lisayslomake" method="post"> \
+				    <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00"> &euro;</span><br> \
+					<label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
 				    '+alv_valikko+'\
+					</span><br> \
+					<label for="hp">Hankintapaikka:</label><span class="dialogi-kentta"> \
+				    '+hankintapaikka_valikko+'\
 					</span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
 					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
-					<p><input class="nappi" type="submit" name="laheta" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
-						href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
-					<input type="hidden" name="lisaa" value="' + articleNo + '"> \
+					<input class="nappi" type="submit" name="lisaa" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
+						href="javascript:void(0)" onclick="Modal.close()">Peruuta</a> \
+					<input type="hidden" name="articleNo" value="' + articleNo + '"> \
 					<input type="hidden" name="brandNo" value=' + brandNo + '> \
 				</form>',
             draggable: true
@@ -475,44 +479,48 @@ if ( !empty($_GET["manuf"]) ) {
      * @param id
      */
     function showRemoveDialog(id) {
+        //TODO: voitaisiin toteuttaa myös formilla
+        var url = <?php echo  json_encode($_SERVER['REQUEST_URI']);?>;
         Modal.open( {
             content: '\
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
-		<p style="margin-top: 20pt;"><a class="nappi" href="yp_tuotteet.php?poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
+		<p style="margin-top: 20pt;"><a class="nappi" href="'+url+'&poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
 			onclick="Modal.close()">Peruuta</a></p>'
         } );
     }
 
 
     /**
-     * Valikoimaan lisätyn tuotteen muokkaus
+     * Valikoimaan lisätyn tuotteen muokkaus.
      * @param id
-     * @param price
+     * @param ostohinta
+     * @param hinta
      * @param alv
-     * @param count
-     * @param minimumSaleCount
+     * @param varastosaldo
+     * @param minimimyyntiera
      * @param alennusera_kpl
      * @param alennusera_prosentti
      */
-    function showModifyDialog(id, price, alv, count, minimumSaleCount, alennusera_kpl, alennusera_prosentti) {
+    function showModifyDialog(id, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, maara_alennus, prosentti_alennus ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
-				<form action="yp_tuotteet.php" name="muokkauslomake" method="post"> \
-					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="' + price + '"> &euro;</span><br> \
+				<form action="" name="muokkauslomake" method="post"> \
+					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'"> &euro;</span><br> \
+					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'"> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-						 \
+				    '+alv_valikko+'\
 					</span><br> \
-					<span class="dialogi-kentta">Nykyinen verokanta: ' + alv + '</span><br>\
-					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="' + count + '"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="' + minimumSaleCount + '"> kpl</span><br> \
-					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="' + alennusera_kpl + '"> kpl</span><br> \
-					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="' + alennusera_prosentti + '"></span><br> \
-					<p><input class="nappi" type="submit" name="tallenna" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
+					<span class="dialogi-kentta">Nykyinen verokanta: '+alv+'</span><br>\
+					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
+					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="'+minimimyyntiera+'"> kpl</span><br> \
+					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="'+maara_alennus+'"> kpl</span><br> \
+					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="'+prosentti_alennus+'"></span><br> \
+					<p><input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
 						href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
-					<input type="hidden" name="muokkaa" value="' + id + '"> \
+					<input type="hidden" name="id" value="' + id + '"> \
 				</form>',
             draggable: true
         } );

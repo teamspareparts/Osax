@@ -1,5 +1,5 @@
 <?php
-require '_start.php'; //global $db, $user, $cart;
+require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
 if ( $user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
