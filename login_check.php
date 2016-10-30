@@ -129,16 +129,11 @@ if ( $mode == "login" ) {
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
 		// Jos läpi tarkistuksista...
-		
-   		$_SESSION['email']	= $login_user->sahkoposti;
-   		$_SESSION['id']		= $login_user->id;
-   		$_SESSION['admin']	= $login_user->yllapitaja; //TODO: Tämän voisi korvata luokan metodilla
-		$_SESSION['yritys_id'] = $login_user->yritys_id;
-   		
-//   		check_IP_address( $db, $user->id, $user_info->viime_sijainti );
+
+        //check_IP_address( $db, $user->id, $user_info->viime_sijainti );
 
    		/** Tarkistetaan salasanan voimassaoloaika */ 		
-   		$time_then 	= new DateTime( $login_user->salasana_vaihdettu ); // muunnettuna DateTime-muotoon
+   		$time_then 	= new DateTime( strval($login_user->salasana_vaihdettu) ); // muunnettuna DateTime-muotoon
 		$time_now	= new DateTime();
 		//Jos salasana vanhentunut tai salasana on uusittava
    		if ( ($time_then->modify("+{$salasanan_voimassaoloaika} days") < $time_now) ||
@@ -147,6 +142,9 @@ if ( $mode == "login" ) {
    		}
    		
    		else { //JOS KAIKKI OK->
+            $_SESSION['id']		= $login_user->id;
+            $_SESSION['yritys_id'] = $login_user->yritys_id;
+            $_SESSION['email']	= $login_user->sahkoposti;
             addDynamicAddress();
 
 			if ( $login_user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...

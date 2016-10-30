@@ -22,7 +22,8 @@ if (isset($_POST['nimi'])) {
 					postitoimipaikka=VALUES(postitoimipaikka), maa=VALUES(maa), aktiivinen='1' ";
 
 		if ( $db->query($sql, array_values($_POST)) ) {
-			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ?", [$yritys_nimi]);
+			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ? AND y_tunnus = ?",
+							[$_POST['nimi'], $_POST['y_tunnus']]);
 			header("Location:yp_yritykset.php?feedback=success"); exit;
 		}
 	} else {

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
  * @param $var
@@ -36,4 +36,7 @@ $cart = new Ostoskori( $db, $user->yritys_id );
  */
 if ( !$user->isValid() ) {
 	header( 'Location: index.php?redir=4' ); exit;
+}
+elseif (!$user->eula_hyvaksytty()) {
+    header( 'Location: eula.php' ); exit;
 }

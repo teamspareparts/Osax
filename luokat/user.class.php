@@ -17,10 +17,12 @@ class User {
 
 	public $yllapitaja = FALSE;
 	public $demo = FALSE;
+    private $vahvista_eula = TRUE;
 	public $voimassaolopvm = NULL;
 	public $salasana_uusittava = NULL;
 	/** @var stdClass[] */
 	public $toimitusosoitteet = array();
+
 
 	/**
 	 * user constructor.<p>
@@ -33,7 +35,8 @@ class User {
 	function __construct ( DByhteys $db, /*int*/ $user_id ) {
 		if ( $user_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
-				  		yllapitaja, demo, voimassaolopvm, salasana_uusittava, aktiivinen
+				  		 yllapitaja, demo, voimassaolopvm, salasana_uusittava,
+				  		 vahvista_eula, aktiivinen
 					FROM kayttaja 
 					WHERE id = ?
 					LIMIT 1";
@@ -51,6 +54,7 @@ class User {
 
 				$this->yllapitaja = $foo->yllapitaja;
 				$this->demo = $foo->demo;
+                $this->vahvista_eula = $foo->vahvista_eula;
 				$this->voimassaolopvm = $foo->voimassaolopvm;
 				$this->salasana_uusittava = $foo->salasana_uusittava;
 			}
@@ -64,6 +68,14 @@ class User {
 	public function isAdmin () {
 		return ($this->yllapitaja === 1);
 	}
+
+    /**
+     * Palauttaa TRUE jos käyttäjä on hyväksynyt käyttöehtosopimuksen, ja false muussa tapauksessa.
+     * @return bool <p> Onko EULA hyväksytty.
+     */
+	public function eula_hyvaksytty() {
+       return ($this->vahvista_eula === 0);
+    }
 
 	/**
 	 * Palauttaa koko nimen; muotoiltuna, jos pituus liian pitkä.

@@ -56,11 +56,11 @@ function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_sal
 
 	$query = "	UPDATE	kayttaja 
 				SET 	salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
-				WHERE	sahkoposti = ? ";
-	$db->query( $query, [$hajautettu_uusi_salasana, $user->kayttaja_id] );
+				WHERE	id = ? ";
+	$db->query( $query, [$hajautettu_uusi_salasana, $user->id] );
 
 	$query = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
-	$db->query( $query, [$user->kayttaja_id, $reset_key] );
+	$db->query( $query, [$user->id, $reset_key] );
 }
 
 if ( empty($_GET['id']) ) {
