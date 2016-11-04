@@ -66,7 +66,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
@@ -134,15 +134,22 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	var osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
 	console.log( osoitekirja );
 
+	/**
+	 * Avaa Modalin toimitusosoitteen valintaa varten
+	 */
 	function avaa_Modal_valitse_toimitusosoite() {
 		Modal.open({
-			content:  ' \
-//				<?//= toimitusosoitteiden_Modal_tulostus( $user->toimitusosoitteet )?>// \
+			content:  '\
+				<?= toimitusosoitteiden_Modal_tulostus( $user->toimitusosoitteet )?> \
 				',
 			draggable: true
 		});
 	}
 
+	/**
+	 * Valitse toimitusosoite. Tulostaa, ja asettaa osoitteen ID:n piilotettuun formiin.
+	 * @param osoite_id
+	 */
 	function valitse_toimitusosoite( osoite_id ) {
 		var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
 		var osoite_array = osoitekirja[osoite_id];

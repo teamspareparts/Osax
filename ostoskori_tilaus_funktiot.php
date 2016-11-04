@@ -77,8 +77,7 @@ function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ost
 function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
 	$s = '';
 	foreach ( $osoitekirja_array as $index => $osoite ) {
-		$s .= "
-		<div> Osoite {$index}<br><br> \\";
+		$s .= "<div> Osoite {$index}<br><br> \\";
 
 		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']); //Hienompi tulostus
 
