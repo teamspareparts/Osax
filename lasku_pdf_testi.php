@@ -66,10 +66,10 @@ foreach ( $lasku->tuotteet as $tuote ) {
 			<td>{$tuote->tuotekoodi}</td>
 			<td>{$tuote->tuotenimi}</td>
 			<td>{$tuote->valmistaja}</td>
-			<td style='text-align:right;'>{$tuote->a_hinta_toString()} €</td>
+			<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
 			<td style='text-align:right;'>{$tuote->alv_prosentti} %</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
-			<td style='text-align:right;'>{$tuote->summa_toString()} €</td>
+			<td style='text-align:right;'>{$tuote->summa_toString()}</td>
 		</tr>";
 }
 
@@ -95,9 +95,9 @@ $html .= "
  */
 foreach ( $lasku->hintatiedot['alv_kannat'] as $kanta ) {
 	$html .= "
-		<tr><td style='text-align:right;'>{$kanta['kanta']}</td>
-			<td style='text-align:right;'>{$lasku->float_toString($kanta['perus'])}</td>
-			<td style='text-align:right;'>{$lasku->float_toString($kanta['maara'])}</td></tr>";
+		<tr><td style='text-align:right;'>{$kanta['kanta']} %</td>
+			<td style='text-align:right;'>{$lasku->float_toString($kanta['perus'])} €</td>
+			<td style='text-align:right;'>{$lasku->float_toString($kanta['maara'])} €</td></tr>";
 }
 
 /**
@@ -105,19 +105,19 @@ foreach ( $lasku->hintatiedot['alv_kannat'] as $kanta ) {
  */
 $html .= "
 		<tr><td style='text-align:center;'>Yht.</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_perus'])}</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_maara'])}</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_perus'])} €</td>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_maara'])} €</td></tr>
 		</tbody>
 	</table></td><td>
 	<table style='margin-right:50px;'>
 		<thead><tr><th colspan='2' style='text-align: center;'>LOPPUSUMMA</th></tr></thead>
 		<tbody>
 		<tr><td>Tuotteet yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['tuotteet_yht'])}</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['tuotteet_yht'])} €</td></tr>
 		<tr><td>Lisäveloitukset:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['lisaveloitukset'])}</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['lisaveloitukset'])} €</td></tr>
 		<tr><td>Summa yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])}</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €</td></tr>
 		</tbody>
 	</table></td></tr>
 </table>
@@ -144,6 +144,6 @@ $mpdf->SetHTMLFooter('
 </tr></table>
 ');
 
-$mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
+$mpdf->WriteHTML( $html );
 
-$mpdf->Output('lasku.pdf', 'D'); // Pakottaa tulostamaan PDF:n suoraan selaimeen.
+$mpdf->Output();

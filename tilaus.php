@@ -21,12 +21,13 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		//Tuotteiden pysyvä tallennus tietokantaan
 		$db->prepare_stmt( '
-			INSERT INTO tilaus_tuote (tilaus_id, tuote_id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
-			VALUES (?, ?, ?, ?, ?, ?)' );
+			INSERT INTO tilaus_tuote (tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, 
+				pysyva_alv, pysyva_alennus, kpl)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
 		foreach ( $products as $product ) {
 			$result = $db->run_prepared_stmt( [
-				$tilaus_id, $product->id, $product->hinta_ilman_alv, $product->alv_prosentti,
-				$product->alennusera_prosentti, $product->cartCount
+				$tilaus_id, $product->id, $product->articleName, $product->brandName, $product->hinta_ilman_alv,
+				$product->alv_prosentti, $product->alennusera_prosentti, $product->cartCount
 			] );
 
 			$db->query( //Päivitetään tilattujen tuotteiden varastosaldo

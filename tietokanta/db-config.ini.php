@@ -9,11 +9,11 @@ user = root
 pass =
 
 [Admin tunnukset]
-kayttajatunnus[] = admin
+kayttajatunnus[] = admin@admin
 salasana[] = admin
-kayttajatunnus[] = admin1
+kayttajatunnus[] = admin1@admin
 salasana[] = admin1
-kayttajatunnus[] = admin2
+kayttajatunnus[] = admin2@admin
 salasana[] = admin2
 
 y_nimi = Osax Oy

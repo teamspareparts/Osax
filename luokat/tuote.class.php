@@ -19,11 +19,11 @@ class Tuote {
 
 	/** */
 	function a_hinta_toString () {
-		return number_format ( (double)$this->a_hinta, 2, ',', '.' );
+		return number_format( (double)$this->a_hinta, 2, ',', '.') . ' &euro;';
 	}
 
 	/** */
 	function summa_toString () {
-		return number_format( (double)$this->summa, 2, ',', '.' );
+		return number_format((double)$this->summa, 2, ',', '.') . ' &euro;';
 	}
 }

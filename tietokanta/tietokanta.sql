@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
-  /*CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),*/
+  CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
   CONSTRAINT fk_tuote_alvKanta FOREIGN KEY (`ALV_kanta`) REFERENCES `ALV_kanta`(`kanta`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -72,6 +72,8 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
 CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tilaus_id` int(11) NOT NULL, -- PK, FK
   `tuote_id` int(11) NOT NULL, -- PK, FK
+  `tuotteen_nimi` varchar(20) NOT NULL,
+  `valmistaja` varchar(30) NOT NULL,
   `pysyva_hinta` decimal(11,2) NOT NULL,
   `pysyva_alv` decimal(3,2) NOT NULL,
   `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT 0.00,
