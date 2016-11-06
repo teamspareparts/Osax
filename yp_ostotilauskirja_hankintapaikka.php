@@ -32,9 +32,12 @@ $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
 </head>
 <body>
 <?php require 'header.php'; ?>
-<h1 class="otsikko">Ostotilauskirjat</h1><br>
-<div class="container">
-    <?php if ( $hankintapaikat ) : ?>
+<main class="main_body_container">
+    <section>
+        <h1 class="otsikko">Ostotilauskirjat</h1>
+        <h4>Valitse hankintapaikka:</h4>
+    </section>
+        <?php if ( $hankintapaikat ) : ?>
         <table>
             <thead>
             <tr><th>ID</th>
@@ -58,11 +61,11 @@ $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
             <?php endforeach; ?>
             </tbody>
         </table>
-    <?php else : ?>
-        <p>Ei tehtyjä tilauksia.</p>
-    <?php endif; ?>
-
-</div>
+        <?php else : ?>
+            <p>Ei hankintapaikkoja. Käy luomassa uusia hankintapaikkoja
+            toimittajat -sivulla!</p>
+        <?php endif; ?>
+</main>
 
 
 

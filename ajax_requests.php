@@ -60,6 +60,14 @@ elseif ( !empty($_POST['eula_vahvista']) ) {
 	$result = $db->query( $sql, [$_POST['user_id']] );
 }
 
+/**
+ * Haetaan tuotteen
+ */
+elseif ( !empty($_POST['hankintapaikan_ostotilauskirjat']) ) {
+    $sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";
+    $result = $db->query( $sql, [$_POST['hankintapaikka_id']], FETCH_ALL);
+}
+
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();

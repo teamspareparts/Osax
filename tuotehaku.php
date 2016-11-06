@@ -1,7 +1,7 @@
 <?php
-require_once '_start.php'; global $db, $user, $cart;
-require_once 'tecdoc.php';
-require_once 'apufunktiot.php';
+require '_start.php'; global $db, $user, $cart;
+require 'tecdoc.php';
+require 'apufunktiot.php';
 
 
 /**

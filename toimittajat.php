@@ -14,18 +14,25 @@ function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
 	return $db->query($query, [$brandId], NULL, PDO::FETCH_OBJ);
 }
 
+/**
+ * @param DByhteys $db
+ * @param array $brands
+ * @return string
+ */
 function tulosta_brandit(DByhteys $db, array $brands){
+    $taulukko = "";
 	//Tulostetaan "laatikot", jotka sisältävät kuvan, nimen ja hinnaston sisäänajopäivämäärän
 	foreach ($brands as $brand) {
 		$pvm = hae_hinnaston_sisaanajo_pvm( $db, $brand->brandId );
 		$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-		echo '<div class="floating-box clickable"  data-brandId="'.$brand->brandId.'"><div class="line"><img src="'.$logo_src.'" style="vertical-align:middle; padding-right:10px;" /><span>'. $brand->brandName .'</span></div>';
+		$taulukko .= "<div class=\"floating-box clickable\"  data-brandId=\"{$brand->brandId}\"><div class=\"line\"><img src=\"{$logo_src}\" style=\"vertical-align:middle; padding-right:10px;\" /><span>{$brand->brandName}</span></div>";
 		if ($pvm->suurin_pvm) {
 			$date = new DateTime($pvm->suurin_pvm);
-			echo "Päivitetty: " . $date->format('d.m.Y');
+			$taulukko .= "Päivitetty: {$date->format('d.m.Y')}";
 		}
-		echo "</div>";
+		$taulukko .= "</div>";
 	}
+	return $taulukko;
 }
 
 /**
@@ -60,7 +67,7 @@ usort($brands, "cmp");
 <?php require 'header.php'; ?>
 <h1 class="otsikko">Toimittajat</h1><br>
 <div class="container">
-<?= tulosta_brandit($db, $brands)?>
+<?= tulosta_brandit($db, $brands);?>
 
 </div>
 

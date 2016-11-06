@@ -1,7 +1,7 @@
 <?php
-require_once '_start.php'; global $db, $user, $cart;
-require_once 'tecdoc.php';
-require_once 'apufunktiot.php';
+require '_start.php'; global $db, $user, $cart;
+require 'tecdoc.php';
+require 'apufunktiot.php';
 
 /**
  * Lisää uuden tuotteen tietokantaan.
@@ -10,6 +10,7 @@ require_once 'apufunktiot.php';
  * @param array $val
  * @return bool <p> onnistuiko lisäys. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
+//TODO: Mitä tehdään keskiostohinnalle ja yhteensa_kpl, kun ON DUPLICATE KEY ?
 function add_product_to_catalog( DByhteys $db, /*array*/ $val ) {
 	$sql = "INSERT INTO tuote 
 				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
@@ -41,15 +42,26 @@ function remove_product_from_catalog( DByhteys $db, /*int*/ $id) {
  * @param array $val
  * @return bool <p> onnistuiko muutos. Tosin heittää exceptionin, jos jotain menee vikaan haussa.
  */
-//TODO: keskiostohinnan ja yhteensa_kpl muokkaus valmiiksi
-function modify_product_in_catalog( DByhteys $db, /*array*/ $val ) {
+
+function modify_product_in_catalog( DByhteys $db, array $val ) {
 	$sql = "UPDATE tuote 
-			SET sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, minimimyyntiera = ?, 
-				alennusera_kpl = ?, alennusera_prosentti = ?
+			SET
+			keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
+			yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
+			sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
+			minimimyyntiera = ?, alennusera_kpl = ?, alennusera_prosentti = ?
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
+		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
+}
+
+
+function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
+    $sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, kpl,
+              lisays_selite, lisays_kayttaja_id, lisays_tapa)
+            VALUES ( ?, ?, ?, ?, ?, 1)";
+    return $db->query( $sql, $val);
 }
 
 /**
@@ -81,6 +93,24 @@ function hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko ( $db ) {
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
     $return_string = '<select name="hankintapaikka_lista">';
+    foreach ( $rows as $hp ) {
+        $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
+    }
+    $return_string .= "</select>";
+
+    return $return_string;
+}
+
+/**
+ * Hakee kaikki ostotilauskirjat, tekee niistä dropdown-valikon, ja palauttaa HTML-koodin.
+ * @param DByhteys $db
+ * @return String <p> HTML-koodia. Dropdown-valikko.
+ */
+function hae_kaikki_ostotilauskirjat_ja_lisaa_alasvetovalikko ( $db ) {
+    $sql = "SELECT tunniste FROM ostotilauskirja";
+    $rows = $db->query( $sql, NULL, FETCH_ALL );
+
+    $return_string = '<select name="ostotilauskirja_lista">';
     foreach ( $rows as $hp ) {
         $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
     }
@@ -190,7 +220,7 @@ function halkaise_hakunumero(&$number, &$etuliite){
 	$number = substr($number, 4);
 }
 
-
+$feedback = "";
 $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 
@@ -214,8 +244,8 @@ if ( !empty($_POST['lisaa']) ) {
         $feedback = '<p class="success">Tuote lisätty!</p>';
     } else { $feedback = '<p class="error">Tuotteen lisäys epäonnistui!</p>'; }
 
-} elseif ( !empty($_GET['poista']) ) {
-    if ( remove_product_from_catalog( $db, $_GET['poista'] ) ) {
+} elseif ( !empty($_POST['poista']) ) {
+    if ( remove_product_from_catalog( $db, $_POST['id'] ) ) {
         $feedback = '<p class="success">Tuote poistettu!</p>';
     } else { $feedback = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
 
@@ -231,11 +261,37 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['id']
     ];
     if ( modify_product_in_catalog( $db, $array ) ) {
-        echo '<p class="success">Tuotteen tiedot päivitetty!</p>';
-    } else {
-        echo '<p class="error">Tuotteen muokkaus epäonnistui!</p>';
-    }
+		$feedback = '<p class="success">Tuotteen tietoja muokattu!</p>';
+	} else { $feedback = '<p class="error">ERROR: Tuotetta ei voitu muokata!</p>'; }
+
+} elseif ( !empty($_POST['lisaa_otk']) ) {
+    $array = [
+        $_POST['ostotilauskirjat'], //ostotilauskirjan id
+        $_POST['id'],               //tuotteen id
+        $_POST['kpl'],
+        $_POST['selite'],
+        $user->id
+    ];
+    if ( lisaa_tuote_ostotilauskirjalle( $db, $array ) ) {
+        $feedback = '<p class="success">Tuote lisätty ostotilauskirjalle!</p>';
+    } else { $feedback = '<p class="error">Tuote on jo kyseisellä ostotilauskirjalla!
+                            Käy muokkaamassa tuotetta ostotilauskirjat -sivulla.</p>'; }
 }
+
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
+    $_SESSION["feedback"] = $feedback;
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
+
+$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : '';
+unset($_SESSION["feedback"]);
+
+
+
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -288,6 +344,7 @@ else if ( !empty($_GET["manuf"]) ) {
 	$all_products = $filtered_product_arrays[1];
 	$catalog_products = sortProductsByPrice($catalog_products);
 }
+
 
 
 
@@ -352,6 +409,8 @@ else if ( !empty($_GET["manuf"]) ) {
 		<?php require 'ajoneuvomallillahaku.php'; ?>
 	</section>
 
+    <?= $feedback ?>
+
 	<section class="hakutulokset">
 		<?php if ( $haku ) : ?>
 			<h4>Yhteensä löydettyjä tuotteita:
@@ -401,7 +460,10 @@ else if ( !empty($_GET["manuf"]) ) {
                                     '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
                                     '<?=$product->minimimyyntiera?>', '<?=$product->alennusera_kpl?>',
                                     '<?=$product->alennusera_prosentti?>')">
-                                    Muokkaa</button>
+                                    Muokkaa</button><br>
+                                <button class="nappi" onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
+                                    <?=$product->hankintapaikka_id?>)">
+                                    OTK</button>
                             </td>
 						</tr>
 					<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
@@ -479,28 +541,28 @@ else if ( !empty($_GET["manuf"]) ) {
      * @param id
      */
     function showRemoveDialog(id) {
-        //TODO: voitaisiin toteuttaa myös formilla
-        var url = <?php echo  json_encode($_SERVER['REQUEST_URI']);?>;
         Modal.open( {
             content: '\
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
-		<p style="margin-top: 20pt;"><a class="nappi" href="'+url+'&poista=' + id + '">Poista</a><a class="nappi" style="margin-left: 10pt;" href="javascript:void(0)" \
-			onclick="Modal.close()">Peruuta</a></p>'
+		<form action="" name="poistolomake" method="post"> \
+		    <input class="nappi" type="submit" name="poista" value="Poista" />\
+		    <button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
+		    <input type="hidden" name="id" value="' + id + '" /> \
+		</form>'
         } );
     }
 
-
     /**
-     * Valikoimaan lisätyn tuotteen muokkaus.
+     *
      * @param id
      * @param ostohinta
      * @param hinta
      * @param alv
      * @param varastosaldo
      * @param minimimyyntiera
-     * @param alennusera_kpl
-     * @param alennusera_prosentti
+     * @param maara_alennus
+     * @param prosentti_alennus
      */
     function showModifyDialog(id, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, maara_alennus, prosentti_alennus ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
@@ -518,12 +580,53 @@ else if ( !empty($_GET["manuf"]) ) {
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="'+minimimyyntiera+'"> kpl</span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="'+maara_alennus+'"> kpl</span><br> \
 					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="'+prosentti_alennus+'"></span><br> \
-					<p><input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
-						href="javascript:void(0)" onclick="Modal.close()">Peruuta</a></p> \
+					<input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()">\
+					<button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 					<input type="hidden" name="id" value="' + id + '"> \
 				</form>',
             draggable: true
         } );
+    }
+
+    function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id){
+        //haetaan hankintapaikan ostotilauskirjat
+        $.post(
+            "ajax_requests.php",
+            {   hankintapaikan_ostotilauskirjat: true,
+                hankintapaikka_id: hankintapaikka_id },
+            function( data ) {
+                ostotilauskirjat = JSON.parse(toJSON(data));
+                if(ostotilauskirjat.length === 0){
+                    alert("Luo ensin kyseiselle toimittajalle hankintapaikka!");
+                    return;
+                }
+                //Luodaan alasvetovalikko
+                var ostotilauskirja_lista = '<select name="ostotilauskirjat">';
+                for(var i=0; i < ostotilauskirjat.length; i++){
+                    ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
+                }
+                ostotilauskirja_lista += '</select>';
+                //avataan Modal
+                Modal.open({
+                    content: '\
+                        <div class="dialogi-otsikko">Lisää ostotilauskirjaan</div> \
+                        <form action="" name="ostotilauskirjalomake" id="ostotilauskirjalomake" method="post"> \
+                            <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
+				            '+ostotilauskirja_lista+'<br><br> \
+				            <label for="kpl">Kappaleet:</label><br> \
+				            <input class="kpl" type="number" name="kpl" placeholder="0" min="1"> kpl<br><br> \
+				        	<label for="kpl">Selite:</label><br> \
+                            <textarea form="ostotilauskirjalomake" rows=3 name="selite" placeholder="Miksi lisäät tuotteen käsin?" ></textarea><br><br> \
+                            <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle" />\
+                            <input type="hidden" name="id" value="'+id+'" />\
+				        </form> \
+                        \
+                    ',
+                    draggable: true
+                });
+            }
+        );
+
     }
 
 
