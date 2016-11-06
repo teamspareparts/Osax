@@ -37,9 +37,15 @@ for ( $i=0; $i<count($data['Admin tunnukset']['kayttajatunnus']); $i++ ) {
 
 // Luodaan ylläpitäjälle yritys ja ostoskori
 $result = $db->query(
-	"INSERT INTO yritys (nimi, y_tunnus) VALUES (?,?)",
+	"INSERT INTO yritys (nimi, y_tunnus, maa, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka) VALUES (?,?,?,?,?,?,?,?)",
 	[	$data['Admin tunnukset']['y_nimi'],
-		$data['Admin tunnukset']['y_tunnus']
+		$data['Admin tunnukset']['y_tunnus'],
+		$data['Admin tunnukset']['y_maa'],
+		$data['Admin tunnukset']['y_sahkoposti'],
+		$data['Admin tunnukset']['y_puhelin'],
+		$data['Admin tunnukset']['y_osoite'][0],
+		$data['Admin tunnukset']['y_osoite'][1],
+		$data['Admin tunnukset']['y_osoite'][2]
 	] );
 $result = $db->query(
 	"INSERT INTO ostoskori (yritys_id) VALUES (?)",

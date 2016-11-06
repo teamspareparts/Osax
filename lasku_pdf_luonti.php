@@ -27,7 +27,7 @@ $html = "
 				<tr><td>".date('d.m.Y')."</td><td>$lasku->tilaus_pvm</td>
 					<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
 					<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
-					<td style='text-align:right;'>".sprintf('%04d', "1")."</td>
+					<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
 				</tr>
 			</tbody>
 		</table></td>
@@ -117,12 +117,20 @@ $html .= "
 		</tbody>
 	</table></td></tr>
 </table>
+<hr>
+<table>
+<thead><tr><th>Maksun vastaanottaja</th></tr></thead>
+<tbody>
+	<tr> <td>Osax Oy,<br>{$lasku->osax->y_tunnus}</td>
+	<td>Tilinumero:<br>[000123456789000]</td>
+	<td>Viivästyskorko:<br>12 %</td>
+	<td>Maksuaika:<br>12 päivää</td> </tr>
+	<tr> <td>{$lasku->osax->katuosoite}<br>{$lasku->osax->postinumero}, {$lasku->osax->postitoimipaikka}</td>
+	<td>ALV-tunniste:<br>[number]</td> </tr>
+</tbody>
+</table>
+<p>Muita pakollisia tietoja: tuotteiden alennukset, yksikkohinta ilman vero (seriously?).</p>
 ";
-
-/**
- * //TODO: Osax:in yritystiedot.
- */
-
 
 /** //////////////////////////////////////// */
 /** PDF:n luonti */
@@ -130,7 +138,7 @@ $html .= "
 /*
  * PDF-header ja footer
  * Header: "Osax Oy :: Lasku" keskitettynä
- * Footer: Päivämäärä, sivunumero ja "Lasku"
+ * Footer: "[Päivämäärä] - [sivunumero] - Lasku"
  */
 $mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Lasku</div>');
 $mpdf->SetHTMLFooter('
@@ -143,4 +151,8 @@ $mpdf->SetHTMLFooter('
 
 $mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
 
-$mpdf->Output("Lasku_tilaus_{$lasku->tilaus_nro}.pdf",'F'); // Tulostaa PDF:n suoraan selaimeen.
+if ( !file_exists('./laskut') ) {
+	mkdir( './laskut' );
+}
+
+$mpdf->Output("./laskut/Lasku-{$lasku->tilaus_nro}-{$user->id}.pdf",'F');

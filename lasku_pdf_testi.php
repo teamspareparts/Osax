@@ -121,11 +121,21 @@ $html .= "
 		</tbody>
 	</table></td></tr>
 </table>
+<hr>
+<table>
+<thead><tr><th>Maksun vastaanottaja</th></tr></thead>
+<tbody>
+	<tr> <td>Osax Oy,<br>{$lasku->osax->y_tunnus}</td>
+	<td>Tilinumero:<br>[000123456789000]</td>
+	<td>Viivästyskorko:<br>12 %</td>
+	<td>Maksuaika:<br>12 päivää</td> </tr>
+	<tr> <td>{$lasku->osax->katuosoite}<br>{$lasku->osax->postinumero}, {$lasku->osax->postitoimipaikka}</td>
+	<td>ALV-tunniste:<br>[number]</td> </tr>
+</tbody>
+</table>
+<p>Muita pakollisia tietoja: tuotteiden alennukset, yksikkohinta ilman vero (seriously?).</p>
 ";
 
-/**
- * //TODO: Osax:in yritystiedot.
- */
 
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n luonti */

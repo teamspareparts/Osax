@@ -17,7 +17,14 @@ kayttajatunnus[] = admin2@admin
 salasana[] = admin2
 
 y_nimi = Osax Oy
-y_tunnus = 00000-0
+y_tunnus = 2769696-8
+y_maa = Suomi
+y_sahkoposti = admin@osax.fi
+y_puhelin = 000-1234-567
+y_osoite[] = Jukolankatu 19
+y_osoite[] = 80100
+y_osoite[] = JOENSUU
+		   
 
 ;*/
 ;?>

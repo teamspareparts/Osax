@@ -8,7 +8,8 @@ class Laskutiedot {
 	public $toimitustapa = '[Toimitustapa]';
 
 	/** @var User */public $asiakas = NULL;
-	/** @var Yritys */public $yritys = NULL; //Object
+	/** @var Yritys */public $yritys = NULL;
+	/** @var Yritys */public $osax = NULL;
 
 	public $toimitusosoite = NULL; //Object
 	public $db = NULL; //Object
@@ -33,6 +34,7 @@ class Laskutiedot {
 		$this->db = $db;
 		$this->asiakas = $user;
 		$this->yritys = $yritys;
+		$this->osax = new Yritys( $db, 1 );
 		$this->toimitusosoite = new Toimitusosoite();
 		$this->haeTilauksenTiedot( $this->tilaus_nro );
 	}
@@ -68,8 +70,8 @@ class Laskutiedot {
 
 	/** */function haeTuotteet() {
 		$this->tuotteet = array();
-		$sql = "SELECT tuote.id, tuote.articleNo, tuote.brandNo, tilaus_tuote.kpl, tilaus_tuote.pysyva_hinta, 
-					tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus,
+		$sql = "SELECT tuote.id, tilaus_tuote.tuotteen_nimi, tilaus_tuote.valmistaja, tilaus_tuote.kpl, 
+					tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus,
 					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
 						AS maksettu_hinta
 				FROM tilaus_tuote LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id 
@@ -80,8 +82,8 @@ class Laskutiedot {
 			$tuote = new Tuote();
 			$tuote->id = $row->id;
 			$tuote->tuotekoodi = $row->articleNo;
-//			$tuote->tuotenimi = $row->articleNo;
-//			$tuote->valmistaja = $row->brandNo;
+			$tuote->tuotenimi = $row->tuotteen_nimi;
+			$tuote->valmistaja = $row->valmistaja;
 			$tuote->a_hinta = round($row->maksettu_hinta, 2);
 			$tuote->a_hinta_ilman_alv = $row->pysyva_hinta * (1 - $row->pysyva_alennus);
 			$tuote->alv_prosentti = (int)((float)$row->pysyva_alv * 100); // 0.24 => 24
