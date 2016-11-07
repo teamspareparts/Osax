@@ -24,16 +24,19 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
 
 else if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
+    //TODO: Muokkaa kpl ostotilauskirja_tuotteelle ja ostohinta tuotteelle
     $sql = "  UPDATE ostotilauskirja
               SET oletettu_saapumispaiva = ?, rahti = ?
               WHERE ostotilauskirja_id = ?";
     if ( $db->query($sql, array_values($_POST)) ) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
+    } else {
+        $_SESSION["feedback"] = "<p class='error'>ERROR: Muokkauksessa tapahtui virhe!</p>";
     }
 }
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
-    if ( $db->query("DELETE FROM ostotilauskirja WHERE ostotilauskirja_id = ?", array_values($_POST)) ) {
+    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ?", [$_POST['id']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -50,12 +53,14 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT * FROM ostotilauskirja_tuote
+$sql = "  SELECT *, SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta FROM ostotilauskirja_tuote
           LEFT JOIN tuote
             ON ostotilauskirja_tuote.tuote_id = tuote.id 
-          WHERE ostotilauskirja_id = ?";
+          WHERE ostotilauskirja_id = ?
+          GROUP BY ostotilauskirja_id";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
-get_basic_product_info($products);
+if( $products ) get_basic_product_info($products);
+$yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 
 ?>
 
@@ -80,11 +85,11 @@ get_basic_product_info($products);
         <div id="painikkeet">
             <a class="nappi grey" href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>">Takaisin</a>
         </div>
+        <h3><?=$otk->tunniste?></h3>
     </section>
 
     <?= $feedback?>
 
-    <?php if ( $products ) : ?>
         <table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
             <thead>
             <tr><th>Tuotenumero</th>
@@ -95,6 +100,9 @@ get_basic_product_info($products);
             </tr>
             </thead>
             <tbody>
+            <!-- Rahtimaksu -->
+            <tr><td></td><td>Rahtimaksu</td><td class="number">1</td><td class="number"><?=format_euros($otk->rahti)?></td><td></td></tr>
+            <!-- Tuotteet -->
             <?php foreach ($products as $product) : ?>
                 <tr>
                     <td><?=$product->tuotekoodi?></td>
@@ -102,16 +110,22 @@ get_basic_product_info($products);
                     <td class="number"><?=format_integer($product->kpl)?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                     <td class="toiminnot">
-                        <button></button><br>
-                        <button></button>
+                        <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
+                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>)">Muokkaa</button>
+                        <button class="nappi" onclick="poista_ostotilauskirjalta('<?=$product->id?>')">Poista</button>
                     </td>
                 </tr>
-            <?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
+            <?php endforeach;?>
+            <!-- Yhteensä -->
+            <tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
+                <td class="number" style="border-top: 1px solid black">1</td>
+                <td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
+                <td style="border-top: 1px solid black"></td>
+            </tr>
+
+
             </tbody>
         </table>
-    <?php else : ?>
-        <p>Ei ostotilaukirjoja.</p>
-    <?php endif; ?>
 
 
 
@@ -127,24 +141,30 @@ get_basic_product_info($products);
 <script type="text/javascript">
 
 
-    function avaa_modal_muokkaa_ostotilauskirja(tunniste, saapumispvm, rahti, ostokirjatilaus_id){
-        var date = new Date().toISOString().slice(0,10);
+    /**
+     *
+     * @param tuote_id
+     * @param tuotenumero
+     * @param kpl
+     * @param ostohinta
+     */
+    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta){
         Modal.open( {
             content:  '\
-				<h4>Muokkaa ostitilauskirjan tietoja.</h4>\
+				<h4>Muokkaa tuotteen tietoja ostotilauskirjalla.</h4>\
 				<hr>\
 				<br>\
 				<form action="" method="post" name="muokkaa_hankintapaikka">\
-					<label><span>Tunniste</span></label>\
-                    <h4 style="display: inline;">'+tunniste+'</h4>\
+					<label><span>Tuote</span></label>\
+                    <h4 style="display: inline;">'+tuotenumero+'</h4>\
 					<br><br>\
-					<label><span>Saapumispäivä</span></label>\
-					<input name="saapumispvm" type="date" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" min="'+date+'" required />\
+					<label><span>KPL</span></label>\
+					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required />\
 					<br><br>\
-					<label><span>Rahtimaksu (€)</span></label>\
-					<input name="rahti" type="number" step="0.01" value="'+rahti+'" title="Rahtimaksu" />\
+					<label><span>Ostohinta (€)</span></label>\
+					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" title="Tuotteen ostohinta" required/>\
 					<br><br>\
-					<input name="ostokirjatilaus_id" type="hidden" value="'+ostokirjatilaus_id+'">\
+					<input name="id" type="hidden" value="'+tuote_id+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa" /> \
 				</form>\
 				',
@@ -152,7 +172,11 @@ get_basic_product_info($products);
         });
     }
 
-    function poista_ostotilauskirja(ostotilauskirja_id){
+    /**
+     *
+     * @param tuote_id
+     */
+    function poista_ostotilauskirjalta(tuote_id){
         if( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
             //Rakennetaan form
             var form = document.createElement("form");
@@ -168,8 +192,8 @@ get_basic_product_info($products);
 
             field = document.createElement("input");
             field.setAttribute("type", "hidden");
-            field.setAttribute("name", "ostotilauskirja_id");
-            field.setAttribute("value", ostotilauskirja_id);
+            field.setAttribute("name", "id");
+            field.setAttribute("value", tuote_id);
             form.appendChild(field);
 
             //form submit

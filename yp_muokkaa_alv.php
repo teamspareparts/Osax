@@ -1,6 +1,6 @@
 <?php
 require '_start.php';
-if ( $user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 

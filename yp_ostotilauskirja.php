@@ -84,6 +84,7 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
     </section>
     <section>
         <h2><?=$hp->id?> - <?=$hp->nimi?></h2>
+        <h4>Valitse ostotilauskirja:</h4>
     </section>
 
     <?= $feedback?>
@@ -110,10 +111,10 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
                         <a class="nappi" href='javascript:void(0)'
                            onclick="avaa_modal_muokkaa_ostotilauskirja('<?=$otk->tunniste?>',
                                     '<?= date("Y-m-d", strtotime($otk->oletettu_saapumispaiva))?>',
-                                    '<?= $otk->rahti?>', '<?= $otk->ostotilauskirja_id?>')">
+                                    '<?= $otk->rahti?>', '<?= $otk->id?>')">
                                     Muokkaa</a>
                         <a class="nappi" href='javascript:void(0)'
-                           onclick="poista_ostotilauskirja('<?= $otk->ostotilauskirja_id?>')">Poista</a>
+                           onclick="poista_ostotilauskirja('<?= $otk->id?>')">Poista</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

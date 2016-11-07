@@ -427,7 +427,6 @@ else if ( !empty($_GET["manuf"]) ) {
 						<th class="number">Saldo</th>
 						<th class="number">Hinta (sis. ALV)</th>
                         <th class="number">Ostohinta ALV0%</th>
-						<th>Kpl</th>
 						<th></th>
 					</tr>
 					</thead>
@@ -448,9 +447,6 @@ else if ( !empty($_GET["manuf"]) ) {
 							<td class="number"><?=format_integer($product->varastosaldo)?></td>
 							<td class="number"><?=format_euros($product->hinta)?></td>
                             <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-							<td style="padding-top: 0; padding-bottom: 0;">
-								<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
-									   type="number" value="0" min="0" title="Kappale-määrä"></td>
 							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
 								<button class="nappi" onclick="showRemoveDialog(<?=$product->id?>)">
