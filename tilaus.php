@@ -46,7 +46,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		require 'lasku_pdf_luonti.php'; // Tulostetaan lasku ! Woo se on valmis !
 		//lähetetään tilausvahvistus asiakkaalle
-		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id );
+		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id, $tiedoston_nimi );
 		//lähetetään tilaus ylläpidolle
 		//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
 

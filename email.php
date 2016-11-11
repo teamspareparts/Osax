@@ -1,38 +1,36 @@
 ﻿<?php
-
 /**
  * curl.cainfo osoitettava certifikaatteihin php.ini tiedostossa.
  * Esim cacert.pem.txt tiedoston saa osoitteesta https://curl.haxx.se/docs/caextract.html
  * (Viittaus esim: curl.cainfo = "C:\__polku__tähän__\cacert.pem.txt")
  */
 
-
 /**
- * Sähköpostin lähetykseen käytettävä functio, jolla voi lähettää myös liitetiedostoja.
- * @param $email    <p> Vastaanottajan sähköpostiosoite
- * @param $subject  <p> Otsikko
- * @param $message  <p> Viestin sisältö html-muodossa
- * @param null $fileName    <p> Mahdollisten liitetiedostojen nimet
+ * Sähköpostin lähetykseen käytettävä functio, jolla voi lähettää myös liitetiedoston.
+ * @param string $email <p> Vastaanottajan sähköpostiosoite
+ * @param string $subject <p> Otsikko
+ * @param string $message <p> Viestin sisältö html-muodossa
+ * @param $file [optional]<p> Mahdollisten liitetiedostojen nimet
+ * @param string $fileName [optional] <p> Liitettävän tiedoston nimi
  */
-
-//TODO: $fileName tilalla voisi olla myös $file, jos halutaan antaa itse tiedosto tiedostonimen sijaan
-function send_email($email, $subject, $message, $fileName=NULL){
+function send_email( /*string*/ $email, /*string*/ $subject, /*string*/ $message,
+								$file = NULL, /*string*/ $fileName = NULL ){
 
 	$url = 'https://api.sendgrid.com/';
 	$user = "";
 	$pass = "";
-    $file = isset($fileName) ? file_get_contents(realpath($fileName)) : '';
+    $file = isset($file) ? $file : '';
 	
 	//sähköpostin parametrit
 	$params = array(
-			'api_user'  => $user,
-			'api_key'   => $pass,
-			'to'        => "$email",
-			'subject'   => "$subject", //otsikko
-			'html'      => "$message", //HTML runko
-			'text'      => "",
-			'from'      => "noreply@tuoteluettelo.com", //lähetysosoite
-            'files['.$fileName.']' => $file
+		'api_user'  => $user,
+		'api_key'   => $pass,
+		'to'        => "$email",
+		'subject'   => "$subject", //otsikko
+		'html'      => "$message", //HTML runko
+		'text'      => "",
+		'from'      => "noreply@tuoteluettelo.com", //lähetysosoite
+		'files['.$fileName.']' => $file
 	);
 
 	$request =  $url.'api/mail.send.json';
@@ -50,15 +48,8 @@ function send_email($email, $subject, $message, $fileName=NULL){
     curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
 
 	// Lähetetään sposti
-	$response = curl_exec($session);
+	curl_exec($session);
     curl_close($session);
-
-	/* Debuggaukseen:
-	if (curl_errno($session)) {
-		print "Error: " . curl_errno($session). " " . curl_error($session);
-	}
-	print_r($response);
-    */
 }
 
 /**
@@ -74,30 +65,39 @@ function laheta_salasana_linkki($email, $key){
 
 /**
  * Lähettää tilausvahvistuksen sähköpostiin
- * @param $email
- * @param $products
- * @param $tilausnro
+ * @param string $email
+ * @param array $products
+ * @param string $tilausnro
+ * @param string $fileName
  * @return bool
  */
-function laheta_tilausvahvistus( /*string*/$email, array $products, /*string*/ $tilausnro ) {
-	$subject = "Tilausvahvistus";
-	$summa = 0.00;
-	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
-	if (empty($products)) return false;
-	foreach ($products as $product) {
-		$productTable .= "<tr><td>$product->articleNo</td><td>$product->brandName $product->articleName</td><td style='text-align: right;'>" . format_euros($product->hinta) . "</td><td style='text-align: right;'>$product->cartCount</td></tr>";
-		$summa += $product->hinta * $product->cartCount;
-	}
-	$productTable .= "</table><br><br><br>";
-	$contactinfo = 'Yhteystiedot:<br>
-					Osax Oy<br>
-					Jukolankatu 19 80100 Joensuu<br>		
-					puh. 010 5485200<br>
-					janne@osax.fi';
-	$message = 'Tilaaja: ' . $email . '<br>Tilausnumero: ' . $tilausnro. '<br>Summa: ' . format_euros($summa) . '<br> Tilatut tuotteet:<br>' . $productTable . $contactinfo;
-	send_email($email, $subject, $message);
+function laheta_tilausvahvistus( /*string*/ $email, array $products, /*string*/ $tilausnro, /*string*/ $fileName ) {
+	if ( $products ) {
+		$subject = "Tilausvahvistus";
+		$summa = 0.00;
+		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
+									<th style="text-align:right;">Kpl</th></tr>';
+		foreach ($products as $product) {
+			$productTable .= "
+				<tr><td>{$product->articleNo}</td><td>{$product->brandName} {$product->articleName}</td>
+					<td style='text-align:right;'>" . format_euros($product->hinta) . "</td>
+					<td style='text-align:right;'>{$product->cartCount}</td></tr>";
+			$summa += $product->hinta * $product->cartCount;
+		}
+		$productTable .= "</table><br><br><br>";
+		$contactinfo = 'Yhteystiedot:<br>
+						Osax Oy<br>
+						Jukolankatu 19 80100 Joensuu<br>		
+						puh. 010 5485200<br>
+						janne@osax.fi';
+		$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: " . format_euros($summa) . "<br>
+			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
-	return true;
+		$file = fopen("./laskut/{$fileName}", 'r');
+		send_email( $email, $subject, $message, $file, $fileName );
+
+		return true;
+	} else return false;
 }
 
 /**
@@ -127,8 +127,6 @@ function laheta_tilaus_yllapitajalle( DByhteys $db, $email, $products, $tilausnr
 	$yritys = $asiakas->yritys;
 	$puhelin = $asiakas->puhelin;
 	
-	
-	
 	$subject = 'Tilaus';
 	$summa = 0.00;
 	$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align: right;">Hinta/kpl</th><th style="text-align: right;">Kpl</th></tr>';
@@ -147,8 +145,7 @@ function laheta_tilaus_yllapitajalle( DByhteys $db, $email, $products, $tilausnr
 				Summa: ' . format_euros($summa) . '<br>
 				Tilatut tuotteet:<br>
 				'. $productTable;
-	
-	
+
 	send_email($yp->sahkoposti, $subject, $message);
 	return true;
 }

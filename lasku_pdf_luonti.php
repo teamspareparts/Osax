@@ -151,8 +151,9 @@ $mpdf->SetHTMLFooter('
 
 $mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
 
-if ( !file_exists('./laskut') ) {
-	mkdir( './laskut' );
+if ( !file_exists('./laskut') ) { // Tarkistetaan, että kansio on olemassa.
+	mkdir( './laskut' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
-$mpdf->Output("./laskut/Lasku-{$lasku->tilaus_nro}-{$user->id}.pdf",'F');
+$tiedoston_nimi = "lasku-{$lasku->tilaus_nro}-{$user->id}.pdf";
+$mpdf->Output( "./laskut/{$tiedoston_nimi}", 'F' );
