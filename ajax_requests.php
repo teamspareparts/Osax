@@ -46,10 +46,11 @@ elseif ( !empty($_POST['tuote_ostopyynto']) ) {
  * ei ole vielä meidän tietokannassa, joten sillä on erillinen taulu.
  */
 elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
-	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, brandName, selitys, korvaava_okey, kayttaja_id )
-			VALUES ( ?, ?, ?, ?, ? )";
+	$sql = "INSERT INTO tuote_hankintapyynto (articleNo, valmistaja, tuotteen_nimi, selitys, korvaava_okey, kayttaja_id)
+			VALUES ( ?, ?, ?, ?, ?, ? )";
 	$result = $db->query( $sql,
-		[$_POST['articleNo'], $_POST['brandNo'], $_POST['selitys'], (int)$_POST['korvaava_okey'], $_SESSION['id']] );
+		[ $_POST['articleNo'], $_POST['valmistaja'], $_POST['tuotteen_nimi'],
+			$_POST['selitys'], $_POST['korvaava_okey'], $_SESSION['id'] ] );
 }
 
 /**

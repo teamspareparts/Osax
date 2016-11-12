@@ -190,7 +190,7 @@ if ( !empty($_GET["manuf"]) ) {
 </head>
 <body>
 <?php
-require_once 'header.php';
+require 'header.php';
 require_once 'tuotemodal.php';
 ?>
 <main class="main_body_container">
@@ -341,7 +341,9 @@ require_once 'tuotemodal.php';
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 					<td><button id="tuote_hnktpyynto_<?=$product->articleId?>"
 								onClick="hankintapyynnon_varmistus(
-									'<?=$product->articleNo?>', '<?=$product->brandName?>',
+									'<?=$product->articleNo?>',
+									'<?=$product->brandName?>',
+									'<?=$product->articleName?>',
 									'<?=$product->articleId?>');">
 						<i class="material-icons">help_outline</i></button></td>
 				</tr>
@@ -377,7 +379,7 @@ require_once 'tuotemodal.php';
 							.css("background-color","green")
 							.addClass("disabled");
 					} else {
-						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+						alert("ERROR: Ostopyyntö ei onnistunut.");
 					}
 				}
 			);
@@ -387,10 +389,11 @@ require_once 'tuotemodal.php';
 	/**
 	 * Tallentaa hankintapyynnön tietokantaan (Käyttäjältä varmistuksen kysymisen jälkeen).
 	 * @param {string} articleNo
-	 * @param {string} brandNo
+	 * @param {string} valmistaja
+	 * @param {string} tuotteet_nimi
 	 * @param {string} articleId
 	 */ //TODO: Selitys-tekstikenttä, ja Käykö korvaava -checkbox. jQuery UI?
-	function hankintapyynnon_varmistus( articleNo, brandNo, articleId ) {
+	function hankintapyynnon_varmistus( articleNo, valmistaja, tuotteet_nimi, articleId ) {
 		var vahvistus, selitys, korvaava_okey;
 		vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
@@ -399,7 +402,8 @@ require_once 'tuotemodal.php';
 			$.post("ajax_requests.php",
 				{	tuote_hankintapyynto: true,
 					articleNo: articleNo,
-					brandNo: brandNo,
+					valmistaja: valmistaja,
+					tuotteen_nimi: tuotteet_nimi,
 					selitys: selitys,
 					korvaava_okey: korvaava_okey },
 				function( data ) {
@@ -408,12 +412,11 @@ require_once 'tuotemodal.php';
 							.css("background-color","green")
 							.addClass("disabled");
 					} else {
-						//TODO: Väritä punaiseksi. Tosin luulen, että se aina palauttaa true.
+						alert("ERROR: Hankintapyyntö ei onnistunut.");
 					}
 				}
 			);
 		}
-		alert("Hankintapyyntö on tekeillä. Kiitos kärsivällisyydestäsi.");
 	}
 
 	/**
@@ -453,14 +456,11 @@ require_once 'tuotemodal.php';
 			$("div.tooltip").remove();
 		});
 
-
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
-				//haetaan tuotteen id
-				var articleId = $(this).closest('tr').attr('data-val');
-				//haetaan tuotteen tiedot tecdocista
-				productModal(articleId);
+				var articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
+				productModal(articleId); //haetaan tuotteen tiedot tecdocista
 			});
 
 	});//doc.ready
@@ -490,7 +490,6 @@ require_once 'tuotemodal.php';
 		var car = qs["car"];
 		var osat = qs["osat"];
 		var osat_alalaji = qs["osat_alalaji"];
-
 
 		getModelSeries(manuf);
 		getVehicleIdsByCriteria(manuf, model);

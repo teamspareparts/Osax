@@ -142,12 +142,13 @@ CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
 /* Ei-valikoimassa olevat tuotteet. */
 CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `articleNo` varchar(20) NOT NULL, -- PK
-  `brandName` varchar(30) NOT NULL, -- PK
   `kayttaja_id` int(11) NOT NULL, -- PK, FK
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
+  `valmistaja` varchar(30) NOT NULL,
+  `tuotteen_nimi` varchar(30) NOT NULL,
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,
-  PRIMARY KEY (`articleNo`, `brandName`, `kayttaja_id`, `pvm`),
+  PRIMARY KEY (`articleNo`, `kayttaja_id`, `pvm`),
   CONSTRAINT fk_tuoteHankintapyynto_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 

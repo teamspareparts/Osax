@@ -63,21 +63,22 @@ class DByhteys {
 	}
 
 	/**
-	 * Hakee tietokannasta yhden tai useamman rivin prepared stmt:ia käytttäen.
-	 * Defaultina palauttaa yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p>
+	 * Suorittaa SQl-koodin prepared stmt:ia käytttäen. Palauttaa haetut rivit (SELECT),
+	 * tai muutettujen rivien määrän muussa tapauksessa. Defaultina palauttaa yhden rivin.
+	 * Jos tarvitset useamman, huom. kolmas parametri.<p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.<p>
 	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
 	 * @param string $query
 	 * @param array $values [optional], default=NULL<p>
 	 * 		Muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi, jotka sitten lähetetään tietokannalle.
-	 * @param bool $fetch_All_Rows [optional], default=FALSE<p>
+	 * @param bool $fetch_All_Rows [optional], default = FALSE<p>
 	 * 		Haetaanko kaikki rivit, vai vain yksi.
 	 * @param int $returnType [optional], default = NULL <p>
 	 * 		Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
 	 * 		 constant-muuttujat.<br>PDO::FETCH_OBJ on default jo luokan konstruktorissa.
-	 * @return array|int|stdClass <p> Palauttaa object-arrayn, jos esim. SELECT ja FETCH_ALL==true.<br>
-	 * 		Palauttaa <code>$stmt->rowCount()</code>, jos esim. INSERT tai DELETE.<br>
-	 * 		Palauttaa suoraan objektin, jos haetaan vain yksi.
+	 * @return array|int|stdClass <p> Palauttaa object-arrayn, jos esim. SELECT ja FETCH_ALL==true.
+	 * 		Palauttaa suoraan objektin, jos haetaan vain yksi.<br>
+	 * 		Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim. INSERT tai DELETE.<br>
 	 */
 	public function query( /*string*/ $query, array $values = NULL,
 			/*bool*/ $fetch_All_Rows = FALSE, /*int*/ $returnType = NULL ) {

@@ -5,7 +5,6 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-$feedback = '';
 /** Tiedoston käsittely */
 if ( isset($_FILES['eula']['name']) ) {
 
@@ -17,14 +16,22 @@ if ( isset($_FILES['eula']['name']) ) {
 
 		// Onnistuiko tiedoston siirtäminen serverille
 		if ( move_uploaded_file( $_FILES['eula']['tmp_name'], $target_file ) ) {
-			$feedback = "<p class='success'>EULA päivitetty onnistuneesti.</p>";
+			$_SESSION['feedback'] = "<p class='success'>EULA päivitetty onnistuneesti.</p>";
 		} else {
-			$feedback = "<p class='error'>EULAn päivittäminen epäonnistui.</p>";
+			$_SESSION['feedback'] = "<p class='error'>EULAn päivittäminen epäonnistui.</p>";
 		}
 
 	} else {// Jos virhe tiedoston latauksessa...
-		$feedback = "Error: " . $_FILES['eula']['error'];
+		$_SESSION['feedback'] = "<p class='error'>Error: {$_FILES['eula']['error']}</p>";
 	}
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
+	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>
