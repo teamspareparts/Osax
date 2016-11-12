@@ -41,7 +41,7 @@ input { padding: 3pt; }
 	vertical-align: middle;
 }
 
-.center { text-align: center; }
+.center { text-align: center; justify-content: center; }
 .end { text-align: end; }
 
 /********************************************
@@ -588,14 +588,9 @@ Muokkaa asiakasta form
 Tuotteen MODAL-ikkuna (tuotteen tiedot)
 ****************************************/
 
-.center {
-	text-align: center;
-}
-
 .text-center {
 	text-align: center;
 }
-
 
 #display_img {
 	max-width: 200px;

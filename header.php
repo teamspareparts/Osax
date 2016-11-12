@@ -38,6 +38,8 @@
                         <li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
                         <li><a href="yp_ostotilauskirja_hankintapaikka.php"><span>Tilauskirjat</span></a></li>
                         <li><a><span>raportit</span></a></li>
+                        <li><a href="yp_hankintapyynnot.php"><span>Hankintapyynnöt</span></a></li>
+                        <li><a href="yp_muokkaa_alv.php"><span>ALV-muokkaus</span></a></li>
                     </ul>
                 </li>
 

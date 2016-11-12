@@ -1,5 +1,6 @@
 <?php
-require '_start.php';
+require '_start.php'; global $db, $user, $cart;
+
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
@@ -21,12 +22,9 @@ function hae_kaikki_ALV_kannat( DByhteys $db ) {
 	return $rows;
 }
 
-/**
- * Tallentaa uudet ALV-kannat vanhojen päälle.
- * @param DByhteys $db
- * @param array $alv_array
- */
-function tallenna_uudet_ALV_tiedot( DByhteys $db, /*array*/ $alv_array ) {
+$alvit = hae_kaikki_ALV_kannat( $db );
+
+if ( !empty($_POST["muokkaa_ALV"]) ) {
 	$sql = "INSERT INTO ALV_kanta (kanta, prosentti) VALUES ( ?, ? )
 			ON DUPLICATE KEY UPDATE prosentti = VALUES(prosentti)";
 	$db->prepare_stmt( $sql );
@@ -35,18 +33,19 @@ function tallenna_uudet_ALV_tiedot( DByhteys $db, /*array*/ $alv_array ) {
 	}
 }
 
-$alvit = hae_kaikki_ALV_kannat( $db );
-
-if ( !empty($_POST["muokkaa_ALV"]) ) {
-	tallenna_uudet_ALV_tiedot( $db, $_POST["alv"] );
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
+	unset($_SESSION["feedback"]);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css"
+	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>ALV-muokkaus</title>
@@ -86,9 +85,4 @@ if ( !empty($_POST["muokkaa_ALV"]) ) {
 	</form>
 </main>
 </body>
-
-<script>
-	$(document).ready(function() {
-	});
-</script>
 </html>

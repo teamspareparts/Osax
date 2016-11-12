@@ -223,19 +223,20 @@ require_once 'tuotemodal.php';
                 <br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
+			<?php if ( $haku ) : ?>
+			<h3>Yhteensä löydettyjä tuotteita:
+				<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h3>
+			<?php endif; ?>
 		</div>
         <?php require 'ajoneuvomallillahaku.php';?>
 	</section>
 
 	<section class="hakutulokset">
 	<?php if ( $haku ) : ?>
-		<h4>Yhteensä löydettyjä tuotteita:
-			<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h4>
-
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
-		<h2>Saatavilla: (<?=count($catalog_products)?>)</h2>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>
+			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Saatavilla: (<?=count($catalog_products)?>)</th></tr>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
 				<th>Tuote</th>
@@ -282,9 +283,9 @@ require_once 'tuotemodal.php';
 		<?php endif; //if $catalog_products
 
 		if ( $not_available) : // Tulokset (ei saatavilla) ?>
-		<h2>Ei varastossa: (<?=count($not_available)?>)</h2>
 		<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
+			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
 				<th>Tuote</th>
@@ -326,9 +327,9 @@ require_once 'tuotemodal.php';
 		<?php endif; //if $not_available catalog products
 
 		if ( $not_in_catalog) : //Tulokset (ei katalogissa)?>
-		<h2>Tilaustuotteet: (<?=count($not_in_catalog)?>)</h2>
 		<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
 			<thead>
+			<tr><th colspan="3" class="center" style="background-color:#1d7ae2;">Tilaustuotteet: (<?=count($not_in_catalog)?>)</th></tr>
 			<tr><th>Tuotenumero</th>
 				<th>Tuote</th>
 				<th>Info</th>

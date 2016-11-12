@@ -9,6 +9,10 @@ $sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, korvaava_
 		FROM tuote_hankintapyynto ORDER BY pvm ASC";
 $hankintapyynnot = $db->query( $sql, NULL, TRUE );
 
+$sql = "SELECT tuote_id, kayttaja_id, pvm 
+		FROM tuote_ostopyynto ORDER BY pvm ASC";
+$ostopyynnot = $db->query( $sql, NULL, TRUE );
+
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
@@ -29,9 +33,31 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<table>
-		<thead><tr>
-			<th></th>
+	<?php if ( $ostopyynnot ) : ?>
+	<table style="min-width:80%;">
+		<thead>
+		<tr><th colspan="4" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
+		<tr><th></th>
+			<th>Tuote ID</th>
+			<th>Käyttäjä</th>
+			<th>Pvm.</th>
+		</thead>
+		<tbody>
+		<?php $i = 1; foreach ( $hankintapyynnot as $hkp ) : ?>
+			<tr><td rowspan="2" style="border-bottom:solid black 1px;"><?= $i++ ?></td>
+				<td><?= $hkp->tuote_id ?></td>
+				<td><?= $hkp->kayttaja_id ?></td>
+				<td><?= $hkp->pvm ?></td>
+			</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	<?php endif;
+	if ( $hankintapyynnot ) : ?>
+	<table style="min-width:80%;">
+		<thead>
+		<tr><th colspan="7" class="center" style="background-color:#1d7ae2;"> Hankintapyynnöt </th></tr>
+		<tr><th></th>
 			<th>Tuote</th>
 			<th>Valmistaja</th>
 			<th>Tuotteen nimi</th>
@@ -53,6 +79,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		<?php endforeach; ?>
 		</tbody>
 	</table>
+	<?php endif; ?>
 </main>
 <script>
 	$(document).ready(function(){
