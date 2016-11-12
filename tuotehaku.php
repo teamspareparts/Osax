@@ -374,7 +374,7 @@ require_once 'tuotemodal.php';
 				"ajax_requests.php",
 				{ tuote_ostopyynto: product_id },
 				function( data ) {
-					if ( data === true ) {
+					if ( (!!+data) === true ) { // Typecasting to int to boolean: !! + variable
 						$("#tuote_ostopyynto_" + product_id)
 							.css("background-color","green")
 							.addClass("disabled");
@@ -407,7 +407,7 @@ require_once 'tuotemodal.php';
 					selitys: selitys,
 					korvaava_okey: korvaava_okey },
 				function( data ) {
-					if ( data === true ) {
+					if ( (!!+data) === true ) { // Typecasting to int to boolean: !! + variable
 						$("#tuote_hnktpyynto_" + articleId)
 							.css("background-color","green")
 							.addClass("disabled");

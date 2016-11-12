@@ -1,13 +1,13 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 
-if ( !$user->isAdmin() ) {
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 
-$sql = "SELECT articleNo, brandName FROM tuote_hankintapyynto";
-$hankintapyynnot =
-	$db->query( "SELECT", [] );
+$sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, korvaava_okey, selitys 
+		FROM tuote_hankintapyynto ORDER BY pvm ASC";
+$hankintapyynnot = $db->query( $sql, NULL, TRUE );
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
@@ -29,7 +29,30 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-
+	<table>
+		<thead><tr>
+			<th></th>
+			<th>Tuote</th>
+			<th>Valmistaja</th>
+			<th>Tuotteen nimi</th>
+			<th>Käyttäjä</th>
+			<th>Pvm.</th>
+			<th>Korvaava okey?</th></tr>
+		</thead>
+		<tbody>
+		<?php $i = 1; foreach ( $hankintapyynnot as $hkp ) : ?>
+			<tr><td rowspan="2" style="border-bottom:solid black 1px;"><?= $i++ ?></td>
+				<td><?= $hkp->articleNo ?></td>
+				<td><?= $hkp->valmistaja ?></td>
+				<td><?= $hkp->tuotteen_nimi ?></td>
+				<td><?= $hkp->kayttaja_id ?></td>
+				<td><?= $hkp->pvm ?></td>
+				<td><?= $hkp->korvaava_okey ?></td>
+			</tr>
+			<tr><td colspan="6">Selitys: <?= !empty($hkp->selitys) ? $hkp->selitys : '[Tyhjä]' ?></td></tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
 </main>
 <script>
 	$(document).ready(function(){
