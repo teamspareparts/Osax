@@ -2,7 +2,7 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
-if ( $user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 
@@ -22,6 +22,8 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 	} else {
 		$row = 0;
 	}
+
+    $new_catalog_products = [];
 	$failed_inserts = 0;
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 		if ($row == -1) {
@@ -56,11 +58,25 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 						keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) * 
 							VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
 						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl)";
-		$db->query($sql, //TODO: $ostohinta, $ostohinta? Lyhennä "VALUES(ostohinta)"
+		$response = $db->query($sql, //TODO: $ostohinta, $ostohinta? Lyhennä "VALUES(ostohinta)"
 			[$articleNo, $ostohinta, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
 				$brandId, $hankintapaikka_id, $tuotekoodi]);
-
+		//Jos syötetään tuote ensimmäistä kertaa tietokantaan, haetaan tecdocista myös nimi
+		if ($response === 1) {
+            $new_catalog_products[] = (object)[
+                'articleNo' => $articleNo,
+                'brandNo' => $brandId,
+                'hankintapaikka_id' => $hankintapaikka_id,
+            ];
+        }
 	}
+	if ($new_catalog_products) {
+        get_basic_product_info($new_catalog_products);
+        foreach ($new_catalog_products as $product) {
+            $sql = "UPDATE tuote SET nimi = ? WHERE articleNo = ? AND brandNo = ? AND tuote.hankintapaikka_id = ?";
+            $db->query($sql, [$product->articleName, $product->articleNo, $product->brandNo, $product->hankintapaikka_id]);
+        }
+    }
 
 	fclose($handle);
 	return array($row, $failed_inserts);    //kaikki rivit , epäonnistuneet syötöt

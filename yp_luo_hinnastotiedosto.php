@@ -1,0 +1,57 @@
+<?php
+/**
+ * Tällä sivulla luodaan hinnasto.txt tiedosto ja ladataan se käyttäjän
+ * koneelle iman, että tämä sivu avautuu käyttäjälle.
+ */
+require "_start.php"; global $db, $user;
+require "tecdoc.php";
+
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+    header("Location:etusivu.php"); exit();
+}
+
+$tiedoston_nimi = "hinnasto.txt";
+$path = "";     //polku
+//Kaatuu jos haetaan kaikki tuotteet (yli 150k)
+//Nopein kun fetchCount ~10k
+$fetchCount = 10000;
+
+
+//Haetaan tuotteet tietokannasta ja kirjoitetaan tiedostoon
+$hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi avata!");
+$offset = 0;
+$products = true;
+while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
+    $products = $db->query("SELECT * FROM tuote LEFT JOIN alv_kanta ON tuote.ALV_kanta=alv_kanta.kanta WHERE aktiivinen=1 LIMIT ?, ?",
+        [$offset, $fetchCount], FETCH_ALL);
+    $offset += $fetchCount;
+
+    //Kirjoitetaan haetut tuotteet tiedostoon
+    foreach ($products as $p) {
+        $row = str_pad($p->tuotekoodi, 20 , " ") .
+                str_pad(str_replace(".", ",", ((1+$p->prosentti)*$p->hinta_ilman_ALV)), 10 , " ") .
+                str_pad($p->nimi, 40 , " ") . "\r\n";
+        fwrite($hinnastotiedosto, $row);
+    }
+}
+
+
+//Ladataan uusi tiedosto serveriltä
+$fullPath = $path.$tiedoston_nimi;//.$dl_file;
+
+if ($fd = fopen ($fullPath, "r")) {
+    $fsize = filesize($fullPath);
+    $path_parts = pathinfo($fullPath);
+    $ext = strtolower($path_parts["extension"]); //extension pdf/txt/csv
+    header("Content-type: application/octet-stream");
+    header("Content-Disposition: filename=\"".$path_parts["basename"]."\"");
+    header("Content-length: $fsize");
+    header("Cache-control: private"); //use this to open files directly
+    while(!feof($fd)) {
+        $buffer = fread($fd, 2048);
+        echo $buffer;
+    }
+}
+fclose ($fd);
+exit;
+?>

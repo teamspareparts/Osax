@@ -24,11 +24,12 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
 
 else if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
-    //TODO: Muokkaa kpl ostotilauskirja_tuotteelle ja ostohinta tuotteelle
-    $sql = "  UPDATE ostotilauskirja
-              SET oletettu_saapumispaiva = ?, rahti = ?
-              WHERE ostotilauskirja_id = ?";
-    if ( $db->query($sql, array_values($_POST)) ) {
+    $sql1 = "  UPDATE ostotilauskirja_tuote
+              SET kpl = ?
+              WHERE ostotilauskirja_id = ? AND tuote_id = ?";
+    $sql2 = " UPDATE tuote SET sisaanostohinta = ? WHERE id = ?";
+    if ( $db->query($sql1, [$_POST['kpl'], $ostotilauskirja_id, $_POST['id']] ) &&
+        $db->query($sql2, [$_POST['ostohinta'], $_POST['id']])) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR: Muokkauksessa tapahtui virhe!</p>";
@@ -43,12 +44,11 @@ else if( isset($_POST['poista']) ) {
     }
 }
 
+
 if ( !empty($_POST) ){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
     exit();
 }
-
-
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
@@ -84,8 +84,10 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
         <h1 class="otsikko">Ostotilauskirja</h1>
         <div id="painikkeet">
             <a class="nappi grey" href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>">Takaisin</a>
+            <button class="nappi" onclick="varmista_lahetys()">Lähetä</button>
+
         </div>
-        <h3><?=$otk->tunniste?></h3>
+        <h3><?=$otk->tunniste?><br><span style="font-size: small;">Arvioitu saapumispäivä: <?=date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></span></h3>
     </section>
 
     <?= $feedback?>
@@ -126,13 +128,6 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 
             </tbody>
         </table>
-
-
-
-
-
-
-
 </main>
 
 
@@ -177,7 +172,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
      * @param tuote_id
      */
     function poista_ostotilauskirjalta(tuote_id){
-        if( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
+        if( confirm("Haluatko varmasti poistaa tuotteen ostotilauskirjalta?") ) {
             //Rakennetaan form
             var form = document.createElement("form");
             form.setAttribute("method", "POST");
@@ -199,6 +194,13 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
             //form submit
             document.body.appendChild(form);
             form.submit();
+        }
+    }
+
+    function varmista_lahetys(){
+        var vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
+        if ( vahvistus ) {
+
         }
     }
 

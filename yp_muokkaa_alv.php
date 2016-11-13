@@ -29,7 +29,7 @@ if ( !empty($_POST["muokkaa_ALV"]) ) {
 			ON DUPLICATE KEY UPDATE prosentti = VALUES(prosentti)";
 	$db->prepare_stmt( $sql );
 	for ( $i=0; $i<=5; $i++ ) {
-		$db->run_prepared_stmt( [$alv_array['kanta'][$i], $alv_array['pros'][$i]] );
+		$db->run_prepared_stmt( [$_POST['kanta'][$i], $_POST['pros'][$i]/100] );
 	}
 }
 

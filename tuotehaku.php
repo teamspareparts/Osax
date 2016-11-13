@@ -236,7 +236,7 @@ require_once 'tuotemodal.php';
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>
-			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Saatavilla: (<?=count($catalog_products)?>)</th></tr>
+			<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Saatavilla: (<?=count($catalog_products)?>)</th></tr>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
 				<th>Tuote</th>
@@ -375,7 +375,7 @@ require_once 'tuotemodal.php';
 				"ajax_requests.php",
 				{ tuote_ostopyynto: product_id },
 				function( data ) {
-					if ( (!!+data) === true ) { // Typecasting to int to boolean: !! + variable
+					if ( (!!data) === true ) { // Typecasting to int to boolean: !! + variable
 						$("#tuote_ostopyynto_" + product_id)
 							.css("background-color","green")
 							.addClass("disabled");
@@ -408,7 +408,7 @@ require_once 'tuotemodal.php';
 					selitys: selitys,
 					korvaava_okey: korvaava_okey },
 				function( data ) {
-					if ( (!!+data) === true ) { // Typecasting to int to boolean: !! + variable
+					if ( (!!data) === true ) { // Typecasting to int to boolean: !! + variable
 						$("#tuote_hnktpyynto_" + articleId)
 							.css("background-color","green")
 							.addClass("disabled");

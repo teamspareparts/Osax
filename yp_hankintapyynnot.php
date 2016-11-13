@@ -33,7 +33,10 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<?php if ( $ostopyynnot ) : ?>
+	<?php if(!$ostopyynnot && !$hankintapyynnot) : ?>
+		<p class="center">Ei jätettyjä ostopyyntöjä tai hankintapyyntöjä.</p>
+	<?php endif;
+	if ( $ostopyynnot ) : ?>
 	<table style="min-width:80%;">
 		<thead>
 		<tr><th colspan="4" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>

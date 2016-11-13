@@ -14,15 +14,15 @@ require 'apufunktiot.php';
 function add_product_to_catalog( DByhteys $db, /*array*/ $val ) {
 	$sql = "INSERT INTO tuote 
 				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
-				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, yhteensa_kpl, keskiostohinta) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
+				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, nimi, yhteensa_kpl, keskiostohinta) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
 			ON DUPLICATE KEY 
 				UPDATE sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
 					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
 					minimimyyntiera=VALUES(minimimyyntiera), alennusera_kpl=VALUES(alennusera_kpl),
 					alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
 	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10] ] );
+		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10],$val[11] ] );
 }
 
 /**
@@ -73,7 +73,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
     $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC;";
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
-    $return_string = '<select name="alv_lista">';
+    $return_string = '<select name="alv_lista" id="alv_lista">';
     foreach ( $rows as $alv ) {
         $alv->prosentti = str_replace( '.', ',', $alv->prosentti );
         $return_string .= "<option name=\"alv\" value=\"{$alv->kanta}\">{$alv->kanta}; {$alv->prosentti}</option>";
@@ -92,7 +92,7 @@ function hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko ( $db ) {
     $sql = "SELECT id, nimi FROM hankintapaikka ORDER BY id ASC;";
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
-    $return_string = '<select name="hankintapaikka_lista">';
+    $return_string = '<select name="hankintapaikka_lista" required>';
     foreach ( $rows as $hp ) {
         $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
     }
@@ -239,6 +239,7 @@ if ( !empty($_POST['lisaa']) ) {
         intval($_POST['minimimyyntiera']),
         intval($_POST['alennusera_kpl']),
         (floatval($_POST['alennusera_prosentti']) / 100),
+        strval($_POST['nimi']),
     ];
     if ( add_product_to_catalog( $db, $array ) ) {
         $feedback = '<p class="success">Tuote lisätty!</p>';
@@ -451,7 +452,7 @@ else if ( !empty($_GET["manuf"]) ) {
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
 								<button class="nappi" onclick="showRemoveDialog(<?=$product->id?>)">
                                     Poista</button><br>
-                                <button class="nappi" onclick="showModifyDialog(<?=$product->id?>,
+                                <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>',
                                     '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
                                     '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
                                     '<?=$product->minimimyyntiera?>', '<?=$product->alennusera_kpl?>',
@@ -482,7 +483,7 @@ else if ( !empty($_GET["manuf"]) ) {
 							<td class="clickable"><?=$product->articleNo?></td>
 							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 							<td><a class="nappi" href='javascript:void(0)'
-                                   onclick="showAddDialog('<?=$product->articleNo?>', <?=$product->brandNo?>)">Lisää</a></td>
+                                   onclick="showAddDialog('<?=$product->articleNo?>', <?=$product->brandNo?>, '<?=$product->articleName?>')">Lisää</a></td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>
@@ -504,15 +505,15 @@ else if ( !empty($_GET["manuf"]) ) {
      * @param articleNo
      * @param brandNo
      */
-    function showAddDialog( articleNo, brandNo ) {
+    function showAddDialog( /*string*/ articleNo, /*int*/ brandNo, /*string*/ nimi ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         var hankintapaikka_valikko = <?php echo json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Lisää tuote</div> \
 				<form action="" name="lisayslomake" method="post"> \
-				    <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00"> &euro;</span><br> \
-					<label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00"> &euro;</span><br> \
+				    <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
+					<label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
 				    '+alv_valikko+'\
 					</span><br> \
@@ -520,11 +521,12 @@ else if ( !empty($_GET["manuf"]) ) {
 				    '+hankintapaikka_valikko+'\
 					</span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0"> kpl</span><br> \
+					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
 					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
-					<input class="nappi" type="submit" name="lisaa" value="Lisää" onclick="document.lisayslomake.submit()"><a class="nappi" style="margin-left: 10pt;" \
-						href="javascript:void(0)" onclick="Modal.close()">Peruuta</a> \
+					<input class="nappi" type="submit" name="lisaa" value="Lisää">\
+					<button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
+					<input type="hidden" name="nimi" value=' + nimi + '> \
 					<input type="hidden" name="articleNo" value="' + articleNo + '"> \
 					<input type="hidden" name="brandNo" value=' + brandNo + '> \
 				</form>',
@@ -552,6 +554,7 @@ else if ( !empty($_GET["manuf"]) ) {
     /**
      *
      * @param id
+     * @param tuotekoodi
      * @param ostohinta
      * @param hinta
      * @param alv
@@ -560,18 +563,16 @@ else if ( !empty($_GET["manuf"]) ) {
      * @param maara_alennus
      * @param prosentti_alennus
      */
-    function showModifyDialog(id, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, maara_alennus, prosentti_alennus ) {
+    function showModifyDialog(id, tuotekoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, maara_alennus, prosentti_alennus ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
-				<div class="dialogi-otsikko">Muokkaa tuotetta</div> \
+				<div class="dialogi-otsikko">Muokkaa tuotetta<br><br>'+tuotekoodi+'</div> \
 				<form action="" name="muokkauslomake" method="post"> \
-					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'"> &euro;</span><br> \
-					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'"> &euro;</span><br> \
+					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
+					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-				    '+alv_valikko+'\
-					</span><br> \
-					<span class="dialogi-kentta">Nykyinen verokanta: '+alv+'</span><br>\
+				    '+alv_valikko+'</span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="'+minimimyyntiera+'"> kpl</span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="'+maara_alennus+'"> kpl</span><br> \
@@ -582,6 +583,7 @@ else if ( !empty($_GET["manuf"]) ) {
 				</form>',
             draggable: true
         } );
+        $("#alv_lista").val(alv);
     }
 
     function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id){
@@ -593,7 +595,8 @@ else if ( !empty($_GET["manuf"]) ) {
             function( data ) {
                 ostotilauskirjat = JSON.parse(toJSON(data));
                 if(ostotilauskirjat.length === 0){
-                    alert("Luo ensin kyseiselle toimittajalle hankintapaikka!");
+                    alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
+                        "\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
                     return;
                 }
                 //Luodaan alasvetovalikko

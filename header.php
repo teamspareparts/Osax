@@ -35,11 +35,11 @@
 
                 <li class="dropdown"><span>Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></span>
                     <ul class="dropdown-content">
-                        <li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
                         <li><a href="yp_ostotilauskirja_hankintapaikka.php"><span>Tilauskirjat</span></a></li>
-                        <li><a><span>raportit</span></a></li>
+                        <li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
                         <li><a href="yp_hankintapyynnot.php"><span>Hankintapyynnöt</span></a></li>
                         <li><a href="yp_muokkaa_alv.php"><span>ALV-muokkaus</span></a></li>
+                        <li><a href="yp_luo_hinnastotiedosto.php"><span>Lataa hinnastot</span></a></li>
                     </ul>
                 </li>
 

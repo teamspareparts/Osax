@@ -268,10 +268,11 @@ function getOptionalData( $id ) {
 function get_basic_product_info( /*array*/ $catalog_products ) {
     foreach ( $catalog_products as $catalog_product ) {
         //var_dump($catalog_product);
-        $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo)[0];
-        $catalog_product->articleId = $response->articleId;
-        $catalog_product->brandName = $response->brandName;
-        $catalog_product->articleName = $response->articleName;
+        $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo);
+
+        $catalog_product->articleId = $response ? $response[0]->articleId : false;
+        $catalog_product->brandName = $response ? $response[0]->brandName : false;
+        $catalog_product->articleName = $response ? $response[0]->articleName : false;
     }
 }
 
