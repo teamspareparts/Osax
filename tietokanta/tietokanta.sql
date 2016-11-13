@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hankintapaikka_id` int(11) NOT NULL, -- FK, UK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilaus_koodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
+  `nimi` varchar(40) DEFAULT NULL,
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT 0, -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT 0,
