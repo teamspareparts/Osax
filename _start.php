@@ -37,6 +37,6 @@ $cart = new Ostoskori( $db, $user->yritys_id );
 if ( !$user->isValid() ) {
 	header( 'Location: index.php?redir=4' ); exit;
 }
-elseif (!$user->eula_hyvaksytty()) {
+elseif ( !$user->eula_hyvaksytty() ) {
     header( 'Location: eula.php' ); exit;
 }

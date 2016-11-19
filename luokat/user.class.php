@@ -7,14 +7,15 @@ class User {
 
 	public $id = NULL;
 	public $yritys_id = 0;
-    public $aktiivinen = NULL;
-
-	public $sahkoposti = '';
 
 	public $etunimi = '';
 	public $sukunimi = '';
-	public $puhelin = 0;
+	public $puhelin = '';
+	public $sahkoposti = '';
+	public $yrityksen_nimi = '';
 
+
+	public $aktiivinen = NULL;
 	public $yllapitaja = FALSE;
 	public $demo = FALSE;
     private $vahvista_eula = TRUE;
@@ -28,30 +29,32 @@ class User {
 	 * user constructor.<p>
 	 * Hakee käyttäjän tiedot tietokannasta.
 	 * Jos 2. parametri on NULL, niin ei tee mitään. Jos ei löydä käyttäjää ID:llä, niin kaikki
-	 *  olion arvot pysyvät default arvoissaan. Testaa, löytyikö käyttäjä tarkastamalla, onko ID == NULL.
+	 *  olion arvot pysyvät default arvoissaan. Testaa löytyikö käyttäjä isValid-metodilla.
 	 * @param DByhteys $db
 	 * @param int $user_id
 	 */
 	function __construct ( DByhteys $db, /*int*/ $user_id ) {
 		if ( $user_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
-			$sql = "SELECT id, yritys_id, sahkoposti, etunimi, sukunimi, puhelin,
-				  		 yllapitaja, demo, voimassaolopvm, salasana_uusittava,
-				  		 vahvista_eula, aktiivinen
+			$sql = "SELECT kayttaja.id, yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
+						kayttaja.puhelin, yllapitaja, demo, voimassaolopvm, salasana_uusittava,
+				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi
 					FROM kayttaja 
-					WHERE id = ?
+					JOIN yritys ON kayttaja.yritys_id = yritys.id
+					WHERE kayttaja.id = ?
 					LIMIT 1";
 			$foo = $db->query( $sql, [ $user_id ] );
 
 			if ( $foo ) { // Varmistetaan, että jokin asiakas löytyi
 				$this->id = $foo->id;
 				$this->yritys_id = $foo->yritys_id;
-				$this->sahkoposti = $foo->sahkoposti;
-                $this->aktiivinen = $foo->aktiivinen;
 
 				$this->etunimi = $foo->etunimi;
 				$this->sukunimi = $foo->sukunimi;
 				$this->puhelin = $foo->puhelin;
+				$this->sahkoposti = $foo->sahkoposti;
+				$this->yrityksen_nimi = $foo->nimi;
 
+				$this->aktiivinen = $foo->aktiivinen;
 				$this->yllapitaja = $foo->yllapitaja;
 				$this->demo = $foo->demo;
                 $this->vahvista_eula = $foo->vahvista_eula;
@@ -154,13 +157,4 @@ class User {
 	public function isValid () {
 		return ( $this->id !== NULL );
 	}
-
-	/** */function __toString () {
-	return "<p>
-		Asiakkaan tiedot:<br>
-		Nimi: {$this->kokoNimi()}<br>
-		Sähköposti: {$this->sahkoposti}<br>
-		Puhelin: {$this->puhelin}<br>
-		</p>";
-}
 }

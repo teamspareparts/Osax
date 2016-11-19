@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
   `yhteensa_kpl` int(11) NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `hyllypaikka` varchar(10) DEFAULT NULL, -- TODO: Work In Progress
   `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
   `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,

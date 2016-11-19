@@ -124,12 +124,9 @@ class Ostoskori {
 					WHERE  ostoskori_id = ?";
 			$db->prepare_stmt( $sql );
 			$db->run_prepared_stmt( [$this->ostoskori_id] );
-			$row = $db->get_next_row( );
-			while ( $row ) { //TODO: Miksei vaan [$row->tuote_id][] = $row; ?
-				$this->tuotteet[$row->tuote_id][] = $row->tuote_id;
-				$this->tuotteet[$row->tuote_id][] = $row->kpl_maara;
+			while ( $row = $db->get_next_row() ) {
+				$this->tuotteet[$row->tuote_id] = $row;
 				$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
-				$row = $db->get_next_row();
 			}
 			$this->montako_tuotetta = count($this->tuotteet);
 			$this->cart_mode = 1;

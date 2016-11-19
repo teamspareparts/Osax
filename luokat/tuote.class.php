@@ -17,13 +17,23 @@ class Tuote {
 	public $kpl_maara = 0;
 	public $summa = 0.00;
 
-	/** */
-	function a_hinta_toString () {
-		return number_format( (double)$this->a_hinta, 2, ',', '.') . ' &euro;';
+	/**
+	 * @param boolean $ilman_alv [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
+	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
+		$hinta = $ilman_alv ? $this->a_hinta_ilman_alv : $this->a_hinta;
+		return number_format( (double)$hinta, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 
-	/** */
-	function summa_toString () {
-		return number_format((double)$this->summa, 2, ',', '.') . ' &euro;';
+	/**
+	 * @param boolean $ilman_alv [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
+	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
+		$hinta = $ilman_alv ? ($this->a_hinta_ilman_alv*$this->kpl_maara) : $this->summa;
+		return number_format( (double)$hinta, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 }

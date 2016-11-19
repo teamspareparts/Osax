@@ -29,7 +29,7 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 		$rows = $db->query( $sql, $ids, FETCH_ALL );
 
 		foreach ( $rows as $row ) {
-			$row->cartCount = $cart->tuotteet[$row->id][1];
+			$row->cartCount = $cart->tuotteet[$row->id]->kpl_maara;
 			$products[] = $row;
 		}
 		//Haetaan tuotteille tarkemmat tiedot tecdocista
