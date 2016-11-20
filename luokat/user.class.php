@@ -14,52 +14,43 @@ class User {
 	public $sahkoposti = '';
 	public $yrityksen_nimi = '';
 
-
 	public $aktiivinen = NULL;
 	public $yllapitaja = FALSE;
 	public $demo = FALSE;
-    private $vahvista_eula = TRUE;
+	public $vahvista_eula = TRUE;
 	public $voimassaolopvm = NULL;
 	public $salasana_uusittava = NULL;
+	public $yleinen_alennus = 0.00;
 	/** @var stdClass[] */
 	public $toimitusosoitteet = array();
 
 
 	/**
-	 * user constructor.<p>
-	 * Hakee käyttäjän tiedot tietokannasta.
-	 * Jos 2. parametri on NULL, niin ei tee mitään. Jos ei löydä käyttäjää ID:llä, niin kaikki
-	 *  olion arvot pysyvät default arvoissaan. Testaa löytyikö käyttäjä isValid-metodilla.
-	 * @param DByhteys $db
-	 * @param int $user_id
+	 * Käyttäjä-luokan konstruktori.
+	 * Jos annettu parametrit, Hakee käyttäjän tiedot tietokannasta. Muuten ei tee mitään.
+	 * Jos ei löydä käyttäjää ID:llä, niin kaikki olion arvot pysyvät default arvoissaan.
+	 * Testaa löytyikö käyttäjä isValid-metodilla.
+	 * @param DByhteys $db [optional]
+	 * @param int $user_id [optional]
 	 */
-	function __construct ( DByhteys $db, /*int*/ $user_id ) {
+	function __construct ( DByhteys $db = NULL, /*int*/ $user_id = NULL ) {
 		if ( $user_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
-			$sql = "SELECT kayttaja.id, yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
-						kayttaja.puhelin, yllapitaja, demo, voimassaolopvm, salasana_uusittava,
-				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi
+			$sql = "SELECT kayttaja.id, kayttaja.yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
+						kayttaja.puhelin, yllapitaja, demo, kayttaja.voimassaolopvm, salasana_uusittava,
+				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi AS yrityksen_nimi,
+				  		tuote_erikoishinta.yleinenalennus_prosentti AS yleinen_alennus
 					FROM kayttaja 
 					JOIN yritys ON kayttaja.yritys_id = yritys.id
+					LEFT JOIN tuote_erikoishinta ON kayttaja.id = tuote_erikoishinta.kayttaja_id 
+						AND tuote_erikoishinta.tuote_id IS NULL AND tuote_erikoishinta.yritys_id IS NULL
 					WHERE kayttaja.id = ?
 					LIMIT 1";
-			$foo = $db->query( $sql, [ $user_id ] );
+			$row = $db->query( $sql, [ $user_id ] );
 
-			if ( $foo ) { // Varmistetaan, että jokin asiakas löytyi
-				$this->id = $foo->id;
-				$this->yritys_id = $foo->yritys_id;
-
-				$this->etunimi = $foo->etunimi;
-				$this->sukunimi = $foo->sukunimi;
-				$this->puhelin = $foo->puhelin;
-				$this->sahkoposti = $foo->sahkoposti;
-				$this->yrityksen_nimi = $foo->nimi;
-
-				$this->aktiivinen = $foo->aktiivinen;
-				$this->yllapitaja = $foo->yllapitaja;
-				$this->demo = $foo->demo;
-                $this->vahvista_eula = $foo->vahvista_eula;
-				$this->voimassaolopvm = $foo->voimassaolopvm;
-				$this->salasana_uusittava = $foo->salasana_uusittava;
+			if ( $row ) { // Varmistetaan, että jokin asiakas löytyi
+				foreach ( $row as $property => $propertyValue ) {
+					$this->{$property} = $propertyValue;
+				}
 			}
 		}
 	}

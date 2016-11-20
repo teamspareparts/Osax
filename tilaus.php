@@ -6,7 +6,6 @@ require 'email.php';
 require 'ostoskori_tilaus_funktiot.php'; //Sisältää kaikki ennen tässä tiedostossa olleet PHP-funktiot
 
 $yritys = new Yritys( $db, $user->yritys_id );
-$feedback = '';
 $products = get_products_in_shopping_cart( $db, $cart );
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
 if ( empty($products) ) { header("location:ostoskori.php"); exit; }
@@ -44,7 +43,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			WHERE kayttaja_id = ? AND osoite_id = ?",
 			[$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
 
-		require 'lasku_pdf_luonti.php'; // Tulostetaan lasku ! Woo se on valmis !
+		require 'lasku_pdf_luonti.php';
 		//lähetetään tilausvahvistus asiakkaalle
 		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id, $tiedoston_nimi );
 		//lähetetään tilaus ylläpidolle
@@ -55,8 +54,16 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		exit;
 	}
 	else {
-		$feedback = '<p class="error">Tilauksen lähetys ei onnistunut!</p>';
+		$_SESSION["feedback"] = '<p class="error">Tilauksen lähetys ei onnistunut!</p>';
 	}
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>
