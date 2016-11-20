@@ -10,7 +10,7 @@
  * @return array
  */
 function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
-	$products = [];
+	$products = array();
 
 	//Tarkistetaan, että tuotteiden ID:t on haettu ostoskorissa, ja jos ei, niin tehdään se.
 	if ( $cart->cart_mode != 1 ) { $cart->hae_ostoskorin_sisalto( $db, TRUE ); }

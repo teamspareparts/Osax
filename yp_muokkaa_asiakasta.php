@@ -4,11 +4,6 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-$asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
-if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
-	header("Location:yp_asiakkaat.php"); exit();
-}
-
 /** Asiakkaan muokkaus. */
 if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$sql = "UPDATE kayttaja SET etunimi = ?, sukunimi = ?, puhelin = ? WHERE id = ?";
@@ -16,10 +11,10 @@ if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tiedot päivitetty.</p>";
 
-/** Asiakkaan salasanan vaihto. Pakottaa asiakkaan vaihtamaan salansanan seuraavalla kirjautumisella. */
-} elseif (isset($_POST['reset_password'])) {
+	/** Asiakkaan salasanan vaihto. Pakottaa asiakkaan vaihtamaan salansanan seuraavalla kirjautumisella. */
+} elseif ( !empty($_POST['reset_password'])) {
 	$sql = "UPDATE kayttaja SET salasana_uusittava = 1 WHERE id = ?";
-	$db->query( $sql, [$asiakas->id] );
+	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Salasana nollattu.<br>Salasanan vaihtaminen 
 				pakotettu seuraavalla kirjautumiskerralla</p>";
 }
@@ -27,18 +22,32 @@ if ( !empty($_POST['muokkaa_asiakas']) ) {
 /** Asiakkaan muuttaminen pysyväksi */
 elseif ( isset($_POST['demo_away']) ) {
 	$sql = "UPDATE kayttaja SET demo = 0 WHERE id = ?";
-	$db->query( $sql, [$asiakas->id] );
+	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tili on nyt pysyvä.</p>";
 }
 
+/** Asiakkaan muuttaminen pysyväksi */
+elseif ( !empty($_POST['muokkaa_alennus']) ) {
+	echo "<pre>";
+	$_POST['muokkaa_alennus'] = $_POST['muokkaa_alennus'] / 100; // 10 % --> 0.10
+	$sql = "INSERT INTO tuote_erikoishinta (yleinenalennus_prosentti, kayttaja_id) VALUES (?,?)
+			ON DUPLICATE KEY UPDATE yleinenalennus_prosentti = VALUES(yleinenalennus_prosentti)";
+	$db->query( $sql, array_values($_POST) );
+	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus {$_POST['yleinen_alennus']} % asetettu </p>";
+}
+
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 	unset($_SESSION["feedback"]);
 }
 
+$asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
+if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
+	header("Location:yp_asiakkaat.php"); exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -88,7 +97,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<form action="#" name="resetoi_salasana" method="post">
 		<fieldset class="center"><legend>Salasanan vaihto</legend>
 			<label style="float:none;">Nollaa salasana:
-				<input class="nappi" name="reset_password" value="Resetoi salasana" type="submit">
+				<input name="reset_password" value="<?= $asiakas->id ?>" type="hidden">
+				<input class="nappi" value="Resetoi salasana" type="submit">
 			</label>
 		</fieldset>
 	</form><br><br>
@@ -97,7 +107,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<form action="#" name="muuta_demoaika" method="post">
 		<fieldset class="center"><legend> Demoajan muuttaminen </legend>
 			<label style="float:none;">Tee tilistä pysyvä:
-				<input class="nappi" name="demo_away" value="Poista demorajoitus" type="submit">
+				<input name="demo_away" value="<?= $asiakas->id ?>" type="hidden">
+				<input class="nappi" value="Poista demorajoitus" type="submit">
 			</label>
 			<br><br>
 			<label style="float:none;">Muuta demoaikaa:<br>

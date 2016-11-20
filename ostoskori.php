@@ -4,7 +4,6 @@ require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'ostoskori_tilaus_funktiot.php';
 
-// Normaalisti tämä tulisi muuttujien jälkeen vasta, mutta koska k.o. muuttujat käyttävät $cart-oliota...
 if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_id = $_POST['ostoskori_tuote'];
 	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;

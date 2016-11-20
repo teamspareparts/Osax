@@ -89,7 +89,7 @@ input { padding: 3pt; }
 	Navigointipalkki 
 *********************************************/
 #navigationbar {
-	background: #2f5cad;
+	background: #0D47A1; /* TODO: valitse väri */
 	width: auto;
 	height: auto;
 }
@@ -137,10 +137,12 @@ input { padding: 3pt; }
 	text-transform: uppercase;
 	font-size: 16px;
 	position: relative;
+	border-radius: 5px;
 }
 
 #navigationbar ul li :HOVER {
-	color: black;
+	color: darkgrey; /* TODO: valitse väri */
+	background: #448AFF;
 }
 
 
@@ -193,9 +195,9 @@ input { padding: 3pt; }
 	-moz-user-select:none;
 	-ms-user-select:none;
 	user-select:none;
-	font-weight: 700;
-	font-size: 15px;
-	text-transform: uppercase;
+	font-weight: 600;
+	font-size: 16px;
+	/*text-transform: uppercase;*/
 	text-decoration: none;
 	font-family: 'Open Sans', sans-serif;
 	display: inline-block;
