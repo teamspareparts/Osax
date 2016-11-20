@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT 0, -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT 0,
+  `hyllypaikka` varchar(10) DEFAULT NULL, -- TODO: Work In Progress
   `minimimyyntiera` int(11) NOT NULL DEFAULT 1,
   `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
   `yhteensa_kpl` int(11) NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
