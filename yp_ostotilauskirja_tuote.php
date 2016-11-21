@@ -6,23 +6,54 @@ if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
 
-//tarkastetaan onko GET muuttujat sallittuja ja haetaan hankintapaikan tiedot
+//tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$ostotilauskirja_id])) {
     header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
 
-/******************************************************************************
- *
- *
- *                          KESKENERÄINEN SIVU!!
- *
- *
- ******************************************************************************/
+/**
+ * Tallennetaan ostotilauskirja arkistoon ja tyhjennetään alkuperäisen ostotilauskirjan sisältö
+ * @param DByhteys $db
+ * @param $ostotilauskirja_id
+ * @return bool
+ */
+function laheta_ostotilauskirja(DByhteys $db, $ostotilauskirja_id){
+	//Lisätään osotilauskirja arkistoon
+	$sql = "INSERT INTO ostotilauskirja_arkisto (hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva)
+            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva
+            FROM ostotilauskirja
+            WHERE id = ? ";
+	if (!$db->query($sql, [$ostotilauskirja_id])) return false;
+	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
 
-else if ( isset($_POST['muokkaa']) ) {
+	//Lisätään ostotilauskirjan tuotteet arkistoon
+	$sql = "SELECT * FROM ostotilauskirja_tuote
+ 			LEFT JOIN tuote
+ 			 ON ostotilauskirja_tuote.tuote_id = tuote.id
+ 			WHERE ostotilauskirja_id = ?";
+	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) return false;
+	foreach ($products as $product) {
+		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, kpl, 
+										lisays_tapa, lisays_pvm, lisays_selite, lisays_kayttaja_id, ostohinta) 
+ 								VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->lisays_tapa,
+			$product->lisays_pvm, $product->lisays_selite, $product->lisays_kayttaja_id,
+			$product->sisaanostohinta]);
+		if( !$result ) return false;
+	}
+
+	//Tyhjennetään alkuperäinen ostotilauskirja
+	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ? ";
+	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
+
+	return true;
+}
+
+
+if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
     $sql1 = "  UPDATE ostotilauskirja_tuote
               SET kpl = ?
@@ -41,6 +72,15 @@ else if( isset($_POST['poista']) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
+    }
+}
+else if( isset($_POST['laheta']) ) {
+    unset($_POST['laheta']);
+    if ( laheta_ostotilauskirja($db, $_POST['id']) ) {
+		header("Location: yp_ostotilauskirja_odottavat.php"); //Estää formin uudelleenlähetyksen
+		exit();
+    } else {
+        $_SESSION["feedback"] = "<p class='error'>ERROR. Ostotilauskirjaa ei jostain syystä voitu lähettää.</p>";
     }
 }
 
@@ -84,7 +124,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
         <h1 class="otsikko">Ostotilauskirja</h1>
         <div id="painikkeet">
             <a class="nappi grey" href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>">Takaisin</a>
-            <button class="nappi" onclick="varmista_lahetys()">Lähetä</button>
+            <button class="nappi" onclick="varmista_lahetys(<?=$otk->id?>)">Lähetä</button>
 
         </div>
         <h3><?=$otk->tunniste?><br><span style="font-size: small;">Arvioitu saapumispäivä: <?=date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></span></h3>
@@ -197,10 +237,29 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
         }
     }
 
-    function varmista_lahetys(){
+    function varmista_lahetys(ostotilauskirja_id){
         var vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
         if ( vahvistus ) {
+            var form = document.createElement("form");
+            form.setAttribute("method", "POST");
+            form.setAttribute("action", "");
 
+            //asetetaan $_POST["laheta"]
+            var field = document.createElement("input");
+            field.setAttribute("type", "hidden");
+            field.setAttribute("name", "laheta");
+            field.setAttribute("value", true);
+            form.appendChild(field);
+
+            field = document.createElement("input");
+            field.setAttribute("type", "hidden");
+            field.setAttribute("name", "id");
+            field.setAttribute("value", ostotilauskirja_id);
+            form.appendChild(field);
+
+            //form submit
+            document.body.appendChild(form);
+            form.submit();
         }
     }
 

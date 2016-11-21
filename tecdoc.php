@@ -1,4 +1,5 @@
 <?php
+ini_set('track_errors', 1);
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.
 //
@@ -271,8 +272,8 @@ function get_basic_product_info( /*array*/ $catalog_products ) {
         $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo);
 
         $catalog_product->articleId = $response ? $response[0]->articleId : false;
-        $catalog_product->brandName = $response ? $response[0]->brandName : false;
-        $catalog_product->articleName = $response ? $response[0]->articleName : false;
+        $catalog_product->brandName = $response ? $response[0]->brandName : "";
+        $catalog_product->articleName = $response ? $response[0]->articleName : "";
     }
 }
 

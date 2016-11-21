@@ -2,6 +2,12 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
+set_time_limit(120);
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting( E_ALL | E_NOTICE );
+
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
@@ -15,7 +21,6 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  */
 function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $hankintapaikka_id) {
 	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
-	set_time_limit(60); // Ylläolevaan tiedoston avaamiseen.
 
 	if ( isset($_POST['otsikkorivi']) ) { // Hypätään ensimmäisen rivin yli, jos otsikkorivi
 		$row = -1;
@@ -23,7 +28,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 		$row = 0;
 	}
 
-    $new_catalog_products = [];
+    $product_array = [];
 	$failed_inserts = 0;
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 		if ($row == -1) {
@@ -48,6 +53,15 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 		$kappaleet = (int)$data[$_POST["s5"]];
         $tuotekoodi = $hankintapaikka_id ."-". $articleNo; //esim: 100-QTB249
 
+		$product_array[0] = (object)[
+			'articleNo' => $articleNo,
+			'brandNo' => $brandId,
+			'hankintapaikka_id' => $hankintapaikka_id,
+		];
+
+		//get_basic_product_info($product_array);
+		//sleep(0.1);
+
 		$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi) 
 				VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -62,21 +76,14 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 			[$articleNo, $ostohinta, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
 				$brandId, $hankintapaikka_id, $tuotekoodi]);
 		//Jos syötetään tuote ensimmäistä kertaa tietokantaan, haetaan tecdocista myös nimi
-		if ($response === 1) {
-            $new_catalog_products[] = (object)[
-                'articleNo' => $articleNo,
-                'brandNo' => $brandId,
-                'hankintapaikka_id' => $hankintapaikka_id,
-            ];
-        }
 	}
-	if ($new_catalog_products) {
+	/*if ($new_catalog_products) {
         get_basic_product_info($new_catalog_products);
         foreach ($new_catalog_products as $product) {
             $sql = "UPDATE tuote SET nimi = ? WHERE articleNo = ? AND brandNo = ? AND tuote.hankintapaikka_id = ?";
             $db->query($sql, [$product->articleName, $product->articleNo, $product->brandNo, $product->hankintapaikka_id]);
         }
-    }
+    }*/
 
 	fclose($handle);
 	return array($row, $failed_inserts);    //kaikki rivit , epäonnistuneet syötöt

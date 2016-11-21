@@ -6,6 +6,15 @@
 require "_start.php"; global $db, $user;
 require "tecdoc.php";
 
+//Jos vie pitkään
+set_time_limit(180);
+
+//Debuggaukseen
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
     header("Location:etusivu.php"); exit();
 }
@@ -22,14 +31,14 @@ $hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi a
 $offset = 0;
 $products = true;
 while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
-    $products = $db->query("SELECT * FROM tuote LEFT JOIN alv_kanta ON tuote.ALV_kanta=alv_kanta.kanta WHERE aktiivinen=1 LIMIT ?, ?",
+    $products = $db->query("SELECT * FROM tuote LEFT JOIN ALV_kanta ON tuote.ALV_kanta=ALV_kanta.kanta WHERE aktiivinen=1 LIMIT ?, ?",
         [$offset, $fetchCount], FETCH_ALL);
     $offset += $fetchCount;
 
     //Kirjoitetaan haetut tuotteet tiedostoon
     foreach ($products as $p) {
         $row = str_pad($p->tuotekoodi, 20 , " ") .
-                str_pad(str_replace(".", ",", ((1+$p->prosentti)*$p->hinta_ilman_ALV)), 10 , " ") .
+                str_pad(number_format((1+$p->prosentti)*$p->hinta_ilman_ALV,2,',',''), 10 , " ") .
                 str_pad($p->nimi, 40 , " ") . "\r\n";
         fwrite($hinnastotiedosto, $row);
     }
