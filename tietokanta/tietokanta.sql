@@ -225,36 +225,41 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
-  `id` int(11) NOT NULL, -- PK
+  `ostotilauskirja_id` int(11) NOT NULL, -- PK, FK
   `tuote_id` INT(11) NOT NULL, -- PK, FK
   `kpl` INT(11) NOT NULL,
   `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
-  PRIMARY KEY (`id`, `tuote_id`),
+  PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`),
   CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `ostotilauskirja_` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
-  `id` int(11) NOT NULL, -- PK
+CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
+  `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` int(11) NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,  -- UNIQUE K -- nimi, jolla tunnistetaan
+  `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2),
-  `saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `oletettu_saapumispaiva` timestamp NULL,
+  `saapumispaiva` timestamp NULL,
+  `hyvaksytty` TINYINT(1) NOT NULL DEFAULT 0, -- Odottavassa tilassa vai vastaanotettu ja hyväksytty
+  PRIMARY KEY (`id`),
+  CONSTRAINT fk_ostotilauskirjan_hankintapaikka
+  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
-  `id` INT(11) NOT NULL, -- PK, FK
-  `tuote_id` INT(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
+  `ostotilauskirja_id` INT(11) NOT NULL, -- PK, FK
+  `tuote_id` INT(11) NOT NULL, -- PK, FK
   `kpl` INT(11) NOT NULL,
   `ostohinta` INT(11) NOT NULL,
   `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
-  PRIMARY KEY (`id`, tuote_id),
+  -- TODO: Muokattu odottavassa tilassa ennen arkistointia (kuka miksi pvm)
+  PRIMARY KEY (`ostotilauskirja_id`, tuote_id),
   CONSTRAINT fk_ostotilauskirjaTuote__tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
