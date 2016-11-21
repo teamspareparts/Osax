@@ -45,10 +45,10 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilaus_koodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
+  `valmistaja` varchar(40) DEFAULT NULL,
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,
   `ALV_kanta` tinyint(1) NOT NULL DEFAULT 0, -- Foreign KEY
   `varastosaldo` int(11) NOT NULL DEFAULT 0,
-  `hyllypaikka` varchar(10) DEFAULT NULL, -- TODO: Work In Progress
   `minimimyyntiera` int(11) NOT NULL DEFAULT 1,
   `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
   `yhteensa_kpl` int(11) NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
@@ -157,17 +157,16 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) NOT NULL AUTO_INCREMENT, -- PK
-  `tuote_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
-  `yritys_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
-  `kayttaja_id` int(11) NULL DEFAULT NULL, -- Foreign KEY
+  `tuote_id` int(11) DEFAULT 0, -- Foreign KEY
+  `yritys_id` int(11) DEFAULT 0, -- Foreign KEY
   `maaraalennus_kpl` int(11) DEFAULT 0,
   `maaraalennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `yleinenalennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `voimassaolopvm` timestamp NULL DEFAULT NULL, -- Jos tarjouksella on vanhenemisraja
   PRIMARY KEY (`id`),
+  UNIQUE KEY (`tuote_id`,`yritys_id`),
   CONSTRAINT fk_tuoteErikoishinta_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`),
-  CONSTRAINT fk_tuoteErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`),
-  CONSTRAINT fk_tuoteErikoishinta_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
+  CONSTRAINT fk_tuoteErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostoskori` (

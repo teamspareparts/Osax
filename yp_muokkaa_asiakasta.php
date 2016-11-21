@@ -103,6 +103,21 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 		</fieldset>
 	</form><br><br>
 
+	<form action="#" name="muuta_tuotaalennus" method="post">
+		<fieldset class="center"><legend>Asiakkaan alennus</legend>
+			<span>Yleinen alennus, koskee kaikkia tuotteita.</span>
+			<br><br>
+			<label> Yleinen alennus: </label>
+			<input name="yleinen_alennus" type="number" min="0" max="100" value="<?= $asiakas->yleinen_alennus * 100 ?>"
+				   title=""> %
+			<br><br>
+			<div class="center">
+				<input name="muokkaa_alennus" value="<?= $asiakas->id ?>" type="hidden">
+				<input value="Muokkaa alennusta" type="submit" class="nappi">
+			</div>
+		</fieldset>
+	</form><br><br>
+
 	<?php if ($asiakas->demo) : ?>
 	<form action="#" name="muuta_demoaika" method="post">
 		<fieldset class="center"><legend> Demoajan muuttaminen </legend>
