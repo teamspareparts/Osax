@@ -6,23 +6,25 @@ require 'apufunktiot.php';
 /**
  * Lisää uuden tuotteen tietokantaan.
  * Jos tuote on jo tietokannassa, päivittää uudet tiedot, ja asettaa aktiiviseksi.
+ * //TODO: Mitä tehdään keskiostohinnalle ja yhteensa_kpl, kun ON DUPLICATE KEY ?
  * @param DByhteys $db
  * @param array $val
  * @return bool <p> onnistuiko lisäys. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
-//TODO: Mitä tehdään keskiostohinnalle ja yhteensa_kpl, kun ON DUPLICATE KEY ?
 function add_product_to_catalog( DByhteys $db, /*array*/ $val ) {
 	$sql = "INSERT INTO tuote 
 				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
-				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, nimi, yhteensa_kpl, keskiostohinta) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
+				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, nimi, valmistaja, yhteensa_kpl, keskiostohinta) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
 			ON DUPLICATE KEY 
 				UPDATE sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
 					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
-					minimimyyntiera=VALUES(minimimyyntiera), alennusera_kpl=VALUES(alennusera_kpl),
+					minimimyyntiera=VALUES(minimimyyntiera), nimi=VALUES(nimi),
+					valmistaja=VALUES(valmistaja), alennusera_kpl=VALUES(alennusera_kpl),
 					alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
 	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10],$val[11] ] );
+		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10],$val[11],$val[12] ] );
+	//TODO: You do realize how pointless that array thing is?
 }
 
 /**
@@ -42,26 +44,23 @@ function remove_product_from_catalog( DByhteys $db, /*int*/ $id) {
  * @param array $val
  * @return bool <p> onnistuiko muutos. Tosin heittää exceptionin, jos jotain menee vikaan haussa.
  */
-
 function modify_product_in_catalog( DByhteys $db, array $val ) {
 	$sql = "UPDATE tuote 
-			SET
-			keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
-			yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
-			sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
-			minimimyyntiera = ?, alennusera_kpl = ?, alennusera_prosentti = ?
+			SET keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
+				yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
+				sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
+				minimimyyntiera = ?, alennusera_kpl = ?, alennusera_prosentti = ?
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
 		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
 }
 
-
 function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
     $sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, kpl,
               lisays_selite, lisays_kayttaja_id, lisays_tapa)
             VALUES ( ?, ?, ?, ?, ?, 1)";
-    return $db->query( $sql, $val);
+    return $db->query( $sql, $val );
 }
 
 /**
@@ -70,7 +69,7 @@ function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
 function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
-    $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC;";
+    $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
     $return_string = '<select name="alv_lista" id="alv_lista">';
@@ -89,7 +88,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
 function hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko ( $db ) {
-    $sql = "SELECT id, nimi FROM hankintapaikka ORDER BY id ASC;";
+    $sql = "SELECT id, nimi FROM hankintapaikka ORDER BY id ASC";
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
     $return_string = '<select name="hankintapaikka_lista" required>';
@@ -140,17 +139,13 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	 * @return array|bool|stdClass
 	 */
 	function get_product_from_database(DByhteys $db, stdClass $product){
-		$query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-			    		FROM 	tuote 
-		  	  	    	JOIN 	ALV_kanta
-		    				ON	tuote.ALV_kanta = ALV_kanta.kanta
-				    	WHERE 	tuote.articleNo = ?
-					        AND tuote.brandNo = ?
-					 	    AND tuote.aktiivinen = 1 ";
+		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+				FROM 	tuote 
+				JOIN 	ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				WHERE 	tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 ";
 
-		return $db->query($query, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL, PDO::FETCH_OBJ);
+		return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL );
 	}
-
 
 	$catalog_products = $all_products = array();
 	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
@@ -220,7 +215,6 @@ function halkaise_hakunumero(&$number, &$etuliite){
 	$number = substr($number, 4);
 }
 
-$feedback = "";
 $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 
@@ -239,16 +233,17 @@ if ( !empty($_POST['lisaa']) ) {
         intval($_POST['minimimyyntiera']),
         intval($_POST['alennusera_kpl']),
         (floatval($_POST['alennusera_prosentti']) / 100),
-        strval($_POST['nimi']),
+		strval($_POST['nimi']),
+		strval($_POST['valmistaja'])
     ];
     if ( add_product_to_catalog( $db, $array ) ) {
-        $feedback = '<p class="success">Tuote lisätty!</p>';
-    } else { $feedback = '<p class="error">Tuotteen lisäys epäonnistui!</p>'; }
+		$_SESSION["feedback"] = '<p class="success">Tuote lisätty!</p>';
+    } else { $_SESSION["feedback"] = '<p class="error">Tuotteen lisäys epäonnistui!</p>'; }
 
 } elseif ( !empty($_POST['poista']) ) {
     if ( remove_product_from_catalog( $db, $_POST['id'] ) ) {
-        $feedback = '<p class="success">Tuote poistettu!</p>';
-    } else { $feedback = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
+		$_SESSION["feedback"] = '<p class="success">Tuote poistettu!</p>';
+    } else { $_SESSION["feedback"] = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
 
 } elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
@@ -262,8 +257,8 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['id']
     ];
     if ( modify_product_in_catalog( $db, $array ) ) {
-		$feedback = '<p class="success">Tuotteen tietoja muokattu!</p>';
-	} else { $feedback = '<p class="error">ERROR: Tuotetta ei voitu muokata!</p>'; }
+		$_SESSION["feedback"] = '<p class="success">Tuotteen tietoja muokattu!</p>';
+	} else { $_SESSION["feedback"] = '<p class="error">ERROR: Tuotetta ei voitu muokata!</p>'; }
 
 } elseif ( !empty($_POST['lisaa_otk']) ) {
     $array = [
@@ -274,25 +269,18 @@ if ( !empty($_POST['lisaa']) ) {
         $user->id
     ];
     if ( lisaa_tuote_ostotilauskirjalle( $db, $array ) ) {
-        $feedback = '<p class="success">Tuote lisätty ostotilauskirjalle!</p>';
-    } else { $feedback = '<p class="error">Tuote on jo kyseisellä ostotilauskirjalla!
+		$_SESSION["feedback"] = '<p class="success">Tuote lisätty ostotilauskirjalle!</p>';
+    } else { $_SESSION["feedback"] = '<p class="error">Tuote on jo kyseisellä ostotilauskirjalla!
                             Käy muokkaamassa tuotetta ostotilauskirjat -sivulla.</p>'; }
 }
 
-
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-    $_SESSION["feedback"] = $feedback;
-    header("Location: " . $_SERVER['REQUEST_URI']);
-    exit();
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
-
-
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : '';
-unset($_SESSION["feedback"]);
-
-
-
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -300,7 +288,6 @@ if ( !empty($_GET['haku']) ) {
 	$etuliite = null;                                           //mahdollinen etuliite
 	//TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
 	//TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
-
 
 	$numerotyyppi = isset($_GET['numerotyyppi']) ? $_GET['numerotyyppi'] : null;	//numerotyyppi
 	$exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
@@ -345,11 +332,6 @@ else if ( !empty($_GET["manuf"]) ) {
 	$all_products = $filtered_product_arrays[1];
 	$catalog_products = sortProductsByPrice($catalog_products);
 }
-
-
-
-
-
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -363,8 +345,8 @@ else if ( !empty($_GET["manuf"]) ) {
 	<link rel="stylesheet" href="css/bootstrap.css">
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
@@ -373,8 +355,8 @@ else if ( !empty($_GET["manuf"]) ) {
 </head>
 <body>
 <?php
-    require 'header.php';
-    require 'tuotemodal.php';
+require 'header.php';
+require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
 	<section class="flex_row">
@@ -406,6 +388,10 @@ else if ( !empty($_GET["manuf"]) ) {
 				<br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
+			<?php if ( $haku ) : ?>
+				<h3>Yhteensä löydettyjä tuotteita:
+					<?=count($catalog_products) + count($all_products) ?></h3>
+			<?php endif; ?>
 		</div>
 		<?php require 'ajoneuvomallillahaku.php'; ?>
 	</section>
@@ -414,19 +400,12 @@ else if ( !empty($_GET["manuf"]) ) {
 
 	<section class="hakutulokset">
 		<?php if ( $haku ) : ?>
-			<h4>Yhteensä löydettyjä tuotteita:
-				<?=count($catalog_products) + count($all_products) ?></h4>
-
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
-				<h2>Valikoimassa: (<?=count($catalog_products)?>)</h2>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>
-					<tr><th>Kuva</th>
-						<th>Tuotenumero</th>
-						<th>Tuote</th>
-						<th>Info</th>
-						<th class="number">Saldo</th>
-						<th class="number">Hinta (sis. ALV)</th>
+					<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
+					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
+						<th class="number">Saldo</th> <th class="number">Hinta (sis. ALV)</th>
                         <th class="number">Ostohinta ALV0%</th>
 						<th></th>
 					</tr>
@@ -467,15 +446,11 @@ else if ( !empty($_GET["manuf"]) ) {
 					</tbody>
 				</table>
 			<?php endif; //if $catalog_products
-
 			if ( $all_products) : //Tulokset (ei katalogissa)?>
-				<h2>Kaikki tuotteet: (<?=count($all_products)?>)</h2>
 				<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
 					<thead>
-					<tr><th>Tuotenumero</th>
-						<th>Tuote</th>
-						<th>Info</th>
-					</tr>
+					<tr><th colspan="3" class="center" style="background-color:#1d7ae2;">Kaikki tuotteet: (<?=count($all_products)?>)</th></tr>
+					<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th> </tr>
 					</thead>
 					<tbody>
 					<?php foreach ($all_products as $product) : ?>
@@ -483,7 +458,9 @@ else if ( !empty($_GET["manuf"]) ) {
 							<td class="clickable"><?=$product->articleNo?></td>
 							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 							<td><a class="nappi" href='javascript:void(0)'
-                                   onclick="showAddDialog('<?=$product->articleNo?>', <?=$product->brandNo?>, '<?=$product->articleName?>')">Lisää</a></td>
+								   onclick="showAddDialog(
+										'<?=$product->articleNo?>', <?=$product->brandNo?>,
+									   	'<?=$product->articleName?>', '<?=$product->brandName?>')">Lisää</a></td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>
@@ -505,9 +482,9 @@ else if ( !empty($_GET["manuf"]) ) {
      * @param articleNo
      * @param brandNo
      */
-    function showAddDialog( /*string*/ articleNo, /*int*/ brandNo, /*string*/ nimi ) {
-        var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
-        var hankintapaikka_valikko = <?php echo json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
+    function showAddDialog( /*string*/ articleNo, /*int*/ brandNo, /*string*/ nimi, /*string*/ valmistaja ) {
+        var alv_valikko = <?= json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
+        var hankintapaikka_valikko = <?= json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Lisää tuote</div> \
@@ -527,6 +504,7 @@ else if ( !empty($_GET["manuf"]) ) {
 					<input class="nappi" type="submit" name="lisaa" value="Lisää">\
 					<button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
 					<input type="hidden" name="nimi" value=' + nimi + '> \
+					<input type="hidden" name="valmistaja" value=' + valmistaja + '> \
 					<input type="hidden" name="articleNo" value="' + articleNo + '"> \
 					<input type="hidden" name="brandNo" value=' + brandNo + '> \
 				</form>',

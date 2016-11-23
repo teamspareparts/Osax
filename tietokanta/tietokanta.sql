@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
   `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
   PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`),
-  CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+	CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
@@ -245,8 +245,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `saapumispaiva` timestamp NULL,
   `hyvaksytty` TINYINT(1) NOT NULL DEFAULT 0, -- Odottavassa tilassa vai vastaanotettu ja hyväksytty
   PRIMARY KEY (`id`),
-  CONSTRAINT fk_ostotilauskirjan_hankintapaikka
-  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
+  CONSTRAINT fk_ostotilauskirjaArkisto_hankintapaikka
+    FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
@@ -259,8 +259,12 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
   -- TODO: Muokattu odottavassa tilassa ennen arkistointia (kuka miksi pvm)
+  `muokattu_odottavassa` BOOLEAN NOT NULL DEFAULT 0, -- TODO: Kelpaako?
+  `muokattu_pvm` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `muokattu_selite` VARCHAR(50), -- Miksi muokattu
+  `muokattu_kayttaja_id` INT(11), -- Kuka muokannut,
   PRIMARY KEY (`ostotilauskirja_id`, tuote_id),
-  CONSTRAINT fk_ostotilauskirjaTuote__tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+  CONSTRAINT fk_ostotilauskirjaTuoteArkisto_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
@@ -271,4 +275,9 @@ CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   `aktiivinen` BOOLEAN NOT NULL DEFAULT 1,
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `laskunumero` (
+  `laskunro` INT(11) NOT NULL, -- Laskujen juoksevaa numerointia varten
+  PRIMARY KEY (`laskunro`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

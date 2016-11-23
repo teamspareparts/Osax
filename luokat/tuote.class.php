@@ -1,9 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: jjarv
- * Date: 23/10/2016
- * Time: 11:03
+ * Class Tuote
  */
 class Tuote {
 	public $id = NULL;

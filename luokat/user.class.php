@@ -41,8 +41,8 @@ class User {
 				  		tuote_erikoishinta.yleinenalennus_prosentti AS yleinen_alennus
 					FROM kayttaja 
 					JOIN yritys ON kayttaja.yritys_id = yritys.id
-					LEFT JOIN tuote_erikoishinta ON kayttaja.id = tuote_erikoishinta.kayttaja_id 
-						AND tuote_erikoishinta.tuote_id IS NULL AND tuote_erikoishinta.yritys_id IS NULL
+					LEFT JOIN tuote_erikoishinta ON kayttaja.yritys_id = tuote_erikoishinta.yritys_id 
+						AND tuote_erikoishinta.tuote_id IS NULL
 					WHERE kayttaja.id = ?
 					LIMIT 1";
 			$row = $db->query( $sql, [ $user_id ] );

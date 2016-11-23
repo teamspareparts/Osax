@@ -3,6 +3,17 @@
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
  */
 
+/**
+ * @param DByhteys $db
+ * @param $tuote_id
+ * @param $nimi
+ * @param $valmistaja
+ * @return int
+ */
+function tallenna_nimi_ja_valmistaja( DByhteys $db, /*int*/ $tuote_id, /*string*/ $nimi, /*string*/ $valmistaja ) {
+	$sql = 'UPDATE tuote SET nimi = ?, valmistaja = ? WHERE id = ? LIMIT 1';
+	return $db->query( $sql, [$nimi, $valmistaja, $tuote_id] );
+}
 session_start();
 if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
@@ -19,7 +30,7 @@ $result = NULL;
  * Ostoskorin toimintaa varten
  */
 if ( isset($_POST['ostoskori_toiminto']) ) {
-
+	tallenna_nimi_ja_valmistaja( $db, $_POST['tuote_id'], $_POST['tuote_nimi'], $_POST['tuote_valmistaja'] );
 	require "luokat/ostoskori.class.php";
 	$cart = new Ostoskori( $db, $_SESSION['yritys_id'], 0 );
 	$result = $cart->lisaa_tuote( $db, $_POST['tuote_id'], $_POST['kpl_maara'] );
@@ -36,8 +47,7 @@ if ( isset($_POST['ostoskori_toiminto']) ) {
  * Tuotteen ostospyyntöä varten.
  */
 elseif ( !empty($_POST['tuote_ostopyynto']) ) {
-	$sql = "INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id )
-			VALUES ( ?, ? )";
+	$sql = "INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id ) VALUES ( ?, ? )";
 	$result = $db->query( $sql, [$_POST['tuote_ostopyynto'], $_SESSION['id']] );
 }
 
@@ -62,7 +72,7 @@ elseif ( !empty($_POST['eula_vahvista']) ) {
 }
 
 /**
- * Haetaan tuotteen
+ * Haetaan tuotteen TODO: what?
  */
 elseif ( !empty($_POST['hankintapaikan_ostotilauskirjat']) ) {
     $sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";

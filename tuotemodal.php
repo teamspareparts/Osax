@@ -41,8 +41,7 @@
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
 
-
-<!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
+<!--suppress JSUnresolvedVariable -->
 <script type="text/javascript">
     var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
     var TECDOC_COUNTRY = <?= json_encode(TECDOC_COUNTRY); ?>;

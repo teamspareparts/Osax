@@ -64,7 +64,7 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 	$sql = "DELETE FROM toimitusosoite WHERE kayttaja_id = ? AND osoite_id = ?";
 	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia PDO:ta.
 	$stmt->execute( [$user->id, $osoite_id] );
-
+	// TODO: Päivitä takaisin normaaliin luokan käyttöön
 	if ( $stmt->rowCount() > 0 ) {
 		$sql = "UPDATE	toimitusosoite
 				SET		osoite_id = ?
@@ -77,13 +77,10 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 
 $yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -1, true );
-$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-unset($_SESSION['feedback']);
 
 if ( isset($_POST['uudet_tiedot']) ){
-	$sql = "UPDATE kayttaja 
-            SET etunimi = ? , sukunimi = ? , puhelin = ?
-  		    WHERE sahkoposti = ?";
+	$sql = "UPDATE kayttaja SET etunimi = ? , sukunimi = ? , puhelin = ?
+  		    WHERE sahkoposti = ? LIMIT 1";
 	if ( $db->query($sql, [$_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $user->sahkoposti])){
 		$_SESSION['feedback'] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
 	} else {
@@ -111,8 +108,13 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 } elseif ( !empty($_POST["poista_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"] );
 }
-if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen selaimen takaisin-napilla.
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>

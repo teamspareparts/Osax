@@ -3,7 +3,6 @@ require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 
-
 /**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
@@ -25,15 +24,12 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
      * @return array|bool|stdClass
      */
     function get_product_from_database(DByhteys $db, stdClass $product){
-        $query = "	SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-			    		FROM 	tuote 
-		  	  	    	JOIN 	ALV_kanta
-		    				ON	tuote.ALV_kanta = ALV_kanta.kanta
-				    	WHERE 	tuote.articleNo = ?
-					        AND tuote.brandNo = ?
-					 	    AND tuote.aktiivinen = 1 ";
+		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+				FROM 	tuote 
+				JOIN 	ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				WHERE 	tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 ";
 
-        return $db->query($query, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL, PDO::FETCH_OBJ);
+        return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL);
     }
 
 
@@ -110,7 +106,6 @@ function halkaise_hakunumero(&$number, &$etuliite){
     $number = substr($number, 4);
 }
 
-
 $haku = FALSE;
 $products = $catalog_products = $not_in_catalog = $not_available = [];
 
@@ -180,8 +175,8 @@ if ( !empty($_GET["manuf"]) ) {
     <link rel="stylesheet" href="css/bootstrap.css">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
@@ -191,7 +186,7 @@ if ( !empty($_GET["manuf"]) ) {
 <body>
 <?php
 require 'header.php';
-require_once 'tuotemodal.php';
+require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
 	<section class="flex_row">
@@ -273,8 +268,8 @@ require_once 'tuotemodal.php';
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
 					<td class="toiminnot" id="tuote_cartAdd_<?=$product->id?>">
-						<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
-						<button class="nappi" onclick="addToShoppingCart(<?=$product->id?>)">
+						<button class="nappi" onclick="addToShoppingCart(
+							<?=$product->id?>,'<?=$product->articleName?>','<?=$product->brandName?>')">
 							<i class="material-icons">add_shopping_cart</i>Osta</button></td>
 				</tr>
 			<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
@@ -362,13 +357,12 @@ require_once 'tuotemodal.php';
 </main>
 
 <script type="text/javascript">
-
-
 	/**
 	 * Tallentaa ostospyynnön tietokantaan
 	 * @param {int} product_id - Halutun tuotteen ID
 	 */
 	function ostopyynnon_varmistus( product_id ) {
+		// TODO: Tuotteen nimen ja valmistajan lisäys tietokantaan.
 		var vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
 			$.post(
@@ -393,8 +387,9 @@ require_once 'tuotemodal.php';
 	 * @param {string} valmistaja
 	 * @param {string} tuotteet_nimi
 	 * @param {string} articleId
-	 */ //TODO: Selitys-tekstikenttä, ja Käykö korvaava -checkbox. jQuery UI?
+	 */
 	function hankintapyynnon_varmistus( articleNo, valmistaja, tuotteet_nimi, articleId ) {
+		//TODO: Selitys-tekstikenttä, ja Käykö korvaava -checkbox. jQuery UI?
 		var vahvistus, selitys, korvaava_okey;
 		vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
@@ -423,14 +418,19 @@ require_once 'tuotemodal.php';
 	/**
 	 * Tämän pitäisi lisätä tuote ostoskoriin...
 	 * @param product_id
+	 * @param tuoteNimi
+	 * @param tuoteValmistaja
 	 */
-	function addToShoppingCart( product_id ) {
+	function addToShoppingCart( product_id, tuoteNimi, tuoteValmistaja ) {
+		// TODO: Tuotteen nimen ja valmistajan lisäys tietokantaan.
 		var kpl_maara = $("#maara_" + product_id).val();
 		if ( kpl_maara > 0 ) {
 			$.post("ajax_requests.php",
 				{	ostoskori_toiminto: true,
 					tuote_id: product_id,
-					kpl_maara: kpl_maara },
+					kpl_maara: kpl_maara,
+					tuote_nimi: tuoteNimi,
+					tuote_valmistaja: tuoteValmistaja },
 				function( data ) {
 					if ( data.success === true ) {
 						$("#tuote_cartAdd_" + product_id)
@@ -446,10 +446,7 @@ require_once 'tuotemodal.php';
 		}
 	}
 
-
-
 	$(document).ready(function(){
-
 		//info-nappulan sisältö
 		$("span.info-box").hover(function () {
 			$(this).append('<div class="tooltip"><p>Tarkka haku</p></div>');
@@ -463,7 +460,6 @@ require_once 'tuotemodal.php';
 				var articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
 				productModal(articleId); //haetaan tuotteen tiedot tecdocista
 			});
-
 	});//doc.ready
 
 	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
@@ -528,9 +524,6 @@ require_once 'tuotemodal.php';
             $("#hakutyyppi").val(exact);
         }
 	}
-
-
-
 </script>
 
 </body>

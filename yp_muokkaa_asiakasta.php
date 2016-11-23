@@ -37,7 +37,7 @@ elseif ( !empty($_POST['muokkaa_alennus']) ) {
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";

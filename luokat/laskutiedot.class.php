@@ -87,7 +87,7 @@ class Laskutiedot {
 			$tuote->a_hinta = round($row->maksettu_hinta, 2);
 			$tuote->a_hinta_ilman_alv = $row->pysyva_hinta * (1 - $row->pysyva_alennus);
 			$tuote->alv_prosentti = (int)((float)$row->pysyva_alv * 100); // 0.24 => 24
-			$tuote->alennus = (float)$row->pysyva_alennus * 100; // 0.24 => 24
+			$tuote->alennus = (int)((float)$row->pysyva_alennus * 100); // 0.24 => 24
 			$tuote->kpl_maara = $row->kpl;
 			$tuote->summa = ($row->maksettu_hinta * $row->kpl);
 			$this->tuotteet[] = $tuote;
