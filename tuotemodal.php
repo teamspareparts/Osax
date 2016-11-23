@@ -106,13 +106,13 @@
         //Tehdään peräkkäinen html-muotoinen lista, jossa kaikki löytyneet kuvat peräkkäin
         function imgsToHTML(response) {
             var i, img, thumb_id;
-            var imgs = "<img src='img/ei-kuvaa.png' class='no-image' />";
+            var imgs = "<img src='img/ei-kuvaa.png' class='no-image'>";
             if (response.articleThumbnails.length !== 0) {
                 imgs = "";
                 for (i = 0; i < response.articleThumbnails.array.length; i++) {
                     thumb_id = response.articleThumbnails.array[i].thumbDocId;
                     img = TECDOC_THUMB_URL + thumb_id + '/0/';
-                    imgs += '<img src=' + img + ' border="1" class="tuote_img kuva" /><br>';
+                    imgs += '<img src=' + img + ' border="1" class="tuote_img kuva"><br>';
                 }
             }
 
@@ -281,11 +281,11 @@
         display_img_id = "";
         if (response.articleThumbnails.length === 0) {
             display_img = "img/ei-kuvaa.png";
-            img = '<img src=' + display_img + ' border="1" id="display_img"/>'
+            img = '<img src=' + display_img + ' border="1" id="display_img">'
         } else {
             display_img_id = response.articleThumbnails.array[0].thumbDocId;
             display_img = TECDOC_THUMB_URL + display_img_id + '/0/';
-            img = '<img src=' + display_img + ' border="1" id="display_img" class="kuva"/>'
+            img = '<img src=' + display_img + ' border="1" id="display_img" class="kuva">'
         }
 
         //Lisätään tuote modaliin sisältö

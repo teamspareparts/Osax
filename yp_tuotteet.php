@@ -544,9 +544,9 @@ else if ( !empty($_GET["manuf"]) ) {
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
 		<form action="" name="poistolomake" method="post"> \
-		    <input class="nappi" type="submit" name="poista" value="Poista" />\
+		    <input class="nappi" type="submit" name="poista" value="Poista">\
 		    <button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
-		    <input type="hidden" name="id" value="' + id + '" /> \
+		    <input type="hidden" name="id" value="' + id + '"> \
 		</form>'
         } );
     }
@@ -616,8 +616,8 @@ else if ( !empty($_GET["manuf"]) ) {
 				            <input class="kpl" type="number" name="kpl" placeholder="0" min="1"> kpl<br><br> \
 				        	<label for="kpl">Selite:</label><br> \
                             <textarea form="ostotilauskirjalomake" rows=3 name="selite" placeholder="Miksi lisäät tuotteen käsin?" ></textarea><br><br> \
-                            <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle" />\
-                            <input type="hidden" name="id" value="'+id+'" />\
+                            <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
+                            <input type="hidden" name="id" value="'+id+'">\
 				        </form> \
                         \
                     ',

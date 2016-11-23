@@ -84,10 +84,10 @@ if ( $page > $total_pages ) {
 			<li class="page-item active"><span class="page-link">
 					Sivu:
 					<form class="pageNumberForm" method="GET">
-						<input type="hidden" name="brand" value="<?=$brand?>"/>
+						<input type="hidden" name="brand" value="<?=$brand?>">
 						<input type="hidden" name="ppp" value="<?=$products_per_page?>">
 						<input type="number" name="page" class="pageNumber"
-							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3"/>
+							   min="1" max="<?=$total_pages?>" value="<?=$page?>" maxlength="3">
 						<input class="hidden" type="submit">
 					</form>
 					 / <?=$total_pages?><br>
@@ -111,8 +111,8 @@ if ( $page > $total_pages ) {
 			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
 			<span>Tuotteita per sivu:
 				<form class="productsPerPageForm" method="GET">
-					<input type="hidden" name="brand" value="<?=$brand?>"/>
-					<input type="hidden" name="page" value="<?=$page?>"/>
+					<input type="hidden" name="brand" value="<?=$brand?>">
+					<input type="hidden" name="page" value="<?=$page?>">
 					<select name="ppp">
 						<option value="10">10</option>
 						<option value="20" selected>20</option>

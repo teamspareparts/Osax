@@ -146,16 +146,16 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
             <br><br>\
                 <form action="" method="post" name="uusi_ostotilauskirja">\
 					<label><span>Tunniste</span></label>\
-					<input name="tunniste" type="text" placeholder="Ostotilauskirjan nimi" pattern=".{3,}" required />\
+					<input name="tunniste" type="text" placeholder="Ostotilauskirjan nimi" pattern=".{3,}" required>\
 					<br><br>\
 					<label><span>Saapumispäivä</span></label>\
-					<input name="saapumispvm" type="date" value="'+date+'" title="Arvioitu saapumispäivä" min="'+date+'" required />\
+					<input name="saapumispvm" type="date" value="'+date+'" title="Arvioitu saapumispäivä" min="'+date+'" required>\
 					<br><br>\
 					<label><span>Rahtimaksu (€)</span></label>\
-					<input name="rahti" type="number" step="0.01" value="200.00" title="Rahtimaksu" />\
+					<input name="rahti" type="number" step="0.01" value="200.00" title="Rahtimaksu">\
 					<br><br>\
 					<input name="ostokirjatilaus_id" type="hidden" value="'+ostokirjatilaus_id+'">\
-					<input class="nappi" type="submit" name="lisaa" value="Tallenna" id="lisaa_ostotilauskirja" /> \
+					<input class="nappi" type="submit" name="lisaa" value="Tallenna" id="lisaa_ostotilauskirja"> \
 				</form>\
 				',
             draggable: true
@@ -174,13 +174,13 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
                     <h4 style="display: inline;">'+tunniste+'</h4>\
 					<br><br>\
 					<label><span>Saapumispäivä</span></label>\
-					<input name="saapumispvm" type="date" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" min="'+date+'" required />\
+					<input name="saapumispvm" type="date" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" min="'+date+'" required>\
 					<br><br>\
 					<label><span>Rahtimaksu (€)</span></label>\
-					<input name="rahti" type="number" step="0.01" value="'+rahti+'" title="Rahtimaksu" />\
+					<input name="rahti" type="number" step="0.01" value="'+rahti+'" title="Rahtimaksu">\
 					<br><br>\
 					<input name="ostokirjatilaus_id" type="hidden" value="'+ostokirjatilaus_id+'">\
-					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa" /> \
+					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\
 				',
             draggable: true

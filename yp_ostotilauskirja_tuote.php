@@ -194,13 +194,13 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
                     <h4 style="display: inline;">'+tuotenumero+'</h4>\
 					<br><br>\
 					<label><span>KPL</span></label>\
-					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required />\
+					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required>\
 					<br><br>\
 					<label><span>Ostohinta (€)</span></label>\
-					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" title="Tuotteen ostohinta" required/>\
+					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" title="Tuotteen ostohinta" required>\
 					<br><br>\
 					<input name="id" type="hidden" value="'+tuote_id+'">\
-					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa" /> \
+					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\
 				',
             draggable: true

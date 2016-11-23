@@ -26,7 +26,7 @@ if ( !$eula_txt ) {
 		<h4>Ole hyvä ja hyväksy käyttöoikeussopimus ennen sivuston käyttöä.</h4>
 	</div>
 	<div id="head_logo">
-		<img src="img/osax_logo.jpg" />
+		<img src="img/osax_logo.jpg">
 	</div>
 </header>
 	

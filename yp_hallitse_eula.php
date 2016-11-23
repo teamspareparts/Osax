@@ -61,8 +61,8 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
     <br><br>
     <fieldset><legend>Käyttöoikeussopimus</legend>
         <form action="#" method="post" enctype="multipart/form-data">
-            Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt"/>
-            <input id="submit_eula" type="submit" name="submit" value="Submit" disabled/>
+            Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
+            <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
             <a href="http://www.osax.fi/eula.txt" download="eula" style="margin-left:100px;">Lataa nykyinen EULA</a>
         </form>
     </fieldset>

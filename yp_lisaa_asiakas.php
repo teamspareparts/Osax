@@ -98,7 +98,7 @@ if ( !empty($_POST['submit']) ) {
 			<input name="paivat" type="number" value="7" class="" min="1" maxlength="4" id="paivat"
 				   title="Kuinka monta päivää aktiivinen">
 
-			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" />
+			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" >
 			<br><br>
 			<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
 			<br>

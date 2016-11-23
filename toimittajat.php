@@ -25,7 +25,7 @@ function tulosta_brandit(DByhteys $db, array $brands){
 	foreach ($brands as $brand) {
 		$pvm = hae_hinnaston_sisaanajo_pvm( $db, $brand->brandId );
 		$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-		$taulukko .= "<div class=\"floating-box clickable\"  data-brandId=\"{$brand->brandId}\"><div class=\"line\"><img src=\"{$logo_src}\" style=\"vertical-align:middle; padding-right:10px;\" /><span>{$brand->brandName}</span></div>";
+		$taulukko .= "<div class=\"floating-box clickable\"  data-brandId=\"{$brand->brandId}\"><div class=\"line\"><img src=\"{$logo_src}\" style=\"vertical-align:middle; padding-right:10px;\"><span>{$brand->brandName}</span></div>";
 		if ($pvm->suurin_pvm) {
 			$date = new DateTime($pvm->suurin_pvm);
 			$taulukko .= "Päivitetty: {$date->format('d.m.Y')}";

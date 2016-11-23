@@ -189,8 +189,8 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
                     <tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
                     <tr>
                         <td colspan="2">
-                            <input name="hankintapaikka_id" type="hidden" value="<?=$hankintapaikka->id?>" />
-                            <input name="poista_linkitys" class="nappi" type="submit" value="Poista" style="background:#d20006; border-color:#b70004;"/>
+                            <input name="hankintapaikka_id" type="hidden" value="<?=$hankintapaikka->id?>">
+                            <input name="poista_linkitys" class="nappi" type="submit" value="Poista" style="background:#d20006; border-color:#b70004;">
                             <span onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>',
                                 '<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
                                 '<?=$hankintapaikka->maa?>','<?=$hankintapaikka->puhelin?>','<?=$hankintapaikka->fax?>',
@@ -279,7 +279,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <?php if ($message) : ?>
 <p><span class="error"><?=$message?></span></p>
 <?php endif;?>
-<div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;" /><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
+<div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
 	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
 	<!--<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>-->
