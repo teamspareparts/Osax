@@ -20,6 +20,7 @@ class Yritys {
 
 	public $rahtimaksu = 0.00;
 	public $ilm_toim_sum_raja = 0.00;
+	public $yleinen_alennus = 0.00;
 
 	/**
 	 * Yritys-luokan konstruktori.<p>
@@ -31,10 +32,14 @@ class Yritys {
 	 */
 	function __construct ( DByhteys $db = NULL, /*int*/ $yritys_id = NULL ) {
 		if ( $yritys_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
-			$sql = "SELECT id, aktiivinen, nimi, sahkoposti, puhelin, y_tunnus, katuosoite, postinumero, 
-						postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja
-					FROM yritys
-					WHERE id = ?
+			$sql = "SELECT yritys.id, aktiivinen, nimi, sahkoposti, puhelin, y_tunnus, katuosoite, postinumero, 
+						postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja,
+						yritys_erikoishinta.yleinenalennus_prosentti AS yleinen_alennus
+					FROM yritys 
+					LEFT JOIN yritys_erikoishinta ON yritys.id = yritys_erikoishinta.yritys_id
+						AND (yritys_erikoishinta.voimassaolopvm >= CURDATE() 
+							OR yritys_erikoishinta.voimassaolopvm IS NULL)
+					WHERE yritys.id = ? 
 					LIMIT 1";
 			$row = $db->query( $sql, [$yritys_id] );
 
@@ -53,17 +58,4 @@ class Yritys {
 	public function isValid () {
 		return ( ($this->id !== NULL ) && ($this->aktiivinen != 0) );
 	}
-
-	/** */function __toString () {
-	return "<p>
-		Yrityksen tiedot:<br>
-		Nimi: {$this->nimi}<br>
-		Sähköposti: {$this->sahkoposti}<br>
-		Puhelin: {$this->puhelin}<br>
-		Y-tunnus: {$this->y_tunnus}<br>
-		Osoitetiedot:<br>
-		{$this->katuosoite}<br>
-		{$this->postinumero}, {$this->postitoimipaikka}<br>
-		</p>";
-}
 }

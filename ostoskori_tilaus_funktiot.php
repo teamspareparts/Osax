@@ -18,13 +18,14 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 	if ( !empty( $cart->tuotteet ) ) {
 	    $ids = array_keys( $cart->tuotteet );
         $placeholders = str_repeat('?, ', count($cart->tuotteet) - 1) . '?';
-		$sql = "SELECT	id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, 
-					alennusera_kpl, alennusera_prosentti, 
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, ALV_kanta.prosentti AS alv_prosentti
-				FROM	tuote
+		$sql = "SELECT id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, 
+					alennusera_kpl, alennusera_prosentti, valmistaja, nimi,
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+					ALV_kanta.prosentti AS alv_prosentti
+				FROM tuote
 				LEFT JOIN ALV_kanta
 					ON tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	tuote.id IN ( $placeholders )";
+				WHERE tuote.id IN ( $placeholders )";
 
 		$rows = $db->query( $sql, $ids, FETCH_ALL );
 

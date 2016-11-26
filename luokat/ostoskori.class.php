@@ -110,8 +110,7 @@ class Ostoskori {
 	public function hae_ostoskorin_sisalto ( DByhteys $db, /*bool*/ $kaikki_tiedot = FALSE ) {
 		if ( !$kaikki_tiedot ) {
 			$sql = "SELECT COUNT(tuote_id) AS count, IFNULL(SUM(kpl_maara), 0) AS kpl_maara 
-					FROM ostoskori_tuote 
-					WHERE ostoskori_id = ?";
+					FROM ostoskori_tuote WHERE ostoskori_id = ?";
 			$row = $db->query( $sql, [$this->ostoskori_id] );
 			$this->montako_tuotetta = $row->count;
 			$this->montako_tuotetta_kpl_maara_yhteensa = $row->kpl_maara;

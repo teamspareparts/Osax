@@ -3,16 +3,53 @@
  * Class Tuote
  */
 class Tuote {
-	public $id = NULL;
-	public $tuotekoodi = '[Tuotekoodi]';
-	public $tuotenimi = '[Tuotteen nimi]';
-	public $valmistaja = '[Tuotteen valmistaja]';
-	public $a_hinta = 0.00;
-	public $a_hinta_ilman_alv = 0.00;
-	public $alv_prosentti = 0;
-	public $alennus = 0.00;
-	public $kpl_maara = 0;
-	public $summa = 0.00;
+	/** @var int|NULL $id <p> Tuotteen ID meidän tietokannassa */ public $id = NULL;
+	/** @var string $articleNo <p> Tunnus TecDocista */ public $articleNo = '[ArticleNo]';
+	/** @var string $brandNo <p> Valmistajan tunnus TecDocista */ public $brandNo = '[BrandNo]';
+	/** @var int $hankintapaikka_id <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikka_id = 0;
+	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = '[Tuotekoodi]';
+	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = '[Tilauskoodi]';
+
+	/** @var string $nimi <p> */ public $nimi = '[Tuotteen nimi]';
+	/** @var string $valmistaja <p> */ public $valmistaja = '[Tuotteen valmistaja]';
+
+	/** @var float $a_hinta <p> */ public $a_hinta = 0.00;
+	/** @var float $a_hinta_ilman_alv <p> Veroton hinta */ public $a_hinta_ilman_alv = 0.00;
+	/** @var float $ostohinta <p> Ylläpitoa varten NOT IMPLEMENTED */ public $ostohinta = 0.00;
+
+	/** @var float $alv_prosentti <p> */ public $alv_prosentti = 0.00;
+	/** @var float $alennus <p> Tuotteen alennusprosentti, jos olemassa */ public $alennus = 0.00;
+	/** @var float $alennus_kpl_raja <p> Määräalennuksen kpl-raja */ public $alennus_kpl_raja = 0;
+	/** //TODO: Tuotteella voi olla monta määräalennusta */
+	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
+	/** @var float $summa <p> */ public $summa = 0.00;
+
+	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
+
+	/**
+	 * WIP Älä käytä konstruktoria.
+	 * @param DByhteys $db [optional]
+	 * @param int $id [optional]
+	 */
+	function __construct ( DByhteys $db = NULL, /*int*/ $id = NULL ) {
+		if ( $id !== NULL ) { // Varmistetaan parametrin oikeellisuus
+			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilaus_koodi AS tilauskoodi, 
+						varastosaldo, minimimyyntiera, valmistaja, nimi, ALV_kanta.prosentti AS alv_prosentti, 
+						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
+						hinta_ilman_alv AS a_hinta_ilman_alv						
+					FROM tuote
+					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+					LEFT JOIN tuote_erikoishinta ON tuote.id = tuote_erikoishinta.tuote_id
+					WHERE tuote.id = ? LIMIT 1";
+			$row = $db->query( $sql, [ $id ] );
+
+			if ( $row ) { // Varmistetaan, että jokin tuote löytyi
+				foreach ( $row as $property => $propertyValue ) {
+					$this->{$property} = $propertyValue;
+				}
+			}
+		}
+	}
 
 	/**
 	 * @param boolean $ilman_alv [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.

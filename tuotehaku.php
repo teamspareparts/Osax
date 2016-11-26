@@ -280,12 +280,8 @@ require 'tuotemodal.php';
 		if ( $not_available) : // Tulokset (ei saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
-			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
-			<tr><th>Kuva</th>
-				<th>Tuotenumero</th>
-				<th>Tuote</th>
-				<th>Info</th>
-				<th class="number">Saldo</th>
+			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
+			<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th> <th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
 				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>

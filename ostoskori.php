@@ -55,11 +55,15 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 
 <?php require "header.php"; ?>
 <main class="main_body_container">
-	<h1 class="otsikko">Ostoskori</h1>
+<!--	<h1 class="otsikko">Ostoskori</h1>-->
 	<?= $feedback ?>
 	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th>
-			<th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
+		<thead>
+		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ostoskori</th></tr>
+		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th>
+			<th class="number">Hinta</th> <th class="number">Kpl-hinta</th> <th>Kpl</th> <th>Info</th> <th></th> </tr>
+		</thead>
+		<tbody>
 		<?php foreach ($products as $product) :
 			$product->hinta = tarkista_hinta_era_alennus( $product );
 			$sum += $product->hinta * $product->cartCount; ?>
@@ -89,6 +93,7 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 			<td class="number">1</td>
 			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, TRUE )?></td>
 		</tr>
+		</tbody>
 	</table>
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
 		<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
@@ -97,7 +102,7 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled(
 		$products, $user->toimitusosoitteet['count'] ) ?>
-	<p><a class="nappi peruuta" href="tuotehaku.php">Palaa takaisin</a></p>
+	<p><a class="nappi red" onclick="window.history.back();">Palaa takaisin</a></p>
 </main>
 
 <form name="ostoskorilomake" method="post" class="hidden">
