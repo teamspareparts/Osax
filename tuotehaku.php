@@ -72,15 +72,16 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
  * @return array <p> Sama array, mutta sorted
  */
 function sortProductsByPrice( $catalog_products ){
-	/** @param $a
-	 * @param $b
-	 * @return bool
-	 */
-	function cmpPrice($a, $b) {
-		return ($a->hinta > $b->hinta);
-	}
 	usort($catalog_products, "cmpPrice");
 	return $catalog_products;
+}
+/** Vertailufunktio usortille.
+ * @param $a
+ * @param $b
+ * @return bool
+ */
+function cmpPrice($a, $b) {
+	return ($a->hinta > $b->hinta);
 }
 
 /**
@@ -143,11 +144,12 @@ if ( !empty($_GET['haku']) ) {
 	}
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
-	$filtered_product_arrays = filter_catalog_products( $db, $products, $etuliite );
+	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
 	$catalog_products = sortProductsByPrice($catalog_products);
+	$not_available = sortProductsByPrice($not_available);
 }
 
 if ( !empty($_GET["manuf"]) ) {
@@ -161,6 +163,7 @@ if ( !empty($_GET["manuf"]) ) {
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
 	$catalog_products = sortProductsByPrice($catalog_products);
+	$not_available = sortProductsByPrice($not_available);
 }
 ?>
 <!DOCTYPE html>

@@ -72,12 +72,21 @@ elseif ( !empty($_POST['eula_vahvista']) ) {
 }
 
 /**
- * Haetaan tuotteen TODO: what?
+ * Haetaan tuotteen hankintapaikan ostotilauskirjat
  */
 elseif ( !empty($_POST['hankintapaikan_ostotilauskirjat']) ) {
-    $sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";
+	tallenna_nimi_ja_valmistaja( $db, $_POST['tuote_id'], $_POST['tuote_nimi'], $_POST['tuote_valmistaja'] );
+	$sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";
     $result = $db->query( $sql, [$_POST['hankintapaikka_id']], FETCH_ALL);
 }
+
+elseif ( !empty($_POST['lisaa_tilauskirjalle'])) {
+	$sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, 
+						tuote_id, kpl, lisays_kayttaja_id, lisays_tapa)
+            VALUES ( ?, ?, ?, ?, 1)";
+	$result = $db->query( $sql, [ $_POST['ostotilauskirja_id'], $_POST['tuote_id'], $_POST['kpl'], $_SESSION['id'] ] );
+}
+
 
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.

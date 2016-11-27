@@ -14,18 +14,17 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
 
 
 /**
- * Tallennetaan ostotilauskirja arkistoon ja tyhjennetään alkuperäisen ostotilauskirjan sisältö
  * @param DByhteys $db
+ * @param User $user
  * @param $ostotilauskirja_id
  * @return bool
  */
-function laheta_ostotilauskirja(DByhteys $db, $ostotilauskirja_id){
+function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	//Lisätään osotilauskirja arkistoon
-	$sql = "INSERT INTO ostotilauskirja_arkisto (hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva)
-            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva
-            FROM ostotilauskirja
+	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja)
+            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ? FROM ostotilauskirja
             WHERE id = ? ";
-	if (!$db->query($sql, [$ostotilauskirja_id])) return false;
+	if (!$db->query($sql, [$user->id, $ostotilauskirja_id])) return false;
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
 
@@ -37,10 +36,10 @@ function laheta_ostotilauskirja(DByhteys $db, $ostotilauskirja_id){
 	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) return false;
 	foreach ($products as $product) {
 		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, kpl, 
-										lisays_tapa, lisays_pvm, lisays_selite, lisays_kayttaja_id, ostohinta) 
- 								VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+										lisays_tapa, lisays_pvm, lisays_kayttaja_id, ostohinta) 
+ 								VALUES(?, ?, ?, ?, ?, ?, ?)",
 			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->lisays_tapa,
-			$product->lisays_pvm, $product->lisays_selite, $product->lisays_kayttaja_id,
+			$product->lisays_pvm, $product->lisays_kayttaja_id,
 			$product->sisaanostohinta]);
 		if( !$result ) return false;
 	}
@@ -76,7 +75,7 @@ else if( isset($_POST['poista']) ) {
 }
 else if( isset($_POST['laheta']) ) {
     unset($_POST['laheta']);
-    if ( laheta_ostotilauskirja($db, $_POST['id']) ) {
+    if ( laheta_ostotilauskirja($db, $user, $_POST['id']) ) {
 		header("Location: yp_ostotilauskirja_odottavat.php"); //Estää formin uudelleenlähetyksen
 		exit();
     } else {
@@ -99,7 +98,6 @@ $sql = "  SELECT *, SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta FROM osto
           WHERE ostotilauskirja_id = ?
           GROUP BY ostotilauskirja_id";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
-if( $products ) get_basic_product_info($products);
 $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 
 ?>
@@ -148,7 +146,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
             <?php foreach ($products as $product) : ?>
                 <tr>
                     <td><?=$product->tuotekoodi?></td>
-                    <td><?=$product->brandName?><br><?=$product->articleName?></td>
+                    <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
                     <td class="number"><?=format_integer($product->kpl)?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                     <td class="toiminnot">

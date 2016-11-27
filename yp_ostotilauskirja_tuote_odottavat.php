@@ -15,21 +15,23 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? LIMIT
 if( isset($_POST['vastaanotettu']) ) {
 
 	unset($_POST['vastaanotettu']);
-	if ( $db->query("UPDATE ostotilauskirja_arkisto SET saapumispaiva = NOW(), hyvaksytty = 1
-  					WHERE id = ? ", [$_POST['id']]) ) {
+	if ( $db->query("UPDATE ostotilauskirja_arkisto SET saapumispaiva = NOW(), hyvaksytty = 1, vastaanottaja = ?
+  					WHERE id = ? ", [$user->id, $_POST['id']]) ) {
 
 		$ids = $_POST['tuote_ids'];
 		$kpl = $_POST['kpl'];
+		$hyllypaikka = $_POST['hyllypaikat'];
 		//Päivitetään lopulliset kappalemäärät sekä ostotilaukseen että varastosaldoihin
-		//TODO: Jaottele rahtimaksu touotteiden hintaan
+		//TODO: Jaottele rahtimaksu touotteiden ostohintaan
 		foreach ($ids as $index => $id) {
 			$db->query("UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
   						WHERE tuote_id = ? AND ostotilauskirja_id = ? ", [$kpl[$index], $id, $ostotilauskirja_id] );
 			$db->query("UPDATE tuote SET varastosaldo = varastosaldo + ?, 
 							keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + sisaanostohinta* ? )/
 							(yhteensa_kpl + ? )),0),
-						yhteensa_kpl = yhteensa_kpl + ?
-						WHERE id = ? ", [$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $id]);
+						yhteensa_kpl = yhteensa_kpl + ?, hyllypaikka = ?
+						WHERE id = ? ",
+				[$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $hyllypaikka[$index], $id]);
 		}
 
 
@@ -56,7 +58,6 @@ $sql = "  SELECT *, SUM(ostohinta * kpl) AS tuotteet_hinta FROM ostotilauskirja_
           WHERE ostotilauskirja_id = ?
           GROUP BY ostotilauskirja_id";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
-if( $products ) get_basic_product_info($products);
 $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 
 ?>
@@ -78,7 +79,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 <?php require 'header.php'?>
 <main class="main_body_container">
 	<section>
-		<h1 class="otsikko">Ostotilauskirja, matkalla...</h1>
+		<h1 class="otsikko">Varastoon saapuminen</h1>
 		<div id="painikkeet">
 			<a class="nappi grey" href="yp_ostotilauskirja_odottavat.php">Takaisin</a>
 			<button id="merkkaa_vastaanotetuksi" class="nappi" onclick="muokkaa_ostotilauskirjaa(<?=$otk->id?>)">Tarkasta tiedot ja hyväsky</button>
@@ -95,24 +96,30 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 			<th>Tuote</th>
 			<th class="number">KPL</th>
 			<th class="number">Ostohinta</th>
+			<th>Hyllypaikka</th>
 		</tr>
 		</thead>
 		<tbody>
 		<!-- Rahtimaksu -->
-		<tr><td></td><td>Rahtimaksu</td><td class="number">1</td><td class="number"><?=format_euros($otk->rahti)?></td></tr>
+		<tr><td></td><td>Rahtimaksu</td>
+			<td class="number">1</td>
+			<td class="number"><?=format_euros($otk->rahti)?></td>
+			<td class="center">---</td></tr>
 		<!-- Tuotteet -->
 		<?php foreach ($products as $product) : ?>
 			<tr data-id="<?=$product->id?>">
 				<td><?=$product->tuotekoodi?></td>
-				<td><?=$product->brandName?><br><?=$product->articleName?></td>
+				<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
 				<td class="number"><?=format_integer($product->kpl)?></td>
 				<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+				<td><?= $product->hyllypaikka?></td>
 			</tr>
 		<?php endforeach;?>
 		<!-- Yhteensä -->
 		<tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
 			<td class="number" style="border-top: 1px solid black">1</td>
 			<td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
+			<td style="border-top: 1px solid black"></td>
 		</tr>
 
 
@@ -133,7 +140,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 		form.setAttribute("name", "muokkaa_ostotilauskirjaa");
 		form.setAttribute("id", "muokkaa_ostotilauskirjaa");
 
-		//asetetaan $_POST["laheta"]
+		//asetetaan $_POST["vastaanotettu"]
 		var field = document.createElement("input");
 		field.setAttribute("type", "hidden");
 		field.setAttribute("name", "vastaanotettu");
@@ -148,11 +155,17 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 
 		document.body.appendChild(form);
 
-		//Muutetaan cellit inputeiksi ja luodaan kaksi post arrayta id:t ja kappaleet;
+		//Muutetaan cellit inputeiksi ja luodaan kolme post arrayta id:t, kappaleet ja hyllypaikat;
 		$('tr td:nth-child(3):not(:first):not(:last)').each(function () {
 			var kpl = $(this).html();
+			var input = $('<input name="kpl[]" form="muokkaa_ostotilauskirjaa" type="number" class="number" style="width: 30pt; float: right;">');
+			input.val(kpl);
+			$(this).html(input);
+		});
+		$('tr td:nth-child(5):not(:first):not(:last)').each(function () {
+			var kpl = $(this).html();
 			var tuote_id = $(this).closest('tr').data('id');
-			var input = $('<input name="kpl[]" form="muokkaa_ostotilauskirjaa" type="number" class="number" style="width: 40pt"/>');
+			var input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 80pt; float: right;">');
 			input.val(kpl);
 			$(this).html(input);
 			field = document.createElement("input");

@@ -20,8 +20,12 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
-
-$ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE hyvaksytty = 0", [], FETCH_ALL);
+$sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauskirja_arkisto
+ 		LEFT JOIN ostotilauskirja_tuote_arkisto
+ 			ON ostotilauskirja_arkisto.id = ostotilauskirja_tuote_arkisto.ostotilauskirja_id
+ 		WHERE hyvaksytty = 0
+ 		GROUP BY ostotilauskirja_arkisto.id";
+$ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 
 
 ?>
@@ -48,9 +52,12 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE hyva
 	<?php if ( $ostotilauskirjat ) : ?>
 		<table>
 			<thead>
-			<tr><th colspan="3" class="center" style="background-color:#1d7ae2;">Odottavat Ostotilauskirjat</th></tr>
+			<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Varastoon saapuvat tilauskirjat</th></tr>
 			<tr><th style="max-width: 200pt">Tunniste</th>
-				<th>Oletettu Saapumispäivä</th>
+				<th>Lähetetty</th>
+				<th>Saapuu</th>
+				<th>KPL</th>
+				<th>Hinta</th>
 				<th>Rahti</th>
 			</tr>
 			</thead>
@@ -60,7 +67,13 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE hyva
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
 						<?= $otk->tunniste?></td>
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
+						<?= date("d.m.Y", strtotime($otk->lahetetty))?></td>
+					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
 						<?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
+					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
+						<?= $otk->kpl?></td>
+					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
+						<?= format_euros($otk->hinta)?></td>
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
 						<?= format_euros($otk->rahti)?></td>
 				</tr>
@@ -69,7 +82,7 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE hyva
 		</table>
 		<form
 	<?php else : ?>
-		<p>Ei ostotilaukirjoja.</p>
+		<p>Ei lähetettyjä ostotilauskirjoja.</p>
 	<?php endif; ?>
 
 </main>

@@ -6,7 +6,7 @@ set_time_limit(120);
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting( E_ALL | E_NOTICE );
+error_reporting( E_ALL );
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
@@ -19,7 +19,7 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * @param int $hankintapaikka_id
  * @return array
  */
-function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $hankintapaikka_id) {
+function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $brandName, /*int*/ $hankintapaikka_id) {
 	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
 
 	if ( isset($_POST['otsikkorivi']) ) { // Hypätään ensimmäisen rivin yli, jos otsikkorivi
@@ -63,8 +63,8 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 		//sleep(0.1);
 
 		$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
-					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi) 
-				VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, valmistaja) 
+				VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				ON DUPLICATE KEY
 					UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
 						ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
@@ -74,16 +74,8 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*int*/ $han
 						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl)";
 		$response = $db->query($sql, //TODO: $ostohinta, $ostohinta? Lyhennä "VALUES(ostohinta)"
 			[$articleNo, $ostohinta, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
-				$brandId, $hankintapaikka_id, $tuotekoodi]);
-		//Jos syötetään tuote ensimmäistä kertaa tietokantaan, haetaan tecdocista myös nimi
+				$brandId, $hankintapaikka_id, $tuotekoodi, $brandName]);
 	}
-	/*if ($new_catalog_products) {
-        get_basic_product_info($new_catalog_products);
-        foreach ($new_catalog_products as $product) {
-            $sql = "UPDATE tuote SET nimi = ? WHERE articleNo = ? AND brandNo = ? AND tuote.hankintapaikka_id = ?";
-            $db->query($sql, [$product->articleName, $product->articleNo, $product->brandNo, $product->hankintapaikka_id]);
-        }
-    }*/
 
 	fclose($handle);
 	return array($row, $failed_inserts);    //kaikki rivit , epäonnistuneet syötöt
@@ -105,7 +97,7 @@ $hankintapaikka = $db->query(
 if ( isset($_FILES['tuotteet']['name']) ) {
 	//Jos ei virheitä...
 	if ( !$_FILES['tuotteet']['error'] ) {
-        $result = lue_hinnasto_tietokantaan( $db, $brandId, $hankintapaikka->id);
+        $result = lue_hinnasto_tietokantaan( $db, $brandId, $brandName, $hankintapaikka->id);
 
 		// Päivitetään hinnaston sisäänluku päivämäärä.
 		$db->query("UPDATE valmistajan_hankintapaikka SET hinnaston_sisaanajo_pvm = NOW() 

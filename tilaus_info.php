@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -39,12 +39,13 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 function get_products_in_tilaus( DByhteys $db, /*int*/ $tilaus_id) {
 	$sql = "SELECT tuote_id AS id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl,
 				( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ) AS maksettu_hinta,
-				 tuote.articleNo, tuote.brandNo
+				 tuotteen_nimi, tilaus_tuote.valmistaja, tuote.tuotekoodi, tuote.brandNo
 			FROM tilaus_tuote
 			LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id
 			WHERE tilaus_id = ?";
 	$products = $db->query( $sql, [$tilaus_id], FETCH_ALL );
-	get_basic_product_info( $products );
+
+
 
 	return $products;
 }
@@ -137,9 +138,9 @@ $products = get_products_in_tilaus( $db, $tilaus_id );
 		<tbody>
 		<?php foreach ($products as $product) : ?>
 			<tr>
-				<td><?= $product->articleNo?></td>
-				<td><?= $product->articleName?></td>
-				<td><?= $product->brandName?></td>
+				<td><?= $product->tuotekoodi?></td>
+				<td><?= $product->tuotteen_nimi?></td>
+				<td><?= $product->valmistaja?></td>
 				<td class="number"><?= format_euros( $product->maksettu_hinta * $product->kpl )?></td>
 				<td class="number"><?= format_euros( $product->maksettu_hinta )?></td>
 				<td class="number"><?= round( (float)$product->pysyva_alv * 100 )?> %</td>

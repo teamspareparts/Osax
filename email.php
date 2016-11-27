@@ -10,7 +10,7 @@
  * @param string $email <p> Vastaanottajan sähköpostiosoite
  * @param string $subject <p> Otsikko
  * @param string $message <p> Viestin sisältö html-muodossa
- * @param $file [optional]<p> Mahdollisten liitetiedostojen nimet
+ * @param $file [optional]<p> Liitetiedosto sisältöineen
  * @param string $fileName [optional] <p> Liitettävän tiedoston nimi
  */
 function send_email( /*string*/ $email, /*string*/ $subject, /*string*/ $message,
@@ -28,8 +28,8 @@ function send_email( /*string*/ $email, /*string*/ $subject, /*string*/ $message
 		'subject'   => "$subject", //otsikko
 		'html'      => "$message", //HTML runko
 		'text'      => "",
-		'from'      => "noreply@tuoteluettelo.com", //lähetysosoite
-		'files['.$fileName.']' => $file
+		'from'      => "noreply@osax.com", //lähetysosoite
+		'files['.$fileName.']' => $file //liitetiedosto
 	);
 
 	$request =  $url.'api/mail.send.json';
@@ -42,7 +42,7 @@ function send_email( /*string*/ $email, /*string*/ $subject, /*string*/ $message
 	curl_setopt ($session, CURLOPT_POSTFIELDS, $params);
 	// Palauta vastaus, mutta ilman headereja
     curl_setopt($session, CURLOPT_HEADER, false);
-    // Ei käytetä SSLv3
+    // Käytetään TLS ei SSL3
     curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
     curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
 
@@ -78,7 +78,7 @@ function laheta_tilausvahvistus( /*string*/ $email, array $products, /*string*/ 
 									<th style="text-align:right;">Kpl</th></tr>';
 		foreach ($products as $product) {
 			$productTable .= "
-				<tr><td>{$product->articleNo}</td><td>{$product->brandName} {$product->articleName}</td>
+				<tr><td>{$product->tuotekoodi}</td><td>{$product->valmistaja} {$product->nimi}</td>
 					<td style='text-align:right;'>" . format_euros($product->hinta) . "</td>
 					<td style='text-align:right;'>{$product->cartCount}</td></tr>";
 			$summa += $product->hinta * $product->cartCount;
@@ -92,7 +92,8 @@ function laheta_tilausvahvistus( /*string*/ $email, array $products, /*string*/ 
 		$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: " . format_euros($summa) . "<br>
 			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
-		$file = fopen("./laskut/{$fileName}", 'r');
+		//$file = fopen("./laskut/{$fileName}", 'r');
+		$file = file_get_contents("./laskut/{$fileName}");
 		send_email( $email, $subject, $message, $file, $fileName );
 
 		return true;
@@ -117,10 +118,9 @@ function laheta_tilaus_yllapitajalle( User $asiakas, /*array*/ $products, /*int*
 				<th style="text-align:right;">Kpl</th></tr>';
 
 		foreach ($products as $product) {
-			$article = $product->directArticle;
 			$summa += $product->hinta * $product->cartCount;
 			$productTable .= "
-				<tr><td>{$article->articleNo}</td><td>{$article->brandName} {$article->articleName}</td>
+				<tr><td>{$product->tuotekoodi}</td><td>{$product->valmistaja} {$product->nimi}</td>
 					<td style='text-align:right;'>".format_euros($product->hinta)."</td>
 					<td style='text-align:right;'>{$product->cartCount}</td></tr>";
 		}

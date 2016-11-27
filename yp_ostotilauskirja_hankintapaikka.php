@@ -1,22 +1,37 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
+require 'apufunktiot.php';
 
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
 
 function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
-    $sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(valmistajan_hankintapaikka.brandName) AS brandit
+	$sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(valmistajan_hankintapaikka.brandName) AS brandit
             FROM hankintapaikka
             RIGHT JOIN valmistajan_hankintapaikka
               ON hankintapaikka.id = valmistajan_hankintapaikka.hankintapaikka_id
             GROUP BY hankintapaikka.id";
-    return $db->query($sql, [], FETCH_ALL);
+	return $db->query($sql, [], FETCH_ALL);
+}
+
+function hae_hankintapaikkojen_ostotilauskirjat( DByhteys $db, array $hankintapaikat ) {
+	$sql = "SELECT *, ostotilauskirja.id AS id, IFNULL(SUM(kpl*tuote.sisaanostohinta),0) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
+ 		LEFT JOIN ostotilauskirja_tuote
+ 			ON ostotilauskirja.id = ostotilauskirja_tuote.ostotilauskirja_id
+ 		LEFT JOIN tuote
+ 		    ON ostotilauskirja_tuote.tuote_id = tuote.id
+ 		WHERE ostotilauskirja.hankintapaikka_id = ?
+ 		GROUP BY ostotilauskirja.id";
+	foreach ($hankintapaikat as $hp) {
+		$hp->ostotilauskirjat = $db->query($sql, [$hp->id], FETCH_ALL);
+	}
 }
 
 
 //Haetaan kaikki hankintapaikat, joihin linkitetty valmistaja
 $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
+hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 
 ?>
 
@@ -43,6 +58,7 @@ $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
             <tr><th>ID</th>
                 <th>Nimi</th>
                 <th>Brandit</th>
+				<th>Tilauskirjat</th>
             </tr>
             </thead>
             <tbody>
@@ -53,10 +69,15 @@ $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
                     <td><?= $hp->id?></td>
                     <td><?= $hp->nimi?></td>
                     <td>
-                        <?php foreach ($hp->brandit as $b) : ?>
-                            <span><?= $b?></span><br>
+                        <?php foreach ($hp->brandit as $brand) : ?>
+                            <span><?= $brand?></span><br>
                         <?php endforeach;?>
                     </td>
+					<td>
+						<?php foreach ($hp->ostotilauskirjat as $otk) : ?>
+							<?= $otk->tunniste?> - <?= $otk->kpl?> - <?= format_euros($otk->hinta)?><br>
+						<?php endforeach; ?>
+					</td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

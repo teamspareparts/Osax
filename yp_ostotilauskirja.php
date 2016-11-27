@@ -53,8 +53,15 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
-
-$ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaikka_id = ?", [$hankintapaikka_id], FETCH_ALL);
+//haetaan ostotilauskirjat
+$sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
+ 		LEFT JOIN ostotilauskirja_tuote
+ 			ON ostotilauskirja.id = ostotilauskirja_tuote.ostotilauskirja_id
+ 		LEFT JOIN tuote
+ 		    ON ostotilauskirja_tuote.tuote_id = tuote.id
+ 		WHERE ostotilauskirja.hankintapaikka_id = ?
+ 		GROUP BY ostotilauskirja.id";
+$ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 
 ?>
@@ -94,6 +101,8 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
             <thead>
             <tr><th>Tunniste</th>
                 <th>Saapumispäivä</th>
+                <th>Tuotteet</th>
+                <th>Hinta</th>
                 <th>Rahti</th>
                 <th></th>
             </tr>
@@ -105,6 +114,10 @@ $ostotilauskirjat = $db->query("SELECT * FROM ostotilauskirja WHERE hankintapaik
                         <?= $otk->tunniste?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
+                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+                        <?= format_integer($otk->kpl)?></td>
+                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+                        <?= format_euros($otk->hinta)?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_euros($otk->rahti)?></td>
                     <td class="toiminnot">

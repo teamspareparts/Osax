@@ -11,20 +11,27 @@ require 'apufunktiot.php';
  * @param array $val
  * @return bool <p> onnistuiko lisäys. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
-function add_product_to_catalog( DByhteys $db, /*array*/ $val ) {
-	$sql = "INSERT INTO tuote 
+function add_product_to_catalog( DByhteys $db, array $val ) {
+	$result = $db->query("SELECT aktiivinen FROM tuote WHERE articleNo = ? 
+						  AND brandNo = ? AND hankintapaikka_id = ?", [ $val[0], $val[1], $val[2] ]);
+
+	//Jos ei löydy valikoimasta tai ei ole aktiivinen
+	if ( !($result ? $result->aktiivinen : false) ) {
+
+
+		$sql = "INSERT INTO tuote 
 				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
-				 minimimyyntiera, alennusera_kpl, alennusera_prosentti, nimi, valmistaja, yhteensa_kpl, keskiostohinta) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
-			ON DUPLICATE KEY 
-				UPDATE sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
-					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
-					minimimyyntiera=VALUES(minimimyyntiera), nimi=VALUES(nimi),
-					valmistaja=VALUES(valmistaja), alennusera_kpl=VALUES(alennusera_kpl),
-					alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
-	return $db->query( $sql,
-		[ $val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7],$val[8],$val[9],$val[10],$val[11],$val[12] ] );
-	//TODO: You do realize how pointless that array thing is?
+				 minimimyyntiera, hyllypaikka, alennusera_kpl, alennusera_prosentti, nimi, valmistaja, yhteensa_kpl, keskiostohinta) 
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
+			ON DUPLICATE KEY UPDATE 
+				sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
+			  	ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
+		  		minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
+	  			valmistaja=VALUES(valmistaja), alennusera_kpl=VALUES(alennusera_kpl),
+  				alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
+		return $db->query($sql, $val);
+	}
+	return false;
 }
 
 /**
@@ -49,17 +56,17 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 			SET keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
 				yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
 				sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
-				minimimyyntiera = ?, alennusera_kpl = ?, alennusera_prosentti = ?
+				minimimyyntiera = ?, hyllypaikka = ?, alennusera_kpl = ?, alennusera_prosentti = ?
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
-		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
+		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7], $val[8] ] );
 }
 
 function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
     $sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, kpl,
-              lisays_selite, lisays_kayttaja_id, lisays_tapa)
-            VALUES ( ?, ?, ?, ?, ?, 1)";
+ 										lisays_kayttaja_id, lisays_tapa)
+            VALUES ( ?, ?, ?, ?, 1)";
     return $db->query( $sql, $val );
 }
 
@@ -231,6 +238,7 @@ if ( !empty($_POST['lisaa']) ) {
         intval($_POST['alv_lista']),
         intval($_POST['varastosaldo']),
         intval($_POST['minimimyyntiera']),
+		strval($_POST['hyllypaikka']),
         intval($_POST['alennusera_kpl']),
         (floatval($_POST['alennusera_prosentti']) / 100),
 		strval($_POST['nimi']),
@@ -238,7 +246,7 @@ if ( !empty($_POST['lisaa']) ) {
     ];
     if ( add_product_to_catalog( $db, $array ) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote lisätty!</p>';
-    } else { $_SESSION["feedback"] = '<p class="error">Tuotteen lisäys epäonnistui!</p>'; }
+    } else { $_SESSION["feedback"] = '<p class="error">Tuote on jo valikoimassa!</p>'; }
 
 } elseif ( !empty($_POST['poista']) ) {
     if ( remove_product_from_catalog( $db, $_POST['id'] ) ) {
@@ -252,6 +260,7 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
+		$_POST['hyllypaikka'],
         $_POST['alennusera_kpl'],
         ($_POST['alennusera_prosentti'] / 100),
         $_POST['id']
@@ -265,7 +274,6 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['ostotilauskirjat'], //ostotilauskirjan id
         $_POST['id'],               //tuotteen id
         $_POST['kpl'],
-        $_POST['selite'],
         $user->id
     ];
     if ( lisaa_tuote_ostotilauskirjalle( $db, $array ) ) {
@@ -407,6 +415,7 @@ require 'tuotemodal.php';
 					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
 						<th class="number">Saldo</th> <th class="number">Hinta (sis. ALV)</th>
                         <th class="number">Ostohinta ALV0%</th>
+						<th>Hyllypaikka</th>
 						<th></th>
 					</tr>
 					</thead>
@@ -427,6 +436,7 @@ require 'tuotemodal.php';
 							<td class="number"><?=format_integer($product->varastosaldo)?></td>
 							<td class="number"><?=format_euros($product->hinta)?></td>
                             <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
 								<button class="nappi" onclick="showRemoveDialog(<?=$product->id?>)">
@@ -434,11 +444,11 @@ require 'tuotemodal.php';
                                 <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>',
                                     '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
                                     '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
-                                    '<?=$product->minimimyyntiera?>', '<?=$product->alennusera_kpl?>',
-                                    '<?=$product->alennusera_prosentti?>')">
+                                    '<?=$product->minimimyyntiera?>', '<?=$product->hyllypaikka?>',
+									'<?=$product->alennusera_kpl?>', '<?=$product->alennusera_prosentti*100?>')">
                                     Muokkaa</button><br>
-                                <button class="nappi" onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
-                                    <?=$product->hankintapaikka_id?>)">
+                                <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>" onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
+                                    <?=$product->hankintapaikka_id?>, '<?= $product->articleName?>', '<?= $product->brandName?>')">
                                     OTK</button>
                             </td>
 						</tr>
@@ -477,11 +487,13 @@ require 'tuotemodal.php';
 
 <script type="text/javascript">
 
-    /**
-     * Tuotteen lisäys valikoimaan.
-     * @param articleNo
-     * @param brandNo
-     */
+	/**
+	 *
+	 * @param articleNo
+	 * @param brandNo
+	 * @param nimi
+	 * @param valmistaja
+	 */
     function showAddDialog( /*string*/ articleNo, /*int*/ brandNo, /*string*/ nimi, /*string*/ valmistaja ) {
         var alv_valikko = <?= json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
         var hankintapaikka_valikko = <?= json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
@@ -499,12 +511,13 @@ require 'tuotemodal.php';
 					</span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
+					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
 					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
 					<input class="nappi" type="submit" name="lisaa" value="Lisää">\
 					<button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
-					<input type="hidden" name="nimi" value=' + nimi + '> \
-					<input type="hidden" name="valmistaja" value=' + valmistaja + '> \
+					<input type="hidden" name="nimi" value="' + nimi + '"> \
+					<input type="hidden" name="valmistaja" value="' + valmistaja + '"> \
 					<input type="hidden" name="articleNo" value="' + articleNo + '"> \
 					<input type="hidden" name="brandNo" value=' + brandNo + '> \
 				</form>',
@@ -529,19 +542,20 @@ require 'tuotemodal.php';
         } );
     }
 
-    /**
-     *
-     * @param id
-     * @param tuotekoodi
-     * @param ostohinta
-     * @param hinta
-     * @param alv
-     * @param varastosaldo
-     * @param minimimyyntiera
-     * @param maara_alennus
-     * @param prosentti_alennus
-     */
-    function showModifyDialog(id, tuotekoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, maara_alennus, prosentti_alennus ) {
+	/**
+	 *
+	 * @param id
+	 * @param tuotekoodi
+	 * @param ostohinta
+	 * @param hinta
+	 * @param alv
+	 * @param varastosaldo
+	 * @param minimimyyntiera
+	 * @param hyllypaikka
+	 * @param maara_alennus
+	 * @param prosentti_alennus
+	 */
+    function showModifyDialog(id, tuotekoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka, maara_alennus, prosentti_alennus ) {
         var alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
@@ -552,9 +566,10 @@ require 'tuotemodal.php';
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
 				    '+alv_valikko+'</span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="0" value="'+minimimyyntiera+'"> kpl</span><br> \
+					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
+					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
 					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="'+maara_alennus+'"> kpl</span><br> \
-					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0" value="'+prosentti_alennus+'"></span><br> \
+					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_prosentti" placeholder="0" value="'+prosentti_alennus+'"></span><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()">\
 					<button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 					<input type="hidden" name="id" value="' + id + '"> \
@@ -564,12 +579,15 @@ require 'tuotemodal.php';
         $("#alv_lista").val(alv);
     }
 
-    function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id){
+    function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
         //haetaan hankintapaikan ostotilauskirjat
         $.post(
             "ajax_requests.php",
             {   hankintapaikan_ostotilauskirjat: true,
-                hankintapaikka_id: hankintapaikka_id },
+                hankintapaikka_id: hankintapaikka_id,
+				tuote_id: id,
+				tuote_nimi: tuote_nimi,
+				tuote_valmistaja: tuote_valmistaja },
             function( data ) {
                 ostotilauskirjat = JSON.parse(toJSON(data));
                 if(ostotilauskirjat.length === 0){
@@ -591,9 +609,8 @@ require 'tuotemodal.php';
                             <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
 				            '+ostotilauskirja_lista+'<br><br> \
 				            <label for="kpl">Kappaleet:</label><br> \
-				            <input class="kpl" type="number" name="kpl" placeholder="0" min="1"> kpl<br><br> \
-				        	<label for="kpl">Selite:</label><br> \
-                            <textarea form="ostotilauskirjalomake" rows=3 name="selite" placeholder="Miksi lisäät tuotteen käsin?" ></textarea><br><br> \
+				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1"> kpl<br><br> \
+                            <br>\
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
                             <input type="hidden" name="id" value="'+id+'">\
 				        </form> \
@@ -608,7 +625,34 @@ require 'tuotemodal.php';
 
 
 
+
+
+
 	$(document).ready(function(){
+
+		//Tuotteen lisääminen ostotilauskirjalle
+		$(document.body)
+			.on('submit', '#ostotilauskirjalomake', function(e){
+				e.preventDefault();
+				var tuote_id = $('input[name=id]').val();
+				$.post(
+					"ajax_requests.php",
+					{   lisaa_tilauskirjalle: true,
+						ostotilauskirja_id: $('select[name=ostotilauskirjat]').val(),
+						tuote_id: tuote_id,
+						kpl: $('input[name=kpl]').val() },
+					function( data ) {
+						Modal.close();
+						if ((!!data) === true ) {
+							$("#lisaa_otk_nappi_" + tuote_id)
+								.css("background-color","green")
+								.addClass("disabled");
+						} else {
+							alert("ERROR: Tuote on jo kyseisellä tilauskirjalla.");
+						}
+					});
+			});
+
 
 		//info-nappulan sisältö
 		$("span.info-box").hover(function () {
@@ -618,15 +662,12 @@ require 'tuotemodal.php';
 		});
 
 
+		//Avataan tuoteikkuna tuotetta painettaessa
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
 				//haetaan tuotteen id
 				var articleId = $(this).closest('tr').attr('data-val');
-				//spinning icon
-				//$('#cover').addClass("loading");
-				//haetaan tuotteen tiedot tecdocista
-				//getDirectArticlesByIds6(articleId);
                 productModal(articleId);
 			});
 

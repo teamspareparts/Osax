@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
   `yhteensa_kpl` int(11) NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
-  `hyllypaikka` varchar(10) DEFAULT NULL, -- TODO: Work In Progress
+  `hyllypaikka` varchar(10) DEFAULT NULL,
   `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
   `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` tinyint(1) NOT NULL DEFAULT 1,
@@ -242,7 +242,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2),
   `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`),
+  PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
 	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -253,7 +253,6 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
   `kpl` INT(11) NOT NULL,
   `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
   PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`),
 	CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
@@ -264,9 +263,12 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `hankintapaikka_id` int(11) NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2),
-  `oletettu_saapumispaiva` timestamp NULL,
-  `saapumispaiva` timestamp NULL,
+  `oletettu_saapumispaiva` TIMESTAMP NULL,
+  `lahetetty` TIMESTAMP NULL,
+  `lahettaja` INT(11), -- Tilauskirjan lähettäjän käyttäjä ID
+  `saapumispaiva` TIMESTAMP NULL,
   `hyvaksytty` TINYINT(1) NOT NULL DEFAULT 0, -- Odottavassa tilassa vai vastaanotettu ja hyväksytty
+  `vastaanottaja` INT(11), -- Tilauskirjan vastaanottajan käyttäjä ID
   PRIMARY KEY (`id`),
   CONSTRAINT fk_ostotilauskirjaArkisto_hankintapaikka
     FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
@@ -279,13 +281,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `ostohinta` INT(11) NOT NULL,
   `lisays_tapa` TINYINT(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `lisays_selite` VARCHAR(50), -- Miksi lisätty (jos käsin)
   `lisays_kayttaja_id` INT(11), -- Kuka lisännyt (jos käsin)
-  -- TODO: Muokattu odottavassa tilassa ennen arkistointia (kuka miksi pvm)
-  `muokattu_odottavassa` BOOLEAN NOT NULL DEFAULT 0, -- TODO: Kelpaako?
-  `muokattu_pvm` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `muokattu_selite` VARCHAR(50), -- Miksi muokattu
-  `muokattu_kayttaja_id` INT(11), -- Kuka muokannut,
   PRIMARY KEY (`ostotilauskirja_id`, tuote_id),
   CONSTRAINT fk_ostotilauskirjaTuoteArkisto_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
