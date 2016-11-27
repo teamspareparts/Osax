@@ -7,12 +7,11 @@ class Ostoskori {
 	/**
 	 * <code>
 	 * Array [
-	 * 		tuote_id => [ tuotteen id,
-	 * 					  kpl-määrä ], ...
+	 * 	tuote_id => [ tuotteen id,
+	 * 				  kpl-määrä ], ...
 	 * ]
 	 * </code>
-	 * Indesit kokonaislukuja (0 ja 1)
-	 * @var int[] <p> Ostoskorissa olevat tuotteet.
+	 * @var array[] <p> Ostoskorissa olevat tuotteet.
 	 */
 	public $tuotteet = NULL;
 
@@ -69,6 +68,9 @@ class Ostoskori {
 				case 1 :
 					$this->hae_ostoskorin_sisalto( $db, TRUE );
 					break;
+				case 2 :
+					$this->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+					break;
 			}
 		}
 	}
@@ -101,34 +103,60 @@ class Ostoskori {
         return $this->montako_tuotetta_kpl_maara_yhteensa;
     }
 
-        /**
-	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin. Hakee vain ID:n ja kpl-maaran.
+	/**
+	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin.
 	 * @param DByhteys $db
 	 * @param boolean $kaikki_tiedot <p> Haetaanko kaikki tiedot (tuotteet & kappalemäärä),
 	 *        vai vain montako eri tuotetta ostoskorissa on ( COUNT(tuote_id) ja SUM(kpl_maara) ).
+	 * @param bool $tuote_luokka <p> Haetaanko tuotteet Tuote-luokkaan. Hitaampi vaihtoehto.
 	 */
-	public function hae_ostoskorin_sisalto ( DByhteys $db, /*bool*/ $kaikki_tiedot = FALSE ) {
+	public function hae_ostoskorin_sisalto ( DByhteys $db, /*bool*/ $kaikki_tiedot = FALSE,
+											 /*bool*/ $tuote_luokka = FALSE) {
+		$this->montako_tuotetta_kpl_maara_yhteensa = 0; // Varmuuden vuoksi nollataan
+		$this->montako_tuotetta = 0; // Ditto
+		$this->tuotteet = array();
+
 		if ( !$kaikki_tiedot ) {
 			$sql = "SELECT COUNT(tuote_id) AS count, IFNULL(SUM(kpl_maara), 0) AS kpl_maara 
 					FROM ostoskori_tuote WHERE ostoskori_id = ?";
 			$row = $db->query( $sql, [$this->ostoskori_id] );
 			$this->montako_tuotetta = $row->count;
 			$this->montako_tuotetta_kpl_maara_yhteensa = $row->kpl_maara;
-		} else {
-			$this->montako_tuotetta_kpl_maara_yhteensa = 0; // Varmuuden vuoksi nollataan
-			$this->montako_tuotetta = 0; // Ditto
-			$this->tuotteet = array();
-			$sql = "SELECT tuote_id, kpl_maara
-					FROM   ostoskori_tuote
-					WHERE  ostoskori_id = ?";
-			$db->prepare_stmt( $sql );
-			$db->run_prepared_stmt( [$this->ostoskori_id] );
-			while ( $row = $db->get_next_row() ) {
-				$this->tuotteet[$row->tuote_id] = $row;
-				$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
+		} else { // Hae kaikki tiedot
+			if ( !$tuote_luokka ) {
+				$this->tuotteet = array();
+				$sql = "SELECT tuote_id, kpl_maara FROM ostoskori_tuote WHERE ostoskori_id = ?";
+				$db->prepare_stmt( $sql );
+				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
+				while ( $row = $db->get_next_row() ) {
+					$this->tuotteet[$row->tuote_id] = $row;
+					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
+				}
+				$this->montako_tuotetta = count( $this->tuotteet );
+				$this->cart_mode = 1;
+			} else { // Käytä Tuote-luokkaa
+				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi,
+							tuote.varastosaldo, tuote.minimimyyntiera, ALV_kanta.prosentti AS alv_prosentti,
+							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
+							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara,
+							IFNULL((SELECT MAX(tuote_erikoishinta.yleinenalennus_prosentti)
+								FROM tuote_erikoishinta
+								WHERE ostoskori_tuote.tuote_id = tuote_erikoishinta.tuote_id
+									AND (tuote_erikoishinta.voimassaolopvm >= CURDATE() 
+											OR tuote_erikoishinta.voimassaolopvm IS NULL)
+							),0.00) AS yleinen_alennus
+						FROM ostoskori_tuote
+						LEFT JOIN tuote ON tuote.id = ostoskori_tuote.tuote_id
+						LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+						WHERE ostoskori_id = ?";
+				$db->prepare_stmt( $sql );
+				$db->run_prepared_stmt( [$this->ostoskori_id] );
+				while ( $row = $db->get_next_row( NULL, 'tuote' ) ) {
+					$this->tuotteet[] = $row;
+					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
+					$this->montako_tuotetta += 1;
+				}
 			}
-			$this->montako_tuotetta = count($this->tuotteet);
-			$this->cart_mode = 1;
 		}
 	}
 

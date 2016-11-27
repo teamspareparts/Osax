@@ -55,7 +55,6 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 
 <?php require "header.php"; ?>
 <main class="main_body_container">
-<!--	<h1 class="otsikko">Ostoskori</h1>-->
 	<?= $feedback ?>
 	<table>
 		<thead>

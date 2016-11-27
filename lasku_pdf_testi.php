@@ -72,7 +72,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 	$html .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td>{$tuote->tuotekoodi}</td>
-			<td>{$tuote->tuotenimi}</td>
+			<td>{$tuote->nimi}</td>
 			<td>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->a_hinta_toString( true )}</td>
 			<td style='text-align:right;'>{$tuote->alv_prosentti} %</td>

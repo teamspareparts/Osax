@@ -76,8 +76,9 @@ class DByhteys {
 	 * @param int $returnType [optional], default = NULL <p>
 	 *        Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
 	 *         constant-muuttujat. <br> Default on PDO::FETCH_OBJ.
-	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. Huom, että
-	 * 		  tuloksen muuttujien nimet pitää olla samat kuin luokan muuttujat.
+	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
+	 * 		  Huom: $returnType ei tarvitse olla määritelty.<p>
+	 * 		  Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 * @return array|int|stdClass <p> Palauttaa object-arrayn, jos esim. SELECT ja FETCH_ALL==true.
 	 *        Palauttaa suoraan objektin, jos haetaan vain yksi.<br>
 	 * Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim. INSERT tai DELETE.<br>
@@ -133,8 +134,9 @@ class DByhteys {
 	 * Palauttaa tulokset objektina, jos ei palautustyyppiä.
 	 * @param int $returnType [optional] <p>
 	 *        Missä muodossa haluat tiedot palautettavan. Default on PDO::FETCH_OBJ.
-	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. Huom, että
-	 * 		  tuloksen muuttujien nimet pitää olla samat kuin luokan muuttujat.
+	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
+	 * 		  Huom: $returnType ei tarvitse olla määritely.<p>
+	 * 		  Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 * @return mixed|stdClass
 	 */
 	public function get_next_row ( /*int*/ $returnType = NULL, /*string*/ $className = '' ) {

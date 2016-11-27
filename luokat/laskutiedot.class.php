@@ -82,7 +82,7 @@ class Laskutiedot {
 			$tuote = new Tuote();
 			$tuote->id = $row->id;
 			$tuote->tuotekoodi = $row->articleNo;
-			$tuote->tuotenimi = $row->tuotteen_nimi;
+			$tuote->nimi = $row->tuotteen_nimi;
 			$tuote->valmistaja = $row->valmistaja;
 			$tuote->a_hinta = round($row->maksettu_hinta, 2);
 			$tuote->a_hinta_ilman_alv = $row->pysyva_hinta * (1 - $row->pysyva_alennus);
