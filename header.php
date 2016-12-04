@@ -26,37 +26,77 @@
     <section id="navigationbar">
         <ul>
             <li><a href='etusivu.php'><span style="padding: 15px 20px;"><i class="material-icons">home</i></span></a></li>
-            <li><a href='tuotehaku.php'><span>Tuotehaku</span></a></li>
+            <li><a href='tuotehaku.php'>Tuotehaku</a></li>
             <?php if ( $user->isAdmin() ) : ?>
-                <li><a href='yp_yritykset.php'><span>Yritykset</span></a></li>
-                <li><a href='yp_tuotteet.php'><span>Tuotteet</span></a></li>
-                <li><a href='yp_tilaukset.php'><span>Tilaukset</span></a></li>
+                <li><a href='yp_yritykset.php'>Yritykset</a></li>
+                <li><a href='yp_tuotteet.php'>Tuotteet</a></li>
+                <li><a href='yp_tilaukset.php'>Tilaukset</a></li>
 
-                <li class="dropdown"><span>Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></span>
+                <li class="dropdown"><a href="javascript:void(0)">Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></a>
                     <ul class="dropdown-content">
-                        <li><a href="yp_ostotilauskirja_odottavat.php"><span>Varastoon saapuminen</span></a></li>
-                        <li><a href="yp_ostotilauskirja_hankintapaikka.php"><span>Tilauskirjat</span></a></li>
-                        <li><a href="yp_hallitse_eula.php"><span>EULA</span></a></li>
-                        <li><a href="yp_hankintapyynnot.php"><span>Hankintapyynnöt</span></a></li>
-                        <li><a href="yp_muokkaa_alv.php"><span>ALV-muokkaus</span></a></li>
-                        <li><a href="yp_luo_hinnastotiedosto.php"><span>Lataa hinnastot</span></a></li>
-                        <li><a href='toimittajat.php'><span>Toimittajat</span></a></li>
-                        <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
+                        <li><a href="yp_ostotilauskirja_odottavat.php">Varastoon saapuminen</a></li>
+                        <li><a href="yp_ostotilauskirja_hankintapaikka.php">Tilauskirjat</a></li>
+                        <li><a href="yp_hallitse_eula.php">EULA</a></li>
+                        <li><a href="yp_hankintapyynnot.php">Hankintapyynnöt</a></li>
+                        <li><a href="yp_muokkaa_alv.php">ALV-muokkaus</a></li>
+                        <li><a href="yp_luo_hinnastotiedosto.php">Lataa hinnastot</a></li>
+                        <li><a href='toimittajat.php'>Toimittajat</a></li>
+                        <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                     </ul>
                 </li>
 			<?php else : ?>
-                <li><a href='omat_tiedot.php'><span>Omat tiedot</span></a></li>
-                <li><a href='tilaushistoria.php'><span>Tilaushistoria</span></a></li>
+                <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
+                <li><a href='tilaushistoria.php'>Tilaushistoria</a></li>
 			<?php endif; ?>
-            <li class="last"><a href="logout.php?redir=5"><span>Kirjaudu ulos</span></a></li>
+            <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>
     </section>
 </div>
 
 
 <script type="text/javascript">
-    $(".dropdown").click(function () {
-        var dropdown_icon = $("#dropdown_icon");
+    //navbar active link
+    let pgurl = window.location.href.substr(window.location.href
+            .lastIndexOf("/")+1).split('?')[0];
+    //Tarkastetaan alasivut
+    switch(pgurl) {
+        case "yp_muokkaa_yritysta.php":
+        case "yp_lisaa_yritys.php":
+        case "yp_asiakkaat.php":
+        case "yp_muokkaa_asiakasta.php":
+        case "yp_lisaa_asiakas.php":
+			pgurl = "yp_yritykset.php";
+			break;
+        case "yp_tilaushistoria.php":
+        case "tilaus_info.php":
+        	pgurl = "yp_tilaukset.php";
+        	break;
+        case "toimittajan_hallinta.php":
+        case "yp_lisaa_tuotteita.php":
+        case "yp_valikoima.php":
+        	pgurl = "toimittajat.php";
+        	break;
+        case "yp_ostotilauskirja.php":
+        case "yp_ostotilauskirja_tuote.php":
+        	pgurl = "yp_ostotilauskirja_hankintapaikka.php";
+        	break;
+        case "yp_ostotilauskirja_tuote_odottavat.php":
+        	pgurl = "yp_ostotilauskirja_odottavat.php";
+        	break;
+    }
+    $("#navigationbar a").each(function(){
+        if ( $(this).attr("href") == pgurl ) {
+            $(this).addClass("active");
+            //Jos dropdpdown valikko, myös "MUUT"-painike active
+			if ($("ul li ul li").has(this).length) {
+				$(".dropdown > a").addClass("active");
+			}
+        }
+    });
+
+    //dropdown icon toiminnallisuus
+    $(".dropdown a").click(function () {
+        const dropdown_icon = $("#dropdown_icon");
         if ( dropdown_icon.text() === "arrow_drop_down" ){
             dropdown_icon.text("arrow_drop_up");
             $(".dropdown-content").show();
@@ -66,4 +106,5 @@
             $(".dropdown-content").hide();
         }
     });
+
 </script>

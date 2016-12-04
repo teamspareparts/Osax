@@ -45,7 +45,7 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	}
 
 	//Tyhjennetään alkuperäinen ostotilauskirja
-	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ? ";
+	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
 	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
 
 	return true;
@@ -67,7 +67,8 @@ if ( isset($_POST['muokkaa']) ) {
 }
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
-    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ?", [$_POST['id']]) ) {
+    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ?",
+                    [$_POST['id'], $ostotilauskirja_id]) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -92,13 +93,22 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT *, SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta FROM ostotilauskirja_tuote
+$sql = "  SELECT * FROM ostotilauskirja_tuote
+          LEFT JOIN tuote
+            ON ostotilauskirja_tuote.tuote_id = tuote.id 
+          WHERE ostotilauskirja_id = ?
+          GROUP BY tuote_id";
+$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
+
+$sql = "  SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
+          FROM ostotilauskirja_tuote 
           LEFT JOIN tuote
             ON ostotilauskirja_tuote.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
           GROUP BY ostotilauskirja_id";
-$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
-$yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : $otk->rahti;
+$yht = $db->query($sql, [$ostotilauskirja_id]);
+$yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
+$yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 ?>
 
@@ -111,7 +121,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/jsmodal-light.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="js/jsmodal-1.0d.min.js"></script>
     <title>Ostotilauskirjat</title>
 </head>
@@ -141,7 +151,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
             </thead>
             <tbody>
             <!-- Rahtimaksu -->
-            <tr><td></td><td>Rahtimaksu</td><td class="number">1</td><td class="number"><?=format_euros($otk->rahti)?></td><td></td></tr>
+            <tr><td></td><td>Rahtimaksu</td><td class="number"></td><td class="number"><?=format_euros($otk->rahti)?></td><td></td></tr>
             <!-- Tuotteet -->
             <?php foreach ($products as $product) : ?>
                 <tr>
@@ -158,7 +168,7 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
             <?php endforeach;?>
             <!-- Yhteensä -->
             <tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
-                <td class="number" style="border-top: 1px solid black">1</td>
+                <td class="number" style="border-top: 1px solid black"><?= format_integer($yht_kpl)?></td>
                 <td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
                 <td style="border-top: 1px solid black"></td>
             </tr>
