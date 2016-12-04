@@ -1,4 +1,4 @@
-﻿@CHARSET "UTF-8";
+@CHARSET "UTF-8";
 
 /********************************************
 	General application
@@ -88,8 +88,9 @@ input { padding: 3pt; }
 /********************************************
 	Navigointipalkki 
 *********************************************/
+
 #navigationbar {
-	background: #0D47A1; /* TODO: valitse väri */
+	background: #2f5cad;
 	width: auto;
 	height: auto;
 }
@@ -102,15 +103,8 @@ input { padding: 3pt; }
 	display: block;
 	zoom: 1;
 	text-align: left;
-	border-top: 1px solid #214f87;
 }
 
-#navigationbar .last {
-	float: right;
-}
-
-/*	Täytyy olla, jotta KIRJAUDU ULOS -painike pysyy
-	navigationbaarissa kun ikkunaa muutetaan pieneksi*/
 #navigationbar ul:after {
 	content: " ";
 	display: block;
@@ -119,47 +113,48 @@ input { padding: 3pt; }
 
 #navigationbar ul li {
 	display: inline-block;
-	padding: 0;
 	margin: 0;
 }
 
 #navigationbar ul li a {
     text-decoration: none;
-}
+    color: #ffffff;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 16px;
+    display: block;
+    padding: 15px 20px;
 
-#navigationbar ul li span {
-	color: #ffffff;
-	text-decoration: none;
-	display: block;
-	padding: 15px 25px;
-	font-family: 'Open Sans', sans-serif;
-	font-weight: 700;
-	text-transform: uppercase;
-	font-size: 16px;
-	position: relative;
-	border-radius: 5px;
 }
 
 #navigationbar ul li :HOVER {
-	color: darkgrey; /* TODO: valitse väri */
-	background: #448AFF;
+	color: black;
 }
 
 
 #navigationbar .dropdown {
     position: relative;
     display: inline-block;
-    cursor: pointer;
 }
 
 #navigationbar .dropdown-content {
     display: none;
-    position:absolute;
+    position: absolute;
     background-color: #2f5cad;
     min-width: 130px;
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
     padding: 0 0;
     z-index: 1;
+}
+
+#navigationbar .last {
+    float: right;
+}
+
+#navigationbar .active{
+    color: black;
+    text-decoration: underline;
 }
 
 /********************************************
@@ -195,9 +190,9 @@ input { padding: 3pt; }
 	-moz-user-select:none;
 	-ms-user-select:none;
 	user-select:none;
-	font-weight: 600;
-	font-size: 16px;
-	/*text-transform: uppercase;*/
+	font-weight: 700;
+	font-size: 15px;
+	text-transform: uppercase;
 	text-decoration: none;
 	font-family: 'Open Sans', sans-serif;
 	display: inline-block;
