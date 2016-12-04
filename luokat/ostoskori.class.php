@@ -11,30 +11,25 @@ class Ostoskori {
 	 * 				  kpl-määrä ], ...
 	 * ]
 	 * </code>
-	 * @var array[] <p> Ostoskorissa olevat tuotteet.
+	 * @var Tuote[] <p> Ostoskorissa olevat tuotteet.
 	 */
 	public $tuotteet = NULL;
-
 	/**
 	 * @var int $montako_tuotetta <p> Montako eri tuotetta ostoskorissa on.
 	 */
 	public $montako_tuotetta = 0;
-
 	/**
 	 * @var int $montako_tuotetta_kpl_maara_yhteensa <p> Montako kappaletta eri tuotteita on yhteensä ostoskorissa.
 	 */
 	public $montako_tuotetta_kpl_maara_yhteensa = 0;
-
 	/**
 	 * @var int <p> Ostoskorin omistavan yrityksen ID.
 	 */
 	private $yritys_id = NULL;
-
 	/**
 	 * @var int <p> Ostoskorin ID tietokannassa.
 	 */
 	private $ostoskori_id = NULL;
-
 	/**
 	 * @var int <p> Mitkä tiedot haettu. Sama kuin konstruktorin $cart_mode, mutta pysyvään
 	 * tallenukseen.
@@ -91,7 +86,7 @@ class Ostoskori {
      * Palauttaa ostoskorissa olevien tuotteiden määrän.
      * @return int tuotteiden maara
      */
-    public function hae_tuotteiden_maara() {
+    public function get_tuotteiden_maara() {
         return $this->montako_tuotetta;
     }
 
@@ -99,7 +94,7 @@ class Ostoskori {
      * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
      * @return int kaikkien tuotteiden kappalemäärä
      */
-    public function hae_kaikkien_tuotteiden_kappalemaara() {
+    public function get_kaikkien_tuotteiden_kappalemaara() {
         return $this->montako_tuotetta_kpl_maara_yhteensa;
     }
 
@@ -142,8 +137,7 @@ class Ostoskori {
 							IFNULL((SELECT MAX(tuote_erikoishinta.yleinenalennus_prosentti)
 								FROM tuote_erikoishinta
 								WHERE ostoskori_tuote.tuote_id = tuote_erikoishinta.tuote_id
-									AND (tuote_erikoishinta.voimassaolopvm >= CURDATE() 
-											OR tuote_erikoishinta.voimassaolopvm IS NULL)
+									AND tuote_erikoishinta.voimassaolopvm >= CURDATE()
 							),0.00) AS yleinen_alennus
 						FROM ostoskori_tuote
 						LEFT JOIN tuote ON tuote.id = ostoskori_tuote.tuote_id

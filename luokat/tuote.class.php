@@ -18,9 +18,16 @@ class Tuote {
 	/** @var float $ostohinta <p> Ylläpitoa varten NOT IMPLEMENTED */ public $ostohinta = 0.00;
 
 	/** @var float $alv_prosentti <p> */ public $alv_prosentti = 0.00;
-	/** @var float $alennus <p> Tuotteen alennusprosentti, jos olemassa */ public $alennus = 0.00;
-	/** @var float $alennus_kpl_raja <p> Määräalennuksen kpl-raja */ public $alennus_kpl_raja = 0;
-	/** //TODO: Tuotteella voi olla monta määräalennusta */
+	/** @var float $alennus <p> Tuotteen alennusprosentti, jos olemassa */ public $yleinen_alennus = 0.00;
+	/**
+	 * <code>
+	 * Array [
+	 * 	kpl-määrä => [ kpl-määrä,
+	 * 				   alennus-prosentti ], ...
+	 * ]
+	 * </code>
+	 * @var array $maaraalennus_kpl_raja <p> Määräalennuksen kpl-rajat
+	 */ public $maaraalennukset = array();
 	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
 	/** @var float $summa <p> */ public $summa = 0.00;
 
@@ -36,7 +43,7 @@ class Tuote {
 			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilaus_koodi AS tilauskoodi, 
 						varastosaldo, minimimyyntiera, valmistaja, nimi, ALV_kanta.prosentti AS alv_prosentti, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-						hinta_ilman_alv AS a_hinta_ilman_alv						
+						hinta_ilman_alv AS a_hinta_ilman_alv, hyllypaikka
 					FROM tuote
 					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 					LEFT JOIN tuote_erikoishinta ON tuote.id = tuote_erikoishinta.tuote_id
@@ -49,6 +56,22 @@ class Tuote {
 				}
 			}
 		}
+	}
+
+	/**
+	 * @param DByhteys $db
+	 * @param int|null $id [optional]
+	 */
+	function hae_alennukset ( DByhteys $db, /*int*/$id = NULL ) {
+		if ( is_null($id) ) {
+			$id = $this->id;
+		}
+
+		$sql = "SELECT maaraalennus_kpl, maaraalennus_prosentti
+				FROM tuote_erikoishinta
+				WHERE tuote_id = ?
+					AND tuote_erikoishinta.voimassaolopvm >= CURDATE()";
+		$db->query( $sql, [$id] );
 	}
 
 	/**

@@ -14,6 +14,7 @@ function tallenna_nimi_ja_valmistaja( DByhteys $db, /*int*/ $tuote_id, /*string*
 	$sql = 'UPDATE tuote SET nimi = ?, valmistaja = ? WHERE id = ? LIMIT 1';
 	return $db->query( $sql, [$nimi, $valmistaja, $tuote_id] );
 }
+
 session_start();
 if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
@@ -37,8 +38,8 @@ if ( isset($_POST['ostoskori_toiminto']) ) {
     if ( $result ) {
         $result = [
             'success' => true,
-            'tuotteet_kpl' => $cart->hae_tuotteiden_maara(),
-            'yhteensa_kpl' => $cart->hae_kaikkien_tuotteiden_kappalemaara(),
+            'tuotteet_kpl' => $cart->get_tuotteiden_maara(),
+            'yhteensa_kpl' => $cart->get_kaikkien_tuotteiden_kappalemaara(),
         ];
     }
 }

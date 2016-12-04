@@ -44,10 +44,6 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
-		.peruuta {
-			background:rgb(200, 70, 70);
-			border-color: #b70004;
-		}
 	</style>
 	<title>Ostoskori</title>
 </head>
