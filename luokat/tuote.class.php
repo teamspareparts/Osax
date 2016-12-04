@@ -15,10 +15,14 @@ class Tuote {
 
 	/** @var float $a_hinta <p> */ public $a_hinta = 0.00;
 	/** @var float $a_hinta_ilman_alv <p> Veroton hinta */ public $a_hinta_ilman_alv = 0.00;
-	/** @var float $ostohinta <p> Ylläpitoa varten NOT IMPLEMENTED */ public $ostohinta = 0.00;
-
 	/** @var float $alv_prosentti <p> */ public $alv_prosentti = 0.00;
-	/** @var float $alennus <p> Tuotteen alennusprosentti, jos olemassa */ public $yleinen_alennus = 0.00;
+	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
+	/** @var float $summa <p> */ public $summa = 0.00;
+
+	/** @var float $yleinen_alennus <p> Tuotteen yleinen alennusprosentti, jos olemassa */
+	public $yleinen_alennus = 0.00;
+	/** @var float $tuoteryhma_alennus <p> Tuotteen hankintapaikkakohtainen alennusprosentti, jos olemassa */
+	public $tuoteryhma_alennus = 0.00;
 	/**
 	 * <code>
 	 * Array [
@@ -26,11 +30,11 @@ class Tuote {
 	 * 				   alennus-prosentti ], ...
 	 * ]
 	 * </code>
-	 * @var array $maaraalennus_kpl_raja <p> Määräalennuksen kpl-rajat
-	 */ public $maaraalennukset = array();
-	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
-	/** @var float $summa <p> */ public $summa = 0.00;
+	 * @var array $maaraalennus_kpl_raja <p> Määräalennuksen kpl-rajat, ja alennusprosentit
+	 */
+	public $maaraalennukset = array();
 
+	/** @var float $ostohinta <p> Ylläpitoa varten TODO: NOT IMPLEMENTED */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
 
 	/**
@@ -60,18 +64,14 @@ class Tuote {
 
 	/**
 	 * @param DByhteys $db
-	 * @param int|null $id [optional]
 	 */
-	function hae_alennukset ( DByhteys $db, /*int*/$id = NULL ) {
-		if ( is_null($id) ) {
-			$id = $this->id;
-		}
+	function hae_alennukset ( DByhteys $db ) {
 
-		$sql = "SELECT maaraalennus_kpl, maaraalennus_prosentti
+		$sql = "SELECT maaraalennus_kpl, maaraalennus_prosentti, voimassaolopvm
 				FROM tuote_erikoishinta
 				WHERE tuote_id = ?
 					AND tuote_erikoishinta.voimassaolopvm >= CURDATE()";
-		$db->query( $sql, [$id] );
+		$db->query( $sql, [$this->id] );
 	}
 
 	/**

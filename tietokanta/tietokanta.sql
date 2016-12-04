@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `yhteensa_kpl` mediumint NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
   `keskiostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
   `hyllypaikka` varchar(10) DEFAULT NULL,
+  `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
   `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
   `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` boolean NOT NULL DEFAULT 1,
@@ -88,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
 
 CREATE TABLE IF NOT EXISTS `tilaus_toimitusosoite` (
   `tilaus_id` mediumint UNSIGNED NOT NULL, -- PK, FK
-  `pysyva_etunimi` varchar(255) NOT NULL,
+  `pysyva_etunimi` varchar(255) NOT NULL, -- Rivin tiedot tulevat toimitusosoitteesta.
   `pysyva_sukunimi` varchar(255) NOT NULL,
   `pysyva_sahkoposti` varchar(255) NOT NULL,
   `pysyva_puhelin` varchar(20) NOT NULL,
