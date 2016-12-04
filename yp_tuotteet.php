@@ -90,42 +90,6 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
 }
 
 /**
- * Hakee kaikki hankintapaikat, tekee niistä dropdown-valikon, ja palauttaa HTML-koodin.
- * @param DByhteys $db
- * @return String <p> HTML-koodia. Dropdown-valikko.
- */
-function hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko ( $db ) {
-    $sql = "SELECT id, nimi FROM hankintapaikka ORDER BY id ASC";
-    $rows = $db->query( $sql, NULL, FETCH_ALL );
-
-    $return_string = '<select name="hankintapaikka_lista" required>';
-    foreach ( $rows as $hp ) {
-        $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
-    }
-    $return_string .= "</select>";
-
-    return $return_string;
-}
-
-/**
- * Hakee kaikki ostotilauskirjat, tekee niistä dropdown-valikon, ja palauttaa HTML-koodin.
- * @param DByhteys $db
- * @return String <p> HTML-koodia. Dropdown-valikko.
- */
-function hae_kaikki_ostotilauskirjat_ja_lisaa_alasvetovalikko ( $db ) {
-    $sql = "SELECT tunniste FROM ostotilauskirja";
-    $rows = $db->query( $sql, NULL, FETCH_ALL );
-
-    $return_string = '<select name="ostotilauskirja_lista">';
-    foreach ( $rows as $hp ) {
-        $return_string .= "<option name=\"hp\" value=\"{$hp->id}\">{$hp->id} - {$hp->nimi}</option>";
-    }
-    $return_string .= "</select>";
-
-    return $return_string;
-}
-
-/**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
  * Lopuksi lisää liittää TecDoc-tiedot valikoiman tuotteisiin.
@@ -354,7 +318,6 @@ else if ( !empty($_GET["manuf"]) ) {
 
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
@@ -495,34 +458,52 @@ require 'tuotemodal.php';
 	 * @param valmistaja
 	 */
     function showAddDialog( /*string*/ articleNo, /*int*/ brandNo, /*string*/ nimi, /*string*/ valmistaja ) {
-        var alv_valikko = <?= json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
-        var hankintapaikka_valikko = <?= json_encode( hae_kaikki_hankintapaikat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
-        Modal.open( {
-            content: '\
-				<div class="dialogi-otsikko">Lisää tuote</div> \
-				<form action="" name="lisayslomake" method="post"> \
-				    <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
-					<label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
-					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-				    '+alv_valikko+'\
-					</span><br> \
-					<label for="hp">Hankintapaikka:</label><span class="dialogi-kentta"> \
-				    '+hankintapaikka_valikko+'\
-					</span><br> \
-					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
-					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
-					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
-					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
-					<input class="nappi" type="submit" name="lisaa" value="Lisää">\
-					<button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
-					<input type="hidden" name="nimi" value="' + nimi + '"> \
-					<input type="hidden" name="valmistaja" value="' + valmistaja + '"> \
-					<input type="hidden" name="articleNo" value="' + articleNo + '"> \
-					<input type="hidden" name="brandNo" value=' + brandNo + '> \
-				</form>',
-            draggable: true
-        } );
+		//haetaan hankintapaikan ostotilauskirjat
+		$.post(
+			"ajax_requests.php",
+			{   valmistajan_hankintapaikat: true,
+				brand_id: brandNo },
+			function( data ) {
+				hankintapaikat = JSON.parse(toJSON(data));
+				if(hankintapaikat.length === 0){
+					alert("Luo ensin kyseiselle toimittajalle hankintapaikka!" +
+						"\rMUUT -> TOIMITTAJAT -> VALITSE TOIMITTAJA -> UUSI HANKINTAPAIKKA");
+					return;
+				}
+				//Luodaan alasvetovalikko
+				let hankintapaikka_valikko = '<select name="hankintapaikat">';
+				for(let i=0; i < hankintapaikat.length; i++){
+					hankintapaikka_valikko += '<option name="hankintapaikka" value="'+hankintapaikat[i].id+'">'+hankintapaikat[i].id + " - " + hankintapaikat[i].nimi+'</option>';
+				}
+				hankintapaikka_valikko += '</select>';
+				let alv_valikko = <?= json_encode(hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko($db)) ?>;
+				Modal.open({
+					content: '\
+                    <div class="dialogi-otsikko">Lisää tuote</div> \
+                    <form action="" name="lisayslomake" method="post"> \
+                        <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
+                        <label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
+                        <label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
+                        ' + alv_valikko + '\
+                        </span><br> \
+                        <label for="hp">Hankintapaikka:</label><span class="dialogi-kentta"> \
+                        ' + hankintapaikka_valikko + '\
+                        </span><br> \
+                        <label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
+                        <label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
+                        <label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
+                        <label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
+                        <label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
+                        <input class="nappi" type="submit" name="lisaa" value="Lisää">\
+                        <button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
+                        <input type="hidden" name="nimi" value="' + nimi + '"> \
+                        <input type="hidden" name="valmistaja" value="' + valmistaja + '"> \
+                        <input type="hidden" name="articleNo" value="' + articleNo + '"> \
+                        <input type="hidden" name="brandNo" value=' + brandNo + '> \
+                    </form>',
+					draggable: true
+				});
+			});
     }
 
     /**
@@ -609,7 +590,7 @@ require 'tuotemodal.php';
                             <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
 				            '+ostotilauskirja_lista+'<br><br> \
 				            <label for="kpl">Kappaleet:</label><br> \
-				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1"> kpl<br><br> \
+				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1" required> kpl<br><br> \
                             <br>\
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
                             <input type="hidden" name="id" value="'+id+'">\

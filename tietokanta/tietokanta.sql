@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `kpl` int(11) NOT NULL,
-  `ostohinta` int(11) NOT NULL, -- TODO: decimal?
+  `ostohinta` decimal(11,2) NOT NULL, -- TODO: decimal?
   `lisays_tapa` tinyint(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (jos käsin) (FK)

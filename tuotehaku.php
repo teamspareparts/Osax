@@ -273,7 +273,14 @@ require 'tuotemodal.php';
 					<td class="toiminnot" id="tuote_cartAdd_<?=$product->id?>">
 						<button class="nappi" onclick="addToShoppingCart(
 							<?=$product->id?>,'<?=$product->articleName?>','<?=$product->brandName?>')">
-							<i class="material-icons">add_shopping_cart</i>Osta</button></td>
+							<i class="material-icons">add_shopping_cart</i>Osta</button>
+						<?php if ($user->isAdmin()) : ?>
+                            <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>"
+                                    onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
+									<?=$product->hankintapaikka_id?>, '<?= $product->articleName?>',
+                                    '<?= $product->brandName?>')">OTK</button>
+						<?php endif;?>
+                    </td>
 				</tr>
 			<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
 			</tbody>
@@ -314,6 +321,13 @@ require 'tuotemodal.php';
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons">info</i></button>
+						<?php if ($user->isAdmin()) : ?>
+                            <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>"
+                                    onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
+									<?=$product->hankintapaikka_id?>, '<?= $product->articleName?>',
+                                            '<?= $product->brandName?>')">OTK</button>
+						<?php endif;?>
+                    </td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -340,7 +354,8 @@ require 'tuotemodal.php';
 									'<?=$product->brandName?>',
 									'<?=$product->articleName?>',
 									'<?=$product->articleId?>');">
-						<i class="material-icons">help_outline</i></button></td>
+						<i class="material-icons">help_outline</i></button>
+                    </td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -362,7 +377,7 @@ require 'tuotemodal.php';
 	 */
 	function ostopyynnon_varmistus( product_id ) {
 		// TODO: Tuotteen nimen ja valmistajan lisäys tietokantaan.
-		var vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
+		let vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
 			$.post(
 				"ajax_requests.php",
@@ -389,7 +404,7 @@ require 'tuotemodal.php';
 	 */
 	function hankintapyynnon_varmistus( articleNo, valmistaja, tuotteet_nimi, articleId ) {
 		//TODO: Selitys-tekstikenttä, ja Käykö korvaava -checkbox. jQuery UI?
-		var vahvistus, selitys, korvaava_okey;
+		let vahvistus, selitys, korvaava_okey;
 		vahvistus = confirm( "Olisin tilannut tuotteen, jos sitä olisi ollut saatavilla?");
 		if ( vahvistus ) {
 			korvaava_okey = confirm( "Kelpaako korvaava tuote?" );
@@ -422,7 +437,7 @@ require 'tuotemodal.php';
 	 */
 	function addToShoppingCart( product_id, tuoteNimi, tuoteValmistaja ) {
 		// TODO: Tuotteen nimen ja valmistajan lisäys tietokantaan.
-		var kpl_maara = $("#maara_" + product_id).val();
+		let kpl_maara = $("#maara_" + product_id).val();
 		if ( kpl_maara > 0 ) {
 			$.post("ajax_requests.php",
 				{	ostoskori_toiminto: true,
@@ -445,6 +460,50 @@ require 'tuotemodal.php';
 		}
 	}
 
+	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
+		//haetaan hankintapaikan ostotilauskirjat
+		$.post(
+			"ajax_requests.php",
+			{   hankintapaikan_ostotilauskirjat: true,
+				hankintapaikka_id: hankintapaikka_id,
+				tuote_id: id,
+				tuote_nimi: tuote_nimi,
+				tuote_valmistaja: tuote_valmistaja },
+			function( data ) {
+				ostotilauskirjat = JSON.parse(toJSON(data));
+				if(ostotilauskirjat.length === 0){
+					alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
+						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
+					return;
+				}
+				//Luodaan alasvetovalikko
+				let ostotilauskirja_lista = '<select name="ostotilauskirjat">';
+				for(let i=0; i < ostotilauskirjat.length; i++){
+					ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
+				}
+				ostotilauskirja_lista += '</select>';
+				//avataan Modal
+				Modal.open({
+					content: '\
+                        <div class="dialogi-otsikko">Lisää ostotilauskirjaan</div> \
+                        <form action="" name="ostotilauskirjalomake" id="ostotilauskirjalomake" method="post"> \
+                            <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
+				            '+ostotilauskirja_lista+'<br><br> \
+				            <label for="kpl">Kappaleet:</label><br> \
+				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1" required> kpl<br><br> \
+                            <br>\
+                            <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
+                            <input type="hidden" name="id" value="'+id+'">\
+				        </form> \
+                        \
+                    ',
+					draggable: true
+				});
+			}
+		);
+
+	}
+
 	$(document).ready(function(){
 		//info-nappulan sisältö
 		$("span.info-box").hover(function () {
@@ -456,15 +515,15 @@ require 'tuotemodal.php';
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
-				var articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
+				let articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
 				productModal(articleId); //haetaan tuotteen tiedot tecdocista
 			});
 	});//doc.ready
 
 	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
 	//funktion tapaan tietoa
-	var qs = (function(a) {
-		var p, i, b = {};
+	let qs = (function(a) {
+		let p, i, b = {};
 		if (a != "") {
 			for ( i = 0; i < a.length; ++i ) {
 				p = a[i].split('=', 2);
@@ -481,11 +540,11 @@ require 'tuotemodal.php';
 
 	//laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
 	if ( qs["manuf"] ){
-		var manuf = qs["manuf"];
-		var model = qs["model"];
-		var car = qs["car"];
-		var osat = qs["osat"];
-		var osat_alalaji = qs["osat_alalaji"];
+		let manuf = qs["manuf"];
+		let model = qs["model"];
+		let car = qs["car"];
+		let osat = qs["osat"];
+		let osat_alalaji = qs["osat_alalaji"];
 
 		getModelSeries(manuf);
 		getVehicleIdsByCriteria(manuf, model);
@@ -505,12 +564,12 @@ require 'tuotemodal.php';
 	}
 
 	if ( qs["haku"] ){
-		var search = qs["haku"];
+		let search = qs["haku"];
 		$("#search").val(search);
 	}
 
 	if( qs["numerotyyppi"] ){
-		var number_type = qs["numerotyyppi"];
+		let number_type = qs["numerotyyppi"];
         if (number_type == "all" || number_type == "articleNo" ||
             number_type == "comparable" || number_type == "oe") {
             $("#numerotyyppi").val(number_type);
@@ -518,7 +577,7 @@ require 'tuotemodal.php';
 	}
 
 	if ( qs["exact"] ){
-		var exact = qs["exact"];
+		let exact = qs["exact"];
         if (exact == "true" || exact == "false") {
             $("#hakutyyppi").val(exact);
         }

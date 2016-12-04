@@ -8,7 +8,8 @@ if ( !$user->isAdmin() ) {
 
 //tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
-if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? LIMIT 1", [$ostotilauskirja_id])) {
+if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? AND hyvaksytty = 0 LIMIT 1",
+                        [$ostotilauskirja_id])) {
 	header("Location: yp_ostotilauskirja_odottavat.php"); exit();
 }
 
@@ -43,6 +44,22 @@ if( isset($_POST['vastaanotettu']) ) {
 	}
 }
 
+if( isset($_POST['muokkaa']) ) {
+	unset($_POST['muokkaa']);
+    if ( $db->query("  UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
+  	                   WHERE tuote_id = ? AND ostotilauskirja_id = ?",
+            [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id])
+        &&
+		$db->query("  UPDATE tuote SET hyllypaikka = ?
+  	                  WHERE id = ?",
+			[$_POST['hyllypaikka'], $_POST['id']]) )
+    {
+
+	} else {
+		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+    }
+}
+
 
 if ( !empty($_POST) ){
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
@@ -52,13 +69,22 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT *, SUM(ostohinta * kpl) AS tuotteet_hinta FROM ostotilauskirja_tuote_arkisto
+$sql = "  SELECT * FROM ostotilauskirja_tuote_arkisto
+          LEFT JOIN tuote
+            ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
+          WHERE ostotilauskirja_id = ?
+          GROUP BY tuote_id";
+$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
+
+$sql = "  SELECT SUM(ostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
+          FROM ostotilauskirja_tuote_arkisto
           LEFT JOIN tuote
             ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
           GROUP BY ostotilauskirja_id";
-$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
-$yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : $otk->rahti;
+$yht = $db->query($sql, [$ostotilauskirja_id]);
+$yht->hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
+$yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 ?>
 
@@ -97,30 +123,36 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 			<th class="number">KPL</th>
 			<th class="number">Ostohinta</th>
 			<th>Hyllypaikka</th>
+            <th></th>
 		</tr>
 		</thead>
 		<tbody>
 		<!-- Rahtimaksu -->
 		<tr><td></td><td>Rahtimaksu</td>
-			<td class="number">1</td>
+			<td class="number"></td>
 			<td class="number"><?=format_euros($otk->rahti)?></td>
-			<td class="center">---</td></tr>
+            <td class="center">---</td><td></td></tr>
 		<!-- Tuotteet -->
 		<?php foreach ($products as $product) : ?>
 			<tr data-id="<?=$product->id?>">
 				<td><?=$product->tuotekoodi?></td>
 				<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
 				<td class="number"><?=format_integer($product->kpl)?></td>
-				<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-				<td><?= $product->hyllypaikka?></td>
+				<td class="number"><?=format_euros($product->ostohinta)?></td>
+				<td class="center"><?= $product->hyllypaikka?></td>
+                <td class="toiminnot">
+                    <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
+                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, '<?=$product->hyllypaikka?>')">Muokkaa</button>
+                </td>
 			</tr>
 		<?php endforeach;?>
 		<!-- Yhteensä -->
 		<tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
-			<td class="number" style="border-top: 1px solid black">1</td>
-			<td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
+			<td class="number" style="border-top: 1px solid black"><?= format_integer($yht->kpl)?></td>
+			<td class="number" style="border-top: 1px solid black"><?=format_euros($yht->hinta)?></td>
 			<td style="border-top: 1px solid black"></td>
-		</tr>
+            <td style="border-top: 1px solid black"></td>
+        </tr>
 
 
 		</tbody>
@@ -134,14 +166,14 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 
 	
 	function muokkaa_ostotilauskirjaa(ostotilauskirja_id) {
-		var form = document.createElement("form");
+		let form = document.createElement("form");
 		form.setAttribute("method", "POST");
 		form.setAttribute("action", "");
 		form.setAttribute("name", "muokkaa_ostotilauskirjaa");
 		form.setAttribute("id", "muokkaa_ostotilauskirjaa");
 
 		//asetetaan $_POST["vastaanotettu"]
-		var field = document.createElement("input");
+		let field = document.createElement("input");
 		field.setAttribute("type", "hidden");
 		field.setAttribute("name", "vastaanotettu");
 		field.setAttribute("value", "true");
@@ -153,27 +185,33 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 		field.setAttribute("value", ostotilauskirja_id);
 		form.appendChild(field);
 
-		document.body.appendChild(form);
 
-		//Muutetaan cellit inputeiksi ja luodaan kolme post arrayta id:t, kappaleet ja hyllypaikat;
+        //Luodaan kaksi POST -arrayta: id:t ja kappaleet;
 		$('tr td:nth-child(3):not(:first):not(:last)').each(function () {
-			var kpl = $(this).html();
-			var input = $('<input name="kpl[]" form="muokkaa_ostotilauskirjaa" type="number" class="number" style="width: 30pt; float: right;">');
-			input.val(kpl);
-			$(this).html(input);
-		});
-		$('tr td:nth-child(5):not(:first):not(:last)').each(function () {
-			var kpl = $(this).html();
-			var tuote_id = $(this).closest('tr').data('id');
-			var input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 80pt; float: right;">');
-			input.val(kpl);
-			$(this).html(input);
+			let kpl = $(this).html();
+			let tuote_id = $(this).closest('tr').data('id');
+			field = document.createElement("input");
+			field.setAttribute("type", "hidden");
+			field.setAttribute("name", "kpl[]");
+			field.setAttribute("value", kpl);
+			form.appendChild(field);
 			field = document.createElement("input");
 			field.setAttribute("type", "hidden");
 			field.setAttribute("name", "tuote_ids[]");
 			field.setAttribute("value", tuote_id);
 			form.appendChild(field);
 		});
+		//Muutetaan hyllypaikka-cellit inputeiksi
+		$('tr td:nth-child(5):not(:first):not(:last)').each(function () {
+			let hyllypaikka = $(this).html();
+			let input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 80pt; float: right;">');
+			input.val(hyllypaikka);
+			$(this).html(input);
+		});
+		$('tr td:nth-child(6):not(:first):not(:last)').each(function () {
+			$(this).html("");
+		});
+		document.body.appendChild(form);
 
 		//Muutetaan "Merkkaa vastaanotetuksi" -nappi Hyväksy -napiksi
 		$('#merkkaa_vastaanotetuksi').text("Merkitse Vastaanotetuksi").off('onclick').click(function () {
@@ -181,6 +219,32 @@ $yht_hinta = !empty($products) ? ($products[0]->tuotteet_hinta + $otk->rahti) : 
 		});
 
 		return false;
+	}
+
+
+	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka){
+		Modal.open( {
+			content:  '\
+				<h4>Muokkaa tilatun tuotteen tietoja mikäli saapuva<br>\
+				 erä ei vastaa tilattua tai merkkaa hyllypaikka.</h4>\
+				<hr>\
+				<br>\
+				<form action="" method="post" name="muokkaa_hankintapaikka">\
+					<label>Tuote</label>\
+                    <h4 style="display: inline;">'+tuotenumero+'</h4>\
+					<br><br>\
+					<label>KPL</label>\
+					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required>\
+					<br><br>\
+					<label>Hyllypaikka</label>\
+					<input name="hyllypaikka" type="text" value="'+hyllypaikka+'" title="Hyllypaikka">\
+					<br><br>\
+					<input name="id" type="hidden" value="'+tuote_id+'">\
+					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
+				</form>\
+				',
+			draggable: true
+		});
 	}
 
 

@@ -82,7 +82,7 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 		</table>
 		<form
 	<?php else : ?>
-		<p>Ei lähetettyjä ostotilauskirjoja.</p>
+		<p class="center">Ei lähetettyjä ostotilauskirjoja.</p>
 	<?php endif; ?>
 
 </main>

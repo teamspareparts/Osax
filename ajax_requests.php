@@ -81,6 +81,14 @@ elseif ( !empty($_POST['hankintapaikan_ostotilauskirjat']) ) {
     $result = $db->query( $sql, [$_POST['hankintapaikka_id']], FETCH_ALL);
 }
 
+elseif ( !empty($_POST['valmistajan_hankintapaikat']) ) {
+	$sql = "SELECT hankintapaikka.id, hankintapaikka.nimi FROM valmistajan_hankintapaikka
+			LEFT JOIN hankintapaikka
+				ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
+			WHERE brandId = ?";
+	$result = $db->query( $sql, [$_POST['brand_id']], FETCH_ALL);
+}
+
 elseif ( !empty($_POST['lisaa_tilauskirjalle'])) {
 	$sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, 
 						tuote_id, kpl, lisays_kayttaja_id, lisays_tapa)
