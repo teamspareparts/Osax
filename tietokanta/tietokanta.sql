@@ -157,12 +157,11 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `yritys_erikoishinta` (
-  `id` mediumint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `yritys_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
-  `yleinenalennus_prosentti` decimal(3,2) NOT NULL,
-  `voimassaolopvm` timestamp NOT NULL, -- Jos tarjouksella on vanhenemisraja
-  PRIMARY KEY (`id`),
-  UNIQUE KEY (`yritys_id`,`yleinenalennus_prosentti`, `voimassaolopvm`),
+  `yritys_id` smallint UNSIGNED NOT NULL, -- PK, FK
+  `alennus_prosentti` decimal(3,2) NOT NULL,
+  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
+  PRIMARY KEY (`yritys_id`),
   CONSTRAINT fk_yritysErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -170,11 +169,11 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- Foreign KEY
   `maaraalennus_kpl` mediumint UNSIGNED NOT NULL DEFAULT 0,
-  `maaraalennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
-  `yleinenalennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
-  `voimassaolopvm` timestamp NOT NULL, -- Jos tarjouksella on vanhenemisraja
+  `alennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
+  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`tuote_id`,`yleinenalennus_prosentti`,`maaraalennus_kpl`, `maaraalennus_prosentti`),
+  UNIQUE KEY (`tuote_id`, `maaraalennus_kpl`, `alennus_prosentti`),
   CONSTRAINT fk_tuoteErikoishinta_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -183,14 +182,28 @@ CREATE TABLE IF NOT EXISTS `tuoteyritys_erikoishinta` (
   `tuote_id` int(11) UNSIGNED NOT NULL, -- Foreign KEY
   `yritys_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
-  `maaraalennus_prosentti` decimal(3,2) DEFAULT 0.00,
-  `yleinenalennus_prosentti` decimal(3,2) DEFAULT 0.00,
-  `voimassaolopvm` timestamp NOT NULL, -- Jos tarjouksella on vanhenemisraja
+  `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
+  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`tuote_id`,`yritys_id`,`maaraalennus_kpl`),
-  UNIQUE KEY (`tuote_id`,`yritys_id`,`yleinenalennus_prosentti`),
+  UNIQUE KEY (`tuote_id`, `yritys_id`, `maaraalennus_kpl`, `alennus_prosentti`),
   CONSTRAINT fk_tuoteyritysErikoishinta_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`),
   CONSTRAINT fk_tuoteyritysErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
+  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
+  `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
+  `tuoteryhma` varchar(255) NOT NULL,
+  `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- (FK)
+  `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
+  `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
+  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`hankintapaikka_id`,`tuoteryhma`,`maaraalennus_kpl`,`alennus_prosentti`),
+  CONSTRAINT fk_tuoteryhmaErikoishinta_hankintapaikka
+    FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostoskori` (
