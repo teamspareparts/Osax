@@ -11,7 +11,7 @@ if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tiedot päivitetty.</p>";
 
-	/** Asiakkaan salasanan vaihto. Pakottaa asiakkaan vaihtamaan salansanan seuraavalla kirjautumisella. */
+/** Asiakkaan salasanan vaihto. Pakottaa asiakkaan vaihtamaan salansanan seuraavalla kirjautumisella. */
 } elseif ( !empty($_POST['reset_password'])) {
 	$sql = "UPDATE kayttaja SET salasana_uusittava = 1 WHERE id = ?";
 	$db->query( $sql, array_values($_POST) );
@@ -26,14 +26,15 @@ elseif ( isset($_POST['demo_away']) ) {
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tili on nyt pysyvä.</p>";
 }
 
-/** Asiakkaan muuttaminen pysyväksi */
+/** Yrityksen alennuksen lisääminen/muokkaaminen */
 elseif ( !empty($_POST['muokkaa_alennus']) ) {
-	echo "<pre>";
-	$_POST['muokkaa_alennus'] = $_POST['muokkaa_alennus'] / 100; // 10 % --> 0.10
-	$sql = "INSERT INTO tuote_erikoishinta (yleinenalennus_prosentti, kayttaja_id) VALUES (?,?)
-			ON DUPLICATE KEY UPDATE yleinenalennus_prosentti = VALUES(yleinenalennus_prosentti)";
+	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10
+	$sql = "INSERT INTO yritys_erikoishinta (yritys_id, alennus_prosentti, alkuPvm, loppuPvm)
+			VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_DATE + INTERVAL 15 DAY)
+			ON DUPLICATE KEY UPDATE 
+				alennus_prosentti = VALUES(alennus_prosentti), alkuPvm = VALUES(alkuPvm), loppuPvm = VALUES(loppuPvm)";
 	$db->query( $sql, array_values($_POST) );
-	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus {$_POST['yleinen_alennus']} % asetettu </p>";
+	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -104,16 +105,16 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 	</form><br><br>
 
 	<form action="#" name="muuta_tuotaalennus" method="post">
-		<fieldset class="center"><legend>Asiakkaan alennus</legend>
-			<span>Yleinen alennus, koskee kaikkia tuotteita.</span>
+		<fieldset class="center"><legend>Yrityksen alennus</legend>
+			<span>Yleinen alennus, koskee kaikkia tuotteita.<br>Alennus on yrityskohtainen.</span>
 			<br><br>
 			<label> Yleinen alennus: </label>
-			<input name="yleinen_alennus" type="number" min="0" max="100" value="<?= $asiakas->yleinen_alennus * 100 ?>"
-				   title=""> %
+			<input type="hidden" name="muokkaa_alennus" value="<?= $asiakas->yritys_id ?>">
+			<input type="number" name="yleinen_alennus" min="0" max="100"
+			       value="<?= $asiakas->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
 			<br><br>
 			<div class="center">
-				<input name="muokkaa_alennus" value="<?= $asiakas->id ?>" type="hidden">
-				<input value="Muokkaa alennusta" type="submit" class="nappi">
+				<input type="submit" value="Muokkaa alennusta" class="nappi">
 			</div>
 		</fieldset>
 	</form><br><br>

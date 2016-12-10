@@ -25,7 +25,8 @@
 
     <section id="navigationbar">
         <ul>
-            <li><a href='etusivu.php'><span style="padding: 15px 20px;"><i class="material-icons">home</i></span></a></li>
+            <li><a href='etusivu.php' style="padding-left:16px; padding-right: 0;">
+                <i class="material-icons">home</i></a></li>
             <li><a href='tuotehaku.php'>Tuotehaku</a></li>
             <?php if ( $user->isAdmin() ) : ?>
                 <li><a href='yp_yritykset.php'>Yritykset</a></li>

@@ -34,11 +34,11 @@ class Yritys {
 		if ( $yritys_id !== NULL ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT yritys.id, aktiivinen, nimi, sahkoposti, puhelin, y_tunnus, katuosoite, postinumero, 
 						postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja,
-						yritys_erikoishinta.yleinenalennus_prosentti AS yleinen_alennus
+						yritys_erikoishinta.alennus_prosentti AS yleinen_alennus
 					FROM yritys 
 					LEFT JOIN yritys_erikoishinta ON yritys.id = yritys_erikoishinta.yritys_id
-						AND (yritys_erikoishinta.voimassaolopvm >= CURDATE() 
-							OR yritys_erikoishinta.voimassaolopvm IS NULL)
+						AND (yritys_erikoishinta.loppuPvm >= CURDATE() 
+							OR yritys_erikoishinta.loppuPvm IS NULL)
 					WHERE yritys.id = ? 
 					LIMIT 1";
 			$row = $db->query( $sql, [$yritys_id] );
