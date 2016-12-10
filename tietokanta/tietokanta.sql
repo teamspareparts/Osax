@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
 CREATE TABLE IF NOT EXISTS `yritys_erikoishinta` (
   `yritys_id` smallint UNSIGNED NOT NULL, -- PK, FK
   `alennus_prosentti` decimal(3,2) NOT NULL,
-  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
   `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`yritys_id`),
   CONSTRAINT fk_yritysErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `tuote_id` int(11) UNSIGNED NOT NULL, -- Foreign KEY
   `maaraalennus_kpl` mediumint UNSIGNED NOT NULL DEFAULT 0,
   `alennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
-  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
   `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
   UNIQUE KEY (`tuote_id`, `maaraalennus_kpl`, `alennus_prosentti`),
@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `tuoteyritys_erikoishinta` (
   `yritys_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
   `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
-  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
   `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
   UNIQUE KEY (`tuote_id`, `yritys_id`, `maaraalennus_kpl`, `alennus_prosentti`),
@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
   `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- (FK)
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
   `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
-  `alkuPvm` timestamp NOT NULL DEFAULT CURDATE(), -- Tarjouksen alkamis pvm
+  `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
   `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
   UNIQUE KEY (`hankintapaikka_id`,`tuoteryhma`,`maaraalennus_kpl`,`alennus_prosentti`),
