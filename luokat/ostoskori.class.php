@@ -23,6 +23,10 @@ class Ostoskori {
 	 */
 	public $montako_tuotetta_kpl_maara_yhteensa = 0;
 	/**
+	 * @var int $summa_yhteensa <p> Kaikkien tuotteiden yhteenlaskettu summa. Vain käytössä ostoskori-sivulla..
+	 */
+	public $summa_yhteensa = 0;
+	/**
 	 * @var int <p> Ostoskorin omistavan yrityksen ID.
 	 */
 	private $yritys_id = NULL;
@@ -133,19 +137,16 @@ class Ostoskori {
 				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi,
 							tuote.varastosaldo, tuote.minimimyyntiera, ALV_kanta.prosentti AS alv_prosentti,
 							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara,
-							IFNULL((SELECT MAX(tuote_erikoishinta.yleinenalennus_prosentti)
-								FROM tuote_erikoishinta
-								WHERE ostoskori_tuote.tuote_id = tuote_erikoishinta.tuote_id
-									AND tuote_erikoishinta.voimassaolopvm >= CURDATE()
-							),0.00) AS yleinen_alennus
+							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, tuoteryhma
 						FROM ostoskori_tuote
 						LEFT JOIN tuote ON tuote.id = ostoskori_tuote.tuote_id
 						LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 						WHERE ostoskori_id = ?";
 				$db->prepare_stmt( $sql );
 				$db->run_prepared_stmt( [$this->ostoskori_id] );
-				while ( $row = $db->get_next_row( NULL, 'tuote' ) ) {
+				/** @var $row Tuote */
+				while ( $row = $db->get_next_row(NULL, 'tuote') ) {
+					$row->hae_alennukset( $db, $this->yritys_id );
 					$this->tuotteet[] = $row;
 					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
 					$this->montako_tuotetta += 1;

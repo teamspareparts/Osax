@@ -41,6 +41,35 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 }
 
 /**
+ * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
+ * @param Ostoskori $cart
+ * @param User $user
+ */
+function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
+
+	foreach ( $cart->tuotteet as $tuote ) {
+		// Asetetaan aloitusarvo tuotteen alennukselle
+		$tuote->alennus_prosentti = $user->yleinen_alennus; // Yrityksen yleinen alennusprosentti
+
+		// Tarkistetaan määräalennukset
+		foreach ( $tuote->maaraalennukset as $a_obj ) {
+			if ( $a_obj->maaraalennus_kpl <= $tuote->kpl_maara ) { // Onko tuotetta tilattu tarpeeksi alennukseen?
+				// Onko alennus isompi kuin jo tallennettu arvo? (Ale-prosentit eivät mene järjestyksessä.)
+				if ( $a_obj->alennus_prosentti > $tuote->alennus_prosentti ) {
+					$tuote->alennus_prosentti = $a_obj->alennus_prosentti;
+				}
+			} else		// Maara-alennukset on sortattu (low-to-high)
+				break;	//  joten ei mitään syydä jäädä loop:in, kun kpl_maara ylitetty
+		}
+
+		$tuote->a_hinta_alennettu = $tuote->a_hinta * (1-$tuote->alennus_prosentti);	// Lasketaan tuotteen uusi a-hinta
+		$tuote->summa = $tuote->kpl_maara * $tuote->a_hinta;				// Lasketaan tuotteen summa
+		// Lisätään summa ostoskorin yhteiseen summaan
+		$cart->summa_yhteensa += $tuote->summa;
+	}
+}
+
+/**
  * //TODO: Päivitä PhpDoc
  * @param Yritys $yritys
  * @param int $tilauksen_summa

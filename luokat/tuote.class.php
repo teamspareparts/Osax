@@ -9,20 +9,21 @@ class Tuote {
 	/** @var int $hankintapaikka_id <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikka_id = 0;
 	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = '[Tuotekoodi]';
 	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = '[Tilauskoodi]';
+	/** @var string $tuoteryhma <p> */ public $tuoteryhma = '[Tuoteryhmä]';
 
 	/** @var string $nimi <p> */ public $nimi = '[Tuotteen nimi]';
 	/** @var string $valmistaja <p> */ public $valmistaja = '[Tuotteen valmistaja]';
 
 	/** @var float $a_hinta <p> */ public $a_hinta = 0.00;
-	/** @var float $a_hinta_ilman_alv <p> Veroton hinta */ public $a_hinta_ilman_alv = 0.00;
+	/** @var float $a_hinta_ilman_alv <p> */ public $a_hinta_ilman_alv = 0.00;
+	/** @var float $a_hinta_alennettu <p> Alennus lasketaan luokan ulkopuolella. */ public $a_hinta_alennettu = 0.00;
+	/** @var float $a_hinta_ilman_alv_alennettu <p> TODO: NOT IMPLEMENTED */ public $a_hinta_ilman_alv_alennettu = 0.00;
 	/** @var float $alv_prosentti <p> */ public $alv_prosentti = 0.00;
+	/** @var float $alennus_prosentti <p> */ public $alennus_prosentti = 0.00;
+
 	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
 	/** @var float $summa <p> */ public $summa = 0.00;
 
-	/** @var float $yleinen_alennus <p> Tuotteen yleinen alennusprosentti, jos olemassa */
-	public $yleinen_alennus = 0.00;
-	/** @var float $tuoteryhma_alennus <p> Tuotteen hankintapaikkakohtainen alennusprosentti, jos olemassa */
-	public $tuoteryhma_alennus = 0.00;
 	/**
 	 * <code>
 	 * Array [
@@ -47,10 +48,11 @@ class Tuote {
 			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilaus_koodi AS tilauskoodi, 
 						varastosaldo, minimimyyntiera, valmistaja, nimi, ALV_kanta.prosentti AS alv_prosentti, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-						hinta_ilman_alv AS a_hinta_ilman_alv, hyllypaikka
+						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
+						hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_ilman_alv_alennettu,
+						hyllypaikka, tuoteryhma
 					FROM tuote
 					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-					LEFT JOIN tuote_erikoishinta ON tuote.id = tuote_erikoishinta.tuote_id
 					WHERE tuote.id = ? LIMIT 1";
 			$row = $db->query( $sql, [ $id ] );
 
@@ -64,23 +66,60 @@ class Tuote {
 
 	/**
 	 * @param DByhteys $db
+	 * @param int $yritys_id
 	 */
-	function hae_alennukset ( DByhteys $db ) {
+	function hae_alennukset ( DByhteys $db, /*int*/ $yritys_id ) {
 
-		$sql = "SELECT maaraalennus_kpl, maaraalennus_prosentti, voimassaolopvm
+		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuote_erikoishinta
 				WHERE tuote_id = ?
-					AND tuote_erikoishinta.voimassaolopvm >= CURDATE()";
-		$db->query( $sql, [$this->id] );
+					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+				ORDER BY maaraalennus_kpl";
+		$tuote_maaraalennukset = $db->query( $sql, [$this->id], DByhteys::FETCH_ALL );
+
+		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+				FROM tuoteyritys_erikoishinta
+				WHERE tuote_id = ? AND yritys_id = ?
+					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+				ORDER BY maaraalennus_kpl";
+		$yritys_maaraalennukset = $db->query( $sql, [$this->id, $yritys_id], DByhteys::FETCH_ALL );
+
+		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+				FROM tuoteryhma_erikoishinta
+				WHERE hankintapaikka_id = ? AND tuoteryhma = ?
+					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+					AND (yritys_id = 0 OR yritys_id = ?)
+				ORDER BY maaraalennus_kpl";
+		$ryhma_maaraalennukset = $db->query( $sql, [$this->hankintapaikka_id, $this->tuoteryhma, $yritys_id],
+			DByhteys::FETCH_ALL );
+
+		$this->maaraalennukset = array_merge($tuote_maaraalennukset, $yritys_maaraalennukset, $ryhma_maaraalennukset);
+		asort($this->maaraalennukset);
 	}
 
 	/**
+	 * Parametrien kaikki eri yhdistelmät toimivat.
 	 * @param boolean $ilman_alv [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @param bool $ilman_alennus [optional] default=false <p> Tulostetaanko hinta ilman alennusta.
 	 * @return string
 	 */
-	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
-		$hinta = $ilman_alv ? $this->a_hinta_ilman_alv : $this->a_hinta;
+	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false,
+			/*bool*/ $ilman_alennus = false ) {
+
+		if ( $ilman_alv && $ilman_alennus ) {		// Hinta ilman ALV:ta ja alennusta
+			$hinta = $this->a_hinta_ilman_alv;
+
+		} elseif ( !$ilman_alv && $ilman_alennus ) { // Hinta ALV:n kanssa, mutta ilman alennusta
+			$hinta = $this->a_hinta;
+
+		} elseif ( $ilman_alv && !$ilman_alennus ) { // Hinta ilman ALV:ta, mutta alennuksen kanssa
+			$hinta = $this->a_hinta;
+
+		} else {									// Hinta ALV:n ja alennuksen kanssa
+			$hinta = $this->a_hinta_alennettu;
+		}
+
 		return number_format( (double)$hinta, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 

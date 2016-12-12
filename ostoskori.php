@@ -6,7 +6,7 @@ require 'ostoskori_tilaus_funktiot.php';
 
 if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_id = $_POST['ostoskori_tuote'];
-	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : null;
+	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : 0;
 	if ( $tuote_kpl > 0 ) {
 		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
 			$_SESSION["feedback"] = '<p class="success">Ostoskori päivitetty.</p>';
@@ -111,7 +111,7 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 	 * @param id
 	 */
 	function cartAction(id) {
-		var count = document.getElementById('maara_' + id).value;
+		let count = document.getElementById('maara_' + id).value;
 		document.getElementById('ostoskori_tuote').value = id;
 		document.getElementById('ostoskori_maara').value = count;
 		document.ostoskorilomake.submit();
