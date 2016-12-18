@@ -268,7 +268,6 @@ function getOptionalData( $id ) {
  */
 function get_basic_product_info( /*array*/ $catalog_products ) {
     foreach ( $catalog_products as $catalog_product ) {
-        //var_dump($catalog_product);
         $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo);
 
         $catalog_product->articleId = $response ? $response[0]->articleId : false;
