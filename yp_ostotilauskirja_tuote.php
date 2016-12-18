@@ -69,7 +69,7 @@ else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
     if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ?",
                     [$_POST['id'], $ostotilauskirja_id]) ) {
-        $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
+        $_SESSION["feedback"] = "<p class='success'>Tuote poistettu ostotilauskirjalta.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
     }
@@ -93,7 +93,7 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT * FROM ostotilauskirja_tuote
+$sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta FROM ostotilauskirja_tuote
           LEFT JOIN tuote
             ON ostotilauskirja_tuote.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
@@ -142,23 +142,27 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
         <table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
             <thead>
-            <tr><th>Tuotenumero</th>
+            <tr><th>Tilauskoodi</th>
+                <th>Tuotenumero</th>
                 <th>Tuote</th>
                 <th class="number">KPL</th>
                 <th class="number">Ostohinta</th>
+                <th class="number">Yhteensä</th>
                 <th></th>
             </tr>
             </thead>
             <tbody>
             <!-- Rahtimaksu -->
-            <tr><td></td><td>Rahtimaksu</td><td class="number"></td><td class="number"><?=format_euros($otk->rahti)?></td><td></td></tr>
+            <tr><td></td><td></td><td>Rahtimaksu</td><td class="number"></td><td class="number"><?=format_euros($otk->rahti)?></td>
+                <td class="number"><?=format_euros($otk->rahti)?></td><td></td></tr>
             <!-- Tuotteet -->
             <?php foreach ($products as $product) : ?>
-                <tr>
+                <tr><td><?=$product->tilauskoodi?></td>
                     <td><?=$product->tuotekoodi?></td>
                     <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
                     <td class="number"><?=format_integer($product->kpl)?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+                    <td class="number"><?=format_euros($product->kokonaishinta)?></td>
                     <td class="toiminnot">
                         <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                             '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>)">Muokkaa</button>
@@ -167,8 +171,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 </tr>
             <?php endforeach;?>
             <!-- Yhteensä -->
-            <tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
+            <tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td><td style="border-top: 1px solid black"></td>
                 <td class="number" style="border-top: 1px solid black"><?= format_integer($yht_kpl)?></td>
+                <td style="border-top: 1px solid black"></td>
                 <td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
                 <td style="border-top: 1px solid black"></td>
             </tr>

@@ -17,6 +17,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 	if ( $result ) { //Jos ID:n lisääminen onnistui, jatketaan.
 		$tilaus_id = $db->getConnection()->lastInsertId(); //Haetaan lisätyn tilauksen ID, sitä tarvitaan vielä.
+        $toimitusosoite_id = $_POST['toimitusosoite_id'];
 
 		//Tuotteiden pysyvä tallennus tietokantaan
 		$db->prepare_stmt( '
@@ -41,13 +42,14 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			SELECT ?, etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 			FROM toimitusosoite 
 			WHERE kayttaja_id = ? AND osoite_id = ?",
-			[$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
+			[$tilaus_id, $user->id, $toimitusosoite_id] );
 
 		require 'lasku_pdf_luonti.php';
 		//lähetetään tilausvahvistus asiakkaalle
 		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id, $tiedoston_nimi );
 		//lähetetään tilaus ylläpidolle
-		//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
+		require 'noutolista_pdf_luonti.php';
+		laheta_noutolista($tilaus_id, $tiedoston_nimi);
 
 		$cart->tyhjenna_kori( $db );
 		header( "location:tilaushistoria.php?id=$user->id" );
@@ -172,8 +174,8 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 	}
 
 	function laheta_Tilaus () {
-		var form_ID = "laheta_tilaus_form";
-		var vahvistus = confirm( "Haluatko vahvistaa tilauksen?");
+		let form_ID = "laheta_tilaus_form";
+		let vahvistus = confirm( "Haluatko vahvistaa tilauksen?");
 		if ( vahvistus ) {
 			document.getElementById(form_ID).submit();
 		} else {

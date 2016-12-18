@@ -1,5 +1,5 @@
 <?php
-require './mpdf/mpdf.php';
+require_once './mpdf/mpdf.php';
 require './luokat/laskutiedot.class.php';
 
 $mpdf = new mPDF();

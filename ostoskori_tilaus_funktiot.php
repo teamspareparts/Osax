@@ -21,7 +21,7 @@ function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
 		$sql = "SELECT id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, 
 					alennusera_kpl, alennusera_prosentti, valmistaja, nimi,
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
-					ALV_kanta.prosentti AS alv_prosentti
+					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka
 				FROM tuote
 				LEFT JOIN ALV_kanta
 					ON tuote.ALV_kanta = ALV_kanta.kanta

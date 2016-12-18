@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -113,9 +113,9 @@ if ( !empty($_POST['submit']) ) {
 <script type="text/javascript">
 	$(document).ready(function(){
 		/** Muuttujien alustusta */
-		var pwSubmit = $('#asiakas_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
-		var newPassword = $('#ss'); // Ditto
-		var pwCheck = $('#check'); // Ditto
+		let pwSubmit = $('#asiakas_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
+		let newPassword = $('#ss'); // Ditto
+		let pwCheck = $('#check'); // Ditto
 
 		/** Demo-valinnan alustusta */
 		$("#paivat").addClass('disabled');		// Otetaan pvm-input pois käytöstä aluksi

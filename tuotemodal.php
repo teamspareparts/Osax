@@ -81,14 +81,14 @@
     function createModal( response ) {
 
         function oesToHTML(array) {
-            var i;
-            var result = "";
+            let i;
+            let result = "";
             if (array.length !== 0) {
                 array = array.array;
                 result = "" +
                     '<div style="display:inline-block; width:50%;">' +
                     '	<table style="margin-left:auto; margin-right:auto;">' +
-                    '		<th colspan="2" class="text-center">OE</th>';
+                    '		<th colspan="2" class="center">OE</th>';
                 for (i = 0; i < array.length; i++) {
                     result += "<tr>";
                     result += "" +
@@ -104,8 +104,8 @@
 
         //Tehdään peräkkäinen html-muotoinen lista, jossa kaikki löytyneet kuvat peräkkäin
         function imgsToHTML(response) {
-            var i, img, thumb_id;
-            var imgs = "<img src='img/ei-kuvaa.png' class='no-image'>";
+            let i, img, thumb_id;
+            let imgs = "<img src='img/ei-kuvaa.png' class='no-image'>";
             if (response.articleThumbnails.length !== 0) {
                 imgs = "";
                 for (i = 0; i < response.articleThumbnails.array.length; i++) {
@@ -120,8 +120,8 @@
 
         //Tehdään html-muotoinen listaus tuotteen infoista
         function infosToHTML(response) {
-            var i;
-            var infos = "";
+            let i;
+            let infos = "";
 
             //saatavuustiedot
             if (response.directArticle.articleState != 1) {
@@ -158,8 +158,8 @@
 
         //Tehdään dokumenttien latauslinkit, jos olemassa
         function getDocuments(response) {
-            var docTypeName, docName, doc, i;
-            var documentlink = "";
+            let docTypeName, docName, doc, i;
+            let documentlink = "";
 
             if (response.articleDocuments != "") {
                 for (i = 0; i < response.articleDocuments.array.length; i++) {
@@ -180,8 +180,8 @@
         }
 
         function getComparableNumber(articleNumber) {
-            var functionName = "getArticleDirectSearchAllNumbersWithState";
-            var params = {
+            let functionName = "getArticleDirectSearchAllNumbersWithState";
+            let params = {
                 "articleCountry": TECDOC_COUNTRY,
                 "lang": TECDOC_LANGUAGE,
                 "provider": TECDOC_MANDATOR,
@@ -195,10 +195,7 @@
 
         //Lisätään vertailunumerot modaliin
         function addComparableNumbersToModal(response) {
-
-            // Any better now? ;D
-            // :: slow_clap
-            var i, comparableNumbers;
+            let i, comparableNumbers;
 
             //Luodaan haetuista vertailunumeroista html-muotoinen taulu
             if (response.data != "") {
@@ -208,7 +205,7 @@
             //(Tätä tuotetta ei palauteta vertailunumerojen mukana)
             comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
                 "<table style='margin-left:auto; margin-right:auto;'>" +
-                "<th colspan='2' class='text-center'>Vertailunumerot</th>" +
+                "<th colspan='2' class='center'>Vertailunumerot</th>" +
                 "<tr><td style='font-size:14px;'>" + brand + "</td>" +
                 "<td style='font-size:14px;'><a href='?haku=" + articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>" + articleNo + "</a></td></tr>";
 
@@ -230,8 +227,8 @@
 
 
         function getLinkedManufacturers(articleId) {
-            var functionName = "getArticleLinkedAllLinkingTargetManufacturer";
-            var params = {
+            let functionName = "getArticleLinkedAllLinkingTargetManufacturer";
+            let params = {
                 "articleCountry": TECDOC_COUNTRY,
                 "provider": TECDOC_MANDATOR,
                 "articleId": articleId,
@@ -239,12 +236,11 @@
             };
             params = toJSON(params);
             tecdocToCatPort[functionName](params, function (response) {
-                var i;
+                let i;
                 for (i = 0; i < response.data.array.length; i++) {
                     $(".car_dropdown").append("<span style='cursor:pointer; display:block;' onClick=\"showCars(this," + articleId + ")\" data-list-filled='false' data-manuId=" + response.data.array[i].manuId + ">" + response.data.array[i].manuName + "</span>" +
-                        "<div class='car_dropdown_content' id=manufacturer-" + response.data.array[i].manuId + "></div>");
+                        "<div style='display:none' id=manufacturer-" + response.data.array[i].manuId + "></div>");
                 }
-                //getLinkedVehicleIds(articleId);
             })
         }
 
@@ -319,18 +315,21 @@
 
 	function showCars(elmnt, articleId){
         //Valitaan DIV painetun elementin data-manuId:n avulla
-        var car_dropdown = $("#manufacturer-"+elmnt.getAttribute('data-manuId'));
+        let car_dropdown = $("#manufacturer-"+elmnt.getAttribute('data-manuId'));
 		//Haetaan autot, jos niitä ei ole vielä haettu
 		if (elmnt.getAttribute("data-list-filled") == "false") {
 			elmnt.setAttribute("data-list-filled", "true");
 			car_dropdown.addClass("loader");
 			getLinkedVehicleIds(articleId, elmnt.getAttribute("data-manuId"));
 		}
+		//
+		//car_dropdown.show();
 		if (car_dropdown.css("display") == "none") {
-			car_dropdown.css("display", "block");
+			car_dropdown.show();
 		}
 		else {
-            car_dropdown.css("display", "none");
+            car_dropdown.hide();
+
 		}
 	}
 

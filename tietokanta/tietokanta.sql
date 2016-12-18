@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `brandNo` int(11) NOT NULL, -- UNIQUE KEY
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK, UK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
-  `tilaus_koodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
+  `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
   `valmistaja` varchar(40) DEFAULT NULL,
   `hinta_ilman_ALV` decimal(11,2) NOT NULL,

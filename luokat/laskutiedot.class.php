@@ -70,7 +70,7 @@ class Laskutiedot {
 
 	/** */function haeTuotteet() {
 		$this->tuotteet = array();
-		$sql = "SELECT tuote.id, tilaus_tuote.tuotteen_nimi, tilaus_tuote.valmistaja, tilaus_tuote.kpl, 
+		$sql = "SELECT tuote.id, tuote.tuotekoodi, tilaus_tuote.tuotteen_nimi, tilaus_tuote.valmistaja, tilaus_tuote.kpl, 
 					tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus,
 					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
 						AS maksettu_hinta
@@ -81,7 +81,7 @@ class Laskutiedot {
 		while ( $row = $this->db->get_next_row() ) {
 			$tuote = new Tuote();
 			$tuote->id = $row->id;
-			$tuote->tuotekoodi = $row->articleNo;
+			$tuote->tuotekoodi = $row->tuotekoodi;
 			$tuote->nimi = $row->tuotteen_nimi;
 			$tuote->valmistaja = $row->valmistaja;
 			$tuote->a_hinta = round($row->maksettu_hinta, 2);

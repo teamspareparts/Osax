@@ -1,5 +1,5 @@
 <?php
-require './mpdf/mpdf.php';
+require_once './mpdf/mpdf.php';
 
 $mpdf = new mPDF();
 
@@ -11,25 +11,46 @@ $mpdf = new mPDF();
  */
 $html = "
 <div style='width:100%;'><img src='img/osax_logo.jpg' alt='Osax.fi'></div>
+
 <table style='width:100%;'>
-	<thead>
-	<tr><th colspan='2'>Tilauksen tiedot</th></tr>
-	<tr><th>Tilaus ID</th><th>Asiakkaan ID</th></tr>
-	</thead>
 	<tbody>
-	<tr><td></td><td></td></tr>
+	<tr><td colspan='2'>
+		<table style='width:70%;padding:15px;'>
+			<thead>
+			<tr><th>Päivämäärä</th>
+				<th>Tilauspvm</th>
+				<th style='text-align:right;'>Tilaus</th>
+				<th style='text-align:right;'>Asiakas</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr><td>".date('d.m.Y')."</td><td>$lasku->tilaus_pvm</td>
+				<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
+				<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
+			</tr>
+			</tbody>
+		</table></td>
+	</tr>
+	<tr><th>Toimitusosoite</th><th>Asiakkaan tiedot</th></tr>
+	<tr><td>{$lasku->toimitusosoite->koko_nimi}<br>
+			{$lasku->toimitusosoite->katuosoite}<br>
+			{$lasku->toimitusosoite->postinumero} {$lasku->toimitusosoite->postitoimipaikka}<br></td>
+		<td>{$lasku->asiakas->kokoNimi()}<br>
+			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
+			{$lasku->asiakas->yrityksen_nimi}</td></tr>
 	</tbody>
 </table>
 <hr>
 <table style='width:100%;font-size:80%;'>
 	<thead>
-	<tr><th colspan='8' class='center'><h2>Noutolista &mdash; tilatut tuotteet</h2></th></tr>
+	<tr><th colspan='6'><h2>Noutolista &mdash; tilatut tuotteet</h2></th></tr>
 	<tr><th style='text-align:right;'>#</th>
 		<th>Tuotekoodi</th>
 		<th>Nimi</th>
 		<th>Valmistaja</th>
 		<th style='text-align:right;'>kpl</th>
 		<th>Hyllypaikka</th>
+	</tr>
 	</thead>
 	<tbody>
 ";
@@ -41,14 +62,11 @@ $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $products as $tuote ) {
 	$html .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
-			<td>{$tuote->tuotekoodi}</td>
-			<td>{$tuote->tuotenimi}</td>
-			<td>{$tuote->valmistaja}</td>
-			<td style='text-align:right;'>{$tuote->a_hinta_toString( true )}</td>
-			<td style='text-align:right;'>{$tuote->alv_prosentti} %</td>
-			<td style='text-align:right;'>{$tuote->alennus} %</td>
-			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
-			<td style='text-align:right;'>{$tuote->summa_toString( true )}</td>
+			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
+			<td style='text-align:center;'>{$tuote->nimi}</td>
+			<td style='text-align:center;'>{$tuote->valmistaja}</td>
+			<td style='text-align:right;'>{$tuote->cartCount}</td>
+			<td style='text-align:center;'>{$tuote->hyllypaikka}</td>
 		</tr>";
 }
 
@@ -57,6 +75,7 @@ $html .= "
 </table>
 <hr>
 ";
+
 /** //////////////////////////////////////// */
 /** PDF:n luonti */
 /** //////////////////////////////////////// */
@@ -76,9 +95,11 @@ $mpdf->SetHTMLFooter('
 
 $mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
 
-if ( !file_exists('./laskut') ) { // Tarkistetaan, että kansio on olemassa.
-	mkdir( './laskut' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
+
+
+if ( !file_exists('./noutolistat') ) { // Tarkistetaan, että kansio on olemassa.
+	mkdir( './noutolistat' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
-$tiedoston_nimi = "lasku-{$lasku->tilaus_nro}-{$user->id}.pdf";
-$mpdf->Output( "./laskut/{$tiedoston_nimi}", 'F' );
+$tiedoston_nimi = "noutolista-{$tilaus_id}-{$user->id}.pdf";
+$mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );
