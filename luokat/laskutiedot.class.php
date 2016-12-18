@@ -15,12 +15,12 @@ class Laskutiedot {
 	public $db = NULL; //Object
 	/**@var Tuote[] */public $tuotteet = array();
 	public $hintatiedot = array(
-			'alv_kannat' => array(),// Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
-			'alv_perus' => 0, 		// Summa yhteensä josta alv lasketaan
-			'alv_maara' => 0, 		// yhteenlaskettu ALV-maara
-			'tuotteet_yht' => 0,	// Yhteenlaskettu summa kaikista tuotteista
-			'lisaveloitukset' => 0,	// Esim. rahtimaksu
-			'summa_yhteensa' => 0,	// Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
+		'alv_kannat' => array(),// Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
+		'alv_perus' => 0.00, 		// Summa yhteensä josta alv lasketaan
+		'alv_maara' => 0.00, 		// yhteenlaskettu ALV-maara
+		'tuotteet_yht' => 0.00,		// Yhteenlaskettu summa kaikista tuotteista
+		'lisaveloitukset' => 0.00,	// Esim. rahtimaksu
+		'summa_yhteensa' => 0.00,	// Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
 	);
 
 	/**

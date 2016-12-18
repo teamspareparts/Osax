@@ -20,10 +20,12 @@ class User {
 	public $vahvista_eula = TRUE;
 	public $voimassaolopvm = NULL;
 	public $salasana_uusittava = NULL;
-	public $yleinen_alennus = 0.00;
 	/** @var stdClass[] */
 	public $toimitusosoitteet = array();
 
+	public $yleinen_alennus = 0.00;
+	public $rahtimaksu = 0.00;
+	public $ilm_toim_sum_raja = 0.00;
 
 	/**
 	 * Käyttäjä-luokan konstruktori.
@@ -38,7 +40,8 @@ class User {
 			$sql = "SELECT kayttaja.id, kayttaja.yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
 						kayttaja.puhelin, yllapitaja, demo, kayttaja.voimassaolopvm, salasana_uusittava,
 				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi AS yrityksen_nimi,
-				  		yritys_erikoishinta.alennus_prosentti AS yleinen_alennus
+				  		yritys_erikoishinta.alennus_prosentti AS yleinen_alennus,
+				  		yritys.ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja, yritys.rahtimaksu
 					FROM kayttaja 
 					JOIN yritys ON kayttaja.yritys_id = yritys.id
 					LEFT JOIN yritys_erikoishinta ON kayttaja.yritys_id = yritys_erikoishinta.yritys_id
@@ -148,5 +151,21 @@ class User {
 	 */
 	public function isValid () {
 		return ( $this->id !== NULL );
+	}
+
+	/**
+	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function rahtimaksu_toString ( /*bool*/ $ilman_euro = false ) {
+		return number_format( (double)$this->rahtimaksu, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
+	}
+
+	/**
+	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function ilmToimRaja_toString ( /*bool*/ $ilman_euro = false ) {
+		return number_format( (double)$this->ilm_toim_sum_raja, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 }

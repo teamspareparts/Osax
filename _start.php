@@ -5,6 +5,18 @@
  */
 function debug($var){echo"<br><pre>Print_r ::<br>";print_r($var);echo"<br>Var_dump ::<br>";var_dump($var);echo"</pre><br>";}
 
+/**
+ * Tulostaa numeron muodossa 1.000[,00 [€]]
+ * @param double|int $number <p> Tulostettava numero/luku/hinta
+ * @param bool $int [optional] <p> Kokonaisluvuille eri tulostus ilman decimaalipaikkoja tai euro-merkkiä.
+ * @param bool $ilman_euro [optional] <p> Tulostetaanko float-arvo ilman euro-merkkiä
+ * @return string
+ */
+function format_number( /*double|int*/ $number, /*bool*/ $int = false, /*bool*/ $ilman_euro = false ) {
+	if ( $int ) { return number_format( (int)$number, 0, ',', '.' );
+	} else { return number_format( (double)$number, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' ); }
+}
+
 /*
  * Aloitetaan sessio
  */

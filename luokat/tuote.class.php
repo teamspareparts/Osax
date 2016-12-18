@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class Tuote
  */
@@ -34,9 +35,12 @@ class Tuote {
 	 * @var array $maaraalennus_kpl_raja <p> Määräalennuksen kpl-rajat, ja alennusprosentit
 	 */
 	public $maaraalennukset = array();
+	/** @var string $summa <p> */ public $alennus_huomautus = '---';
 
-	/** @var float $ostohinta <p> Ylläpitoa varten TODO: NOT IMPLEMENTED */ public $ostohinta = 0.00;
+	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
+	/** @var int $varastosaldo <p> */ public $varastosaldo = 0;
+	/** @var int $minimimyyntiera <p> */ public $minimimyyntiera = 0;
 
 	/**
 	 * WIP Älä käytä konstruktoria.
@@ -50,7 +54,7 @@ class Tuote {
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
 						hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_ilman_alv_alennettu,
-						hyllypaikka, tuoteryhma
+						hyllypaikka, tuoteryhma, sisaanostohinta AS ostohinta
 					FROM tuote
 					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 					WHERE tuote.id = ? LIMIT 1";
@@ -129,7 +133,7 @@ class Tuote {
 	 * @return string
 	 */
 	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
-		$hinta = $ilman_alv ? ($this->a_hinta_ilman_alv*$this->kpl_maara) : $this->summa;
-		return number_format( (double)$hinta, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
+		$summa = $ilman_alv ? ($this->a_hinta_ilman_alv*$this->kpl_maara) : $this->summa;
+		return number_format( (double)$summa, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 }

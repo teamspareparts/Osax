@@ -47,7 +47,7 @@ class Ostoskori {
 	 * Ostoskori constructor.
 	 * @param int $yritys_id <p> Ostoskorin omistaja
 	 * @param DByhteys &$db <p> Tietokantayhteys, for obvious reasons. (Ostoskori on DB:ssä)
-	 * @param int $cart_mode <p> Mitä tietoja haetaan tuotteista:
+	 * @param int $cart_mode [optional] <p> Mitä tietoja haetaan tuotteista:
 	 * 		<ul><li>-1 : Älä hae mitään tietoja
 	 * 			<li> 0 : Hae vain montako eri tuotetta ostoskorissa on
 	 * 			<li> 1 : Hae kaikkien tuotteiden ID:t ja kpl-määrät
@@ -74,7 +74,6 @@ class Ostoskori {
 		}
 	}
 
-
 	/**
 	 * Hakee yrityksen ostoskorin ID:n
 	 * @param DByhteys $db
@@ -86,28 +85,12 @@ class Ostoskori {
 			->id;
 	}
 
-    /**
-     * Palauttaa ostoskorissa olevien tuotteiden määrän.
-     * @return int tuotteiden maara
-     */
-    public function get_tuotteiden_maara() {
-        return $this->montako_tuotetta;
-    }
-
-    /**
-     * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
-     * @return int kaikkien tuotteiden kappalemäärä
-     */
-    public function get_kaikkien_tuotteiden_kappalemaara() {
-        return $this->montako_tuotetta_kpl_maara_yhteensa;
-    }
-
 	/**
 	 * Hakee ostoskorissa olevat tuotteet tietokannasta lokaaliin arrayhin.
 	 * @param DByhteys $db
-	 * @param boolean $kaikki_tiedot <p> Haetaanko kaikki tiedot (tuotteet & kappalemäärä),
+	 * @param boolean $kaikki_tiedot [optional]<p> Haetaanko kaikki tiedot (tuotteet & kappalemäärä),
 	 *        vai vain montako eri tuotetta ostoskorissa on ( COUNT(tuote_id) ja SUM(kpl_maara) ).
-	 * @param bool $tuote_luokka <p> Haetaanko tuotteet Tuote-luokkaan. Hitaampi vaihtoehto.
+	 * @param bool $tuote_luokka [optional]<p> Haetaanko tuotteet Tuote-luokkaan. Hitaampi vaihtoehto.
 	 */
 	public function hae_ostoskorin_sisalto ( DByhteys $db, /*bool*/ $kaikki_tiedot = FALSE,
 											 /*bool*/ $tuote_luokka = FALSE) {
@@ -215,5 +198,30 @@ class Ostoskori {
 	 */
 	public function isValid () {
 		return ( $this->ostoskori_id !== NULL );
+	}
+
+	/**
+	 * Palauttaa ostoskorissa olevien tuotteiden määrän.
+	 * @return int tuotteiden maara
+	 */
+	public function get_tuotteiden_maara() {
+		return $this->montako_tuotetta;
+	}
+
+	/**
+	 * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
+	 * @return int kaikkien tuotteiden kappalemäärä
+	 */
+	public function get_kaikkien_tuotteiden_kappalemaara() {
+		return $this->montako_tuotetta_kpl_maara_yhteensa;
+	}
+
+	/**
+	 * @param boolean $ilman_alv [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
+	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function summa_toString ( /*bool*/ $ilman_euro = false ) {
+		return number_format( (double)$this->summa_yhteensa, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
 	}
 }

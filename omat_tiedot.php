@@ -315,7 +315,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	 * @return Boolean false, jos kayttaja ei paina OK:ta.
 	 */
 	function vahvista_Osoitteen_Poistaminen( osoite_id ) {
-		var vahvistus = confirm( "Oletko varma, että haluat poistaa osoitteen?\n"
+		let vahvistus = confirm( "Oletko varma, että haluat poistaa osoitteen?\n"
 			+ "Tätä toimintoa ei voi perua jälkeenpäin.\n"
 			+ "(Huom. Osoitetietoja ei poisteta mahdollisista tilaustiedoista.)");
 		if ( vahvistus === true ) {
