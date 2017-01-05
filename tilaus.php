@@ -3,63 +3,73 @@ require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 require 'email.php';
-require 'ostoskori_tilaus_funktiot.php'; //Sisältää kaikki ennen tässä tiedostossa olleet PHP-funktiot
+require 'ostoskori_tilaus_funktiot.php';
 
-$yritys = new Yritys( $db, $user->yritys_id );
-$products = get_products_in_shopping_cart( $db, $cart );
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
-if ( empty($products) ) { header("location:ostoskori.php"); exit; }
+$cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+if ( $cart->montako_tuotetta == 0 ) {
+	header("location:ostoskori.php"); exit;
+}
+check_products_in_shopping_cart( $cart, $user);
 
 if ( !empty($_POST['vahvista_tilaus']) ) {
-	$result = $db->query( //Tilauksen ID:n ja alkutietojen lisäys
-		'INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)',
-		[ $user->id, $_POST['rahtimaksu'] ] );
 
-	if ( $result ) { //Jos ID:n lisääminen onnistui, jatketaan.
-		$tilaus_id = $db->getConnection()->lastInsertId(); //Haetaan lisätyn tilauksen ID, sitä tarvitaan vielä.
+	$conn = $db->getConnection();
+	$conn->beginTransaction();
 
-		//Tuotteiden pysyvä tallennus tietokantaan
-		$db->prepare_stmt( '
-			INSERT INTO tilaus_tuote (tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, 
-				pysyva_alv, pysyva_alennus, kpl)
+	try {
+
+		$stmt = $conn->prepare( 'INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)' );
+		$stmt->execute( [$user->id, $_POST['rahtimaksu']] );
+
+		$tilaus_id = $conn->lastInsertId();
+
+		// Prep.stmt. tuotteiden lisäys tietokantaan. Ostoskorista yksikerrallaan.
+		// Päivita varastosaldo jokaisen tuotteen kohdalla.
+		$stmt = $conn->prepare( '
+			INSERT INTO tilaus_tuote
+				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
-		foreach ( $products as $product ) {
-			$result = $db->run_prepared_stmt( [
-				$tilaus_id, $product->id, $product->articleName, $product->brandName, $product->hinta_ilman_alv,
-				$product->alv_prosentti, $product->alennusera_prosentti, $product->cartCount
+		foreach ( $cart->tuotteet as $tuote ) {
+			$stmt->execute( [ $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
+				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara
 			] );
 
-			$db->query( //Päivitetään tilattujen tuotteiden varastosaldo
-				"UPDATE tuote SET varastosaldo = ? WHERE id = ?",
-				[ ($product->varastosaldo - $product->cartCount), $product->id ] );
+			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ? WHERE id = ?" );
+			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
 		}
 
-		$db->query( // Tallennetaan pysyvät osoitetiedot tietokantaan.
-			"INSERT INTO tilaus_toimitusosoite
+		$stmt = $conn->prepare(
+			'INSERT INTO tilaus_toimitusosoite
 				(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, 
 				pysyva_yritys, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka)
 			SELECT ?, etunimi, sukunimi, sahkoposti, puhelin, yritys, katuosoite, postinumero, postitoimipaikka
 			FROM toimitusosoite 
-			WHERE kayttaja_id = ? AND osoite_id = ?",
-			[$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
+			WHERE kayttaja_id = ? AND osoite_id = ?' );
+		$stmt->execute( [$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
+
+		$conn->commit();
 
 		require 'lasku_pdf_luonti.php';
 		//lähetetään tilausvahvistus asiakkaalle
-		laheta_tilausvahvistus( $user->sahkoposti, $products, $tilaus_id, $tiedoston_nimi );
+		laheta_tilausvahvistus( $user->sahkoposti, $cart->tuotteet, $tilaus_id, $tiedoston_nimi );
 		//lähetetään tilaus ylläpidolle
-		//laheta_tilaus_yllapitajalle($_SESSION["email"], $products, $tilaus_id);
+		laheta_tilaus_yllapitajalle( $db, $cart, $tilaus_id );
 
 		$cart->tyhjenna_kori( $db );
 		header( "location:tilaushistoria.php?id=$user->id" );
 		exit;
-	}
-	else {
-		$_SESSION["feedback"] = '<p class="error">Tilauksen lähetys ei onnistunut!</p>';
+
+	} catch ( PDOException $ex ) {
+		// Rollback any changes, and print error message to user.
+		$conn->rollback();
+		$_SESSION["feedback"] = "<p class='error'>Tilauksen lähetys ei onnistunut!<br>Virhe: {$ex->errorInfo}</p>";
+		// TODO: Do not print error message to user in full (only generic)!
 	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
@@ -83,40 +93,40 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<h1 class="otsikko">Vahvista tilaus</h1>
 	<?= $feedback ?>
-	<table>
-		<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta</th><th class="number">Kpl-hinta</th><th>Kpl</th><th>Info</th></tr>
-		<?php
-		$sum = 0;
-		foreach ( $products as $product ) {
-			$product->hinta = tarkista_hinta_era_alennus( $product );
-			$sum += $product->hinta * $product->cartCount; ?>
+	<table style="width:90%;">
+		<thead>
+		<tr> <th colspan="8" class="center" style="background-color:#1d7ae2;">Tilauksen vahvistus</th> </tr>
+		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Hinta</th>
+			 <th class="number">Kpl-hinta</th> <th>Kpl</th> <th>Info</th> </tr>
+		</thead>
+		<tbody>
+		<?php foreach ( $cart->tuotteet as $tuote ) { ?>
 			<tr>
-				<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
-				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
-				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
-				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
-				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
-				<td class="number"><?= $product->cartCount?></td><!-- Kpl-määrä -->
-				<td style="padding-top: 0; padding-bottom: 0;"><?= laske_era_alennus_palauta_huomautus( $product, FALSE )?></td>
+				<td><?= $tuote->tuotekoodi ?></td><!-- Tuotenumero -->
+				<td><?= $tuote->nimi ?></td><!-- Tuotteen nimi -->
+				<td><?= $tuote->valmistaja ?></td><!-- Tuotteen valmistaja -->
+				<td class="number"><?= $tuote->summa_toString() ?></td><!-- Hinta yhteensä -->
+				<td class="number"><?= $tuote->a_hinta_toString() ?></td><!-- Kpl-hinta (sis. ALV) -->
+				<td class="number"><?= $tuote->kpl_maara ?></td><!-- Kpl-määrä -->
+				<td style="padding-top: 0; padding-bottom: 0;"><?= $tuote->alennus_huomautus ?></td><!-- Info -->
 			</tr><?php
-		}
-		$rahtimaksu = tarkista_rahtimaksu( $yritys, $sum ); ?>
+		} ?>
 		<tr id="rahtimaksu_listaus">
-			<td>---</td>
-			<td>Rahtimaksu</td>
-			<td>---</td>
-			<td class="number"><?= format_euros( $rahtimaksu[0] )?></td>
-			<td class="number">---</td>
-			<td class="number">1</td>
-			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, FALSE )?></td>
+			<td>---</td><!-- Tuotenumero -->
+			<td>Rahtimaksu</td><!-- Tuotteen nimi -->
+			<td>---</td><!-- Tuotteen valmistaja -->
+			<td class="number"><?= $user->rahtimaksu_toString() ?></td><!-- Hinta yhteensä -->
+			<td class="number">---</td><!-- Kpl-hinta (sis. ALV) -->
+			<td class="number">1</td><!-- Kpl-määrä -->
+			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus' : "---" ?></td><!-- Info -->
 		</tr>
+		</tbody>
 	</table>
 	<div id=tilausvahvistus_tilaustiedot_container style="display:flex; height:7em;">
 		<div id=tilausvahvistus_maksutiedot style="width:20em; margin:auto;">
-			<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
-			<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
+			<p>Tuotteiden kokonaissumma: <b><?= $cart->summa_toString() ?></b></p>
+			<p>Summa yhteensä: <b><?=format_number(($cart->summa_yhteensa+$user->rahtimaksu))?></b> ( ml. toimitus )</p>
 			<span class="small_note">Kaikki hinnat sis. ALV</span>
 		</div>
 		<div id=tilausvahvistus_toimitusosoite_nappi style="width:12em; margin: auto;">
@@ -124,12 +134,11 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 				count($user->toimitusosoitteet) ) ?>
 		</div>
 		<div id=tilausvahvistus_toimitusosoite_tulostus style="flex-grow:1; margin:auto;">
-			<!-- Osoitteen tulostus -->
+			<!-- Osoitteen tulostus tulee tähän -->
 		</div>
 	</div>
 
-	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled(
-		$products, count($user->toimitusosoitteet), FALSE )?>
+	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user, FALSE ) ?>
 	<p><a class="nappi red" href="ostoskori.php">Palaa takaisin</a></p>
 </main>
 <form class="hidden" id="laheta_tilaus_form" action="#" method=post>
@@ -139,8 +148,7 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 </form>
 
 <script>
-	var osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
-	console.log( osoitekirja );
+	let osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
 
 	/**
 	 * Avaa Modalin toimitusosoitteen valintaa varten
@@ -159,10 +167,10 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 	 * @param osoite_id
 	 */
 	function valitse_toimitusosoite( osoite_id ) {
-		var html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
-		var osoite_array = osoitekirja[osoite_id];
+		let html_osoite = document.getElementById('tilausvahvistus_toimitusosoite_tulostus');
+		let osoite_array = osoitekirja[osoite_id];
 		html_osoite.innerHTML = ""
-			+ "<h4 style='margin-bottom:0;'>Toimitusosoite " + osoite_id + "</h4>"
+			+ "<h4 style='margin-bottom:0;'>Toimitusosoite " + (osoite_id+1) + "</h4>"
 			+ "Sähköposti: " + osoite_array['sahkoposti'] + "<br>"
 			+ "Katuosoite: " + osoite_array['katuosoite'] + "<br>"
 			+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
@@ -172,15 +180,18 @@ if ( !empty($_POST) && false ) { //Estetään formin uudelleenlähetyksen
 	}
 
 	function laheta_Tilaus () {
-		var form_ID = "laheta_tilaus_form";
-		var vahvistus = confirm( "Haluatko vahvistaa tilauksen?");
+		let form_ID = "laheta_tilaus_form";
+		let vahvistus = confirm( "Haluatko vahvistaa tilauksen?");
 		if ( vahvistus ) {
 			document.getElementById(form_ID).submit();
 		} else {
 			return false;
 		}
 	}
-	valitse_toimitusosoite(0);
+
+	$(document).ready(function() {
+		valitse_toimitusosoite(0);
+	});//doc.ready
 </script>
 
 </body>

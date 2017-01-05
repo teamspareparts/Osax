@@ -4,99 +4,54 @@
  */
 
 /**
- * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
- * @param DByhteys $db
- * @param Ostoskori $cart
- * @return array
- */
-function get_products_in_shopping_cart ( DByhteys $db, Ostoskori $cart ) {
-	$products = array();
-
-	//Tarkistetaan, että tuotteiden ID:t on haettu ostoskorissa, ja jos ei, niin tehdään se.
-	if ( $cart->cart_mode != 1 ) { $cart->hae_ostoskorin_sisalto( $db, TRUE ); }
-
-	if ( !empty( $cart->tuotteet ) ) {
-	    $ids = array_keys( $cart->tuotteet );
-        $placeholders = str_repeat('?, ', count($cart->tuotteet) - 1) . '?';
-		$sql = "SELECT id, articleNo, brandNo, tuotekoodi, hinta_ilman_alv, varastosaldo, minimimyyntiera, 
-					alennusera_kpl, alennusera_prosentti, valmistaja, nimi,
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
-					ALV_kanta.prosentti AS alv_prosentti
-				FROM tuote
-				LEFT JOIN ALV_kanta
-					ON tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE tuote.id IN ( $placeholders )";
-
-		$rows = $db->query( $sql, $ids, FETCH_ALL );
-
-		foreach ( $rows as $row ) {
-			$row->cartCount = $cart->tuotteet[$row->id]->kpl_maara;
-			$products[] = $row;
-		}
-		//Haetaan tuotteille tarkemmat tiedot tecdocista
-		get_basic_product_info($products);
-	}
-
-	return $products;
-}
-
-/**
- * Hakee tietokannasta kaikki ostoskorissa olevat tuotteet.
+ * Tarkistaa ostoskorin tuotteiden hinnat alennuksien varalta. Tarkistaa lisäksi rahtimaksun tuotteiden jälkeen.
  * @param Ostoskori $cart
  * @param User $user
  */
 function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
-
+	/*
+	 * Käydään läpi kaikki ostoskorin tuotteet ja tarkistetaan jokaisesta alennukset, ja oikea hinta.
+	 */
 	foreach ( $cart->tuotteet as $tuote ) {
 		// Asetetaan aloitusarvo tuotteen alennukselle
 		$tuote->alennus_prosentti = $user->yleinen_alennus; // Yrityksen yleinen alennusprosentti
 
-		// Tarkistetaan määräalennukset
-		foreach ( $tuote->maaraalennukset as $a_obj ) {
-			if ( $a_obj->maaraalennus_kpl <= $tuote->kpl_maara ) { // Onko tuotetta tilattu tarpeeksi alennukseen?
+		// Tarkistetaan määräalennukset (sortattu kappale-määrän mukaan)
+		foreach ( $tuote->maaraalennukset as $ale ) {
+			if ( $ale->maaraalennus_kpl <= $tuote->kpl_maara ) { // Onko tuotetta tilattu tarpeeksi alennukseen?
 				// Onko alennus isompi kuin jo tallennettu arvo? (Ale-prosentit eivät mene järjestyksessä.)
-				if ( $a_obj->alennus_prosentti > $tuote->alennus_prosentti ) {
-					$tuote->alennus_prosentti = $a_obj->alennus_prosentti;
+				if ( $ale->alennus_prosentti > $tuote->alennus_prosentti ) {
+					$tuote->alennus_prosentti = $ale->alennus_prosentti;
 				}
-			} else		// Maara-alennukset on sortattu (low-to-high)
-				break;	//  joten ei mitään syydä jäädä loop:in, kun kpl_maara ylitetty
+			} else {
+				break;
+			}
 		}
 
-		$tuote->a_hinta_alennettu = $tuote->a_hinta * (1-$tuote->alennus_prosentti);	// Lasketaan tuotteen uusi a-hinta
-		$tuote->summa = $tuote->kpl_maara * $tuote->a_hinta;				// Lasketaan tuotteen summa
-		// Lisätään summa ostoskorin yhteiseen summaan
+		$tuote->a_hinta_alennettu = $tuote->a_hinta * (1-$tuote->alennus_prosentti);
+		$tuote->summa = $tuote->kpl_maara * $tuote->a_hinta;
+
 		$cart->summa_yhteensa += $tuote->summa;
 	}
-}
 
-/**
- * //TODO: Päivitä PhpDoc
- * @param Yritys $yritys
- * @param int $tilauksen_summa
- * @return array <p> Rahtimaksun ja ilmaisen toimitusksen rajan, indekseillä 0 ja 1. Kumpikin float.
- */
-function tarkista_rahtimaksu ( Yritys $yritys, /*int*/ $tilauksen_summa ) {
-	if ( $tilauksen_summa > $yritys->ilm_toim_sum_raja ) {
-		$yritys->rahtimaksu = 0;
+	if ( $cart->summa_yhteensa > $user->ilm_toim_sum_raja ) { // Tarkistetaan rahtimaksu
+		$user->rahtimaksu = 0; // Jos ilmaisen toimituksen raja ylitetty, tallenetaan uusi rahtimaksu.
 	}
-	return [$yritys->rahtimaksu, $yritys->ilm_toim_sum_raja];
 }
 
 /**
  * Tulostaa rahtimaksun alennushuomautuksen, tarkistuksen jälkeen.
- * @param array $rahtimaksu
- * @param boolean $ostoskori; onko funktio ostoskoria, vai tilaus-vahvistusta varten
+ * @param User $user
+ * @param boolean $ostoskori <p> Onko funktio ostoskoria, vai tilaus-vahvistusta varten?
  * @return string
  */
-function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ostoskori ) {
-	if ( $rahtimaksu[0] == 0 ) {
-		$alennus = "Ilmainen toimitus";
+function tulosta_rahtimaksu_alennus_huomautus ( User $user, /*bool*/ $ostoskori ) {
+	if ( $user->rahtimaksu == 0 ) {
+		return "Ilmainen toimitus";
 	} elseif ( $ostoskori ) {
-		$alennus = "Ilmainen toimitus <br>" . format_euros($rahtimaksu[1]) . ":n jälkeen.";
+		return "Ilmainen toimitus <br>" . format_euros($user->ilm_toim_sum_raja) . ":n jälkeen.";
 	} else {
-		$alennus = "---"; }
-
-	return $alennus;
+		return "---"; }
 }
 
 /**
@@ -107,7 +62,7 @@ function tulosta_rahtimaksu_alennus_huomautus ( array $rahtimaksu, /*bool*/ $ost
 function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
 	$s = '';
 	foreach ( $osoitekirja_array as $index => $osoite ) {
-		$s .= "<div> Osoite {$index}<br><br> \\";
+		$s .= "<div><br> \\";
 
 		$osoite['Sähköposti'] = $osoite['sahkoposti']; unset($osoite['sahkoposti']); //Hienompi tulostus
 
@@ -196,41 +151,40 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /*bool*/ $osto
 
 /**
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
- * Syitä, miksi ei: ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu | ei toimitusosoitetta.<br>
+ * Syitä, miksi ei: <br> ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu | ei toimitusosoitetta.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
- * @param array $products
- * @param int $user_addr_count <p> Kuinka monta toimitusosoitetta käyttäjällä on.
+ * @param Ostoskori $cart
+ * @param User $user
  * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
- *        Onko käyttäjän profiilissa toimitusosoitteita. Ei tarvita ostoskorissa. Pakollinen tilauksen vahvistuksessa.
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		array $products, /*int*/ $user_addr_count, /* bool */ $ostoskori = TRUE ) {
+		Ostoskori $cart, User $user, /* bool */ $ostoskori = TRUE ) {
 	$enough_in_stock = TRUE;
 	$enough_ordered = TRUE;
 	$tuotteita_ostoskorissa = TRUE;
-	$tmo_valittu = TRUE; //TODO: Haluaisin että tämä tarkistaa myös ostoskorissa tämän. Keksin jotain myöhemmin.
-	$huomautus = "";
+	$tmo_valittu = TRUE;
+	$huomautus = '';
 	$linkki = 'href="tilaus.php"';
 
 	if ( !$ostoskori ) { //Tilauksen lähetys toimii hieman eri tavalla
 		$linkki = 'onClick="laheta_Tilaus();"';
 	}
 
-	if ( $user_addr_count < 1 ) {
+	if ( count($user->toimitusosoitteet) < 1 ) {
 		$tmo_valittu = false;
 		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
 	}
 
-	if ( $products ) {
-		foreach ($products as $product) {
-			if ($product->cartCount > $product->varastosaldo) {
+	if ( $cart->tuotteet ) {
+		foreach ( $cart->tuotteet as $tuote) {
+			if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
 				$enough_in_stock = false;
-				$huomautus .= "Tuotteita ei voi tilata, koska jotain tuotetta ei ole tarpeeksi varastossa.<br>";
+				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei ole tarpeeksi varastossa.<br>";
 			}
-			if ($product->cartCount < $product->minimimyyntiera) {
+			if ( $tuote->kpl_maara < $tuote->minimimyyntiera ) {
 				$enough_ordered = false;
-				$huomautus .= "Tuotteita ei voi tilata, koska jonkin tuotteen minimimyyntierää ei ole ylitetty.<br>";
+				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:n minimimyyntierää ei ole ylitetty.<br>";
 			}
 		}
 	} else {

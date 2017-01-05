@@ -1,7 +1,6 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
 require 'ostoskori_tilaus_funktiot.php';
 
 if ( !empty($_POST['ostoskori_tuote']) ) {
@@ -30,10 +29,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
-$yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
-$products = get_products_in_shopping_cart( $db, $cart );
-$sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
+$cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja rahtimaksu.
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -52,51 +50,48 @@ $sum = 0.0; // Alhaalla listauksessa; tuotteiden summan laskentaa varten.
 <?php require "header.php"; ?>
 <main class="main_body_container">
 	<?= $feedback ?>
-	<table>
+	<table style="width:90%;">
 		<thead>
 		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ostoskori</th></tr>
 		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th>
 			<th class="number">Hinta</th> <th class="number">Kpl-hinta</th> <th>Kpl</th> <th>Info</th> <th></th> </tr>
 		</thead>
 		<tbody>
-		<?php foreach ($products as $product) :
-			$product->hinta = tarkista_hinta_era_alennus( $product );
-			$sum += $product->hinta * $product->cartCount; ?>
+		<?php foreach ( $cart->tuotteet as $tuote) : ?>
 			<tr>
-				<td><?= $product->tuotekoodi?></td><!-- Tuotenumero -->
-				<td><?= $product->articleName?></td><!-- Tuotteen nimi -->
-				<td><?= $product->brandName?></td><!-- Tuotteen valmistaja -->
-				<td class="number"><?= format_euros( $product->hinta * $product->cartCount ) ?></td><!-- Hinta yhteensä -->
-				<td class="number"><?= format_euros( $product->hinta ) ?></td><!-- Kpl-hinta (sis. ALV) -->
-				<td style="padding-top: 0; padding-bottom: 0;">
-					<input id="maara_<?= $product->id ?>" name="maara_<?= $product->id ?>"
-						   class="maara number" type="number" value="<?=$product->cartCount?>"
-						   min="0" title="Kappalemäärä">
+				<td><?= $tuote->tuotekoodi?></td> <!-- Tuotenumero -->
+				<td><?= $tuote->nimi?></td> <!-- Tuotteen nimi -->
+				<td><?= $tuote->valmistaja?></td> <!-- Tuotteen valmistaja -->
+				<td class="number"><?= $tuote->summa_toString() ?></td> <!-- Hinta yhteensä (sis. ALV) -->
+				<td class="number"><?= $tuote->a_hinta_toString() ?></td> <!-- Kpl-hinta (sis. ALV) -->
+				<td style="padding-top: 0; padding-bottom: 0;"><!-- TODO: Tarkista mika tarkoitus style-säännöllä. -->
+					<input id="maara_<?= $tuote->id ?>" name="maara_<?= $tuote->id ?>"
+					       class="maara number" type="number" value="<?= $tuote->kpl_maara ?>"
+					       min="0" title="Kappalemäärä"> <!-- Kpl-määrä (käyttäjän muokattavissa) -->
 				</td>
-				<td><?= laske_era_alennus_palauta_huomautus( $product )?></td>
+				<td><?= $tuote->alennus_huomautus ?></td>
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)"
-										 onclick="cartAction('<?= $product->id?>')">Päivitä</a></td>
+										 onclick="cartAction('<?= $tuote->id ?>')">Päivitä</a></td>
 			</tr>
-		<?php endforeach;
-		$rahtimaksu = tarkista_rahtimaksu( $yritys, $sum ); ?>
+		<?php endforeach; ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td>
 			<td>---</td>
-			<td class="number"><?= format_euros( $rahtimaksu[0] )?></td>
+			<td class="number"><?= $user->rahtimaksu_toString() ?></td>
 			<td class="number">---</td>
 			<td class="number">1</td>
-			<td><?= tulosta_rahtimaksu_alennus_huomautus( $rahtimaksu, TRUE )?></td>
+			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus'
+					: "Ilmainen toimitus<br>{$user->ilmToimRaja_toString()}:n jälkeen." ?></td>
 		</tr>
 		</tbody>
 	</table>
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
-		<p>Tuotteiden kokonaissumma: <b><?= format_euros( $sum )?></b></p>
-		<p>Summa yhteensä: <b><?= format_euros( $sum + $rahtimaksu[0] )?></b> ( ml. toimitus )</p>
+		<p>Tuotteiden kokonaissumma: <b><?= $cart->summa_toString() ?></b></p>
+		<p>Summa yhteensä: <b><?= format_number( ($cart->summa_yhteensa + $user->rahtimaksu) )?></b> ( ml. toimitus )</p>
 		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
-	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled(
-		$products, $user->toimitusosoitteet['count'] ) ?>
+	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user ) ?>
 	<p><a class="nappi red" onclick="window.history.back();">Palaa takaisin</a></p>
 </main>
 
