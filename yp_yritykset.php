@@ -83,7 +83,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
         //painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
         $('.cell').click(function(){
             $('tr').click(function(){
-                var id = $(this).attr('data-id');
+                let id = $(this).attr('data-id');
                 window.document.location = 'yp_asiakkaat.php?yritys_id='+id;
             });
         })

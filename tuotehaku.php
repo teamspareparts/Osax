@@ -505,12 +505,29 @@ require 'tuotemodal.php';
 	}
 
 	$(document).ready(function(){
-		//info-nappulan sisältö
-		$("span.info-box").hover(function () {
-			$(this).append('<div class="tooltip"><p>Tarkka haku</p></div>');
-		}, function () {
-			$("div.tooltip").remove();
-		});
+
+		//Tuotteen lisääminen ostotilauskirjalle
+		$(document.body)
+			.on('submit', '#ostotilauskirjalomake', function(e){
+				e.preventDefault();
+				let tuote_id = $('input[name=id]').val();
+				$.post(
+					"ajax_requests.php",
+					{   lisaa_tilauskirjalle: true,
+						ostotilauskirja_id: $('select[name=ostotilauskirjat]').val(),
+						tuote_id: tuote_id,
+						kpl: $('input[name=kpl]').val() },
+					function( data ) {
+						Modal.close();
+						if ((!!data) === true ) {
+							$("#lisaa_otk_nappi_" + tuote_id)
+								.css("background-color","green")
+								.addClass("disabled");
+						} else {
+							alert("ERROR: Tuote on jo kyseisellä tilauskirjalla.");
+						}
+					});
+			});
 
 		$('.clickable')
 			.css('cursor', 'pointer')
@@ -518,6 +535,8 @@ require 'tuotemodal.php';
 				let articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
 				productModal(articleId); //haetaan tuotteen tiedot tecdocista
 			});
+
+
 	});//doc.ready
 
 	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET

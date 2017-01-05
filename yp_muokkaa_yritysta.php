@@ -99,7 +99,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<label> Yleinen alennus: </label>
 			<input type="hidden" name="muokkaa_alennus" value="<?= $yritys->id ?>">
 			<input type="number" name="yleinen_alennus" min="0" max="100"
-			       value="<?= $asiakas->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
+			       value="<?= $yritys->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
 			<br><br>
 			<div class="center">
 				<input type="submit" value="Muokkaa alennusta" class="nappi">

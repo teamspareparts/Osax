@@ -39,7 +39,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 
 		//TODO: Tarkasta myös $datan sisältö, väärien syötteiden varalta.
 		$num = count($data); // rivin sarakkeiden lkm
-		if ($num != 6) {
+		if ( ( $num != 7 && isset($_POST["tilauskoodi"]) ) || ( $num !=6 && !isset($_POST["tilauskoodi"]) )) {
 			$failed_inserts++;
 			continue;
 		}
@@ -52,19 +52,19 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		$minimimyyntiera = (int)$data[$_POST["s4"]];
 		$kappaleet = (int)$data[$_POST["s5"]];
         $tuotekoodi = $hankintapaikka_id ."-". $articleNo; //esim: 100-QTB249
+        $tilauskoodi = isset($_POST["tilauskoodi"]) ? $data[6] : ($_POST["etuliite"].$articleNo.$_POST["takaliite"]);
 
-		$product_array[0] = (object)[
+		/**$product_array[0] = (object)[
 			'articleNo' => $articleNo,
 			'brandNo' => $brandId,
 			'hankintapaikka_id' => $hankintapaikka_id,
 		];
-
-		//get_basic_product_info($product_array);
-		//sleep(0.1);
+        get_basic_product_info($product_array);
+		sleep(0.1);*/
 
 		$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
-					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, valmistaja) 
-				VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
+				VALUES ( ?, ?, sisaanostohinta, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				ON DUPLICATE KEY
 					UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
 						ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
@@ -72,9 +72,9 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 						keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) * 
 							VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
 						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl)";
-		$response = $db->query($sql, //TODO: $ostohinta, $ostohinta? Lyhennä "VALUES(ostohinta)"
-			[$articleNo, $ostohinta, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
-				$brandId, $hankintapaikka_id, $tuotekoodi, $brandName]);
+		$response = $db->query($sql,
+			[$articleNo, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
+				$brandId, $hankintapaikka_id, $tuotekoodi, $tilauskoodi, $brandName]);
 	}
 
 	fclose($handle);
@@ -138,12 +138,13 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 
 <main class="main_body_container">
 	<h1><?= $brandName?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
-	<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<span class="question">?</span></p>
+	<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<span class="question" id="info_tiedostomuoto">?</span></p>
 
 	<fieldset><legend>Lisää tuotteita</legend>
 		<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
-			Luettava tiedosto: <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv">
-			<input id=submit_tuote type="submit" name="submit" value="Submit" disabled>
+            <label for="tuote_tiedosto">Luettava tiedosto:</label>
+            <input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv">
+			<input id=submit_tuote type="submit" name="submit" value="Submit">
 			<br>
 			<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
 			<label for="select0">1:</label><select name=s0 id=select0></select><br>
@@ -152,7 +153,23 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
             <label for="select3">4:</label><select name=s3 id=select3></select><br>
             <label for="select4">5:</label><select name=s4 id=select4></select><br>
             <label for="select5">6:</label><select name=s5 id=select5></select><br>
-		</form>
+            <div id="tilauskoodi_sarake" class="hidden">
+                <label for="select6">7:</label><select name=s6 id=select6>
+                    <option>Tilauskoodi</option>
+                </select>
+            </div>
+            <br>
+            <div id="tilauskoodin_liitteet">
+                Tuotteen tilauskoodin etu- ja takaliitteet<br>
+                <label for="etuliite">Etuliite:</label>
+                <input type="text" name="etuliite" id="etuliite" pattern="[a-zA-Z0-9-]+" maxlength="6">
+                <label for="takaliite">Takaliite:</label>
+                <input type="text" name="takaliite" id="takaliite" pattern="[a-zA-Z0-9-]+" maxlength="6">
+            </div>
+            <br>
+            <label for="tilauskoodi">Tilauskoodi ei vastaa tuotenumeroa:<span class="question" id="info_tilauskoodi">?</span></label>
+            <input type="checkbox" name="tilauskoodi" id="tilauskoodi"><br>
+        </form>
 	</fieldset>
 
     <?= $feedback ?>
@@ -160,8 +177,8 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 
 <script type="text/javascript">
     //Täytetään dynaamisesti select-option valinnat.
-	var sarake;
-	for (var i = 0; i < 6; i++) {
+	let sarake;
+	for (let i = 0; i < 6; i++) {
 		sarake = document.getElementById("select" + i);
 		sarake.options.add(new Option("Tuotenumero", 0));
 		sarake.options.add(new Option("Ostohinta", 1));
@@ -173,14 +190,17 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	}
 
 	$(document).ready(function(){
-		$('#tuote_tiedosto').on("change", function() {
+		//Submit -napin toiminta
+		let tiedosto = $('#tuote_tiedosto');
+		if (tiedosto.get(0).files.length == 0) { $('#submit_tuote').prop('disabled', 'disabled'); }
+		tiedosto.on("change", function() {
 			$('#submit_tuote').prop('disabled', !$(this).val());
 		});
 
 		//Tarkastetaan ettei sarakkeissa dublikaatteja
 		$('#lisaa_tuotteet').submit(function(e) {
-			var i, valinta;
-			var valinnat = [];
+			let i, valinta;
+			let valinnat = [];
 			for ( i=0; i<6; i++ ) {
 				valinta = $("#select" + i +" option:selected").val();
 				if($.inArray(valinta, valinnat) !== -1) {
@@ -193,11 +213,36 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 			return true;
 		});
 
+
+		//piilotetaan tilauskoodi sarake
+		if ( $("#tilauskoodi").get(0).checked ) {
+			$("#tilauskoodin_liitteet").hide();
+			$("#tilauskoodi_sarake").show();
+		}
+		$("#tilauskoodi").change(function(){
+			if ( (this).checked ) {
+				$("#tilauskoodin_liitteet").hide();
+				$("#tilauskoodi_sarake").show();
+			} else {
+				$("#tilauskoodin_liitteet").show();
+				$("#tilauskoodi_sarake").hide();
+			}
+		});
+
 		//Näytetään ohjeet kun hiiri viedään kysymysmerkin päälle.
-		$("span.question").hover(function () {
+		$("#info_tiedostomuoto").hover(function () {
 			$(this).append('<div class="tooltip">' +
 				'<p>Tiedostossa oltava 6 saraketta & erottimena oltava ";".</p>' +
 				'<p>Jos tiedostossa on otsikkorivi merkkaa valintaruutu.</p>' +
+				'</div>');
+		}, function () {
+			$("div.tooltip").remove();
+		});
+		$("#info_tilauskoodi").hover(function () {
+			$(this).append('<div class="tooltip">' +
+				'<p>Jos tuotteen tilauskoodi ei vastaa lainkaan tuotenumeroa.</p>' +
+				'<p>Tällöin tarvitaan hinnastotiedostoon seitsämäs sarake, johon on<br>' +
+                'merkattu hankintapaikan käyttämät tuotekoodit.</p>' +
 				'</div>');
 		}, function () {
 			$("div.tooltip").remove();

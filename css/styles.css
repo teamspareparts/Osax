@@ -432,13 +432,10 @@ th {
 	margin-left: 1em;
 }
 
-.kpl {
+.kpl, .eur {
 	width: 4em;
 }
 
-.eur {
-	width: 4em;
-}
 
 .maara {
 	width: 3em;
@@ -506,7 +503,6 @@ span.info-box {
 	text-align: center;
 	position: relative;
 }
-
 span.question {
   	cursor: pointer;
   	display: inline-block;
@@ -527,10 +523,7 @@ div.tooltip {
   	background-color: #3D6199;
   	color: White;
   	position: absolute;
-  	left: 25px;
-  	top: -16px;
-  	z-index: 1000000;
-  	/*width: 250px;*/
+  	z-index: 10;
   	border-radius: 5px;
 }
 div.tooltip:before {
@@ -570,10 +563,6 @@ Muokkaa asiakasta form
 	font-weight: bold;
 }
 
-.hidden{
-	display: none;
-}
-
 
 
 
@@ -584,10 +573,6 @@ Muokkaa asiakasta form
 /****************************************
 Tuotteen MODAL-ikkuna (tuotteen tiedot)
 ****************************************/
-
-.text-center {
-	text-align: center;
-}
 
 #display_img {
 	max-width: 200px;
@@ -614,10 +599,6 @@ Tuotteen MODAL-ikkuna (tuotteen tiedot)
 	text-decoration: none;
 	font-family: sans-serif;
 	color: black;
-}
-
-.car_dropdown_content {
-	display: none;
 }
 
 

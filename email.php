@@ -101,45 +101,32 @@ function laheta_tilausvahvistus( /*string*/ $email, array $products, /*string*/ 
 }
 
 /**
- * Lähettää tilausvahvistuksen ylläpidolle
- * @param User $asiakas <p> Tilauksen tehnyt asiakas
- * @param stdClass[] $products
- * @param int $tilausnro
+ * @param $tilausnro int Tilauksen numero
+ * @param $fileName String Noutolistan tiedostonimi
  * @return bool
  */
-function laheta_tilaus_yllapitajalle( User $asiakas, /*array*/ $products, /*int*/ $tilausnro){
-	if ( !empty($products) && !empty($tilausnro) && $asiakas->isValid() ) {
-		$admin_email = 'myynti@osax.fi';
+function laheta_noutolista( /*int*/ $tilausnro, /*String*/ $fileName){
+	$admin_email = 'myynti@osax.fi';
+	$subject = "Noutolista tilaukseen {$tilausnro}";
+	$message = "Tilauksen {$tilausnro} nouotlista.<br>
+				Käy merkkaamassa tilaus hoidetuksi, kun tilaus on lähetetty!";
+	$file = file_get_contents("./noutolistat/{$fileName}");
 
-		$subject = "Tilaus {$tilausnro}";
-		$summa = 0.00;
-		$productTable = '
-			<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
-				<th style="text-align:right;">Kpl</th></tr>';
+	send_email( $admin_email, $subject, $message, $file, $fileName );
+	return true;
+}
 
-		foreach ($products as $product) {
-			$summa += $product->hinta * $product->cartCount;
-			$productTable .= "
-				<tr><td>{$product->tuotekoodi}</td><td>{$product->valmistaja} {$product->nimi}</td>
-					<td style='text-align:right;'>".format_euros($product->hinta)."</td>
-					<td style='text-align:right;'>{$product->cartCount}</td></tr>";
-		}
+/**s
+ * @param $email
+ * @param $tilausnro
+ * @return bool
+ */
+function laheta_ilmoitus_tilaus_lahetetty( /*String*/ $email, /*int*/ $tilausnro ){
+	$subject = "Tilaus {$tilausnro}";
+	$message = "Hei! Tilauksesi {$tilausnro} on nyt lähetetty.";
 
-		$productTable .= "</table><br><br><br>";
-		$message = "Tilaaja: {$asiakas->kokoNimi()}<br>
-				Yritys: {$asiakas->yrityksen_nimi}<br>
-				S-posti: {$asiakas->sahkoposti}<br>
-				Puh: {$asiakas->puhelin}<br><br>
-				Tilausnumero: {$tilausnro}<br>
-				Summa: ".format_euros($summa)."<br>
-				Tilatut tuotteet:<br>{$productTable}";
-
-		require 'noutolista_pdf_luonti.php';
-		send_email( $admin_email, $subject, $message );
-		return true;
-	} else
-		return false;
-
+	send_email( $email, $subject, $message );
+	return true;
 }
 
 /**

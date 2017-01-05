@@ -69,7 +69,7 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT * FROM ostotilauskirja_tuote_arkisto
+$sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote_arkisto.kpl AS kokonaishinta FROM ostotilauskirja_tuote_arkisto
           LEFT JOIN tuote
             ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
@@ -118,27 +118,31 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 	<table style="min-width: 90%;">
 		<thead>
-		<tr><th>Tuotenumero</th>
+		<tr><th>Tilauskoodi</th>
+            <th>Tuotenumero</th>
 			<th>Tuote</th>
 			<th class="number">KPL</th>
 			<th class="number">Ostohinta</th>
+            <th class="number">Yhteensä</th>
 			<th>Hyllypaikka</th>
             <th></th>
 		</tr>
 		</thead>
 		<tbody>
 		<!-- Rahtimaksu -->
-		<tr><td></td><td>Rahtimaksu</td>
-			<td class="number"></td>
+		<tr><td></td><td></td><td>Rahtimaksu</td><td></td>
 			<td class="number"><?=format_euros($otk->rahti)?></td>
+            <td class="number"><?=format_euros($otk->rahti)?></td>
             <td class="center">---</td><td></td></tr>
 		<!-- Tuotteet -->
 		<?php foreach ($products as $product) : ?>
 			<tr data-id="<?=$product->id?>">
+                <td><?=$product->tilauskoodi?></td>
 				<td><?=$product->tuotekoodi?></td>
 				<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
 				<td class="number"><?=format_integer($product->kpl)?></td>
 				<td class="number"><?=format_euros($product->ostohinta)?></td>
+                <td class="number"><?=format_euros($product->kokonaishinta)?></td>
 				<td class="center"><?= $product->hyllypaikka?></td>
                 <td class="toiminnot">
                     <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
@@ -147,8 +151,9 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			</tr>
 		<?php endforeach;?>
 		<!-- Yhteensä -->
-		<tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td>
+		<tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td style="border-top: 1px solid black"></td><td style="border-top: 1px solid black"></td>
 			<td class="number" style="border-top: 1px solid black"><?= format_integer($yht->kpl)?></td>
+            <td style="border-top: 1px solid black"></td>
 			<td class="number" style="border-top: 1px solid black"><?=format_euros($yht->hinta)?></td>
 			<td style="border-top: 1px solid black"></td>
             <td style="border-top: 1px solid black"></td>
@@ -187,7 +192,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 
         //Luodaan kaksi POST -arrayta: id:t ja kappaleet;
-		$('tr td:nth-child(3):not(:first):not(:last)').each(function () {
+		$('tr td:nth-child(4):not(:first):not(:last)').each(function () {
 			let kpl = $(this).html();
 			let tuote_id = $(this).closest('tr').data('id');
 			field = document.createElement("input");
@@ -202,13 +207,13 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			form.appendChild(field);
 		});
 		//Muutetaan hyllypaikka-cellit inputeiksi
-		$('tr td:nth-child(5):not(:first):not(:last)').each(function () {
+		$('tr td:nth-child(7):not(:first):not(:last)').each(function () {
 			let hyllypaikka = $(this).html();
 			let input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 80pt; float: right;">');
 			input.val(hyllypaikka);
 			$(this).html(input);
 		});
-		$('tr td:nth-child(6):not(:first):not(:last)').each(function () {
+		$('tr td:nth-child(8):not(:first):not(:last)').each(function () {
 			$(this).html("");
 		});
 		document.body.appendChild(form);

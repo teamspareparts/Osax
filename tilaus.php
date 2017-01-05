@@ -16,6 +16,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 	$conn = $db->getConnection();
 	$conn->beginTransaction();
+    $toimitusosoite_id = $_POST['toimitusosoite_id'];
 
 	try {
 
@@ -54,7 +55,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		//lähetetään tilausvahvistus asiakkaalle
 		laheta_tilausvahvistus( $user->sahkoposti, $cart->tuotteet, $tilaus_id, $tiedoston_nimi );
 		//lähetetään tilaus ylläpidolle
-		laheta_tilaus_yllapitajalle( $db, $cart, $tilaus_id );
+		require 'noutolista_pdf_luonti.php';
+		laheta_noutolista($tilaus_id, $tiedoston_nimi);
 
 		$cart->tyhjenna_kori( $db );
 		header( "location:tilaushistoria.php?id=$user->id" );
