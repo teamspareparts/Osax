@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT 1000.00,
+  `alennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (`id`), UNIQUE KEY (`y_tunnus`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 
@@ -154,15 +155,6 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `selitys` varchar(1000) DEFAULT NULL,
   PRIMARY KEY (`articleNo`, `kayttaja_id`, `pvm`),
   CONSTRAINT fk_tuoteHankintapyynto_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
-
-CREATE TABLE IF NOT EXISTS `yritys_erikoishinta` (
-  `yritys_id` smallint UNSIGNED NOT NULL, -- PK, FK
-  `alennus_prosentti` decimal(3,2) NOT NULL,
-  `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
-  `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
-  PRIMARY KEY (`yritys_id`),
-  CONSTRAINT fk_yritysErikoishinta_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (

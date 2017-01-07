@@ -26,11 +26,8 @@ elseif (isset($_POST['muokkaa_rahtimaksu'])) {
 
 /** Yrityksen alennuksen lisääminen/muokkaaminen */
 elseif ( !empty($_POST['muokkaa_alennus']) ) {
-	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10
-	$sql = "INSERT INTO yritys_erikoishinta (yritys_id, alennus_prosentti, alkuPvm, loppuPvm)
-			VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_DATE + INTERVAL 15 DAY)
-			ON DUPLICATE KEY UPDATE 
-				alennus_prosentti = VALUES(alennus_prosentti), alkuPvm = VALUES(alkuPvm), loppuPvm = VALUES(loppuPvm)";
+	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10;
+	$sql = "UPDATE yritys SET alennus_prosentti = ? WHERE id = ?";
 	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
 }
@@ -97,9 +94,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<span>Yleinen alennus, koskee kaikkia tuotteita.</span>
 			<br><br>
 			<label> Yleinen alennus: </label>
-			<input type="hidden" name="muokkaa_alennus" value="<?= $yritys->id ?>">
 			<input type="number" name="yleinen_alennus" min="0" max="100"
 			       value="<?= $yritys->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
+			<input type="hidden" name="muokkaa_alennus" value="<?= $yritys->id ?>">
 			<br><br>
 			<div class="center">
 				<input type="submit" value="Muokkaa alennusta" class="nappi">

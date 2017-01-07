@@ -40,13 +40,10 @@ class User {
 			$sql = "SELECT kayttaja.id, kayttaja.yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
 						kayttaja.puhelin, yllapitaja, demo, kayttaja.voimassaolopvm, salasana_uusittava,
 				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi AS yrityksen_nimi,
-				  		yritys_erikoishinta.alennus_prosentti AS yleinen_alennus,
+				  		yritys.alennus_prosentti AS yleinen_alennus,
 				  		yritys.ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja, yritys.rahtimaksu
 					FROM kayttaja 
 					JOIN yritys ON kayttaja.yritys_id = yritys.id
-					LEFT JOIN yritys_erikoishinta ON kayttaja.yritys_id = yritys_erikoishinta.yritys_id
-						AND (yritys_erikoishinta.loppuPvm >= CURDATE() 
-							OR yritys_erikoishinta.loppuPvm IS NULL)
 					WHERE kayttaja.id = ?
 					LIMIT 1";
 			$row = $db->query( $sql, [ $user_id ] );

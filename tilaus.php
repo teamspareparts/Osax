@@ -32,9 +32,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
 		foreach ( $cart->tuotteet as $tuote ) {
-			$stmt->execute( [ $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
-				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara
-			] );
+			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
+				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
 
 			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ? WHERE id = ?" );
 			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
@@ -65,7 +64,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	} catch ( PDOException $ex ) {
 		// Rollback any changes, and print error message to user.
 		$conn->rollback();
-		$_SESSION["feedback"] = "<p class='error'>Tilauksen lähetys ei onnistunut!<br>Virhe: {$ex->errorInfo}</p>";
+		$_SESSION["feedback"] = "<p class='error'>Tilauksen lähetys ei onnistunut!<br>Virhe: ". print_r($ex->errorInfo,1)."</p>";
 		// TODO: Do not print error message to user in full (only generic)!
 	}
 }
