@@ -27,13 +27,11 @@ class Laskutiedot {
 	 * @param DByhteys $db
 	 * @param int $tilaus_id
 	 * @param User $user
-	 * @param Yritys $yritys
 	 */
-	function __construct( DByhteys $db, /*int*/ $tilaus_id = NULL, User $user, Yritys $yritys ) {
+	function __construct( DByhteys $db, /*int*/ $tilaus_id = NULL, User $user ) {
 		$this->tilaus_nro = !empty($tilaus_id) ? $tilaus_id : '[Til nro]';
 		$this->db = $db;
 		$this->asiakas = $user;
-		$this->yritys = $yritys;
 		$this->osax = new Yritys( $db, 1 );
 		$this->toimitusosoite = new Toimitusosoite();
 		$this->haeTilauksenTiedot( $this->tilaus_nro );
