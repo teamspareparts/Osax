@@ -47,17 +47,17 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
   `valmistaja` varchar(40) DEFAULT NULL,
-  `hinta_ilman_ALV` decimal(11,2) NOT NULL,
+  `hinta_ilman_ALV` decimal(11,4) NOT NULL,
   `ALV_kanta` tinyint(1) UNSIGNED NOT NULL DEFAULT 0, -- Foreign KEY
   `varastosaldo` mediumint NOT NULL DEFAULT 0,
   `minimimyyntiera` mediumint UNSIGNED NOT NULL DEFAULT 1,
-  `sisaanostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `sisaanostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
   `yhteensa_kpl` mediumint NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
-  `keskiostohinta` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `keskiostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
   `hyllypaikka` varchar(10) DEFAULT NULL,
   `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
   `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
-  `alennusera_prosentti` decimal(3,2) NOT NULL default 0.00, -- Maaraalennus_pros -- Saattaa olla turha
+  `alennusera_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tuote_id` int UNSIGNED NOT NULL, -- PK, FK
   `tuotteen_nimi` varchar(20) NOT NULL,
   `valmistaja` varchar(30) NOT NULL,
-  `pysyva_hinta` decimal(11,2) NOT NULL,
+  `pysyva_hinta` decimal(11,4) NOT NULL,
   `pysyva_alv` decimal(3,2) NOT NULL,
   `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT 0.00,
   `kpl` mediumint NOT NULL DEFAULT 1,
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
-  `rahti` decimal(11,2),
+  `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
@@ -268,7 +268,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
-  `rahti` decimal(11,2),
+  `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,
   `lahettaja` int(11), -- Tilauskirjan lähettäjän käyttäjä ID
@@ -284,7 +284,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `kpl` int(11) NOT NULL,
-  `ostohinta` decimal(11,2) NOT NULL, -- TODO: decimal?
+  `ostohinta` decimal(11,4) NOT NULL,
   `lisays_tapa` tinyint(1) NOT NULL, -- 0: käsin, 1: automaatio
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (jos käsin) (FK)

@@ -50,9 +50,10 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		$conn->commit();
 
-		require 'lasku_pdf_luonti.php';
 		//lähetetään tilausvahvistus asiakkaalle
+		require 'lasku_pdf_luonti.php';
 		laheta_tilausvahvistus( $user->sahkoposti, $cart->tuotteet, $tilaus_id, $tiedoston_nimi );
+
 		//lähetetään tilaus ylläpidolle
 		require 'noutolista_pdf_luonti.php';
 		laheta_noutolista($tilaus_id, $tiedoston_nimi);
