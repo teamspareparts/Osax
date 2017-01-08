@@ -8,11 +8,11 @@ if ( !$user->isAdmin() ) {
 /** Tiedoston käsittely */
 if ( isset($_FILES['eula']['name']) ) {
 
-    if ( !$_FILES['eula']['error'] ) { // Jos ei virheitä...
+    if ( !$_FILES['eula']['error'] ) { // Jos ei virheitä
 		$target_file = "eula.txt"; //TODO: Pitäisikö eula olla jossain muussa kansiossa?
 
-		$query = "UPDATE kayttaja SET vahvista_eula = 1"; // Käyttäjien on vahvistettava uusi eula.
-		$db->query( $query ); //Ditto
+		// Käyttäjien on vahvistettava uusi eula
+		$db->query( "UPDATE kayttaja SET vahvista_eula = 1" );
 
 		// Onnistuiko tiedoston siirtäminen serverille
 		if ( move_uploaded_file( $_FILES['eula']['tmp_name'], $target_file ) ) {
@@ -21,12 +21,11 @@ if ( isset($_FILES['eula']['name']) ) {
 			$_SESSION['feedback'] = "<p class='error'>EULAn päivittäminen epäonnistui.</p>";
 		}
 
-	} else {// Jos virhe tiedoston latauksessa...
+	} else {// Jos virhe tiedoston latauksessa
 		$_SESSION['feedback'] = "<p class='error'>Error: {$_FILES['eula']['error']}</p>";
 	}
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {

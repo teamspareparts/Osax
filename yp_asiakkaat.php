@@ -2,7 +2,7 @@
 require '_start.php'; global $db, $user, $cart;
 
 /**
- * //TODO: Voisi olla tehokkaampi
+ * Hakee yrityksen asiakkaat
  * @param DByhteys $db
  * @param int $yritys_id
  * @return User[]
@@ -10,7 +10,7 @@ require '_start.php'; global $db, $user, $cart;
 function hae_yrityksen_asiakkaat ( DByhteys $db, /*int*/ $yritys_id ) {
 	$asiakkaat = array();
 	$rows = $db->query( "SELECT id FROM kayttaja WHERE yritys_id = ? AND aktiivinen = 1",
-		[$yritys_id], DByhteys::FETCH_ALL );
+		[$yritys_id], FETCH_ALL );
 	foreach ( $rows as $row ) {
 		$asiakkaat[] = new User( $db, $row->id );
 	}
@@ -22,7 +22,7 @@ if ( !$user->isAdmin() || !$yritys->isValid() ) {
 	header("Location:etusivu.php");	exit();
 }
 
-/** Käyttäjien poistaminen */
+//Käyttäjien poistaminen
 if ( !empty($_POST['ids']) ){
 	$db->prepare_stmt( "UPDATE kayttaja SET aktiivinen = 0 WHERE id = ?" );
 	foreach ($_POST['ids'] as $asiakas_id) {
@@ -31,7 +31,6 @@ if ( !empty($_POST['ids']) ){
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaat deaktivoitu</p>";
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {
@@ -102,7 +101,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 			.css('cursor', 'pointer')
 			.click(function() {
 				$('tr').click(function(){
-					var id = $(this).attr('data-val');
+					let id = $(this).attr('data-val');
 					window.document.location = 'tilaushistoria.php?id='+id;
 				});
 		});

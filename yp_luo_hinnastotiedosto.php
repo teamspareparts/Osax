@@ -6,7 +6,6 @@
 require "_start.php"; global $db, $user;
 require "tecdoc.php";
 
-//Jos vie pitkään
 set_time_limit(180);
 
 //Debuggaukseen
@@ -38,7 +37,7 @@ while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
     //Kirjoitetaan haetut tuotteet tiedostoon
     foreach ($products as $p) {
         $row = str_pad($p->tuotekoodi, 20 , " ") .
-                str_pad(number_format((1+$p->prosentti)*$p->hinta_ilman_ALV,2,',',''), 10 , " ") .
+                str_pad(number_format((1+$p->prosentti)*$p->hinta_ilman_ALV,2,',',''), 10 , " ", STR_PAD_LEFT) .
                 str_pad($p->nimi, 40 , " ") . "\r\n";
         fwrite($hinnastotiedosto, $row);
     }

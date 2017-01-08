@@ -10,8 +10,8 @@ require_once 'tecdoc.php';
 
 /**
  * Palauttaa Autovalmistajat selectiin.
- * @param array $manufs <p>
- * @return string <p> Select valmistajan vaihtoehtot, HTML:nä.
+ * @param array, $manufs automerkit
+ * @return string, option lista automerkeistä, HTML:nä.
  * 		Jos ei yhteyttä TecDociin, huomauttaa siitä.
  */
 function printManufSelectOptions ( array $manufs ) {
@@ -42,7 +42,7 @@ $manufs = getManufacturers();
         <select id="car" name="car" disabled="disabled" title="Auto">
             <option value="">-- Tyyppi --</option>
         </select><br>
-        <select id="osaTyyppi" name="osat" disabled="disabled" title="Osastyyppi">
+        <select id="osat_ylalaji" name="osat" disabled="disabled" title="Osan tyyppi">
             <option value="">-- Tuoteryhmä --</option>
         </select><br>
         <select id="osat_alalaji" name="osat_alalaji" disabled="disabled" title="Tyypin alalaji">
@@ -62,12 +62,11 @@ $manufs = getManufacturers();
     var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
     var TECDOC_COUNTRY = <?= json_encode(TECDOC_COUNTRY); ?>;
     var TECDOC_LANGUAGE = <?= json_encode(TECDOC_LANGUAGE); ?>;
-    var TECDOC_THUMB_URL = <?= json_encode(TECDOC_THUMB_URL); ?>;
 
     //hakee tecdocista automallit annetun valmistaja id:n perusteella
     function getModelSeries( manufacturerID ) {
-        var functionName = "getModelSeries";
-        var params = {
+        let functionName = "getModelSeries";
+        let params = {
             "favouredList" : 1,
             "linkingTargetType" : 'P',
             "manuId" : manufacturerID,
@@ -81,8 +80,8 @@ $manufs = getManufacturers();
 
     //hakee autojen id:t valmistajan ja mallin perusteella
     function getVehicleIdsByCriteria( manufacturerID, modelID ) {
-        var functionName = "getVehicleIdsByCriteria";
-        var params = {
+        let functionName = "getVehicleIdsByCriteria";
+        let params = {
             "carType" : "P",
             "favouredList": 1,
             "manuId" : manufacturerID,
@@ -97,15 +96,15 @@ $manufs = getManufacturers();
 
     //hakee lisätietoa autoista id:n perusteella
     function getVehicleByIds3( response ) {
-        var params, i;
-        var functionName = "getVehicleByIds3";
-        var ids = [], IDarray = [];
+        let params, i;
+        let functionName = "getVehicleByIds3";
+        let ids = [], IDarray = [];
 
         for ( i = 0; i < response.data.array.length; i++ ) {
             ids.push(response.data.array[i].carId);
         }
 
-        //pystyy vastaanottamaan max 25 id:tä
+        //max 25 id:tä kerralla
         while( ids.length > 0 ) {
             if( ids.length >= 25 ){
                 IDarray = ids.slice(0,25);
@@ -131,8 +130,8 @@ $manufs = getManufacturers();
 
     //hakee autoon linkitetyt osatyypit
     function getPartTypes( carID ) {
-        var functionName = "getChildNodesAllLinkingTarget2";
-        var params = {
+        let functionName = "getChildNodesAllLinkingTarget2";
+        let params = {
             "linked" : true,
             "linkingTargetId" : carID,
             "linkingTargetType" : "P",
@@ -147,8 +146,8 @@ $manufs = getManufacturers();
 
     //hakee osatyypin alalajit (kuten jarrut -> jarrulevyt)
     function getChildNodes( carID, parentNodeID ) {
-        var functionName = "getChildNodesAllLinkingTarget2";
-        var params = {
+        let functionName = "getChildNodesAllLinkingTarget2";
+        let params = {
             "linked" : true,
             "linkingTargetId" : carID,
             "linkingTargetType" : "P",
@@ -162,8 +161,8 @@ $manufs = getManufacturers();
         tecdocToCatPort[functionName] (params, updatePartSubTypeList);
     }
 
-    // Create JSON String and put a blank after every ',':
-    //Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
+    // Create JSON String and put a blank after every ','
+    // Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
     function toJSON( obj ) {
         return JSON.stringify(obj).replace(/,/g,", ");
     }
@@ -171,7 +170,7 @@ $manufs = getManufacturers();
     // Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updateModelList( response ) {
-        var model, text, yearTo, i, modelList;
+        let model, text, yearTo, i, modelList;
         response = response.data;
 
         //uudet tiedot listaan
@@ -203,7 +202,7 @@ $manufs = getManufacturers();
     // Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updateCarList( response ) {
-        var car, text, yearTo, i, carList;
+        let car, text, yearTo, i, carList;
         response = response.data;
 
         //uudet tiedot listaan
@@ -232,26 +231,27 @@ $manufs = getManufacturers();
         $('#car').removeAttr('disabled');
     }
 
+	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartTypeList( response ) {
-        var partType, i, partTypeList;
+        let partType, i, partTypeList;
         response = response.data;
 
         //uudet tiedot listaan
-        partTypeList = document.getElementById("osaTyyppi");
+        partTypeList = document.getElementById("osat_ylalaji");
         if (response.array){
             for (i = 0; i < response.array.length; i++) {
                 partType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
                 partTypeList.options.add(partType);
             }
         }
-
-        $('#osaTyyppi').removeAttr('disabled');
+        $('#osat_ylalaji').removeAttr('disabled');
     }
 
+	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartSubTypeList( response ) {
-        var subPartType, i, subPartTypeList;
+        let subPartType, i, subPartTypeList;
         response = response.data;
 
         //uudet tiedot listaan
@@ -262,7 +262,6 @@ $manufs = getManufacturers();
                 subPartTypeList.options.add(subPartType);
             }
         }
-
         $('#osat_alalaji').removeAttr('disabled');
     }
 
@@ -272,24 +271,23 @@ $manufs = getManufacturers();
      * @param text
      * @returns {string}
      */
-    function addSlash(text) {
+	function addSlash(text) {
         text = String(text);
         return (text.substr(0, 4) + "/" + text.substr(4));
     }
 
 
+
     $("#manufacturer").on("change", function(){
         //kun painaa jotain automerkkiä->
-
-        var manuList = document.getElementById("manufacturer");
-        var selManu = parseInt(manuList.options[manuList.selectedIndex].value);
+        let manuList = document.getElementById("manufacturer");
+        let selManu = parseInt(manuList.options[manuList.selectedIndex].value);
 
         //Poistetaan vanhat tiedot
-        var modelList = document.getElementById("model");
-        var carList = document.getElementById("car");
-        var partTypeList = document.getElementById("osaTyyppi");
-        var subPartTypeList = document.getElementById("osat_alalaji");
-
+        let modelList = document.getElementById("model");
+        let carList = document.getElementById("car");
+        let partTypeList = document.getElementById("osat_ylalaji");
+        let subPartTypeList = document.getElementById("osat_alalaji");
         while ( modelList.options.length - 1 ) {
             modelList.remove(1);
         }
@@ -303,11 +301,13 @@ $manufs = getManufacturers();
             subPartTypeList.remove(1);
         }
 
-        //väliaikaisesti estetään modelin ja auton valinta
+        //väliaikaisesti estetään mallin, auton ja osatyyppien valinta
         $('#model').attr('disabled', 'disabled');
         $('#car').attr('disabled', 'disabled');
-        $('#osaTyyppi').attr('disabled', 'disabled');
+        $('#osat_ylalaji').attr('disabled', 'disabled');
         $('#osat_alalaji').attr('disabled', 'disabled');
+
+        //Haetaan automallit
         if ( selManu > 0 ) {
             getModelSeries(selManu);
         }
@@ -315,15 +315,15 @@ $manufs = getManufacturers();
 
     $("#model").on("change", function(){
         //kun painaa jotain automallia->
-        var manuList = document.getElementById("manufacturer");
-        var modelList = document.getElementById("model");
-        var selManu = parseInt(manuList.options[manuList.selectedIndex].value);
-        var selModel = parseInt(modelList.options[modelList.selectedIndex].value);
-        var partTypeList = document.getElementById("osaTyyppi");
-        var subPartTypeList = document.getElementById("osat_alalaji");
+        let manuList = document.getElementById("manufacturer");
+        let modelList = document.getElementById("model");
+        let selManu = parseInt(manuList.options[manuList.selectedIndex].value);
+        let selModel = parseInt(modelList.options[modelList.selectedIndex].value);
 
-        //tyhjennetään autolista ja haetaan uudet autot
-        var carList = document.getElementById("car");
+		//Poistetaan vanhat tiedot
+        let carList = document.getElementById("car");
+		let partTypeList = document.getElementById("osat_ylalaji");
+		let subPartTypeList = document.getElementById("osat_alalaji");
         while (carList.options.length - 1) {
             carList.remove(1);
         }
@@ -334,10 +334,12 @@ $manufs = getManufacturers();
             subPartTypeList.remove(1);
         }
 
+        //Väliaikaisesti estetään auton, ja osatyyppien valinta
         $('#car').attr('disabled', 'disabled');
-        $('#osaTyyppi').attr('disabled', 'disabled');
+        $('#osat_ylalaji').attr('disabled', 'disabled');
         $('#osat_alalaji').attr('disabled', 'disabled');
 
+        //Haetaan tarkka automalli
         if (selModel > 0 ) {
             getVehicleIdsByCriteria(selManu, selModel);
         }
@@ -345,13 +347,12 @@ $manufs = getManufacturers();
 
     $("#car").on("change", function(){
         //kun painaa jotain autoa->
-        var carList = document.getElementById("car");
+        let carList = document.getElementById("car");
+        let selCar = parseInt(carList.options[carList.selectedIndex].value);
 
-        var selCar = parseInt(carList.options[carList.selectedIndex].value);
-        var subPartTypeList = document.getElementById("osat_alalaji");
-        var partTypeList = document.getElementById("osaTyyppi");
-
-        //tyhjennetään autolista ja haetaan uudet autot
+		//Poistetaan vanhat tiedot
+        let subPartTypeList = document.getElementById("osat_alalaji");
+        let partTypeList = document.getElementById("osat_ylalaji");
         while (partTypeList.options.length - 1) {
             partTypeList.remove(1);
         }
@@ -359,41 +360,46 @@ $manufs = getManufacturers();
             subPartTypeList.remove(1);
         }
 
-        $('#osaTyyppi').attr('disabled', 'disabled');
+        //Väliaikaisesti estetään osatyyppien valinta
+        $('#osat_ylalaji').attr('disabled', 'disabled');
         $('#osat_alalaji').attr('disabled', 'disabled');
+
+        //Haetaan osatyyppit
         if (selCar > 0 ) {
             getPartTypes(selCar);
         }
     });//#car.onChange
 
-    $("#osaTyyppi").on("change", function(){
-        //kun painaa jotain osatyyppiä->
-        var carList = document.getElementById("car");
-        var partTypeList = document.getElementById("osaTyyppi");
+    $("#osat_ylalaji").on("change", function(){
+        //kun painaa jotain osan ylätyyppiä->
+        let carList = document.getElementById("car");
+        let partTypeList = document.getElementById("osat_ylalaji");
+        let selCar = parseInt(carList.options[carList.selectedIndex].value);
+        let selPartType = parseInt(partTypeList.options[partTypeList.selectedIndex].value);
 
-        var selCar = parseInt(carList.options[carList.selectedIndex].value);
-        var selPartType = parseInt(partTypeList.options[partTypeList.selectedIndex].value);
-        var subPartTypeList = document.getElementById("osat_alalaji");
-
-        //tyhjennetään osatyypilista
+		//Poistetaan vanhat tiedot
+        let subPartTypeList = document.getElementById("osat_alalaji");
         while (subPartTypeList.options.length - 1) {
             subPartTypeList.remove(1);
         }
 
+        //Väliaikaisesti estetään osan alalajin valinta
         $('#osat_alalaji').attr('disabled', 'disabled');
+
+        //Haetaan tuoteryhmän alalajit
         if (selPartType > 0 ) {
             getChildNodes(selCar, selPartType);
         }
-    });//#osaTyyppi.onChange
+    });//#osat_ylalaji.onChange
 
-    //annetaan hakea vain jos kaikki tarvittavat tiedot on annettu
-    $("#ajoneuvomallihaku").submit(function(e) {
+
+    //Sallitaan ajoneuvomallillahaku vain, jos kaikki tiedot annettu
+	$("#ajoneuvomallihaku").submit(function(e) {
         if (document.getElementById("osat_alalaji").selectedIndex !== 0) {
-            //sallitaan formin lähetys
             return true;
         } else {
             e.preventDefault();
-            alert("Täytä kaikki kohdat ennen hakua! tms.....");
+            alert("Täytä kaikki kohdat ennen hakua!");
             return false;
         }
     }); //#ajoneuvomallihaku.submit

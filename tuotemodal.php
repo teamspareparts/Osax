@@ -49,16 +49,17 @@
     var TECDOC_THUMB_URL = <?= json_encode(TECDOC_THUMB_URL); ?>;
 
     /**
-     * Haetaan tuotteen tiedot annetulla id:llä
-     * @param id
+     * Tuoteikkuna
+     * @param id    Tuotteen articleId
      */
     function productModal ( id ) {
 
         //spinning icon
         $("#cover").addClass("loading");
 
-        var functionName = "getDirectArticlesByIds6";
-        var params = {
+        //Haetaan tuotteen tiedot
+        let functionName = "getDirectArticlesByIds6";
+        let params = {
             "articleCountry" : TECDOC_COUNTRY,
             "lang" : TECDOC_LANGUAGE,
             "provider" : TECDOC_MANDATOR,
@@ -225,7 +226,6 @@
             $("#menu3").append('\ ' + comparableNumbers + '\ ');
         }
 
-
         function getLinkedManufacturers(articleId) {
             let functionName = "getArticleLinkedAllLinkingTargetManufacturer";
             let params = {
@@ -259,7 +259,7 @@
             $('#maintab').tab('show');
         }
 
-        var documents, infos, brand, articleNo, name, OEtable, imgs, articleId, display_img, display_img_id, img;
+        let documents, infos, brand, articleNo, name, OEtable, imgs, articleId, display_img, display_img_id, img;
         response = response.data.array[0];
         articleId = response.directArticle.articleId;
 
@@ -273,7 +273,6 @@
         documents = getDocuments(response);
 
         //display image
-        display_img_id = "";
         if (response.articleThumbnails.length === 0) {
             display_img = "img/ei-kuvaa.png";
             img = '<img src=' + display_img + ' border="1" id="display_img">'
@@ -283,7 +282,7 @@
             img = '<img src=' + display_img + ' border="1" id="display_img" class="kuva">'
         }
 
-        //Lisätään tuote modaliin sisältö
+        //Lisätään modaliin sisältö
         $("#menu1").append('\
 			<br>\
 			<div class="flex_row">\
@@ -313,6 +312,7 @@
 
     }
 
+    //Näytetään linkitetyt autot
 	function showCars(elmnt, articleId){
         //Valitaan DIV painetun elementin data-manuId:n avulla
         let car_dropdown = $("#manufacturer-"+elmnt.getAttribute('data-manuId'));
@@ -322,7 +322,6 @@
 			car_dropdown.addClass("loader");
 			getLinkedVehicleIds(articleId, elmnt.getAttribute("data-manuId"));
 		}
-		//
 		//car_dropdown.show();
 		if (car_dropdown.css("display") == "none") {
 			car_dropdown.show();
@@ -333,10 +332,10 @@
 		}
 	}
 
-    //Haetaan linkitettyjen autojen ID:t
+    //Haetaan linkitetyt autot artikkelinumeron ja valmistajaId perusteella
     function getLinkedVehicleIds( articleId, manuId ) {
-        var functionName = "getArticleLinkedAllLinkingTarget3";
-        var params = {
+        let functionName = "getArticleLinkedAllLinkingTarget3";
+        let params = {
             "articleCountry" : TECDOC_COUNTRY,
             "lang" : TECDOC_LANGUAGE,
             "provider" : TECDOC_MANDATOR,
@@ -346,8 +345,8 @@
         };
         params = toJSON(params);
         tecdocToCatPort[functionName] (params, function (response){
-            var pair, i;
-            var articleIdPairs = [];
+            let pair, i;
+            let articleIdPairs = [];
             if ( response.data != "" ) {
                 response = response.data.array[0];
                 for (i = 0; i < response.articleLinkages.array.length; i++) {
@@ -368,8 +367,8 @@
 
     //Haetaan linkitettyjen autojen tiedot
     function getLinkedVehicleInfos( articleId, articleIdPairs ) {
-        var functionName = "getArticleLinkedAllLinkingTargetsByIds3";
-        var params = {
+        let functionName = "getArticleLinkedAllLinkingTargetsByIds3";
+        let params = {
             "articleCountry" : TECDOC_COUNTRY,
             "lang" : TECDOC_LANGUAGE,
             "provider" : TECDOC_MANDATOR,
@@ -383,10 +382,12 @@
         tecdocToCatPort[functionName] (params, addLinkedVehiclesToModal);
     }
 
+    //Lisätään haetut autojen tiedot modaliin
     function addLinkedVehiclesToModal(response) {
         $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
-        for (var i=0; i<response.data.array.length ; i++) {
-            var yearTo = "";
+        let i;
+        for (i=0; i<response.data.array.length ; i++) {
+            let yearTo = "";
             if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo != 'undefined') {
                 yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
             }
@@ -409,9 +410,7 @@
     }
 
 
-
-
-
+    //Tyhjennetään modalin sisältö sen sulkeutuessa
     $('#myModal').on('hidden.bs.modal', function () {
         $( "#menu1" ).empty();
         $( "#menu2" ).empty();
@@ -419,7 +418,6 @@
         $( "#dd" ).empty();
     });
 
-    //Käytetään eri muotoilua, koska dynaaminen content
     $(document.body)
         .on('mouseover', '#asennusohje', function(){
             $(this).css("text-decoration", "underline"); })
@@ -429,12 +427,11 @@
 
     //avaa tuotteen kuvan isona uuteen ikkunaan
     $(document.body).on('click', '.kuva', function(){
-        var src = this.src;
-        var w = this.naturalWidth;
-        var h = this.naturalHeight;
-
-        var left = (screen.width/2)-(w/2);
-        var top = (screen.height/2)-(h/2);
+        let src = this.src;
+        let w = this.naturalWidth;
+        let h = this.naturalHeight;
+        let left = (screen.width/2)-(w/2);
+        let top = (screen.height/2)-(h/2);
         //TODO: will this change work? myWindow =
         window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
     }); //close click

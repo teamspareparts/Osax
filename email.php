@@ -5,6 +5,8 @@
  * (Viittaus esim: curl.cainfo = "C:\__polku__tähän__\cacert.pem.txt")
  */
 
+//TODO: Pitäisikö tästä tiedostosta tehdä luokka?
+
 /**
  * Sähköpostin lähetykseen käytettävä functio, jolla voi lähettää myös liitetiedoston.
  * @param string $email <p> Vastaanottajan sähköpostiosoite
@@ -102,6 +104,7 @@ function laheta_tilausvahvistus( /*string*/ $email, Ostoskori $cart, /*int*/ $ti
 }
 
 /**
+ * Lähettää noutolistan
  * @param $tilausnro int Tilauksen numero
  * @param $fileName String Noutolistan tiedostonimi
  * @return bool
@@ -117,7 +120,8 @@ function laheta_noutolista( /*int*/ $tilausnro, /*String*/ $fileName){
 	return true;
 }
 
-/**s
+/**
+ * Lähettää ilmoituksen tilaajalle, kun tilaus on lähetetty
  * @param $email
  * @param $tilausnro
  * @return bool
@@ -137,7 +141,7 @@ function laheta_ilmoitus_tilaus_lahetetty( /*String*/ $email, /*int*/ $tilausnro
  * @param $uusi_sijainti
  * @return bool
  */
-function laheta_ilmoitus_epailyttava_IP( User $user, $vanha_sijainti, $uusi_sijainti){
+function laheta_ilmoitus_epailyttava_IP( stdClass $user, /*string*/ $vanha_sijainti, /*string*/ $uusi_sijainti){
 
 	$admin_email = 'myynti@osax.fi';
 	

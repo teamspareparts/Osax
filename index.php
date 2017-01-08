@@ -1,4 +1,7 @@
 ﻿<?php
+
+//TODO: Vaihda tiedoston nimi esim login.php
+
 session_start();
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko uudellenohjaus
 

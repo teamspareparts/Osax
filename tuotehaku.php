@@ -179,8 +179,6 @@ if ( !empty($_GET["manuf"]) ) {
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
     <script src="js/jsmodal-1.0d.min.js"></script>
@@ -460,6 +458,13 @@ require 'tuotemodal.php';
 		}
 	}
 
+	/**
+     * Lisää tuotteen ostotilauskirjalle
+	 * @param id
+	 * @param hankintapaikka_id
+	 * @param tuote_nimi
+	 * @param tuote_valmistaja
+	 */
 	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
 		//haetaan hankintapaikan ostotilauskirjat
 		$.post(
@@ -524,18 +529,18 @@ require 'tuotemodal.php';
 								.css("background-color","green")
 								.addClass("disabled");
 						} else {
-							alert("ERROR: Tuote on jo kyseisellä tilauskirjalla.");
+							alert("Tuote on jo kyseisellä tilauskirjalla.");
 						}
 					});
 			});
 
+		//Tuoteikkuna
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
 				let articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
 				productModal(articleId); //haetaan tuotteen tiedot tecdocista
 			});
-
 
 	});//doc.ready
 
@@ -557,7 +562,7 @@ require 'tuotemodal.php';
 		return b;
 	})(window.location.search.substr(1).split('&'));
 
-	//laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
+	//Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
 	if ( qs["manuf"] ){
 		let manuf = qs["manuf"];
 		let model = qs["model"];
@@ -576,7 +581,7 @@ require 'tuotemodal.php';
 			$("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
 			$("#model").find("option[value=" + model + "]").attr('selected', 'selected');
 			$("#car").find("option[value=" + car + "]").attr('selected', 'selected');
-			$("#osaTyyppi").find("option[value=" + osat + "]").attr('selected', 'selected');
+			$("#osat_ylalaji").find("option[value=" + osat + "]").attr('selected', 'selected');
 			$("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
 		}
 

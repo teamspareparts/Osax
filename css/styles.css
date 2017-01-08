@@ -455,13 +455,6 @@ th {
 	max-height: 64px;
 }
 
-#manufacturer, #model, #car, #osaTyyppi, #osat_alalaji{
-	width: 500px;
-	padding: 1pt;
-	border: 1px solid #1d7ae2;
-	font-size: 90%;
-}
-
 .tuotehaku_header {
 	display: flex;
 	flex-grow: 1;
@@ -475,6 +468,13 @@ th {
 
 .tuotekoodihaku, .ajoneuvomallihaku {
 	padding: 0 30px 30px;
+}
+
+.ajoneuvomallihaku select {
+	width: 500px;
+	padding: 1pt;
+	border: 1px solid #1d7ae2;
+	font-size: 90%;
 }
 
 /** Otsikon vasemmalla puolella olevat napit */

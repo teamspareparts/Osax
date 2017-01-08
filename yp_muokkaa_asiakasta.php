@@ -4,7 +4,7 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-/** Asiakkaan muokkaus. */
+/** Asiakkaan muokkaus */
 if ( !empty($_POST['muokkaa_asiakas']) ) {
 	$sql = "UPDATE kayttaja SET etunimi = ?, sukunimi = ?, puhelin = ? WHERE id = ?";
 	unset($_POST['muokkaa_asiakas']); //Turha indeksi, poistetaan.

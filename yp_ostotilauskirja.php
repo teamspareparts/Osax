@@ -6,13 +6,13 @@ if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
 
-//tarkastetaan onko GET muuttujat sallittuja ja haetaan hankintapaikan tiedot
+//tarkastetaan onko GET muuttuja sallittu ja haetaan hankintapaikan tiedot
 $hankintapaikka_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$hp = $db->query("SELECT * FROM hankintapaikka WHERE id = ? LIMIT 1", [$hankintapaikka_id])) {
     header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
-
+/** Ostotilauskirjan lisäys */
 if ( isset($_POST['lisaa']) ) {
     unset($_POST['lisaa']);
     $sql = "  INSERT IGNORE INTO ostotilauskirja 
@@ -24,6 +24,7 @@ if ( isset($_POST['lisaa']) ) {
         $_SESSION["feedback"] = "<p class='error'>Ostotilauskirjan tunniste varattu.</p>";
     }
 }
+/** Ostotilauskirjan muokkaus */
 else if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
     $sql = "  UPDATE ostotilauskirja
@@ -33,6 +34,7 @@ else if ( isset($_POST['muokkaa']) ) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     }
 }
+/** Ostotilauskirjan poistaminen */
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
     if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) ) {
@@ -46,12 +48,10 @@ if ( !empty($_POST) ){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
     exit();
 }
-
-
-
-
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
+
+
 
 //haetaan ostotilauskirjat
 $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
@@ -152,7 +152,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 <script type="text/javascript">
 
     function avaa_modal_uusi_ostotilauskirja( ostokirjatilaus_id ) {
-        var date = new Date().toISOString().slice(0,10);
+        let date = new Date().toISOString().slice(0,10);
         Modal.open({
             content: '\
             <h4>Anna uuden ostotilauskirjan tiedot.</h4>\
@@ -176,7 +176,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
     }
 
     function avaa_modal_muokkaa_ostotilauskirja(tunniste, saapumispvm, rahti, ostokirjatilaus_id){
-        var date = new Date().toISOString().slice(0,10);
+        let date = new Date().toISOString().slice(0,10);
         Modal.open( {
             content:  '\
 				<h4>Muokkaa ostitilauskirjan tietoja.</h4>\
@@ -203,12 +203,12 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
     function poista_ostotilauskirja(ostotilauskirja_id){
         if( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
             //Rakennetaan form
-            var form = document.createElement("form");
+            let form = document.createElement("form");
             form.setAttribute("method", "POST");
             form.setAttribute("action", "");
 
             //asetetaan $_POST["poista"]
-            var field = document.createElement("input");
+            let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "poista");
             field.setAttribute("value", true);

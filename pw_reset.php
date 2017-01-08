@@ -2,36 +2,33 @@
 require 'tietokanta.php';
 
 /**
+ * Tarkistetaan onko avain validi ja onko se vanhentunut
  * @param DByhteys $db
  * @param string $reset_key_hash <p> Hajautettu reset-avain, jota verrataan tietokannassa olevaan.
  * @return object|false <p> Palauttaa joko löydetyn pw_reset objektin, tai
  * 		FALSE:n tapauksessa heittää takaisin kirjautumissivulle.
  */
 function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_hash ) {
-	$sql_q = "	SELECT	kayttaja_id, reset_exp_aika, kaytetty
+	$expiration_time = 1; //aika, jonka jälkeen avain vanhenee  (1 tunti)
+	date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
+
+	$sql = "	SELECT	kayttaja_id, reset_exp_aika, kaytetty
 				FROM	pw_reset
 				WHERE	reset_key_hash = ? ";
-	$pw_reset = $db->query( $sql_q, [$reset_key_hash], NULL, PDO::FETCH_OBJ );
+	$pw_reset = $db->query( $sql, [$reset_key_hash], NULL );
 
 	if ( !$pw_reset ) { header("location:index.php"); exit(); }
-	//OLETETAAN ETTÄ MYSQL TIMEZONE ON TALLENNETTU SUOMEN AIKAAN
 	$time_then 	= new DateTime( $pw_reset->reset_exp_aika ); // Muunnettuna DateTime-muotoon
 	$time_now	= new DateTime( 'now' );
 	$interval = $time_now->diff($time_then); //Kahden ajan välinen ero
-
 	$difference = $interval->y + $interval->m + $interval->d + $interval->h; // Lasketaan aikojen erotus
-
-	//TODO: Tässä oli alunperin 4. Oliko se tarkoituksellista? Tarkista tämä vielä kerran.
-	/**
-	 * Default aika, jonka jälkeen avain vanhenee: 1 tunti
-	 * HUOM! Allaolevaa lukua pitää muutta tietokannan asetusten mukaan
-	 */
-	if ( $difference > 0 ) { header("location:index.php?redir=7"); exit(); }
+	if ( $difference > ($expiration_time - 1) ) { header("location:index.php?redir=7"); exit(); }
 
 	return $pw_reset;
 }
 
 /**
+ * Haetaan käyttäjän perustiedot
  * @param DByhteys $db
  * @param stdClass $pw_reset
  * @return array|bool|stdClass
@@ -46,6 +43,7 @@ function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
 }
 
 /**
+ * Salasanan vaihtaminen
  * @param DByhteys $db
  * @param stdClass $user
  * @param string $uusi_salasana
@@ -53,12 +51,12 @@ function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
  */
 function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_salasana, $reset_key ) {
 	$hajautettu_uusi_salasana = password_hash($uusi_salasana, PASSWORD_DEFAULT);
-
 	$query = "	UPDATE	kayttaja 
 				SET 	salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
 				WHERE	id = ? ";
 	$db->query( $query, [$hajautettu_uusi_salasana, $user->id] );
 
+	//Merkataan avain käytetyksi
 	$query = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
 	$db->query( $query, [$user->id, $reset_key] );
 }
@@ -69,7 +67,6 @@ if ( empty($_GET['id']) ) {
 	} else header("location:index.php"); exit();
 }
 
-date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
 $error = FALSE;
 $reset_id_hash = sha1( $_GET['id'] );
 $pw_reset = tarkista_pw_reset_key_ja_aika( $db, $reset_id_hash ); // Tässä kohtaa heitetään ulos, jos FALSE.
@@ -125,9 +122,9 @@ if ( !empty($_POST['reset']) ) {
 
 <script>
 	$(document).ready(function() {
-		var pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
-		var newPassword = $('#uusi_salasana'); // Ditto
-		var pwCheck = $('#check'); // Ditto
+		let pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
+		let newPassword = $('#uusi_salasana'); // Ditto
+		let pwCheck = $('#check'); // Ditto
 
 		/** Salasanojen tarkastus reaaliajassa */
 		$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {

@@ -6,6 +6,11 @@ if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
 
+/**
+ * Hakee kaikki aktiiviset hankintapaikat
+ * @param DByhteys $db
+ * @return array|int|stdClass
+ */
 function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
 	$sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(valmistajan_hankintapaikka.brandName) AS brandit
             FROM hankintapaikka
@@ -15,6 +20,11 @@ function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
 	return $db->query($sql, [], FETCH_ALL);
 }
 
+/**
+ * Hakee hankintapaikkkojen ostotilauskirjat
+ * @param DByhteys $db
+ * @param array $hankintapaikat
+ */
 function hae_hankintapaikkojen_ostotilauskirjat( DByhteys $db, array $hankintapaikat ) {
 	$sql = "SELECT *, ostotilauskirja.id AS id, IFNULL(SUM(kpl*tuote.sisaanostohinta),0) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
  		LEFT JOIN ostotilauskirja_tuote
@@ -42,7 +52,7 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <title>Ostotilauskirjat</title>
 </head>
 <body>

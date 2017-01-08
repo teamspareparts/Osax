@@ -3,6 +3,7 @@ require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
 /**
+ * Hakee käyttäjän kaikkien tilausten tiedot
  * @param DByhteys $db
  * @param User $user
  * @return stdClass[]

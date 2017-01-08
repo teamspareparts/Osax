@@ -35,7 +35,7 @@ function tarkasta_onko_oikea_brand(/*int*/ $brandId){
  */
 function hae_kaikki_hankintapaikat( DByhteys $db ) {
 	$query = "SELECT id, nimi, LPAD(`id`,3,'0') AS hankintapaikka_id FROM hankintapaikka";
-	return $db->query($query, [], FETCH_ALL, PDO::FETCH_OBJ);
+	return $db->query($query, [], FETCH_ALL);
 }
 
 /**
@@ -73,7 +73,6 @@ function tulosta_yhteystiedot($brandAddress){
  * @param $yhteyshenkilo
  * @param $yhteyshenkilo_puhelin
  * @param $yhteyshenkilo_sahkoposti
- * @return mixed
  */
 function tallenna_uusi_hankintapaikka(DByhteys $db, $id, $nimi, $katuosoite, $postinumero,
 									  $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
@@ -84,8 +83,6 @@ function tallenna_uusi_hankintapaikka(DByhteys $db, $id, $nimi, $katuosoite, $po
 				VALUES ( ?, ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ?, ? )";
 	$db->query($query, [$id, $nimi, $katuosoite, $postinumero, $kaupunki, $maa,
 		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa]);
-
-	return;
 }
 
 function muokkaa_hankintapaikkaa(DByhteys $db, $hankintapaikka_id, $katuosoite, $postinumero,
@@ -99,13 +96,11 @@ function muokkaa_hankintapaikkaa(DByhteys $db, $hankintapaikka_id, $katuosoite, 
 				WHERE 	id = ? ";
 	$db->query($query, [$katuosoite, $postinumero, $kaupunki, $maa,
 		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa, $hankintapaikka_id,]);
-
-	return;
 }
 
 
 /**
- * Poistaa hankintapaikan, jos ei linkityksiä brändeihin.
+ * Poistaa hankintapaikan, jos ei linkityksiä valmistajiin.
  * @param DByhteys $db
  * @param $hankintapaikka_id
  * @return array|bool
@@ -142,6 +137,7 @@ function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_i
 
 
 /**
+ * Linkitetään valmistaja hankintapaikkaan
  * @param DByhteys $db
  * @param $brandId
  * @param $hankintapaikkaId
@@ -156,6 +152,7 @@ function linkita_valmistaja_hankintapaikkaan( DByhteys $db, /*int*/ $brandId, /*
 }
 
 /**
+ * Tulostetaan kaikki valmistajan hankintapaikat HTML:nä
  * @param DByhteys $db
  * @param $brandId
  */
@@ -215,9 +212,6 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
 $message = isset($_SESSION["message"]) ? $_SESSION["message"] : "";
 unset($_SESSION["message"]);
 
-//Haetaan brändin yhteystiedot ja logon osoite
-$brandAddress = getAmBrandAddress($brandId)[0];
-$logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 
 if ( isset($_POST['lisaa']) ) {
 	tallenna_uusi_hankintapaikka($db, $_POST['hankintapaikka_id'], $_POST['nimi'], $_POST['katuosoite'], $_POST['postinumero'],
@@ -225,40 +219,36 @@ if ( isset($_POST['lisaa']) ) {
 		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka_id'], $brandName);
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 
 elseif ( isset($_POST['poista_linkitys']) ) {
 	poista_hankintapaikka_linkitys($db, $_POST['hankintapaikka_id'], $brandId);
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 
 elseif( isset($_POST['valitse']) ) {
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka'], $brandName);
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 elseif( isset($_POST['muokkaa']) ) {
 	muokkaa_hankintapaikkaa($db, $_POST['hankintapaikka_id'], $_POST['katuosoite'], $_POST['postinumero'],
 		$_POST['kaupunki'], $_POST['maa'],
 		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
 }
 elseif( isset($_POST['poista'])){
 	if ( !poista_hankintapaikka($db, $_POST['hankintapaikka']) ) {
 		$_SESSION["message"] = "Hankintapaikkaa ei voitu poistaa, koska siihen on linkitetty tuotteita!";
 	}
+}
+
+if (!empty($_POST)) {
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
 	exit();
 }
 
 
-
-
+//Haetaan brändin yhteystiedot ja logon URL
+$brandAddress = getAmBrandAddress($brandId)[0];
+$logo_src = TECDOC_THUMB_URL . $brandAddress->logoDocId . "/";
 //Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
 $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 ?>
@@ -269,7 +259,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/jsmodal-light.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script src="js/jsmodal-1.0d.min.js"></script>
 <title>Toimittajat</title>
 </head>
@@ -282,7 +272,6 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
 <div id="painikkeet">
 	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
-	<!--<a href="yp_valikoima.php?brand=<?=$brandId?>"><span class="nappi">Valikoima</span></a>-->
 </div>
 <br>
 <br>
@@ -302,7 +291,7 @@ tulosta_hankintapaikat($db, $brandId);
 <script>
 	//
 	// Avataan modal, jossa voi täyttää uuden toimittajan yhteystiedot
-	// tai valita jo olemassa olevista
+	// tai valita jo olemassa olevista.
 	//
 	function avaa_modal_uusi_hankintapaikka(brandId){
 		Modal.open( {
@@ -369,19 +358,21 @@ tulosta_hankintapaikat($db, $brandId);
 			draggable: true
 		} );
 
-        var hankintapaikka_lista, hankintapaikka;
-        var hankintapaikat = [];
+        let hankintapaikka_lista, hankintapaikka, i;
+        let hankintapaikat = [];
         hankintapaikat = <?php echo json_encode($hankintapaikat);?>;
         //Täytetään Select-Option
         hankintapaikka_lista = document.getElementById("hankintapaikka");
-
-        for (var i = 0; i < hankintapaikat.length; i++) {
+        for (i = 0; i < hankintapaikat.length; i++) {
             hankintapaikka = new Option(hankintapaikat[i].hankintapaikka_id+" - "+hankintapaikat[i].nimi, hankintapaikat[i].id);
             hankintapaikka_lista.options.add(hankintapaikka);
         }
 
 	}
 
+	//
+    //Modal, jossa voi muokata hankintapaikan tietoja.
+    //
 	function avaa_modal_muokkaa_hankintapaikka(hankintapaikka_id, yritys, katuosoite, postinumero, postitoimipaikka,
 	maa, puhelin, fax, www_url, yhteyshenkilo_nimi, yhteyshenkilo_puhelin, yhteyshenkilo_email, tilaustapa){
 		Modal.open( {
@@ -446,8 +437,8 @@ tulosta_hankintapaikat($db, $brandId);
 
             .on('submit', '#valitse_hankintapaikka', function(e){
 				//Estetään valitsemasta hankintapaikaksi labelia
-                var hankintapaikka = document.getElementById("hankintapaikka");
-                var id = parseInt(hankintapaikka.options[hankintapaikka.selectedIndex].value);
+                let hankintapaikka = document.getElementById("hankintapaikka");
+                let id = parseInt(hankintapaikka.options[hankintapaikka.selectedIndex].value);
                 if (id == 0) {
                     e.preventDefault();
                     return false;
@@ -455,14 +446,14 @@ tulosta_hankintapaikat($db, $brandId);
             })
 			//Estetään valitsemasta jo olemassa olevaa hankintapikka ID:tä ja nimeä
 			.on('submit', '#uusi_hankintapaikka', function(e) {
-			    var id, nimi;
-			    var hankintapaikat = [];
+			    let id, nimi, i;
+			    let hankintapaikat = [];
 				hankintapaikat = <?php echo json_encode($hankintapaikat); ?>;
 				//Tarkastetaan onko ID tai nimi varattu
 				id = document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
 				nimi = document.getElementById("uusi_hankintapaikka").elements["nimi"].value;
 				if (hankintapaikat.length > 0) {
-					for (var i = 0; i < hankintapaikat.length; i++) {
+					for (i = 0; i < hankintapaikat.length; i++) {
 						if (hankintapaikat[i].id == id) {
 							alert("ID on varattu.");
 							e.preventDefault();
@@ -477,7 +468,7 @@ tulosta_hankintapaikat($db, $brandId);
 				}
 			});
 		$('.poista_hankintapaikka_linkitys').submit(function (e) {
-			var c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?");
+			let c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?");
 			if (c == false) {
 				e.preventDefault();
 				return false;

@@ -39,8 +39,8 @@ function beginning_user_checks ( stdClass $user, /*string*/ $user_password, /*bo
  * @param stdClass $user
  */
 function check_IP_address ( DByhteys $db, stdClass $user ) {
-	$remoteaddr = new RemoteAddress(); // Haetaan asiakkaan oikea ip osoite
-	$ip = $remoteaddr->getIpAddress();
+	$remoteaddr = new RemoteAddress();
+	$ip = $remoteaddr->getIpAddress(); //Haetaan asiakkaan IP-osoite
 	$details = json_decode( file_get_contents("http://ipinfo.io/{$ip}") );
 	//Haetaan kaupunki lähettämällä asiakkaan ip ipinfo.io serverille
 	$nykyinen_sijainti = $details->city;
@@ -49,7 +49,7 @@ function check_IP_address ( DByhteys $db, stdClass $user ) {
 		if ( $user->viime_sijainti != "" ) {
 			$match = strcmp( $nykyinen_sijainti, $user->viime_sijainti );
 			if ( $match != 0 ) {
-				laheta_ilmoitus_epailyttava_IP( $db, $user->sahkoposti, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
+				laheta_ilmoitus_epailyttava_IP( $user, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
 			}
 		}
 		//päivitetään sijainti tietokantaan
@@ -98,6 +98,7 @@ function GUID()	{
 	} else
 		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
 }
+
 
 if ( empty($_POST["mode"]) ) {
 	header("Location:index.php?redir=4"); exit(); // Not logged in
@@ -164,7 +165,7 @@ elseif ( $mode == "password_reset" ) {
 	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm
 					FROM	kayttaja
 					WHERE	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email], NULL, PDO::FETCH_OBJ);
+	$login_user = $db->query( $sql_query, [$email], NULL );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, NULL, TRUE );

@@ -11,10 +11,11 @@ if ( !$user->isAdmin() ) {
  */
 function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
 	$query = "SELECT MAX(hinnaston_sisaanajo_pvm) as suurin_pvm FROM valmistajan_hankintapaikka WHERE brandId = ?";
-	return $db->query($query, [$brandId], NULL, PDO::FETCH_OBJ);
+	return $db->query($query, [$brandId], NULL);
 }
 
 /**
+ * Tulostaa valmistajat HTML-muodossa
  * @param DByhteys $db
  * @param array $brands
  * @return string
@@ -50,7 +51,6 @@ function cmp($a, $b) {
 $brands = getAmBrands();
 //Järjestetään aakkosten mukaan
 usort($brands, "cmp");
-//$valmistajat = hae_hinnaston_sisaanajo_pvm();
 ?>
 
 
@@ -60,43 +60,24 @@ usort($brands, "cmp");
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<title>Toimittajat</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <title>Toimittajat</title>
 </head>
 <body>
 <?php require 'header.php'; ?>
-<h1 class="otsikko">Toimittajat</h1><br>
+<h1 class="otsikko">Valmistajat</h1><br>
 <div class="container">
-<?= tulosta_brandit($db, $brands);?>
-
+    <?= tulosta_brandit($db, $brands);?>
 </div>
 
 
 
 <script type="text/javascript">
+
 $(document).ready(function(){
-
-	//Submit form
 	$('.clickable').click(function(){
-		var brandId = $(this).attr('data-brandId');
-		var brandName = $(this).attr('data-brandName');
-		var valmistajaId = $(this).attr('data-valmistajaId');
-
-		var form = document.createElement("form");
-		form.setAttribute("method", "GET");
-		form.setAttribute("action", "toimittajan_hallinta.php");
-
-		//brandId	(Tecdocista saatava)
-		var field = document.createElement("input");
-		field.setAttribute("type", "hidden");
-		field.setAttribute("name", "brandId");
-		field.setAttribute("value", brandId);
-		form.appendChild(field);
-
-
-		//form submit
-		document.body.appendChild(form);
-		form.submit();
+		let brandId = $(this).attr('data-brandId');
+		window.document.location = 'toimittajan_hallinta.php?brandId='+brandId;
 	})
 	.css('cursor', 'pointer');
 });

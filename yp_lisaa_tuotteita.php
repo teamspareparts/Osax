@@ -167,7 +167,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
                 <input type="text" name="takaliite" id="takaliite" pattern="[a-zA-Z0-9-]+" maxlength="6">
             </div>
             <br>
-            <label for="tilauskoodi">Tilauskoodi ei vastaa tuotenumeroa:<span class="question" id="info_tilauskoodi">?</span></label>
+            <label for="tilauskoodi">Tilauskoodi ei vastaa tuotenumeroa:</label><span class="question" id="info_tilauskoodi">?</span>
             <input type="checkbox" name="tilauskoodi" id="tilauskoodi"><br>
         </form>
 	</fieldset>

@@ -34,13 +34,14 @@ function _send_json( $request ) {
 }
 
 /**
- * Sallii clientin ottaa yhteyttä tecdociin 12 tunnin ajan.Aika muokattavissa.
- * @return array <p> ???
+ * Sallii clientin ottaa yhteyttä tecdociin 12 tunnin ajan.
+ * @return bool <p> Onnistuiko yhteyden salliminen
  */
 function addDynamicAddress() {
+	$validity_hours = 12;
     $function = 'addDynamicAddress';
     $params = [
-        'validityHours' => 12,
+        'validityHours' => $validity_hours,
         'provider' => TECDOC_PROVIDER,
         'address' => $_SERVER['REMOTE_ADDR'],
     ];
@@ -51,15 +52,15 @@ function addDynamicAddress() {
 
     // Pyyntö epäonnistui
     if ( $response->status !== 200 ) {
-        return [];
+        return false;
     }
 
-    return $response->data->array;
+    return true;
 }
 
 /**
  * Hakee aktivoidut toimittajat
- * @return array
+ * @return array <p> Toimittajat
  */
 function getAmBrands() {
 	$function = 'getAmBrands';
@@ -110,9 +111,9 @@ function getAmBrandAddress( $brandNo ) {
 /**
  * Hakee tuotteet annetun tuotenumeron (articleNo) ja hakutyypin perusteella.
  * Kolmas parametri määrittelee haun tarkkuutta.
- * @param string $number
- * @param int $search_type <p>
- * @param boolean $exact <p> Haetaanko vain tuotenumerolla.
+ * @param string $number <p> Haettava artikkelinumero
+ * @param int $search_type <p> Haun tyyppi
+ * @param boolean $exact <p> Tarkka haku
  * @param int $brandNo [optional], default = NULL <p>
  * @return array
  */
@@ -139,38 +140,6 @@ function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ 
 	}
 
 	return [];
-}
-
-
-/**
- * Hakee tuotteet annettujen tunnisteiden (articleId) perusteella.
- * @param $ids
- * @return array
- */
-function getDirectArticlesByIds4( $ids ) { //TODO: Miksi nimessä on nelonen?
-	$function = 'getDirectArticlesByIds4';
-	$params = [
-		'lang' => TECDOC_LANGUAGE,
-		'articleCountry' => TECDOC_COUNTRY,
-		'provider' => TECDOC_PROVIDER,
-		'basicData' => true,
-		'articleId' => ['array' => $ids],
-		'thumbnails' => true,
-		'immediateAttributs' => true,
-		'eanNumbers' => true,
-		'oeNumbers' => true
-	];
-
-	// Lähetetään JSON-pyyntö
-	$request =	[$function => $params];
-	$response = _send_json($request);
-
-	// Pyyntö epäonnistui
-	if ($response->status !== 200) {
-		return [];
-	}
-
-	return $response->data->array;
 }
 
 
@@ -230,7 +199,7 @@ function getArticleIdsWithState( $carID, $groupID ) {
 }
 
 /**
- * Hakee halutun tuotteen EAN-numeron, infot ja kuvan url:in.
+ * Hakee halutun tuotteen infot ja kuvan url:in.
  * @param $id
  * @return array
  */
@@ -278,7 +247,7 @@ function get_basic_product_info( /*array*/ $catalog_products ) {
 
 /**
  * Funktio yhdistää tuotteeseen Infot ja kuvan url:in.
- * Huom! Listassa olevilla tuotteilla oltava ominaisuus articleId.
+ * Huom! Listassa olevilla tuotteilla oltava attribuutti articleId.
  * @param $products
  */
 function merge_products_with_optional_data( $products ) {
@@ -290,7 +259,7 @@ function merge_products_with_optional_data( $products ) {
 }
 
 /**
- * Palauttaa annetun tuotteen kuvan URL:n
+ * Hakee tuotteen kuvan URLin
  * @param $product
  * @param bool $small
  * @return string
@@ -305,7 +274,7 @@ function get_thumbnail_url( $product, /*bool*/ $small = true) {
 
 
 /**
- * @param $product <p> getDirectArticlesByIds4-funktiosta saatu tuote.
+ * @param $product <p> getOptionalData-funktiosta saatu tuote.
  * @return array <p> Infot arrayna, jos olemassa. Muuten tyhjä array.
  */
 function get_infos( $product ) {
@@ -315,7 +284,7 @@ function get_infos( $product ) {
 }
 
 /**
- * @param $product <p> getOptionalData-funktiosta saatu vastaus.
+ * @param $product <p> getOptionalData-funktiosta saatu tuote.
  * @return array <p> OE-numerot, jos olemassa. Muuten tyhjä array.
  */
 function get_oe_number( $product ) {

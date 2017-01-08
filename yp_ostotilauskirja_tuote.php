@@ -9,15 +9,16 @@ if ( !$user->isAdmin() ) {
 //tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$ostotilauskirja_id])) {
-    header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
+	header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
 
 /**
+ * Ostotilauskirjan lähetys
  * @param DByhteys $db
  * @param User $user
  * @param $ostotilauskirja_id
- * @return bool
+ * @return bool Palauttaa false tai arkistoidun ostotilauskirjan id:n.
  */
 function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	//Lisätään osotilauskirja arkistoon
@@ -42,13 +43,13 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 			$product->lisays_pvm, $product->lisays_kayttaja_id,
 			$product->sisaanostohinta]);
 		if( !$result ) return false;
-	}
+    }
 
 	//Tyhjennetään alkuperäinen ostotilauskirja
-	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
-	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
+	//$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
+	//if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
 
-	return true;
+	return $uusi_otk_id->last_id;
 }
 
 
@@ -76,8 +77,9 @@ else if( isset($_POST['poista']) ) {
 }
 else if( isset($_POST['laheta']) ) {
     unset($_POST['laheta']);
-    if ( laheta_ostotilauskirja($db, $user, $_POST['id']) ) {
-		header("Location: yp_ostotilauskirja_odottavat.php"); //Estää formin uudelleenlähetyksen
+    if ( $id = laheta_ostotilauskirja($db, $user, $_POST['id']) ) {
+        $_SESSION["download"] = $id;
+		header("Location: yp_ostotilauskirja_odottavat.php");
 		exit();
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR. Ostotilauskirjaa ei jostain syystä voitu lähettää.</p>";
@@ -109,7 +111,6 @@ $sql = "  SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS
 $yht = $db->query($sql, [$ostotilauskirja_id]);
 $yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
-
 ?>
 
 
@@ -227,12 +228,12 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
     function poista_ostotilauskirjalta(tuote_id){
         if( confirm("Haluatko varmasti poistaa tuotteen ostotilauskirjalta?") ) {
             //Rakennetaan form
-            var form = document.createElement("form");
+            let form = document.createElement("form");
             form.setAttribute("method", "POST");
             form.setAttribute("action", "");
 
             //asetetaan $_POST["poista"]
-            var field = document.createElement("input");
+            let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "poista");
             field.setAttribute("value", true);
@@ -251,14 +252,14 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
     }
 
     function varmista_lahetys(ostotilauskirja_id){
-        var vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
+        let vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
         if ( vahvistus ) {
-            var form = document.createElement("form");
+            let form = document.createElement("form");
             form.setAttribute("method", "POST");
             form.setAttribute("action", "");
 
             //asetetaan $_POST["laheta"]
-            var field = document.createElement("input");
+            let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "laheta");
             field.setAttribute("value", true);

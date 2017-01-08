@@ -1,5 +1,6 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
+
 /**
  * @param DByhteys $db
  * @param User $user
@@ -60,7 +61,6 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
  */
 function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 	$osoite_id_viimeinen = count($user->toimitusosoitteet);
-
 	$sql = "DELETE FROM toimitusosoite WHERE kayttaja_id = ? AND osoite_id = ?";
 	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia PDO:ta.
 	$stmt->execute( [$user->id, $osoite_id] );
@@ -75,6 +75,8 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 	else return false;
 }
 
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+unset($_SESSION["feedback"]);
 $yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -1, true );
 
@@ -109,12 +111,8 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"] );
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
-} else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>
@@ -212,7 +210,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 					   onClick="vahvista_Osoitteen_Poistaminen(<?= $row->osoite_id ?>);">
 
 				<form style="display:none;" id="<?="poista_Osoite_Form_{$row->osoite_id}"?>" name="poista_osoite" action="" method=post>
-					<input type=hidden name=poista_osoite value="'<?= $row->osoite_id ?>'">
+					<input type=hidden name=poista_osoite value="<?= $row->osoite_id ?>">
 				</form>
 			</div><hr>
 		<?php endforeach; ?>
@@ -255,9 +253,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<label>Puhelin</label>\
 					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="Edellinen puhelinumero"><br>\
 				<label>Yritys</label>\
-					<input name="yritys" type="text" pattern=".{3,50}" placeholder="Edellinen yritys"><br>\
+					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen yritys"><br>\
 				<label>Katuosoite</label>\
-					<input name="katuosoite" type="text" pattern=".{3,50}" placeholder="Edellinen katuosoite"><br>\
+					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen katuosoite"><br>\
 				<label>Postinumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="Edellinen postinumero"><br>\
 				<label>Postitoimipaikka</label>\
@@ -290,9 +288,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<label>Puhelin</label>\
 					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="000 1234 789" required><br>\
 				<label>Yritys</label>\
-					<input name="yritys" type="text" pattern=".{3,50}" placeholder="Yritys Oy"><br>\
+					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Yritys Oy"><br>\
 				<label>Katuosoite</label>\
-					<input name="katuosoite" type="text" pattern=".{3,50}" placeholder="Katu 42" required><br>\
+					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Katu 42" required><br>\
 				<label>Postinumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>\
 				<label>Postitoimipaikka</label>\
@@ -327,9 +325,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 
 	$(document).ready(function() {
-		var pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
-		var newPassword = $('#uusi_salasana'); // Ditto
-		var pwCheck = $('#check'); // Ditto
+		let pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
+		let newPassword = $('#uusi_salasana'); // Ditto
+		let pwCheck = $('#check'); // Ditto
 
 		/** Salasanojen tarkastus reaaliajassa */
 		$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
