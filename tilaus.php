@@ -1,9 +1,7 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
-require 'apufunktiot.php';
-require 'email.php';
 require 'ostoskori_tilaus_funktiot.php';
+require 'email.php';
 
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
 $cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
@@ -12,21 +10,28 @@ if ( $cart->montako_tuotetta == 0 ) {
 }
 check_products_in_shopping_cart( $cart, $user);
 
+/*
+ * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen
+ */
 if ( !empty($_POST['vahvista_tilaus']) ) {
 
+	/*
+	 * Varmistuksena käytetään transactionia, jotta kaikki tietokanta-muutokset varmasti toimivat.
+	 * Transactionia varten tarvitaan oma tietokantayhteys, koska sitä ei ole toteutettu luokassa ollenkaan.
+	 */
 	$conn = $db->getConnection();
 	$conn->beginTransaction();
     $toimitusosoite_id = $_POST['toimitusosoite_id'];
 
 	try {
 
+		// Tallennetaan tilauksen tiedot tietokantaan
 		$stmt = $conn->prepare( 'INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)' );
 		$stmt->execute( [$user->id, $_POST['rahtimaksu']] );
 
-		$tilaus_id = $conn->lastInsertId();
+		$tilaus_id = $conn->lastInsertId(); // Haetaan tilaus-ID, sitä tarvitaan vielä.
 
-		// Prep.stmt. tuotteiden lisäys tietokantaan. Ostoskorista yksikerrallaan.
-		// Päivita varastosaldo jokaisen tuotteen kohdalla.
+		// Prep.stmt. tuotteiden lisäys tietokantaan. Ostoskorista yksi kerrallaan.
 		$stmt = $conn->prepare( '
 			INSERT INTO tilaus_tuote
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
@@ -35,10 +40,12 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
 				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
 
+			// Päivitetään varastosaldo jokaisen tuotteen kohdalla.
 			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ? WHERE id = ?" );
 			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
 		}
 
+		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(
 			'INSERT INTO tilaus_toimitusosoite
 				(tilaus_id, pysyva_etunimi, pysyva_sukunimi, pysyva_sahkoposti, pysyva_puhelin, 
@@ -48,18 +55,20 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			WHERE kayttaja_id = ? AND osoite_id = ?' );
 		$stmt->execute( [$tilaus_id, $user->id, $_POST['toimitusosoite_id']] );
 
+		// Tallennetaan muutokset, jos ei yhtään virhettä.
 		$conn->commit();
 
-		//lähetetään tilausvahvistus asiakkaalle
+		//lähetetään tilausvahvistus ja lasku asiakkaalle
 		require 'lasku_pdf_luonti.php';
-		laheta_tilausvahvistus( $user->sahkoposti, $cart->tuotteet, $tilaus_id, $tiedoston_nimi );
+		laheta_tilausvahvistus( $user->sahkoposti, $cart, $tilaus_id, $tiedoston_nimi );
 
-		//lähetetään tilaus ylläpidolle
+		//lähetetään tilaus ylläpidolle noutolistan kanssa
 		require 'noutolista_pdf_luonti.php';
 		laheta_noutolista($tilaus_id, $tiedoston_nimi);
 
+		// Tyhjennetään kori, ja lähetetään tilaus_info-sivulle
 		$cart->tyhjenna_kori( $db );
-		header( "location:tilaushistoria.php?id=$user->id" );
+		header( "location:tilaus_info.php?id={$tilaus_id}" );
 		exit;
 
 	} catch ( PDOException $ex ) {

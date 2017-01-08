@@ -1,6 +1,5 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
 require 'ostoskori_tilaus_funktiot.php';
 
 if ( !empty($_POST['ostoskori_tuote']) ) {

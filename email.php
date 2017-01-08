@@ -65,39 +65,40 @@ function laheta_salasana_linkki($email, $key){
 /**
  * Lähettää tilausvahvistuksen sähköpostiin
  * @param string $email
- * @param array $products
- * @param string $tilausnro
+ * @param Ostoskori $cart
+ * @param int $tilausnro
  * @param string $fileName
  * @return bool
  */
-function laheta_tilausvahvistus( /*string*/ $email, array $products, /*string*/ $tilausnro, /*string*/ $fileName ) {
+function laheta_tilausvahvistus( /*string*/ $email, Ostoskori $cart, /*int*/ $tilausnro, /*string*/ $fileName ) {
+	$products = $cart->tuotteet;
 	if ( $products ) {
 		$subject = "Tilausvahvistus";
-		$summa = 0.00;
 		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
 									<th style="text-align:right;">Kpl</th></tr>';
-		foreach ($products as $product) {
+		foreach ($products as $tuote) {
 			$productTable .= "
-				<tr><td>{$product->tuotekoodi}</td><td>{$product->valmistaja} {$product->nimi}</td>
-					<td style='text-align:right;'>" . format_euros($product->hinta) . "</td>
-					<td style='text-align:right;'>{$product->cartCount}</td></tr>";
-			$summa += $product->hinta * $product->cartCount;
+				<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
+					<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
+					<td style='text-align:right;'>{$tuote->kpl_maara}</td></tr>";
 		}
+
 		$productTable .= "</table><br><br><br>";
 		$contactinfo = 'Yhteystiedot:<br>
 						Osax Oy<br>
 						Jukolankatu 19 80100 Joensuu<br>		
 						puh. 010 5485200<br>
 						janne@osax.fi';
-		$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: " . format_euros($summa) . "<br>
+		$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: {$cart->summa_toString()}<br>
 			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
-		//$file = fopen("./laskut/{$fileName}", 'r');
 		$file = file_get_contents("./laskut/{$fileName}");
 		send_email( $email, $subject, $message, $file, $fileName );
 
 		return true;
-	} else return false;
+
+	} else {
+		return false; }
 }
 
 /**
@@ -131,17 +132,14 @@ function laheta_ilmoitus_tilaus_lahetetty( /*String*/ $email, /*int*/ $tilausnro
 
 /**
  * Lähettää ilmoituksen epäilyttävästä IP-osoitteesta ylläpidolle.
- * @param DByhteys $db
- * @param $email
+ * @param User $user
  * @param $vanha_sijainti
  * @param $uusi_sijainti
  * @return bool
  */
-function laheta_ilmoitus_epailyttava_IP( DByhteys $db, $email, $vanha_sijainti, $uusi_sijainti){
-	//haetaan yllapitajan sposti
-	$query = "SELECT sahkoposti FROM kayttaja WHERE yllapitaja=1";
-	$yp = $db->query( $query, NULL, NULL, PDO::FETCH_OBJ );
-	if (!$yp) return false;
+function laheta_ilmoitus_epailyttava_IP( User $user, $vanha_sijainti, $uusi_sijainti){
+
+	$admin_email = 'myynti@osax.fi';
 	
 	//emailin sisältö
 	$subject = "Epäilyttävää käytöstä";
@@ -149,6 +147,6 @@ function laheta_ilmoitus_epailyttava_IP( DByhteys $db, $email, $vanha_sijainti, 
 				"Vanha sijainti:" . $vanha_sijainti . "<br>" .
 				"Uusi sijainti:" . $uusi_sijainti;
 	
-	send_email($yp->sahkoposti, $subject, $message);
+	send_email( $admin_email, $subject, $message );
     return true;
 }
