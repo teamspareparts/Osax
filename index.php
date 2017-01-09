@@ -1,6 +1,7 @@
 ﻿<?php
 
 //TODO: Vaihda tiedoston nimi esim login.php
+//TODO: Mutta eikö se ole tarkoituksella "index.php"? --JJ
 
 session_start();
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko uudellenohjaus

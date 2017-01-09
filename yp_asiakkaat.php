@@ -31,6 +31,7 @@ if ( !empty($_POST['ids']) ){
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaat deaktivoitu</p>";
 }
 
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {

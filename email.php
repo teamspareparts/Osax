@@ -6,6 +6,7 @@
  */
 
 //TODO: Pitäisikö tästä tiedostosta tehdä luokka?
+//TODO: That's really funny. Minä ajattelin juuri samaa asiaa. --JJ
 
 /**
  * Sähköpostin lähetykseen käytettävä functio, jolla voi lähettää myös liitetiedoston.

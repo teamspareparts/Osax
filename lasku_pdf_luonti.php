@@ -12,37 +12,46 @@ $lasku = new Laskutiedot( $db, $tilaus_id, $user, $yritys );
  * Laskun alkuosa. Logo, laskun tiedot ja osoitetiedot. Sen jälkeen tuotetaulukon header row.
  */
 $html = "
-<div style='width:100%;'><img src='img/osax_logo.jpg' alt='Osax.fi'></div>
+<!-- Laskun logo, pvm, ja numero -->
 <table style='width:100%;'>
 	<tbody>
-	<tr><td colspan='2'>
+	<tr><td><img src='img/osax_logo.jpg' alt='Osax.fi'></td>
+		<td colspan='2'>
 		<table style='width:70%;padding:15px;'>
 			<thead>
 			<tr><th>Päivämäärä</th>
-				<th>Tilauspvm</th>
-				<th style='text-align:right;'>Tilaus</th>
-				<th style='text-align:right;'>Asiakas</th>
-				<th style='text-align:right;'>Lasku</th></tr>
+				<th>Lasku</th></tr>
 			</thead>
 			<tbody>
-			<tr><td>".date('d.m.Y')."</td><td>$lasku->tilaus_pvm</td>
-				<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
-				<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
-				<td style='text-align:right;'>".sprintf('%04d', "1")."</td>
+			<tr><td style='text-align:center;'>".date('d.m.Y')."</td>
+				<td style='text-align:center;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
 			</tr>
 			</tbody>
-		</table></td>
-	</tr>
-	<tr><th>Toimitusosoite</th><th>Asiakkaan tiedot</th></tr>
-	<tr><td>{$lasku->toimitusosoite->koko_nimi}<br>
+		</table></td></tr>
+	</tbody>
+</table><br>
+<!-- Asiakkaan tiedot/toimitusosoite, ja maksutapa -->
+<table style='width:100%; margin-left:20px;'>
+	<tbody>
+	<tr><th style='text-align:left;'>Asiakas (".sprintf('%04d', $lasku->asiakas->id).")</th></tr>
+	<tr><td>{$lasku->asiakas->yrityksen_nimi}<br>
 			{$lasku->toimitusosoite->katuosoite}<br>
-			{$lasku->toimitusosoite->postinumero} {$lasku->toimitusosoite->postitoimipaikka}<br></td>
-		<td>{$lasku->asiakas->kokoNimi()}<br>
+			{$lasku->toimitusosoite->postinumero} {$lasku->toimitusosoite->postitoimipaikka}<br><br>
+			
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
-			{$lasku->asiakas->yrityksen_nimi}</td></tr>
+			</td>
+		<td>Maksutapa: e-korttimaksu<br>
+			<!-- Viivästyskorko: 12 %<br>
+			Maksuaika: 12 päivää<br> -->
+			</td>
+		</tr>
 	</tbody>
 </table>
 <hr>
+<!-- Tilauksen numero ja tilausaika -->
+tilauksen numero ja tilausaika
+<hr>
+<!-- Tuotteet-taulukko, header-rivi -->
 <table style='width:100%;font-size:80%;'>
 	<thead>
 	<tr><th colspan='8' class='center'><h2>Tilatut tuotteet</h2></th></tr>
@@ -54,7 +63,7 @@ $html = "
 		<th style='text-align:right;'>ALV</th>
 		<th style='text-align:right;'>Ale</th>
 		<th style='text-align:right;'>kpl</th>
-		<th style='text-align:right;'>Veroton<br>Summa</th></tr>
+		<th style='text-align:right;'>Veroton<br>Rivisumma</th></tr>
 	</thead>
 	<tbody>
 ";
@@ -76,6 +85,21 @@ foreach ( $lasku->tuotteet as $tuote ) {
 			<td style='text-align:right;'>{$tuote->summa_toString( true )}</td>
 		</tr>";
 }
+
+/**
+ * Lisätään rahti tuote-listaukseen
+ */
+$html .= "
+		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
+			<td></td>
+			<td>Rahtimaksu</td>
+			<td></td>
+			<td style='text-align:right;'>{$lasku->asiakas->rahtimaksu_toString()}</td>
+			<td style='text-align:right;'>24 %</td>
+			<td style='text-align:right;'>". (($lasku->asiakas->rahtimaksu === 0) ? "100 %" : "") ."</td>
+			<td style='text-align:right;'>1</td>
+			<td style='text-align:right;'>{$lasku->asiakas->rahtimaksu_toString()}</td>
+		</tr>";
 
 /**
  * ALV-kantojen listauksen header-row
@@ -126,16 +150,25 @@ $html .= "
 	</table></td></tr>
 </table>
 <hr>
-<table>
-<thead><tr><th>Maksun vastaanottaja</th></tr></thead>
-<tbody>
-	<tr> <td>Osax Oy,<br>{$lasku->osax->y_tunnus}</td>
-	<td>Tilinumero:<br>[000123456789000]</td>
-	<td>Viivästyskorko:<br>12 %</td>
-	<td>Maksuaika:<br>12 päivää</td> </tr>
-	<tr> <td>{$lasku->osax->katuosoite}<br>{$lasku->osax->postinumero}, {$lasku->osax->postitoimipaikka}</td>
-	<td>ALV-tunniste:<br>[number]</td> </tr>
-</tbody>
+
+<p style='font-weight:bold;'>! Maksettu korttiveloituksena tilausta tehdessä !</p>
+
+<hr>
+<table style='width:100%; font-size:80%;'>
+	<tbody>
+		<tr><td>Osax Oy</td>
+			<td>Y-tunnus: {$lasku->osax->y_tunnus}</td>
+			<td>FI40 4600 0010 7476 95 ( ITELFIHH )</td> 
+			<td>ALV.REK</td> 
+			</tr>
+	</tbody>
+</table>
+<table style='width:100%; font-size:80%;'>
+	<tbody>
+		<tr><td>{$lasku->osax->katuosoite}, {$lasku->osax->postinumero} {$lasku->osax->postitoimipaikka}</td>
+			<td>Kotipaikka: Lahti</td>
+			<td>Email: janne@osax.fi </td> </tr>
+	</tbody>
 </table>
 ";
 

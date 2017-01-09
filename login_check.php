@@ -125,7 +125,7 @@ if ( $mode == "login" ) {
 						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
 					FROM 	kayttaja
 					WHERE 	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email], NULL );
+	$login_user = $db->query( $sql_query, [$email] );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
@@ -165,7 +165,7 @@ elseif ( $mode == "password_reset" ) {
 	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm
 					FROM	kayttaja
 					WHERE	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email], NULL );
+	$login_user = $db->query( $sql_query, [$email] );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, NULL, TRUE );

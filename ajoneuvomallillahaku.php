@@ -10,8 +10,8 @@ require_once 'tecdoc.php';
 
 /**
  * Palauttaa Autovalmistajat selectiin.
- * @param array, $manufs automerkit
- * @return string, option lista automerkeistä, HTML:nä.
+ * @param array $manufs <p> automerkit
+ * @return string <p> option lista automerkeistä, HTML:nä.
  * 		Jos ei yhteyttä TecDociin, huomauttaa siitä.
  */
 function printManufSelectOptions ( array $manufs ) {

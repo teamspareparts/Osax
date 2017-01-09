@@ -12,19 +12,24 @@ function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_has
 	$expiration_time = 1; //aika, jonka jälkeen avain vanhenee  (1 tunti)
 	date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
 
-	$sql = "	SELECT	kayttaja_id, reset_exp_aika, kaytetty
-				FROM	pw_reset
-				WHERE	reset_key_hash = ? ";
-	$pw_reset = $db->query( $sql, [$reset_key_hash], NULL );
+	$sql = "SELECT kayttaja_id, reset_exp_aika, kaytetty
+			FROM pw_reset
+			WHERE reset_key_hash = ? ";
+	$pw_reset_tiedot = $db->query( $sql, [$reset_key_hash] );
 
-	if ( !$pw_reset ) { header("location:index.php"); exit(); }
-	$time_then 	= new DateTime( $pw_reset->reset_exp_aika ); // Muunnettuna DateTime-muotoon
+	if ( !$pw_reset_tiedot ) {
+		header("location:index.php"); exit();
+	}
+
+	$time_then 	= new DateTime( $pw_reset_tiedot->reset_exp_aika ); // Muunnettuna DateTime-muotoon
 	$time_now	= new DateTime( 'now' );
 	$interval = $time_now->diff($time_then); //Kahden ajan välinen ero
 	$difference = $interval->y + $interval->m + $interval->d + $interval->h; // Lasketaan aikojen erotus
-	if ( $difference > ($expiration_time - 1) ) { header("location:index.php?redir=7"); exit(); }
+	if ( $difference > ($expiration_time - 1) ) {
+		header("location:index.php?redir=7"); exit();
+	}
 
-	return $pw_reset;
+	return $pw_reset_tiedot;
 }
 
 /**

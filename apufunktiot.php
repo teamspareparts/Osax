@@ -1,8 +1,9 @@
 <?php
 
 /**
- * Muotoilee rahasumman muotoon "1 000,00 €"
- * @param $amount
+ * Muotoilee rahasumman muotoon "1 000,00 €" <br>
+ * Deprecated, käytä mieluummin _start:issa olevaa funtiota.
+ * @param int $amount
  * @return string
  */
 function format_euros( /*int*/ $amount) {
@@ -10,8 +11,9 @@ function format_euros( /*int*/ $amount) {
 }
 
 /**
- * Muotoilee kokonaisluvun muotoon "1 000 000"
- * @param $number
+ * Muotoilee kokonaisluvun muotoon "1 000 000". <br>
+ * Deprecated, käytä mieluummin _start:issa olevaa funtiota.
+ * @param int $number
  * @return string
  */
 function format_integer( /*int*/ $number) {

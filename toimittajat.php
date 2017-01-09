@@ -11,7 +11,7 @@ if ( !$user->isAdmin() ) {
  */
 function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
 	$query = "SELECT MAX(hinnaston_sisaanajo_pvm) as suurin_pvm FROM valmistajan_hankintapaikka WHERE brandId = ?";
-	return $db->query($query, [$brandId], NULL);
+	return $db->query($query, [$brandId]);
 }
 
 /**
