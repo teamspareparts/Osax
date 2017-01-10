@@ -49,7 +49,13 @@ $html = "
 </table>
 <hr>
 <!-- Tilauksen numero ja tilausaika -->
-tilauksen numero ja tilausaika
+<table style='width:50%;'>
+	<tbody>
+	<tr><td style='text-align:center;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</td>
+		<td style='text-align:center;'>Tilausaika: ".date('d.m.Y')."</td>
+	</tr>
+	</tbody>
+</table>
 <hr>
 <!-- Tuotteet-taulukko, header-rivi -->
 <table style='width:100%;font-size:80%;'>
@@ -140,10 +146,6 @@ $html .= "
 	<table style='margin-right:50px;'>
 		<thead><tr><th colspan='2' style='text-align: center;'>LOPPUSUMMA</th></tr></thead>
 		<tbody>
-		<tr><td>Tuotteet yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['tuotteet_yht'])} €</td></tr>
-		<tr><td>Lisäveloitukset:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['lisaveloitukset'])} €</td></tr>
 		<tr><td>Summa yhteensä:</td>
 			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €</td></tr>
 		</tbody>
@@ -180,7 +182,7 @@ $html .= "
  * Header: "Osax Oy :: Lasku" keskitettynä
  * Footer: "[Päivämäärä] - [sivunumero] - Lasku"
  */
-$mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Lasku</div>');
+$mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Kuitti</div>');
 $mpdf->SetHTMLFooter('
 <table width="100%" style="vertical-align:bottom; font-family:serif; font-size:8pt; color:#000000; font-weight:bold; font-style:italic;"><tr>
 <td width="33%"><span style="font-weight:bold; font-style:italic;">{DATE j-m-Y}</span></td>
