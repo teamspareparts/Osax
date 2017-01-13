@@ -1,7 +1,39 @@
 <?php
-
 /**
  * Class Tuote
+ *
+ * <h3>Luokan muuttujat</h3>
+ * <table>
+ *   <tr>  <th>Tyyppi</th> <th>Nimi</th> <th>Kuvaus</th>  </tr>
+ *   <tr>  <td>int|NULL</td> <td>$id</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$articleNo</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$brandNo</td> <td></td>  </tr>
+ *   <tr>  <td>int</td> <td>$hankintapaikka_id</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$tuotekoodi</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$tilauskoodi</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$tuoteryhma</td> <td></td>  </tr>
+ *
+ *   <tr>  <td>string</td> <td>$nimi</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$valmistaja</td> <td></td>  </tr>
+ *
+ *   <tr>  <td>float</td> <td>$a_hinta</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$a_hinta_ilman_alv</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$a_hinta_alennettu</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$a_hinta_ilman_alv_alennettu</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$alv_prosentti</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$alennus_prosentti</td> <td></td>  </tr>
+ *
+ *   <tr>  <td>int</td> <td>$kpl_maara</td> <td></td>  </tr>
+ *   <tr>  <td>float</td> <td>$summa</td> <td></td>  </tr>
+ *
+ *   <tr>  <td>array</td> <td>$maaraalennukset</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$alennus_huomautus</td> <td></td>  </tr>
+ *
+ *   <tr>  <td>float</td> <td>$ostohinta</td> <td></td>  </tr>
+ *   <tr>  <td>string</td> <td>$hyllypaikka</td> <td></td>  </tr>
+ *   <tr>  <td>int</td> <td>$varastosaldo</td> <td></td>  </tr>
+ *   <tr>  <td>int</td> <td>$minimimyyntiera</td> <td></td>  </tr>
+ * </table>
  */
 class Tuote {
 	/** @var int|NULL $id <p> Tuotteen ID meidän tietokannassa */ public $id = NULL;
@@ -35,7 +67,7 @@ class Tuote {
 	 * @var array $maaraalennus_kpl_raja <p> Määräalennuksen kpl-rajat, ja alennusprosentit
 	 */
 	public $maaraalennukset = array();
-	/** @var string $summa <p> */ public $alennus_huomautus = '---';
+	/** @var string $alennus_huomautus <p> */ public $alennus_huomautus = '---';
 
 	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
@@ -135,5 +167,17 @@ class Tuote {
 	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
 		$summa = $ilman_alv ? ($this->a_hinta_ilman_alv*$this->kpl_maara) : $this->summa;
 		return number_format( (double)$summa, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
+	}
+
+	/**
+	 * @param bool $ilman_pros [optional] default=false <p> Tulostetaanko ALV ilman %-merkkiä.
+	 * @param bool $decimaalina [optional] default=false <p> Tulostetaanko ALV decimaalina (vai kokonaislukuna).
+	 * @return string
+	 */
+	function alv_toString ( /*bool*/ $ilman_pros = false, /*bool*/ $decimaalina = false ) {
+		if ( !$decimaalina ) {
+			return round( (float)$this->alv_prosentti * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
+		} else
+			return number_format( (double)$this->alv_prosentti, 2, ',' );
 	}
 }

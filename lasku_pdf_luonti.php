@@ -19,8 +19,8 @@ $html = "
 		<td colspan='2'>
 		<table style='width:70%;padding:15px;'>
 			<thead>
-			<tr><th>Päivämäärä</th>
-				<th>Lasku</th></tr>
+			<tr><th>Laskunro</th>
+				<th>Päivämäärä</th></tr>
 			</thead>
 			<tbody>
 			<tr><td style='text-align:center;'>".date('d.m.Y')."</td>
@@ -41,8 +41,6 @@ $html = "
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			</td>
 		<td>Maksutapa: e-korttimaksu<br>
-			<!-- Viivästyskorko: 12 %<br>
-			Maksuaika: 12 päivää<br> -->
 			</td>
 		</tr>
 	</tbody>
@@ -52,7 +50,7 @@ $html = "
 <table style='width:50%;'>
 	<tbody>
 	<tr><td style='text-align:center;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</td>
-		<td style='text-align:center;'>Tilausaika: ".date('d.m.Y')."</td>
+		<td style='text-align:center;'>Tilausaika: {$lasku->tilaus_pvm}</td>
 	</tr>
 	</tbody>
 </table>

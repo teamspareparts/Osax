@@ -9,7 +9,6 @@ if ( $cart->montako_tuotetta == 0 ) {
 	header("location:ostoskori.php"); exit;
 }
 check_products_in_shopping_cart( $cart, $user);
-
 /*
  * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen
  */
@@ -154,7 +153,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 </main>
 <form class="hidden" id="laheta_tilaus_form" action="#" method=post>
 	<input type=hidden id="toimitusosoite_form_input" name="toimitusosoite_id" value="">
-	<input type=hidden id="rahtimaksu_form_input" name="rahtimaksu" value="<?=$rahtimaksu[0]?>">
+	<input type=hidden id="rahtimaksu_form_input" name="rahtimaksu" value="<?=$user->rahtimaksu?>">
 	<input type=hidden name="vahvista_tilaus" value="true">
 </form>
 

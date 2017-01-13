@@ -64,8 +64,8 @@ class DByhteys {
 
 	/**
 	 * Suorittaa SQl-koodin prepared stmt:ia käytttäen. Palauttaa haetut rivit (SELECT),
-	 * tai muutettujen rivien määrän muussa tapauksessa. Defaultina palauttaa yhden rivin.
-	 * Jos tarvitset useamman, huom. kolmas parametri.<p>
+	 * tai muutettujen rivien määrän muussa tapauksessa.<br>Defaultina palauttaa yhden rivin.
+	 * Jos tarvitset useamman, huom. kolmas parametri.<p><p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.<p>
 	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
 	 * @param string $query
@@ -79,20 +79,34 @@ class DByhteys {
 	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
 	 * 		  Huom: $returnType ei tarvitse olla määritelty.<p>
 	 * 		  Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
-	 * @return array|int|stdClass <p> Palauttaa object-arrayn, jos esim. SELECT ja FETCH_ALL==true.
-	 *        Palauttaa suoraan objektin, jos haetaan vain yksi.<br>
+	 * @return array|int|stdClass <p> Palauttaa stdClass[], jos SELECT ja FETCH_ALL==true.
+	 *        Palauttaa stdClass-objektin, jos haetaan vain yksi.<br>
 	 * Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim. INSERT tai DELETE.<br>
 	 */
 	public function query( /*string*/ $query, array $values = NULL, /*bool*/ $fetch_All_Rows = FALSE,
-						   /*int*/ $returnType = NULL, /*string*/ $className = '' ) {
-		$db = $this->connection;
-
+						   /*int*/ $returnType = NULL, /*string*/ $className = NULL ) {
+		// Katsotaan mikä hakutyyppi kyseessä, jotta voidaan palauttaa hyödyllinen vastaus tyypin mukaan.
 		$q_type = substr( ltrim($query), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
 
-		$stmt = $db->prepare( $query );	// Valmistellaan query
+		$stmt = $this->connection->prepare( $query );	// Valmistellaan query
 		$stmt->execute( $values ); //Toteutetaan query varsinaisilla arvoilla
 
-		if ( $q_type === "SELECT" ) { //Jos select, haetaan array
+		if ( $q_type === "SELECT" ) {
+
+			if ( $fetch_All_Rows ) {
+				if ( empty($className) ) {
+					return $stmt->fetchAll( $returnType );
+				} else {
+					return $stmt->fetchAll( PDO::FETCH_CLASS, $className );
+				}
+			} else {
+				if ( empty($className) ) {
+					return $stmt->fetch( $returnType );
+				} else {
+					return $stmt->fetchObject( $className );
+				}
+			}
+/*
 			if ( $fetch_All_Rows ) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
 				return $stmt->fetchAll( $returnType );
 
@@ -102,7 +116,8 @@ class DByhteys {
 				} else {
 					return $stmt->fetchObject( $className );
 				}
-			}
+			} */
+
 		} else { // Palautetaan muutettujen rivien määrän.
 			return $stmt->rowCount();
 		}

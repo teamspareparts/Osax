@@ -7,7 +7,7 @@ require './luokat/yritys.class.php'; $yritys = new Yritys( $db, 2 );
 require './luokat/tuote.class.php';
 
 $mpdf = new mPDF();
-$lasku = new Laskutiedot( $db, 1, $user, $yritys );
+$lasku = new Laskutiedot( $db, 10, $user, $yritys );
 $lasku->tuotteet[] = new Tuote();
 
 /** ////////////////////////////////////////////////////////////////////// */
@@ -24,8 +24,8 @@ $html = "
 		<td colspan='2'>
 		<table style='width:70%;padding:15px;'>
 			<thead>
-			<tr><th>Päivämäärä</th>
-				<th>Lasku</th></tr>
+			<tr><th>Laskunro</th>
+				<th>Päivämäärä</th></tr>
 			</thead>
 			<tbody>
 			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
@@ -46,31 +46,27 @@ $html = "
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			</td>
 		<td>Maksutapa: e-korttimaksu<br>
-			<!-- Viivästyskorko: 12 %<br>
-			Maksuaika: 12 päivää<br> -->
 			</td>
 		</tr>
 	</tbody>
 </table>
 <hr>
 <!-- Tilauksen numero ja tilausaika -->
-<!-- Tilauksen numero ja tilausaika -->
-<table style='width:50%;'>
+<table style='width:60%;'>
 	<tbody>
 	<tr><td style='text-align:center;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</td>
-		<td style='text-align:center;'>Tilausaika: ".date('d.m.Y')."</td>
+		<td style='text-align:center;'>Tilausaika: {$lasku->tilaus_pvm}</td>
 	</tr>
 	</tbody>
 </table>
-<hr>
 <!-- Tuotteet-taulukko, header-rivi -->
 <table style='width:100%;font-size:80%;'>
 	<thead>
-	<tr><th colspan='8' class='center'><h2>Tilatut tuotteet</h2></th></tr>
+	<tr><th colspan='9' class='center'><h2>Tilatut tuotteet</h2></th></tr>
 	<tr><th style='text-align:right;'>#</th>
 		<th>Tuotekoodi</th>
 		<th>Nimi</th>
-		<th>Valmistaja</th>
+		<th></th>
 		<th style='text-align:right;'>Veroton<br>&agrave;-hinta</th>
 		<th style='text-align:right;'>ALV</th>
 		<th style='text-align:right;'>Ale</th>
@@ -89,7 +85,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td>{$tuote->tuotekoodi}</td>
 			<td>{$tuote->nimi}</td>
-			<td>{$tuote->valmistaja}</td>
+			<td></td>
 			<td style='text-align:right;'>{$tuote->a_hinta_toString( true )}</td>
 			<td style='text-align:right;'>{$tuote->alv_prosentti} %</td>
 			<td style='text-align:right;'>{$tuote->alennus} %</td>
@@ -189,10 +185,10 @@ $html .= "
  * Header: "Osax Oy :: Lasku" keskitettynä
  * Footer: Päivämäärä, sivunumero ja dokumentin nimi ("lasku")
  */
-$mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Lasku</div>');
+$mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Kuitti</div>');
 $mpdf->SetHTMLFooter('
 <table width="100%" style="vertical-align:bottom; font-family:serif; font-size:8pt; color:#000000; font-weight:bold; font-style:italic;"><tr>
-<td width="33%"><span style="font-weight:bold; font-style:italic;">{DATE j-m-Y}</span></td>
+<td width="33%"><span style="font-weight:bold; font-style:italic;">{DATE Y-m-j}</span></td>
 <td width="33%" align="center" style="font-weight:bold; font-style:italic;">{PAGENO}/{nbpg}</td>
 <td width="33%" style="text-align:right; ">Lasku</td>
 </tr></table>
