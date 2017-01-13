@@ -1,14 +1,13 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
-require 'apufunktiot.php';
 
 /**
- * Hakee tilauksen yleiset tiedot. Ei koske tuotteiden tietoja, ne haetaan erikseen.
- * Tiedot tilaajaasta, tilauksen päivämäärä jne., plus toimitusosoite
+ * Hakee yleiset tiedot tilauksesta, käyttäjän tiedot (mukaan lukien yrityksen nimi), toimitusosoitteet,
+ *  ja tilaukset loppusumman ja kpl-määrän. Ei hae tuotteita. Käyttäjän tiedot erikseen, eikä $user-oliosta,
+ *  jotta ylläpitäjä voi käyttää sivua.
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return stdClass; tilauksen tiedot, pois lukien tuotteet
+ * @return stdClass <p> tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
@@ -17,7 +16,7 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 				CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 				tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
 				SUM( tilaus_tuote.kpl * 
-						( (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1 - tilaus_tuote.pysyva_alennus) ) )
+						(tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv) * (1-tilaus_tuote.pysyva_alennus)) )
 					AS summa,
 				SUM(tilaus_tuote.kpl) AS kpl
 			FROM tilaus
@@ -26,59 +25,52 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 			LEFT JOIN tuote ON tuote.id=tilaus_tuote.tuote_id
 			LEFT JOIN tilaus_toimitusosoite AS tmo ON tmo.tilaus_id = tilaus.id
 			LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
-			WHERE tilaus.id = ? ";
-	return $db->query($sql, [$tilaus_id], NULL);
+			WHERE tilaus.id = ?";
+
+	return $db->query($sql, [$tilaus_id]);
 }
 
 /**
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
  * @param DByhteys $db
  * @param int $tilaus_id
- * @return array <p> Array of objects. tiedot tilatuista tuotteista. Palauttaa tyhjän arrayn, jos ei tuotteita
+ * @return Tuote[] <p> Tiedot tilatuista tuotteista.
  */
-function get_products_in_tilaus( DByhteys $db, /*int*/ $tilaus_id) {
-	$sql = "SELECT tuote_id AS id, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl,
-				( (pysyva_hinta * (1 + pysyva_alv)) * (1 - pysyva_alennus) ) AS maksettu_hinta,
-				 tuotteen_nimi, tilaus_tuote.valmistaja, tuote.tuotekoodi, tuote.brandNo
+function hae_tilauksen_tuotteet( DByhteys $db, /*int*/ $tilaus_id ) {
+	$sql = "SELECT tuote_id AS id, pysyva_hinta AS a_hinta_ilman_alv, pysyva_alv AS alv_prosentti,
+				pysyva_alennus AS alennus_prosentti, kpl AS kpl_maara, tuotteen_nimi AS nimi, tilaus_tuote.valmistaja,
+  				(pysyva_hinta * (1+pysyva_alv)) AS a_hinta, 
+				(pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus)) AS a_hinta_alennettu, 
+				(kpl * (pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus))) AS summa, 
+				tuote.tuotekoodi
 			FROM tilaus_tuote
 			LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id
 			WHERE tilaus_id = ?";
-	$products = $db->query( $sql, [$tilaus_id], FETCH_ALL );
 
-
-
-	return $products;
+	return $db->query( $sql, [$tilaus_id], FETCH_ALL, PDO::FETCH_CLASS, 'Tuote' );
 }
 
-/**
- * Muokkaa alennuksen tulostettavaan muotoon, tuotelistaan.
- * @param float $alennus
- * @return String; tulostettava merkkijono
- */
-function tulosta_alennus_tuotelistaan( /*float*/ $alennus ) {
-	if ( (float)$alennus !== 0 ) {
-		$alennus = round( $alennus * 100 ) . " %";
-	} else {
-		$alennus = "---";
-	}
-
-	return $alennus;
+// Tarkistetaan URL:n ID
+if ( empty($_GET['id']) ) {
+	header("Location:tilaushistoria.php?id={$user->id}"); exit();
 }
 
-$tilaus_id = isset($_GET["id"]) ? $_GET["id"] : 0;
-$tilaus_tiedot = hae_tilauksen_tiedot( $db, $tilaus_id );
+$tilaus_tiedot = hae_tilauksen_tiedot( $db, $_GET['id'] );
 
-//Tarkastetaan tilaus_id:n oikeellisuus
-if ($tilaus_tiedot->id === NULL) {
-	header("Location:etusivu.php"); exit();
+// Löytyikö tilauksen tiedot ID:llä. Tarkistus NULL:lla, eikä empty():lla,
+//  koska haku palauttaa ei-tyhjää aina jostain syystä.
+if ( $tilaus_tiedot->id === NULL ) {
+	header("Location:tilaushistoria.php"); exit();
 }
 
-//Ei sallita katsoa muiden tilauksia paitsi ylläpitäjänä
-if ( !($tilaus_tiedot->sahkoposti == $_SESSION["email"]) && !$user->isAdmin() ) {
-		header("Location:tilaushistoria.php"); exit();
+// Tarkistetaan onko tilaus sen hetkisen käyttäjän tekemä, tai onko käyttäjä admin.
+// Lähetään pois, jos ei kumpaankin.
+elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin() ) {
+	header("Location:tilaushistoria.php"); exit();
 }
 
-$products = get_products_in_tilaus( $db, $tilaus_id );
+/** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
+$tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -90,8 +82,7 @@ $products = get_products_in_tilaus( $db, $tilaus_id );
 	<title>Tilaus-info</title>
 </head>
 <body>
-<?php include 'header.php';
-?>
+<?php include 'header.php'; ?>
 
 <main class="main_body_container">
 	<section class="flex_row">
@@ -100,65 +91,65 @@ $products = get_products_in_tilaus( $db, $tilaus_id );
 			<h4 style="color:red; display:flex; align-items:center;">
 			Odottaa käsittelyä.</h4>
 		<?php else: ?>
-		<h4 style="color:green; display:flex; align-items:center;">
+			<h4 style="color:green; display:flex; align-items:center;">
 			Käsitelty ja toimitettu.</h4>
 		<?php endif;?>
 	</section>
 	<!-- HTML -->
 	<div class="flex_row">
 
-			<table class='tilaus_info'>
-				<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></td>
-					<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></td></tr>
-				<tr><td>Tilaaja: <?= "{$tilaus_tiedot->etunimi} {$tilaus_tiedot->sukunimi}" ?></td>
-					<td>Yritys: <?= $tilaus_tiedot->yritys?></td></tr>
-				<tr><td>Tuotteet: <?= $tilaus_tiedot->kpl?></td>
-					<td>Summa:
-						<?= format_euros($tilaus_tiedot->summa + $tilaus_tiedot->pysyva_rahtimaksu)?>
-						( ml. rahtimaksu )
-					</td></tr>
-				<tr><td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td></tr>
-			</table>
+		<table class='tilaus_info'>
+			<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></td>
+				<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></td></tr>
+			<tr><td>Tilaaja: <?= "{$tilaus_tiedot->etunimi} {$tilaus_tiedot->sukunimi}" ?></td>
+				<td>Yritys: <?= $tilaus_tiedot->yritys?></td></tr>
+			<tr><td>Tuotteet: <?= $tilaus_tiedot->kpl?></td>
+				<td>Summa:
+					<?= format_number( $tilaus_tiedot->summa+$tilaus_tiedot->pysyva_rahtimaksu ) ?>
+					( ml. rahtimaksu )
+				</td></tr>
+			<tr><td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td></tr>
+		</table>
 
 
-			<table class="tilaus_info">
-				<tr><td>Toimitusosoite</td></tr>
-				<tr><td>Nimi: <?= $tilaus_tiedot->tmo_koko_nimi?></td></tr>
-				<tr><td><?= $tilaus_tiedot->tmo_osoite?></td></tr>
-				<tr><td><?= "{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></td></tr>
-			</table>
+		<table class="tilaus_info">
+			<tr><td>Toimitusosoite</td></tr>
+			<tr><td>Nimi: <?= $tilaus_tiedot->tmo_koko_nimi?></td></tr>
+			<tr><td><?= $tilaus_tiedot->tmo_osoite?></td></tr>
+			<tr><td><?= "{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></td></tr>
+		</table>
 	</div>
 	<br>
 	<table>
 		<thead>
-			<tr><th>Tuotenumero</th><th>Tuote</th><th>Valmistaja</th><th class="number">Hinta (yht.)</th>
-				<th class="number">Kpl-hinta</th><th class="number">ALV-%</th><th class="number">Alennus</th>
-				<th class="number">Kpl</th></tr>
+			<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Hinta (yht.)</th>
+				<th class="number">Kpl-hinta</th> <th class="number">ALV-%</th> <th class="number">Alennus</th>
+				<th class="number">Kpl</th> </tr>
 		</thead>
 		<tbody>
-		<?php foreach ($products as $product) : ?>
+		<?php foreach ( $tuotteet as $tuote) : ?>
 			<tr>
-				<td><?= $product->tuotekoodi?></td>
-				<td><?= $product->tuotteen_nimi?></td>
-				<td><?= $product->valmistaja?></td>
-				<td class="number"><?= format_euros( $product->maksettu_hinta * $product->kpl )?></td>
-				<td class="number"><?= format_euros( $product->maksettu_hinta )?></td>
-				<td class="number"><?= round( (float)$product->pysyva_alv * 100 )?> %</td>
-				<td class="number"><?= tulosta_alennus_tuotelistaan( (float)$product->pysyva_alennus )?></td>
-				<td class="number"><?= $product->kpl?></td>
+				<td><?= $tuote->tuotekoodi ?></td>
+				<td><?= $tuote->nimi ?></td>
+				<td><?= $tuote->valmistaja ?></td>
+				<td class="number"><?= $tuote->summa_toString() ?></td>
+				<td class="number"><?= $tuote->a_hinta_toString() ?></td>
+				<td class="number"><?= $tuote->alv_toString() ?></td>
+				<td class="number">
+					<?=((float)$tuote->alennus_prosentti!=0) ? (round($tuote->alennus_prosentti*100)." %") : ("---")?>
+				</td>
+				<td class="number"><?= $tuote->kpl_maara?></td>
 			</tr>
 		<?php endforeach; ?>
 			<tr style="background-color:#cecece;">
 				<td>---</td>
 				<td>Rahtimaksu</td>
-				<td>Posti / Itella</td>
-				<td class="number"><?= format_euros( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
-				<td class="number">---</td>
-				<td class="number">0 %</td>
-				<td class="number">
-					<?= ($tilaus_tiedot->pysyva_rahtimaksu===0) ? "Ilmainen toimitus" : "---" ?>
-				</td>
-				<td class="number">---</td>
+				<td></td>
+				<td class="number"></td>
+				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
+				<td class="number">24 %</td>
+				<td class="number"><?= ($tilaus_tiedot->pysyva_rahtimaksu==0) ? "Ilmainen toimitus" : "---" ?></td>
+				<td class="number">1</td>
 			</tr>
 		</tbody>
 	</table>

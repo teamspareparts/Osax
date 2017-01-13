@@ -73,7 +73,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	} catch ( PDOException $ex ) {
 		// Rollback any changes, and print error message to user.
 		$conn->rollback();
-		$_SESSION["feedback"] = "<p class='error'>Tilauksen lähetys ei onnistunut!<br>Virhe: ". print_r($ex->errorInfo,1)."</p>";
+		$_SESSION["feedback"] = "<p class='error'>Tilauksen lähetys ei onnistunut!<br>Virhe: ".
+			print_r($ex->errorInfo,1)."</p>";
 		// TODO: Do not print error message to user in full (only generic)!
 	}
 }
