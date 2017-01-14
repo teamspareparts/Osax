@@ -13,7 +13,7 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? LIMIT
 }
 
 
-$sql = "  SELECT tuote.tilauskoodi, tuote.nimi, tuote.valmistaja, ostotilauskirja_tuote_arkisto.kpl
+$sql = "  SELECT tuote.tilauskoodi, tuote.valmistaja, ostotilauskirja_tuote_arkisto.kpl
   		  FROM ostotilauskirja_tuote_arkisto
           LEFT JOIN tuote
             ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
@@ -31,11 +31,10 @@ header("Expires: 0");
 
 $outstream = fopen("php://output", "w");
 
-fwrite($outstream, "Tuotenumero;Nimi;Valmistaja;KPL\n");
+fwrite($outstream, "Tuotenumero;Valmistaja;KPL\n");
 
 foreach ($tuotteet as $tuote) {
 	$row = 	$tuote->tilauskoodi . ";" .
-			$tuote->nimi . ";" .
 			$tuote->valmistaja . ";" .
 			$tuote->kpl . ";" .
 			"\r\n";

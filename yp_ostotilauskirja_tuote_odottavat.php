@@ -6,7 +6,8 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-//tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
+//Tarkastetaan onko GET muuttujat sallittuja
+//Haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? AND hyvaksytty = 0 LIMIT 1",
                         [$ostotilauskirja_id])) {
@@ -97,7 +98,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<title>Ostotilauskirjat</title>
 </head>
@@ -171,19 +172,21 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 	
 	function muokkaa_ostotilauskirjaa(ostotilauskirja_id) {
+		//Luodaan form
 		let form = document.createElement("form");
 		form.setAttribute("method", "POST");
 		form.setAttribute("action", "");
 		form.setAttribute("name", "muokkaa_ostotilauskirjaa");
 		form.setAttribute("id", "muokkaa_ostotilauskirjaa");
 
-		//asetetaan $_POST["vastaanotettu"]
+		//POST["vastaanotettu"]
 		let field = document.createElement("input");
 		field.setAttribute("type", "hidden");
 		field.setAttribute("name", "vastaanotettu");
 		field.setAttribute("value", "true");
 		form.appendChild(field);
 
+		//POST["id"]
 		field = document.createElement("input");
 		field.setAttribute("type", "hidden");
 		field.setAttribute("name", "id");
@@ -191,15 +194,9 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 		form.appendChild(field);
 
 
-        //Luodaan kaksi POST -arrayta: id:t ja kappaleet;
-		$('tr td:nth-child(4):not(:first):not(:last)').each(function () {
-			let kpl = $(this).html();
-			let tuote_id = $(this).closest('tr').data('id');
-			field = document.createElement("input");
-			field.setAttribute("type", "hidden");
-			field.setAttribute("name", "kpl[]");
-			field.setAttribute("value", kpl);
-			form.appendChild(field);
+        //POST["tuote_id"];
+		$('tbody tr:not(:first):not(:last)').each(function () {
+			let tuote_id = $(this).data('id');
 			field = document.createElement("input");
 			field.setAttribute("type", "hidden");
 			field.setAttribute("name", "tuote_ids[]");
@@ -209,10 +206,18 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 		//Muutetaan hyllypaikka-cellit inputeiksi
 		$('tr td:nth-child(7):not(:first):not(:last)').each(function () {
 			let hyllypaikka = $(this).html();
-			let input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 80pt; float: right;">');
+			let input = $('<input name="hyllypaikat[]" form="muokkaa_ostotilauskirjaa" type="text" class="number" style="width: 60pt; float: right;">');
 			input.val(hyllypaikka);
 			$(this).html(input);
 		});
+		//Muutetaan hyllypaikka-cellit inputeiksi
+		$('tr td:nth-child(4):not(:first):not(:last)').each(function () {
+			let kpl = $(this).html();
+			let input = $('<input name="kpl[]" form="muokkaa_ostotilauskirjaa" type="number" min="0" class="number" style="width: 40pt; float: right;">');
+			input.val(kpl);
+			$(this).html(input);
+		});
+		//Poistetaan muokkaa -napit
 		$('tr td:nth-child(8):not(:first):not(:last)').each(function () {
 			$(this).html("");
 		});

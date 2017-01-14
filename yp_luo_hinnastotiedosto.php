@@ -25,8 +25,9 @@ $path = "";     //polku
 $fetchCount = 10000;
 
 
-//Haetaan tuotteet tietokannasta ja kirjoitetaan tiedostoon
+/** Hinnastotiedoston tallentaminen serverille */
 $hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi avata!");
+fwrite($hinnastotiedosto, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM
 $offset = 0;
 $products = true;
 while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
@@ -44,8 +45,8 @@ while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
 }
 
 
-//Ladataan uusi tiedosto serveriltä
-$fullPath = $path.$tiedoston_nimi;//.$dl_file;
+/** Ladataan tiedosto serveriltä */
+$fullPath = $path.$tiedoston_nimi;
 
 if ($fd = fopen ($fullPath, "r")) {
     $fsize = filesize($fullPath);

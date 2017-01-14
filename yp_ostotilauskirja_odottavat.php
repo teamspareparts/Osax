@@ -7,6 +7,7 @@ require 'apufunktiot.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
+//Jos ostokirjatilaus on juuri lähetetty hankintapaikalle, ladataan ostotilauskirja
 $otk_id = isset($_SESSION["download"]) ? $_SESSION["download"] : 0;
 unset($_SESSION["download"]);
 if ( $otk_id ) {
