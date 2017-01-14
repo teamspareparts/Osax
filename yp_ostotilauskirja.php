@@ -76,7 +76,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/jsmodal-light.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 <script src="js/jsmodal-1.0d.min.js"></script>
 <title>Ostotilauskirjat</title>
 </head>

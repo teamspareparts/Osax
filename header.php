@@ -42,6 +42,7 @@
                         <li><a href="yp_muokkaa_alv.php">ALV-muokkaus</a></li>
                         <li><a href="yp_luo_hinnastotiedosto.php">Lataa hinnastot</a></li>
                         <li><a href='toimittajat.php'>Toimittajat</a></li>
+                        <li><a href='yp_raportit.php'>Raportit</a></li>
                         <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                     </ul>
                 </li>
@@ -59,32 +60,6 @@
     //navbar active link
     let pgurl = window.location.href.substr(window.location.href
             .lastIndexOf("/")+1).split('?')[0];
-    //Tarkastetaan alasivut
-    switch(pgurl) {
-        case "yp_muokkaa_yritysta.php":
-        case "yp_lisaa_yritys.php":
-        case "yp_asiakkaat.php":
-        case "yp_muokkaa_asiakasta.php":
-        case "yp_lisaa_asiakas.php":
-			pgurl = "yp_yritykset.php";
-			break;
-        case "yp_tilaushistoria.php":
-        case "tilaus_info.php":
-        	pgurl = "yp_tilaukset.php";
-        	break;
-        case "toimittajan_hallinta.php":
-        case "yp_lisaa_tuotteita.php":
-        case "yp_valikoima.php":
-        	pgurl = "toimittajat.php";
-        	break;
-        case "yp_ostotilauskirja.php":
-        case "yp_ostotilauskirja_tuote.php":
-        	pgurl = "yp_ostotilauskirja_hankintapaikka.php";
-        	break;
-        case "yp_ostotilauskirja_tuote_odottavat.php":
-        	pgurl = "yp_ostotilauskirja_odottavat.php";
-        	break;
-    }
     $("#navigationbar a").each(function(){
         if ( $(this).attr("href") == pgurl ) {
             $(this).addClass("active");
@@ -101,7 +76,6 @@
         if ( dropdown_icon.text() === "arrow_drop_down" ){
             dropdown_icon.text("arrow_drop_up");
             $(".dropdown-content").show();
-
         } else {
             dropdown_icon.text("arrow_drop_down");
             $(".dropdown-content").hide();
