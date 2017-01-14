@@ -28,7 +28,6 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		$row = 0;
 	}
 
-    $product_array = [];
 	$failed_inserts = 0;
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 		if ($row == -1) {
@@ -37,30 +36,42 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		}
 		$row++;
 
-		//TODO: Tarkasta myös $datan sisältö, väärien syötteiden varalta.
+		//TODO: Tarkasta myös $datan sisältö, väärien syötteiden varalta!
 		$num = count($data); // rivin sarakkeiden lkm
-		if ( ( $num != 7 && isset($_POST["tilauskoodi"]) ) || ( $num !=6 && !isset($_POST["tilauskoodi"]) )) {
+		if (($num != 7 && isset($_POST["tilauskoodi"])) || ($num != 6 && !isset($_POST["tilauskoodi"]))) {
 			$failed_inserts++;
 			continue;
 		}
 
 
-        $articleNo = str_replace(" ", "", $data[$_POST["s0"]]);
+		$articleNo = str_replace(" ", "", $data[$_POST["s0"]]);
 		$ostohinta = (double)str_replace(",", ".", $data[$_POST["s1"]]);
 		$myyntihinta = (double)str_replace(",", ".", $data[$_POST["s2"]]);
 		$vero_id = (int)$data[$_POST["s3"]];
 		$minimimyyntiera = (int)$data[$_POST["s4"]];
 		$kappaleet = (int)$data[$_POST["s5"]];
-        $tuotekoodi = $hankintapaikka_id ."-". $articleNo; //esim: 100-QTB249
-        $tilauskoodi = isset($_POST["tilauskoodi"]) ? $data[6] : ($_POST["etuliite"].$articleNo.$_POST["takaliite"]);
-
-		/**$product_array[0] = (object)[
-			'articleNo' => $articleNo,
-			'brandNo' => $brandId,
-			'hankintapaikka_id' => $hankintapaikka_id,
-		];
-        get_basic_product_info($product_array);
-		sleep(0.1);*/
+		$tilauskoodi = "";
+		switch ($_POST["tilauskoodin_tyyppi"]) {
+			case "liite_sama":
+				$tilauskoodi = $articleNo;
+				break;
+			case "liite_plus":
+				$tilauskoodi = $_POST["etuliite_plus"] . $articleNo . $_POST["takaliite_plus"];
+				break;
+			case "liite_miinus":
+				$tilauskoodi = $articleNo;
+				if (substr($articleNo, 0, strlen($_POST["etuliite_miinus"])) == $_POST["etuliite_miinus"]) {
+					$articleNo = substr($articleNo, strlen($_POST["etuliite_miinus"]));
+				}
+				if (substr($articleNo, -strlen($_POST["takaliite_miinus"])) == $_POST["takaliite_miinus"]) {
+					$articleNo = substr($articleNo, 0, -strlen($_POST["takaliite_miinus"]));
+				}
+				break;
+			case "liite_eri":
+				$tilauskoodi = $data[6];
+				break;
+		}
+		$tuotekoodi = $hankintapaikka_id . "-" . $articleNo; //esim: 100-QTB249
 
 		$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
@@ -153,22 +164,47 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
             <label for="select3">4:</label><select name=s3 id=select3></select><br>
             <label for="select4">5:</label><select name=s4 id=select4></select><br>
             <label for="select5">6:</label><select name=s5 id=select5></select><br>
-            <div id="tilauskoodi_sarake" class="hidden">
-                <label for="select6">7:</label><select name=s6 id=select6>
+            <div id="tilauskoodi_sarake" class="tilauskoodi_action" hidden>
+                <label for="select6">7:</label>
+                <select name=s6 id=select6>
                     <option>Tilauskoodi</option>
                 </select>
             </div>
-            <br>
+            <br><br><br>
             <div id="tilauskoodin_liitteet">
-                Tuotteen tilauskoodin etu- ja takaliitteet<br>
-                <label for="etuliite">Etuliite:</label>
-                <input type="text" name="etuliite" id="etuliite" pattern="[a-zA-Z0-9-]+" maxlength="6">
-                <label for="takaliite">Takaliite:</label>
-                <input type="text" name="takaliite" id="takaliite" pattern="[a-zA-Z0-9-]+" maxlength="6">
+                <label for="tilauskoodin_tyyppi">Tuotteen tilauskoodi</label><br>
+                <select name="tilauskoodin_tyyppi" id="tilauskoodin_tyyppi">
+                    <option value="liite_sama" selected>Tilauskoodi on sama kuin tuotenumero.</option>
+                    <option value="liite_plus">Luo tilauskoodi lisäämällä tuotenumeroon etu- tai takaliite. </option>
+                    <option value="liite_miinus">Luo tilauskoodi vähentämällä etu- tai takaliite.</option>
+                    <option value="liite_eri">Tilauskoodi ei vastaa tuotenumeroa.</option>
+                </select><br><br>
             </div>
-            <br>
-            <label for="tilauskoodi">Tilauskoodi ei vastaa tuotenumeroa:</label><span class="question" id="info_tilauskoodi">?</span>
-            <input type="checkbox" name="tilauskoodi" id="tilauskoodi"><br>
+
+
+
+            <div id="liite_plus" class="tilauskoodi_action" hidden>
+                <p>Luo tilauskoodi lisäämällä tuotenumeroon etu- ja takaliite.</p>
+                <label for="etuliite_plus">Etuliite:</label>
+                <input type="text" name="etuliite_plus" id="etuliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+                <label for="takaliite_plus">Takaliite:</label>
+                <input type="text" name="takaliite_plus" id="takaliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+            </div>
+
+            <div id="liite_miinus" class="tilauskoodi_action" hidden>
+                <p>Tiedostossa oleva tuotenumero on hankintapaikan käyttämä tilauskoodi.<br>
+                    Luo tuotenumero poistamalla tilauskoodista etu- tai takaliite.</p>
+                <label for="etuliite_miinus">Etuliite:</label>
+                <input type="text" name="etuliite_miinus" id="etuliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+                <label for="takaliite_miinus">Takaliite:</label>
+                <input type="text" name="takaliite_miinus" id="takaliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+            </div>
+
+            <div id="liite_eri" class="tilauskoodi_action" hidden>
+                <p>Tuotenumero ei vastaa lainkaan tilauskoodia.<br>
+                    Tiedostossa on oltava seitsämäs sarake tilauskoodia varten!</p>
+            </div>
+
         </form>
 	</fieldset>
 
@@ -213,36 +249,20 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 			return true;
 		});
 
-
-		//piilotetaan tilauskoodi sarake
-		if ( $("#tilauskoodi").get(0).checked ) {
-			$("#tilauskoodin_liitteet").hide();
-			$("#tilauskoodi_sarake").show();
-		}
-		$("#tilauskoodi").change(function(){
-			if ( (this).checked ) {
-				$("#tilauskoodin_liitteet").hide();
-				$("#tilauskoodi_sarake").show();
-			} else {
-				$("#tilauskoodin_liitteet").show();
-				$("#tilauskoodi_sarake").hide();
-			}
+		//Tilauskoodin tyyppi -valiko
+		$('#tilauskoodin_tyyppi').change(function(e) {
+			$('.tilauskoodi_action').hide();
+			let tyyppi = $(this).val();
+			$('#' + tyyppi).show();
+            if (tyyppi == "liite_eri") $('#tilauskoodi_sarake').show();
 		});
+
 
 		//Näytetään ohjeet kun hiiri viedään kysymysmerkin päälle.
 		$("#info_tiedostomuoto").hover(function () {
 			$(this).append('<div class="tooltip">' +
 				'<p>Tiedostossa oltava 6 saraketta & erottimena oltava ";".</p>' +
 				'<p>Jos tiedostossa on otsikkorivi merkkaa valintaruutu.</p>' +
-				'</div>');
-		}, function () {
-			$("div.tooltip").remove();
-		});
-		$("#info_tilauskoodi").hover(function () {
-			$(this).append('<div class="tooltip">' +
-				'<p>Jos tuotteen tilauskoodi ei vastaa lainkaan tuotenumeroa.</p>' +
-				'<p>Tällöin tarvitaan hinnastotiedostoon seitsämäs sarake, johon on<br>' +
-                'merkattu hankintapaikan käyttämät tuotekoodit.</p>' +
 				'</div>');
 		}, function () {
 			$("div.tooltip").remove();
