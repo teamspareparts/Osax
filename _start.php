@@ -49,6 +49,7 @@ $cart = new Ostoskori( $db, $user->yritys_id );
 if ( !$user->isValid() ) {
 	header( 'Location: index.php?redir=4' ); exit;
 }
+// Lisäksi tarkistetaan EULA, jotta käyttäjä ei pysty käyttämään sivustoa ilman hyväksyntää.
 elseif ( !$user->eula_hyvaksytty() ) {
     header( 'Location: eula.php' ); exit;
 }

@@ -22,7 +22,7 @@ require "luokat/db_yhteys_luokka.class.php";
 $db = parse_ini_file("../src/tietokanta/db-config.ini.php");
 $db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
 /**
- * @var String <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
+ * @var Mixed <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
  * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.
  */
 $result = NULL;
@@ -86,8 +86,7 @@ elseif ( !empty($_POST['hankintapaikan_ostotilauskirjat']) ) {
  */
 elseif ( !empty($_POST['valmistajan_hankintapaikat']) ) {
 	$sql = "SELECT hankintapaikka.id, hankintapaikka.nimi FROM valmistajan_hankintapaikka
-			LEFT JOIN hankintapaikka
-				ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
+			LEFT JOIN hankintapaikka ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
 			WHERE brandId = ?";
 	$result = $db->query( $sql, [$_POST['brand_id']], FETCH_ALL);
 }
@@ -97,7 +96,7 @@ elseif ( !empty($_POST['valmistajan_hankintapaikat']) ) {
  */
 elseif ( !empty($_POST['lisaa_tilauskirjalle'])) {
 	$sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, 
-						tuote_id, kpl, lisays_kayttaja_id, lisays_tapa)
+				tuote_id, kpl, lisays_kayttaja_id, lisays_tapa)
             VALUES ( ?, ?, ?, ?, 1)";
 	$result = $db->query( $sql, [ $_POST['ostotilauskirja_id'], $_POST['tuote_id'], $_POST['kpl'], $_SESSION['id'] ] );
 }
