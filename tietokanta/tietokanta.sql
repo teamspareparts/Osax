@@ -56,8 +56,6 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `keskiostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
   `hyllypaikka` varchar(10) DEFAULT NULL,
   `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
-  `alennusera_kpl` int(11) NOT NULL DEFAULT 0, -- Maaraalennus_kpl -- Saattaa olla turha
-  `alennusera_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00, -- Maaraalennus_pros -- Saattaa olla turha
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),

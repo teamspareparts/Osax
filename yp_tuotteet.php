@@ -12,25 +12,24 @@ require 'apufunktiot.php';
  * @return bool <p> onnistuiko lisäys. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
 function add_product_to_catalog( DByhteys $db, array $val ) {
-	$result = $db->query("SELECT aktiivinen FROM tuote WHERE articleNo = ? 
-						  AND brandNo = ? AND hankintapaikka_id = ?", [ $val[0], $val[1], $val[2] ]);
+	$result = $db->query("SELECT aktiivinen FROM tuote WHERE articleNo = ? AND brandNo = ? AND hankintapaikka_id = ?",
+		[ $val[0], $val[1], $val[2] ]);
 
 	//Jos ei löydy valikoimasta tai ei ole aktiivinen
 	if ( !($result ? $result->aktiivinen : false) ) {
-
-
-		$sql = "INSERT INTO tuote 
-				(articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, sisaanostohinta, hinta_ilman_ALV, ALV_kanta, varastosaldo,
-				 minimimyyntiera, hyllypaikka, alennusera_kpl, alennusera_prosentti, nimi, valmistaja, yhteensa_kpl, keskiostohinta) 
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
-			ON DUPLICATE KEY UPDATE 
-				sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
-			  	ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
-		  		minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
-	  			valmistaja=VALUES(valmistaja), alennusera_kpl=VALUES(alennusera_kpl),
-  				alennusera_prosentti=VALUES(alennusera_prosentti), aktiivinen = 1";
+		$sql = "INSERT INTO tuote
+					(articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, sisaanostohinta, hinta_ilman_ALV,
+					 ALV_kanta, varastosaldo, minimimyyntiera, hyllypaikka, nimi, valmistaja, yhteensa_kpl, 
+					 keskiostohinta)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
+				ON DUPLICATE KEY UPDATE
+					sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
+					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
+					minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
+					valmistaja=VALUES(valmistaja), aktiivinen = 1";
 		return $db->query($sql, $val);
 	}
+
 	return false;
 }
 
@@ -56,11 +55,11 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 			SET keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
 				yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
 				tilauskoodi = ?, sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
-				minimimyyntiera = ?, hyllypaikka = ?, alennusera_kpl = ?, alennusera_prosentti = ?
+				minimimyyntiera = ?, hyllypaikka = ?
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
-		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7], $val[8], $val[9] ] );
+		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
 }
 
 function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
@@ -204,8 +203,6 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
 		$_POST['hyllypaikka'],
-        $_POST['alennusera_kpl'],
-        floatval($_POST['alennusera_prosentti']) / 100,
 		$_POST['nimi'],
 		$_POST['valmistaja']
     ];
@@ -227,8 +224,6 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
 		$_POST['hyllypaikka'],
-        $_POST['alennusera_kpl'],
-        ($_POST['alennusera_prosentti'] / 100),
         $_POST['id']
     ];
     if ( modify_product_in_catalog( $db, $array ) ) {
@@ -484,8 +479,6 @@ require 'tuotemodal.php';
                         <label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
                         <label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
                         <label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
-                        <label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0"> kpl</span><br> \
-                        <label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="eur" name="alennusera_prosentti" placeholder="0"></span><br> \
                         <input class="nappi" type="submit" name="lisaa" value="Lisää">\
                         <button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
                         <input type="hidden" name="nimi" value="' + nimi + '"> \
@@ -542,8 +535,6 @@ require 'tuotemodal.php';
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
 					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
-					<label for="alennusera_kpl">Määräalennus (kpl):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_kpl" placeholder="0" value="'+maara_alennus+'"> kpl</span><br> \
-					<label for="alennusera_prosentti">Määräalennus (%):</label><span class="dialogi-kentta"><input class="kpl" name="alennusera_prosentti" placeholder="0" value="'+prosentti_alennus+'"></span><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()">\
 					<button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 					<input type="hidden" name="id" value="' + id + '"> \
@@ -594,13 +585,7 @@ require 'tuotemodal.php';
                 });
             }
         );
-
     }
-
-
-
-
-
 
 	$(document).ready(function(){
 
@@ -702,10 +687,6 @@ require 'tuotemodal.php';
 			$("#hakutyyppi").val(exact);
 		}
 	}
-
-
-
 </script>
-
 </body>
 </html>
