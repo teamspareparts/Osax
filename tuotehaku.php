@@ -492,13 +492,14 @@ require 'tuotemodal.php';
 					content: '\
                         <div class="dialogi-otsikko">Lisää ostotilauskirjaan</div> \
                         <form action="" name="ostotilauskirjalomake" id="ostotilauskirjalomake" method="post"> \
-                            <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
+                            <label for="ostotilauskirja">Ostotilauskirja:</label><br> \
 				            '+ostotilauskirja_lista+'<br><br> \
 				            <label for="kpl">Kappaleet:</label><br> \
 				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1" required> kpl<br><br> \
-                            <br>\
+                            <label for="selite">Selite:</label><br> \
+                            <textarea rows="3" cols="25" name="selite" form="ostotilauskirjalomake" placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
-                            <input type="hidden" name="id" value="'+id+'">\
+                            <input type="hidden" name="id" id="otk_id" value="'+id+'"> \
 				        </form> \
                         \
                     ',
@@ -515,13 +516,14 @@ require 'tuotemodal.php';
 		$(document.body)
 			.on('submit', '#ostotilauskirjalomake', function(e){
 				e.preventDefault();
-				let tuote_id = $('input[name=id]').val();
+				let tuote_id = $('#otk_id').val();
 				$.post(
 					"ajax_requests.php",
 					{   lisaa_tilauskirjalle: true,
 						ostotilauskirja_id: $('select[name=ostotilauskirjat]').val(),
 						tuote_id: tuote_id,
-						kpl: $('input[name=kpl]').val() },
+						kpl: $('input[name=kpl]').val(),
+					    selite: $('textarea[name=selite]').val() },
 					function( data ) {
 						Modal.close();
 						if ((!!data) === true ) {

@@ -544,48 +544,56 @@ require 'tuotemodal.php';
         $("#alv_lista").val(alv);
     }
 
-    function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
-        //haetaan hankintapaikan ostotilauskirjat
-        $.post(
-            "ajax_requests.php",
-            {   hankintapaikan_ostotilauskirjat: true,
-                hankintapaikka_id: hankintapaikka_id,
+	/**
+	 * Lisää tuotteen ostotilauskirjalle
+	 * @param id
+	 * @param hankintapaikka_id
+	 * @param tuote_nimi
+	 * @param tuote_valmistaja
+	 */
+	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
+		//haetaan hankintapaikan ostotilauskirjat
+		$.post(
+			"ajax_requests.php",
+			{   hankintapaikan_ostotilauskirjat: true,
+				hankintapaikka_id: hankintapaikka_id,
 				tuote_id: id,
 				tuote_nimi: tuote_nimi,
 				tuote_valmistaja: tuote_valmistaja },
-            function( data ) {
-                ostotilauskirjat = JSON.parse(toJSON(data));
-                if(ostotilauskirjat.length === 0){
-                    alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
-                        "\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
-                    return;
-                }
-                //Luodaan alasvetovalikko
-                let ostotilauskirja_lista = '<select name="ostotilauskirjat">';
-                for(let i=0; i < ostotilauskirjat.length; i++){
-                    ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
-                }
-                ostotilauskirja_lista += '</select>';
-                //avataan Modal
-                Modal.open({
-                    content: '\
+			function( data ) {
+				ostotilauskirjat = JSON.parse(toJSON(data));
+				if(ostotilauskirjat.length === 0){
+					alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
+						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
+					return;
+				}
+				//Luodaan alasvetovalikko
+				let ostotilauskirja_lista = '<select name="ostotilauskirjat">';
+				for(let i=0; i < ostotilauskirjat.length; i++){
+					ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
+				}
+				ostotilauskirja_lista += '</select>';
+				//avataan Modal
+				Modal.open({
+					content: '\
                         <div class="dialogi-otsikko">Lisää ostotilauskirjaan</div> \
                         <form action="" name="ostotilauskirjalomake" id="ostotilauskirjalomake" method="post"> \
-                            <label for="ostotilauskirja">Ostotilauskirja:</label><br>\
+                            <label for="ostotilauskirja">Ostotilauskirja:</label><br> \
 				            '+ostotilauskirja_lista+'<br><br> \
 				            <label for="kpl">Kappaleet:</label><br> \
 				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1" required> kpl<br><br> \
-                            <br>\
+                            <label for="selite">Selite:</label><br> \
+                            <textarea rows="3" cols="25" name="selite" form="ostotilauskirjalomake" placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
-                            <input type="hidden" name="id" value="'+id+'">\
+                            <input type="hidden" name="id" id="otk_id" value="'+id+'"> \
 				        </form> \
                         \
                     ',
-                    draggable: true
-                });
-            }
-        );
-    }
+					draggable: true
+				});
+			}
+		);
+	}
 
 	$(document).ready(function(){
 
@@ -593,13 +601,14 @@ require 'tuotemodal.php';
 		$(document.body)
 			.on('submit', '#ostotilauskirjalomake', function(e){
 				e.preventDefault();
-				let tuote_id = $('input[name=id]').val();
+				let tuote_id = $('#otk_id').val();
 				$.post(
 					"ajax_requests.php",
 					{   lisaa_tilauskirjalle: true,
 						ostotilauskirja_id: $('select[name=ostotilauskirjat]').val(),
 						tuote_id: tuote_id,
-						kpl: $('input[name=kpl]').val() },
+						kpl: $('input[name=kpl]').val(),
+                        selite: $('textarea[name=selite]').val() },
 					function( data ) {
 						Modal.close();
 						if ((!!data) === true ) {

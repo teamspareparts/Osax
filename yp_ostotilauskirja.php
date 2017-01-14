@@ -37,7 +37,8 @@ else if ( isset($_POST['muokkaa']) ) {
 /** Ostotilauskirjan poistaminen */
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
-    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) ) {
+    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) &&
+		 $db->query("DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?", array_values($_POST)) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";

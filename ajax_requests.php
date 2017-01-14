@@ -96,9 +96,9 @@ elseif ( !empty($_POST['valmistajan_hankintapaikat']) ) {
  */
 elseif ( !empty($_POST['lisaa_tilauskirjalle'])) {
 	$sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, 
-				tuote_id, kpl, lisays_kayttaja_id, lisays_tapa)
-            VALUES ( ?, ?, ?, ?, 1)";
-	$result = $db->query( $sql, [ $_POST['ostotilauskirja_id'], $_POST['tuote_id'], $_POST['kpl'], $_SESSION['id'] ] );
+				tuote_id, kpl, selite, lisays_kayttaja_id)
+            VALUES ( ?, ?, ?, ?, ?)";
+	$result = $db->query( $sql, [ $_POST['ostotilauskirja_id'], $_POST['tuote_id'], $_POST['kpl'], $_POST['selite'], $_SESSION['id'] ] );
 }
 
 

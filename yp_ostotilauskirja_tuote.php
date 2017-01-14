@@ -37,9 +37,9 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) return false;
 	foreach ($products as $product) {
 		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, kpl, 
-										lisays_tapa, lisays_pvm, lisays_kayttaja_id, ostohinta) 
+										selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
  								VALUES(?, ?, ?, ?, ?, ?, ?)",
-			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->lisays_tapa,
+			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->selite,
 			$product->lisays_pvm, $product->lisays_kayttaja_id,
 			$product->sisaanostohinta]);
 		if( !$result ) return false;
