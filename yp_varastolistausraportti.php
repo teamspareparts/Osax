@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 
 //Vain ylläpitäjälle
@@ -30,6 +30,7 @@ $brands = hae_brandit($db);
 $hankintapaikat = hae_hankintapaikat($db);
 
 
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -45,7 +46,7 @@ $hankintapaikat = hae_hankintapaikat($db);
 <main class="main_body_container">
 	<h1>Varastolistausraportti</h1>
 
-    <div class="feedback"></div>
+    <div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
 	<fieldset><legend>Raportin rajaukset</legend>
 		<form action="yp_luo_varastolistausraportti.php" method="post" id="varastolistausraportti">
 
@@ -84,8 +85,8 @@ $hankintapaikat = hae_hankintapaikat($db);
 <script>
 	$(document).ready(function(){
         $("#varastolistausraportti").on("submit", function(e) {
-            $(".feedback").append("Odota kunnes raportti valmistuu!")
-                .addClass("success");
+			$(".feedback").show().fadeOut(6000);
+
 		});
 	});
 </script>

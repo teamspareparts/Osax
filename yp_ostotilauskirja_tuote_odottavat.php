@@ -6,6 +6,27 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
+/** Järjestetään tuotteet artikkelinumeron mukaan
+ * @param $catalog_products
+ * @return array <p> Sama array sortattuna
+ */
+function sortProductsByName( $products ){
+	usort($products, "cmpName");
+	return $products;
+}
+
+//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
+//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
+/** Vertailufunktio usortille.
+ * @param $a
+ * @param $b
+ * @return bool
+ */
+function cmpName($a, $b) {
+	return ($a->articleNo > $b->articleNo);
+}
+
+
 //Tarkastetaan onko GET muuttujat sallittuja
 //Haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
@@ -76,6 +97,7 @@ $sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote_arkisto.kpl AS k
           WHERE ostotilauskirja_id = ?
           GROUP BY tuote_id";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
+$products = sortProductsByName($products);
 
 $sql = "  SELECT SUM(ostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
           FROM ostotilauskirja_tuote_arkisto
