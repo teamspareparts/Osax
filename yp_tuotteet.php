@@ -393,8 +393,7 @@ require 'tuotemodal.php';
                                 <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>', '<?=$product->tilauskoodi?>',
                                     '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
                                     '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
-                                    '<?=$product->minimimyyntiera?>', '<?=$product->hyllypaikka?>',
-									'<?=$product->alennusera_kpl?>', '<?=$product->alennusera_prosentti*100?>')">
+                                    '<?=$product->minimimyyntiera?>', '<?=$product->hyllypaikka?>')">
                                     Muokkaa</button><br>
                                 <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>" onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
                                     <?=$product->hankintapaikka_id?>, '<?= $product->articleName?>', '<?= $product->brandName?>')">
@@ -521,7 +520,7 @@ require 'tuotemodal.php';
 	 * @param maara_alennus
 	 * @param prosentti_alennus
 	 */
-    function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka, maara_alennus, prosentti_alennus ) {
+    function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka ) {
         let alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
         Modal.open( {
             content: '\
@@ -596,7 +595,6 @@ require 'tuotemodal.php';
 	}
 
 	$(document).ready(function(){
-
 		//Tuotteen lisääminen ostotilauskirjalle
 		$(document.body)
 			.on('submit', '#ostotilauskirjalomake', function(e){
@@ -620,7 +618,6 @@ require 'tuotemodal.php';
 						}
 					});
 			});
-
 
 		//Avataan tuoteikkuna tuotetta painettaessa
 		$('.clickable')
@@ -659,7 +656,6 @@ require 'tuotemodal.php';
 		let osat = qs["osat"];
 		let osat_alalaji = qs["osat_alalaji"];
 
-
 		getModelSeries(manuf);
 		getVehicleIdsByCriteria(manuf, model);
 		getPartTypes(car);
@@ -674,7 +670,6 @@ require 'tuotemodal.php';
 			$("#osaTyyppi").find("option[value=" + osat + "]").attr('selected', 'selected');
 			$("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
 		}
-
 	}
 
 	if ( qs["haku"] ){

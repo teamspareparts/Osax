@@ -5,6 +5,7 @@
  */
 require 'tietokanta.php';
 require 'email.php';
+//require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
 require 'luokat/IP.class.php';
 require 'tecdoc.php';
 
@@ -53,10 +54,10 @@ function check_IP_address ( DByhteys $db, stdClass $user ) {
 			}
 		}
 		//päivitetään sijainti tietokantaan
-		$query = "	UPDATE	kayttaja
-					SET		viime_sijainti = $nykyinen_sijainti
-					WHERE	sahkoposti = ? ";
-		$db->query( $query, [$user->sahkoposti] );
+		$sql = "UPDATE kayttaja
+				SET viime_sijainti = $nykyinen_sijainti
+				WHERE sahkoposti = ?";
+		$db->query( $sql, [$user->sahkoposti] );
 	}
 }
 
@@ -72,9 +73,9 @@ function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode )
 	$key = GUID();
 	$key_hashed = sha1( $key );
 	
-	$sql_query = "	INSERT INTO pw_reset (kayttaja_id, reset_key_hash)
-					VALUES ( ?, ? )";
-	$db->query( $sql_query, [$user->id, $key_hashed] );
+	$sql = "INSERT INTO pw_reset (kayttaja_id, reset_key_hash)
+			VALUES ( ?, ? )";
+	$db->query( $sql, [$user->id, $key_hashed] );
 	
 	if ( $reset_mode == "expired" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
 		header("Location:pw_reset.php?id={$key}"); exit;
@@ -99,14 +100,12 @@ function GUID()	{
 		return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
 }
 
-
 if ( empty($_POST["mode"]) ) {
 	header("Location:index.php?redir=4"); exit(); // Not logged in
 }
 
 $mode = $_POST["mode"];
-$email = isset($_POST["email"])
-	? trim($_POST["email"]) : NULL;
+$email = isset($_POST["email"]) ? trim($_POST["email"]) : NULL;
 $password = (isset($_POST["password"]) && strlen($_POST["password"]) < 300)
 	? trim($_POST["password"]) : NULL;
 $salasanan_voimassaoloaika = 180;
@@ -120,16 +119,16 @@ if ( $mode == "login" ) {
 	session_start();
 
 	// Haetaan käyttäjän tiedot
-	$sql_query = "	SELECT	id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo, 
-						voimassaolopvm,	viime_sijainti, yritys_id, salasana_vaihdettu, salasana_uusittava,
-						CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
-					FROM 	kayttaja
-					WHERE 	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email] );
+	$sql = "SELECT id, sahkoposti, salasana_hajautus, yllapitaja, vahvista_eula, aktiivinen, demo,
+				voimassaolopvm,	viime_sijainti, yritys_id, salasana_vaihdettu, salasana_uusittava,
+				CONCAT(etunimi, ' ', sukunimi) AS koko_nimi
+			FROM kayttaja
+			WHERE sahkoposti = ?";
+	$login_user = $db->query( $sql, [$email] );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
-		// Jos läpi tarkistuksista...
+		// Jos läpi tarkistuksista -->
 
         //check_IP_address( $db, $user->id, $user_info->viime_sijainti );
 
@@ -143,13 +142,15 @@ if ( $mode == "login" ) {
    		}
    		
    		else { //JOS KAIKKI OK->
-            $_SESSION['id']		= $login_user->id;
+            $_SESSION['id']	= $login_user->id;
             $_SESSION['yritys_id'] = $login_user->yritys_id;
-            $_SESSION['email']	= $login_user->sahkoposti;
+            $_SESSION['email'] = $login_user->sahkoposti;
             addDynamicAddress();
 
-			if ( $login_user->vahvista_eula ) { header("Location:eula.php"); exit; } // else ...
-   			header("Location:tuotehaku.php"); exit;
+			if ( $login_user->vahvista_eula ) {
+				header("Location:eula.php"); exit;
+			} // else ...
+   			header("Location:etusivu.php"); exit;
    		}
 	   
 	} else { //Ei tuloksia == väärä käyttäjätunnus --> lähetä takaisin
@@ -162,10 +163,10 @@ if ( $mode == "login" ) {
  ***************************/
 elseif ( $mode == "password_reset" ) {
 	
-	$sql_query = "	SELECT	id, sahkoposti, aktiivinen, demo, voimassaolopvm
-					FROM	kayttaja
-					WHERE	sahkoposti = ?";
-	$login_user = $db->query( $sql_query, [$email] );
+	$sql = "SELECT id, sahkoposti, aktiivinen, demo, voimassaolopvm
+			FROM kayttaja
+			WHERE sahkoposti = ?";
+	$login_user = $db->query( $sql, [$email] );
 	
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, NULL, TRUE );
