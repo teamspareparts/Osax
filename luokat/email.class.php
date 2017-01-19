@@ -83,34 +83,30 @@ class Email {
 	 * @param string $fileName
 	 */
 	static function lahetaTilausvahvistus( /*string*/$email, Ostoskori $cart, /*int*/$tilausnro, /*string*/$fileName ) {
-		// Tarkistetaan varmuuden vuoksi, että ostoskorissa on tuotteita.
-		//TODO: Eikö tuo tarkistus ole hieman liioittelua? --JJ
-		if ( $cart->tuotteet ) {
-			Email::$subject = "Tilausvahvistus";
+		Email::$subject = "Tilausvahvistus";
 
-			$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
-									<th style="text-align:right;">Kpl</th></tr>';
-			foreach ($cart->tuotteet as $tuote) {
-				$productTable .= "
-				<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
-					<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
-					<td style='text-align:right;'>{$tuote->kpl_maara}</td></tr>";
-			}
-
-			$productTable .= "</table><br><br><br>";
-			$contactinfo = 'Yhteystiedot:<br>
-						Osax Oy<br>
-						Jukolankatu 19 80100 Joensuu<br>		
-						puh. 010 5485200<br>
-						janne@osax.fi';
-			Email::$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: {$cart->summa_toString()}<br>
-			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
-
-			Email::$fileName = $fileName;
-			Email::$file = file_get_contents("./laskut/{$fileName}");
-
-			Email::sendMail();
+		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
+								<th style="text-align:right;">Kpl</th></tr>';
+		foreach ($cart->tuotteet as $tuote) {
+			$productTable .= "
+			<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
+				<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
+				<td style='text-align:right;'>{$tuote->kpl_maara}</td></tr>";
 		}
+
+		$productTable .= "</table><br><br><br>";
+		$contactinfo = 'Yhteystiedot:<br>
+					Osax Oy<br>
+					Jukolankatu 19 80100 Joensuu<br>		
+					puh. 010 5485200<br>
+					janne@osax.fi';
+		Email::$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: {$cart->summa_toString()}<br>
+		Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
+
+		Email::$fileName = $fileName;
+		Email::$file = file_get_contents("./laskut/{$fileName}");
+
+		Email::sendMail();
 	}
 
 	/**

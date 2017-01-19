@@ -508,17 +508,15 @@ require 'tuotemodal.php';
     }
 
 	/**
-	 *
 	 * @param id
 	 * @param tuotekoodi
+	 * @param tilauskoodi
 	 * @param ostohinta
 	 * @param hinta
 	 * @param alv
 	 * @param varastosaldo
 	 * @param minimimyyntiera
 	 * @param hyllypaikka
-	 * @param maara_alennus
-	 * @param prosentti_alennus
 	 */
     function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka ) {
         let alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
@@ -535,8 +533,43 @@ require 'tuotemodal.php';
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
 					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()">\
-					<button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
+					<button class="nappi red" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 					<input type="hidden" name="id" value="' + id + '"> \
+				</form> \
+				<hr> \
+				<form class="table"> \
+					<span style="font-weight:bold;">Lisää alennus tuotteelle:</span>\
+					<div class="tr"> \
+						<div class="td_pad"> \
+							<label class="required" style="margin:0;">Kpl-määrä:</label><br> \
+							<input class="kpl number" name="kpl_maara" placeholder="0" value="" title="Kpl-määrä alennukselle" required> \
+						</div> \
+						<div class="td_pad"> \
+							<label class="required" style="margin:0;">Pvm-alku:</label><br> \
+							<input name="pvm_alku" placeholder="YYYY-MM-DD" value="" title="Pvm alku" required \
+								style="width:65pt;"> \
+						</div> \
+					</div> \
+					<div class="tr"> \
+						<div class="td_pad"> \
+							<label class="required" style="margin:0;">Ale-%:</label><br> \
+							<input class="kpl number" name="alennus_pros" placeholder="0" value="" title="Alennus-prosentti" required> \
+						</div> \
+						<div class="td_pad"> \
+							<label class="required" style="margin:0;">Pvm-Loppu:</label><br> \
+							<input name="pvm_loppu" placeholder="YYYY-MM-DD" value="" title="Pvm loppu" required \
+								style="width:65pt;"> \
+						</div> \
+					</div> \
+					<div class="tr"> \
+						<div class="td_pad"> \
+							<label style="margin:0;">Yritys-ID:</label><br> \
+							<input class="kpl number" name="yritys_id" placeholder="0" value="" title="Yrityskohtaiselle alennukselle"> \
+						</div> \
+					</div> \
+					<input class="nappi disabled" type="submit" name="muokkaa" value="Lisää alennus"> \
+					<button class="nappi red" type="button" style="margin-left:10pt;" \
+						onclick="Modal.close()">Peruuta</button> \
 				</form>',
             draggable: true
         } );

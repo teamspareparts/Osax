@@ -5,6 +5,8 @@
     antamalla sille parametriksi tuotteen id:n.
 
     Vaatii jQueryn, Tecdocin jsonEndpointin ja bootstrap3.
+    //TODO: Onko tämän tarkoitus näkyä käyttäjälle? Koska se näkyy selaimen koodissa, kaiken muun koodin seassa
+    //  mikä tekee tekstistä hieman oudon. Miten olisi tämän siirtäminen PHP-koodiin? --JJ
 
 ---------------------------------------------------------------------------->
 <?php require_once 'tecdoc_asetukset.php';?>

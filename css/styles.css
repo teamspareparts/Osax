@@ -1,16 +1,16 @@
 @CHARSET "UTF-8";
 
 /********************************************
-	General application
+	General application.
 *********************************************/
-html{ position:relative; min-height: 100%; width:100%; /*Varmuuden varalle...*/ }
-
+html{ position:relative; min-height: 100%; width:100%; } /*Varmuuden varalle...*/
 html,body{ background-color: Floralwhite; }
-
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
-
 input { padding: 3pt; }
 
+/********************************************
+	Yleisesti pikku asioita koko sivulla
+*********************************************/
 .number { /* Tarkoitettu numeroiden tulostamiseen */
 	text-align: right;	
 	white-space: nowrap; 
@@ -21,28 +21,34 @@ input { padding: 3pt; }
 	font-style: oblique;
 }
 
-.flex { display: flex; }
-.flex_row { display: flex; flex-direction: row; }
-.flex_column { display: flex; flex-direction: column; }
-
-.inline-block{
-	display: inline-block;
-}
-
-.main_body_container {
+.main_body_container {  /* Self-explanatory */
 	margin: 20px 5vw 3vw;
 	white-space: nowrap;
 	position:relative;
 }
 
-.hidden { display: none; }
+.hidden { display: none; } /* Self-explanatory */
+.material-icons { vertical-align: middle; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
+.center { text-align: center; justify-content: center; margin: auto; } /* Sisällön keskittämiseen joka suunnassa */
+.end { text-align: end; } /* Self-explanatory */
 
-.material-icons { /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
-	vertical-align: middle;
-}
 
-.center { text-align: center; justify-content: center; }
-.end { text-align: end; }
+/***********************************************
+	Yleisesti sisällön asetteluun koko sivulla
+************************************************/
+.inline-block{ display: inline-block; }
+
+/* For displaying with flex. Ei toimi vanhemmissa IE:ssa */
+.flex { display: flex; }
+.flex_row { display: flex; flex-direction: row; }
+.flex_column { display: flex; flex-direction: column; }
+
+/* For making fake tables. <table>-tagia ei pitäisi käyttää sisällön asetteluun. */
+.table { display: table; }
+.tr { display: table-row; }
+.td, .td_pad { display: table-cell; }
+.td_pad { padding: 10px; }
+
 
 /********************************************
 	Header
@@ -88,7 +94,6 @@ input { padding: 3pt; }
 /********************************************
 	Navigointipalkki 
 *********************************************/
-
 #navigationbar {
 	background: #2f5cad;
 	width: auto;
@@ -132,7 +137,6 @@ input { padding: 3pt; }
 	color: black;
 }
 
-
 #navigationbar .dropdown {
     position: relative;
     display: inline-block;
@@ -167,6 +171,7 @@ input { padding: 3pt; }
 	width: 45%;
 	left: 5%;
 }
+
 
 /********************************************
 	Painikkeiden ulkoasu
@@ -208,6 +213,7 @@ input { padding: 3pt; }
 /** Peruuta/Poista-napit - Väri punainen */
 .nappi.red { background: #D32F2F; border-color: #B71C1C; }
 .nappi.red:hover { background: #b60000; border-color: #B71C1C; }
+
 
 /********************************************
 	Ylläpitäjän tilaukset sivu
@@ -280,6 +286,7 @@ input { padding: 3pt; }
 	color: red;
 }
 
+
 /*************************************************
 	Listojen tyylittely (joissa käytetään checkbox)
 **************************************************/
@@ -306,7 +313,6 @@ input { padding: 3pt; }
 	font-weight: bold;
 }
 
-
 #lista a {
 	text-decoration: none;
 	color: black;
@@ -323,7 +329,7 @@ input { padding: 3pt; }
 
 /*************************************************
 
-	//TODO: selitä mikä tämä on
+	//TODO: selitä mikä tämä on --JJ
 	//=sekalaisia.... Pitäisi järjestää loogisesti.
 	//Teen myöhemmin.
 
@@ -365,7 +371,6 @@ th, td {
 }
 
 td.toiminnot {
-	/*background-color: Floralwhite;*/
 	padding-left: 0.5em;
 }
 
@@ -406,7 +411,7 @@ th {
 
 .disabled {
 	opacity: 0.2;
-	pointer-events: none; /* TODO: Onko jotain syytä miksi tämä ei ollut tässä jo? */
+	pointer-events: none; /* TODO: Onko jotain syytä miksi tämä ei ollut tässä jo? --JJ */
 	cursor: default !important;
 }
 
@@ -435,7 +440,6 @@ th {
 .kpl, .eur {
 	width: 4em;
 }
-
 
 .maara {
 	width: 3em;
@@ -546,9 +550,6 @@ div.tooltip p {
 }
 
 
-
-
-
 /*********************
 Muokkaa asiakasta form
 **********************/
@@ -562,12 +563,6 @@ Muokkaa asiakasta form
 	padding-left: 20px;
 	font-weight: bold;
 }
-
-
-
-
-
-
 
 
 /****************************************
@@ -613,7 +608,7 @@ Loading-icon
 	left: 0;
 	opacity: 0.4;
 	z-index: 1040;
-	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. */
+	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. --JJ */
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
 
