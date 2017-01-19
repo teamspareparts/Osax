@@ -197,8 +197,8 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['hankintapaikat'],
         $tuotekoodi,
         $_POST['tilauskoodi'],
-        $_POST['ostohinta'],
-        $_POST['hinta'],
+		str_replace(',', '.', $_POST['ostohinta']),
+		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
@@ -218,8 +218,8 @@ if ( !empty($_POST['lisaa']) ) {
 } elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
 		$_POST['tilauskoodi'],
-        $_POST['ostohinta'],
-        $_POST['hinta'],
+		str_replace(',', '.', $_POST['ostohinta']),
+		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],

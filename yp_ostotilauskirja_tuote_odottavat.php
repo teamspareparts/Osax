@@ -76,7 +76,7 @@ if( isset($_POST['muokkaa']) ) {
   	                  WHERE id = ?",
 			[$_POST['hyllypaikka'], $_POST['id']]) )
     {
-
+	//TODO Pretty sure the above is against every style guide under the sun.
 	} else {
 		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
     }
