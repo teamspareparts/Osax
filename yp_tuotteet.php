@@ -62,9 +62,15 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
 }
 
+/**
+ * Lisää tuotteetn ostostilauskirjaan
+ * @param DByhteys $db
+ * @param array $val
+ * @return int <p> Muutettujen rivien määrä (pitäisi olla 1 jos onnistui, 0 muuten.)
+ */
 function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
     $sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, kpl,
- 										lisays_kayttaja_id, lisays_tapa)
+ 				lisays_kayttaja_id, lisays_tapa)
             VALUES ( ?, ?, ?, ?, 1)";
     return $db->query( $sql, $val );
 }
@@ -74,7 +80,7 @@ function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
+function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
     $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
     $rows = $db->query( $sql, NULL, FETCH_ALL );
 
@@ -86,6 +92,47 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( $db ) {
     $return_string .= "</select>";
 
     return $return_string;
+}
+
+/**
+ * //TODO: Väliaikainen ratkaisu
+ * @param DByhteys $db
+ * @return String <p> HTML-koodia. Dropdown-valikko.
+ */
+function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( $db ) {
+	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
+	$rows = $db->query( $sql, NULL, FETCH_ALL );
+
+	$return_string = '<select name="yritys_id">
+		<option value="">- Tyhjä -</option>';
+	foreach ( $rows as $yritys ) {
+		$return_string .= "<option name='yritys' value='{$yritys->id}'>{$yritys->id}; {$yritys->nimi}</option>";
+	}
+	$return_string .= "</select>";
+
+	return $return_string;
+}
+
+function lisaa_alennus( DByhteys $db, array $values, /*bool*/ $yrityskohtainen ) {
+	// Yrityskohtaisille alennuksille on oma taulu.
+	if ( $yrityskohtainen ) {
+		$sql = "INSERT INTO tuoteyritys_erikoishinta
+					(tuote_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm, yritys_id)
+				VALUES (?, ?, ?, ?, ?, ?)
+				ON DUPLICATE KEY UPDATE
+					maaraalennus_kpl=VALUES(maaraalennus_kpl), alennus_prosentti=VALUES(alennus_prosentti),
+					alkuPvm=VALUES(alkuPvm), loppuPvm=VALUES(loppuPvm)";
+	}
+	// Vain tuotekohtainen alennus
+	else {
+		$sql = "INSERT INTO tuote_erikoishinta (tuote_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm)
+				VALUES (?, ?, ?, ?, ?)
+				ON DUPLICATE KEY UPDATE
+					maaraalennus_kpl=VALUES(maaraalennus_kpl), alennus_prosentti=VALUES(alennus_prosentti),
+					alkuPvm=VALUES(alkuPvm), loppuPvm=VALUES(loppuPvm)";
+	}
+
+	return $db->query( $sql, $values );
 }
 
 /**
@@ -146,12 +193,14 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	return [$catalog_products, $all_products];
 }
 
-/** Järjestetään tuotteet hinnan mukaan
+/**
+ * Järjestetään tuotteet hinnan mukaan.
  * @param $catalog_products
- * @return array <p> Sama array, mutta sorted
+ * @return array <p> Sama array, mutta sorted //TODO: Voisiko olla pelkkä viittaus? Ei muistia kahteen sitten.
  */
-function sortProductsByPrice( $catalog_products ){
-	/** @param $a
+function sortProductsByPrice( $catalog_products ) {
+	/**
+	 * @param $a
 	 * @param $b
 	 * @return bool
 	 */
@@ -167,7 +216,7 @@ function sortProductsByPrice( $catalog_products ){
  * @param $number
  * @return bool
  */
-function tarkasta_etuliite(/*String*/ $number){
+function tarkasta_etuliite( /*String*/ $number ) {
 	if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
 		return true;
 	} else {
@@ -180,13 +229,10 @@ function tarkasta_etuliite(/*String*/ $number){
  * @param int $number reference
  * @param int $etuliite reference
  */
-function halkaise_hakunumero(&$number, &$etuliite){
+function halkaise_hakunumero( &$number, &$etuliite ) {
 	$etuliite = substr($number, 0, 3);
 	$number = substr($number, 4);
 }
-
-$haku = FALSE;
-$products = $catalog_products = $all_products = [];
 
 if ( !empty($_POST['lisaa']) ) {
     $tuotekoodi = (str_pad($_POST['hankintapaikat'], 3, "0", STR_PAD_LEFT) .
@@ -210,12 +256,14 @@ if ( !empty($_POST['lisaa']) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote lisätty!</p>';
     } else { $_SESSION["feedback"] = '<p class="error">Tuote on jo valikoimassa!</p>'; }
 
-} elseif ( !empty($_POST['poista']) ) {
+}
+elseif ( !empty($_POST['poista']) ) {
     if ( remove_product_from_catalog( $db, $_POST['id'] ) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote poistettu!</p>';
     } else { $_SESSION["feedback"] = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
 
-} elseif ( !empty($_POST['muokkaa']) ) {
+}
+elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
 		$_POST['tilauskoodi'],
 		str_replace(',', '.', $_POST['ostohinta']),
@@ -228,8 +276,16 @@ if ( !empty($_POST['lisaa']) ) {
     ];
     if ( modify_product_in_catalog( $db, $array ) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuotteen tietoja muokattu!</p>';
-	} else { $_SESSION["feedback"] = '<p class="error">ERROR: Tuotetta ei voitu muokata!</p>'; }
-
+	} else {
+    	$_SESSION["feedback"] = '<p class="error">ERROR: Tuotetta ei voitu muokata!</p>';
+    }
+}
+elseif ( !empty($_POST['tuotealennus']) ) {
+	if ( lisaa_alennus( $db, array_values($_POST), !empty($_POST['yritys_id']) ) ) {
+		$_SESSION["feedback"] = '<p class="success">Tuotteelle lisätty alennus!</p>';
+	} else {
+		$_SESSION["feedback"] = '<p class="error">ERROR: Alennuksen lisäys ei onnistunut.</p>';
+	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -239,6 +295,10 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 	unset($_SESSION["feedback"]);
 }
+
+$haku = FALSE;
+$products = $catalog_products = $all_products = [];
+$yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_lisaa_alasvetovalikko( $db );
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -278,7 +338,6 @@ if ( !empty($_GET['haku']) ) {
 	$all_products = $filtered_product_arrays[1];
 	$catalog_products = sortProductsByPrice($catalog_products);
 }
-
 else if ( !empty($_GET["manuf"]) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$selectCar = $_GET["car"];
@@ -520,54 +579,57 @@ require 'tuotemodal.php';
 	 */
     function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka ) {
         let alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
+        let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Muokkaa tuotetta<br><br>'+tuotekoodi+'</div> \
 				<form action="" name="muokkauslomake" method="post"> \
-					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
-					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
+					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta">\
+						<input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
+					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta">\
+						<input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-				    '+alv_valikko+'</span><br> \
-				    <label for="tilaskoodi">Tilauskoodi:</label><span class="dialogi-kentta"><input style="width: 55pt;" name="tilauskoodi" value="'+tilauskoodi+'"></span><br> \
-					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
-					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
-					<input class="nappi" type="submit" name="muokkaa" value="Tallenna" onclick="document.muokkauslomake.submit()">\
+				        '+alv_valikko+'</span><br> \
+				    <label for="tilaskoodi">Tilauskoodi:</label><span class="dialogi-kentta">\
+				        <input style="width: 55pt;" name="tilauskoodi" value="'+tilauskoodi+'"></span><br> \
+					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta">\
+						<input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
+					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta">\
+						<input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
+					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta">\
+						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
+					<input class="nappi" type="submit" name="muokkaa" value="Tallenna"\
+						onclick="document.muokkauslomake.submit()">\
 					<button class="nappi red" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
-					<input type="hidden" name="id" value="' + id + '"> \
+						<input type="hidden" name="id" value="' + id + '"> \
 				</form> \
 				<hr> \
-				<form class="table"> \
+				<form method="post"> \
 					<span style="font-weight:bold;">Lisää alennus tuotteelle:</span>\
-					<div class="tr"> \
-						<div class="td_pad"> \
-							<label class="required" style="margin:0;">Kpl-määrä:</label><br> \
-							<input class="kpl number" name="kpl_maara" placeholder="0" value="" title="Kpl-määrä alennukselle" required> \
-						</div> \
-						<div class="td_pad"> \
-							<label class="required" style="margin:0;">Pvm-alku:</label><br> \
-							<input name="pvm_alku" placeholder="YYYY-MM-DD" value="" title="Pvm alku" required \
-								style="width:65pt;"> \
-						</div> \
-					</div> \
-					<div class="tr"> \
-						<div class="td_pad"> \
-							<label class="required" style="margin:0;">Ale-%:</label><br> \
-							<input class="kpl number" name="alennus_pros" placeholder="0" value="" title="Alennus-prosentti" required> \
-						</div> \
-						<div class="td_pad"> \
-							<label class="required" style="margin:0;">Pvm-Loppu:</label><br> \
-							<input name="pvm_loppu" placeholder="YYYY-MM-DD" value="" title="Pvm loppu" required \
-								style="width:65pt;"> \
-						</div> \
-					</div> \
-					<div class="tr"> \
-						<div class="td_pad"> \
-							<label style="margin:0;">Yritys-ID:</label><br> \
-							<input class="kpl number" name="yritys_id" placeholder="0" value="" title="Yrityskohtaiselle alennukselle"> \
-						</div> \
-					</div> \
-					<input class="nappi disabled" type="submit" name="muokkaa" value="Lisää alennus"> \
+					<input type="hidden" name="tuotealennus" value="' + id + '"> \
+					<br> \
+					<label for="kpl_maara" class="required">Kpl-määrä:</label> \
+						<input name="kpl_maara" class="kpl number" placeholder="0" value="" \
+							title="Kpl-määrä alennukselle" required> kpl \
+					<br> \
+					<label for="alennus_pros" class="required">Alennus:</label> \
+						<input name="alennus_pros" class="kpl number" placeholder="0" value=""\
+							title="Alennus-prosentti" required> % \
+					<br> \
+					<label for="pvm_alku" class="required">Pvm-alku:</label> \
+						<input name="pvm_alku" class="kpl number" style="width:65pt;" placeholder="YYYY-MM-DD" \
+							value="" title="Pvm alku" required> \
+					<br> \
+					<label for="pvm_loppu" class="required">Pvm-Loppu:</label> \
+						<input name="pvm_loppu" class="kpl number" style="width:65pt;" placeholder="YYYY-MM-DD"\
+							value="" title="Pvm loppu" required> \
+					<br> \
+					<label for="yritys_id">Yritys-ID:</label> \
+						 '+yrit_valikko+'\
+					<br> \
+					<span class="small_note"><span style="color:red;">*</span> = pakollinen kenttä</span> \
+					<br> \
+					<input class="nappi" type="submit" value="Lisää alennus"> \
 					<button class="nappi red" type="button" style="margin-left:10pt;" \
 						onclick="Modal.close()">Peruuta</button> \
 				</form>',
@@ -583,7 +645,7 @@ require 'tuotemodal.php';
 	 * @param tuote_nimi
 	 * @param tuote_valmistaja
 	 */
-	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
+	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja) {
 		//haetaan hankintapaikan ostotilauskirjat
 		$.post(
 			"ajax_requests.php",
@@ -682,7 +744,7 @@ require 'tuotemodal.php';
 	})(window.location.search.substr(1).split('&'));
 
 	//laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
-	if ( qs["manuf"] ){
+	if ( qs["manuf"] ) {
 		let manuf = qs["manuf"];
 		let model = qs["model"];
 		let car = qs["car"];
@@ -705,7 +767,7 @@ require 'tuotemodal.php';
 		}
 	}
 
-	if ( qs["haku"] ){
+	if ( qs["haku"] ) {
 		let search = qs["haku"];
 		$("#search").val(search);
 	}

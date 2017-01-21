@@ -6,14 +6,16 @@
 html{ position:relative; min-height: 100%; width:100%; } /*Varmuuden varalle...*/
 html,body{ background-color: Floralwhite; }
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
-input { padding: 3pt; }
+
+input { padding: 3pt; } /* Näyttää siistimmältä */
+a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 
 /********************************************
 	Yleisesti pikku asioita koko sivulla
 *********************************************/
-.number { /* Tarkoitettu numeroiden tulostamiseen */
-	text-align: right;	
-	white-space: nowrap; 
+.number { /* Tarkoitettu numeroiden tulostamiseen esim. <input>-tagissa */
+	text-align: right; /* Default inputissa align on vasemmalla, mikä ei sovi numeroille */
+	white-space: nowrap; /* Se on numero, joten emme halua sen koskaan katkeavan */
 }
 
 .small_note { /* Pienten huomautusten tulostamiseen. Enimmäkseen ALV-huomautus. */
@@ -22,16 +24,15 @@ input { padding: 3pt; }
 }
 
 .main_body_container {  /* Self-explanatory */
-	margin: 20px 5vw 3vw;
-	white-space: nowrap;
-	position:relative;
+	margin: 20px 5vw 3vw; /* <top> <right and left> <bottom> -- Ylhäältä enenmmän jotta ei kiinni headerissa */
+	white-space: nowrap; /* TODO Mikä tämän tarkoitus on? */
+	position: relative; /* TODO: Mikä tämän tarkoitus on, ja se on jo asetettu html{}-osuudessa */
 }
 
-.hidden { display: none; } /* Self-explanatory */
+.hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
 .material-icons { vertical-align: middle; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
 .center { text-align: center; justify-content: center; margin: auto; } /* Sisällön keskittämiseen joka suunnassa */
 .end { text-align: end; } /* Self-explanatory */
-
 
 /***********************************************
 	Yleisesti sisällön asetteluun koko sivulla
@@ -56,23 +57,28 @@ input { padding: 3pt; }
 .header_top {
 	width: 100%;
 	height: 6.5em;
-	background-color: #fff;
-	display: flex;
+	background-color: #fff; /* Jannen pyynnöstä asetettu täysin valkoinen tausta. Koska logon tausta on valkoinen */
+	display: flex; /* Ei toimi ilman. Asettaa elementit siististi. */
 }
 
-.header_top a { text-decoration: none; }
+.header_top a {
+	color: #2f5cad; /* Ostoskori-linkin väri ei muutu randomisti. Näyttää siistimmältä, eikä kiinnitä huomiota. */
+}
 
-.header_top a:visited { color: #2f5cad; }
-
-.header_top a:hover { text-decoration: underline; }
+.header_top a:hover {
+	color: #000; /* Darker text color for contrast */
+	background-color: rgba(135, 205, 255, 0.4); /* Slightly darker bg-color from white for contrast */
+	/*color: #ffffff;*/
+	/*background-color: #2f5cad;*/
+}
    
 .header_top #head_logo {
-	margin: auto;			/* Keskittää sisällön */
-	width: 22em;
+	margin: auto; /* Keskittää sisällön */
+	width: 22em; /* Erottaa logon muusta headerin sisällöstä. (22em suurempi kuin logon leveys) */
 }
 
 .header_top #head_logo img {
-	margin-left: 0.6em;
+	margin-left: 0.6em; /* Erottaa logon sivun reunasta hieman. Hienomman näköinen. */
 }
 
 .header_top #head_info {
