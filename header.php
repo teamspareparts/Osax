@@ -23,7 +23,7 @@
         </div>
     </section>
 
-    <section id="navigationbar">
+    <section class="navigationbar">
         <ul>
             <li><a href='etusivu.php' style="padding-left:16px; padding-right: 0;">
                 <i class="material-icons">home</i></a></li>
@@ -60,7 +60,7 @@
     //navbar active link
     let pgurl = window.location.href.substr(window.location.href
             .lastIndexOf("/")+1).split('?')[0];
-    $("#navigationbar a").each(function(){
+    $(".navigationbar a").each(function(){
         if ( $(this).attr("href") == pgurl ) {
             $(this).addClass("active");
             //Jos dropdpdown valikko, myös "MUUT"-painike active

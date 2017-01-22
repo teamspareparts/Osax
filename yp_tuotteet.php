@@ -113,7 +113,13 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( $db ) {
 	return $return_string;
 }
 
-function lisaa_alennus( DByhteys $db, array $values, /*bool*/ $yrityskohtainen ) {
+/**
+ * @param DByhteys $db
+ * @param array $values
+ * @param bool $yrityskohtainen
+ * @return int
+ */
+function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) {
 	// Yrityskohtaisille alennuksille on oma taulu.
 	if ( $yrityskohtainen ) {
 		$sql = "INSERT INTO tuoteyritys_erikoishinta

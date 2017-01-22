@@ -54,6 +54,7 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 /********************************************
 	Header
 *********************************************/
+/* Headerin yläosa, navigointipalkin yläpuolella (navbarin säännöt on omassa osiossa) */
 .header_top {
 	width: 100%;
 	height: 6.5em;
@@ -61,7 +62,31 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 	display: flex; /* Ei toimi ilman. Asettaa elementit siististi. */
 }
 
-.header_top a {
+.header_top #head_logo { /* Osaxin logon container */
+	margin: auto;  /* Keskittää sisällön */
+	width: 22em;   /* Erottaa logon muusta headerin sisällöstä. (22em suurempi kuin logon leveys) */
+}
+
+.header_top #head_logo img {
+	margin-left: 0.6em; /* Erottaa logon sivun reunasta hieman. Hienomman näköinen. */
+}
+
+.header_top #head_info { /* "Tervetuloa, [käyttäjä]"-container */
+	width: 22em;
+	font-size: 18px; /* Deafultia isompi. Näyttää paremmalta isona */
+	color: #2f5cad;
+	margin: auto;    /* Keskittää sisällön */
+	white-space: nowrap; /* Sisältää nimiä. Näyttää rumalta muuten. */
+}
+
+.header_top #head_cart { /* Ostoskori-linkki */
+	flex-grow: 1;    /* Täyttää lopun tilan headerissa. Sisältö ei liiku automaattisen keskityksen takia. */
+	font-size: 18px; /* Defaultia isompi fontti */
+	color: #2f5cad;
+	margin: auto auto auto 0.5em; /* Keskittää. Hieman erillään head_infosta (saattaa olla hieman turha). */
+}
+
+.header_top a {     /* Käsittää vain ostoskori-linkin */
 	color: #2f5cad; /* Ostoskori-linkin väri ei muutu randomisti. Näyttää siistimmältä, eikä kiinnitä huomiota. */
 }
 
@@ -71,42 +96,18 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 	/*color: #ffffff;*/
 	/*background-color: #2f5cad;*/
 }
-   
-.header_top #head_logo {
-	margin: auto; /* Keskittää sisällön */
-	width: 22em; /* Erottaa logon muusta headerin sisällöstä. (22em suurempi kuin logon leveys) */
-}
-
-.header_top #head_logo img {
-	margin-left: 0.6em; /* Erottaa logon sivun reunasta hieman. Hienomman näköinen. */
-}
-
-.header_top #head_info {
-	width: 22em;
-	font-size: 18px;
-	color: #2f5cad;
-	margin: auto;			/* Keskittää sisällön */
-	white-space: nowrap;
-}
-
-.header_top #head_cart {
-	flex-grow: 1;
-	font-size: 18px;
-	color: #2f5cad;
-	margin: auto auto auto 0.5em; /* Keskittää sisällön */
-}
 
 
 /********************************************
 	Navigointipalkki 
 *********************************************/
-#navigationbar {
+.navigationbar {
 	background: #2f5cad;
 	width: auto;
 	height: auto;
 }
 
-#navigationbar ul {
+.navigationbar ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
@@ -116,19 +117,19 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 	text-align: left;
 }
 
-#navigationbar ul:after {
+.navigationbar ul:after {
 	content: " ";
 	display: block;
 	clear: both;
 }
 
-#navigationbar ul li {
+.navigationbar ul li {
 	display: inline-block;
 	margin: 0;
 }
 
-#navigationbar ul li a {
-    text-decoration: none;
+.navigationbar ul li a {
+    /*text-decoration: none;*/
     color: #ffffff;
     font-family: 'Open Sans', sans-serif;
     font-weight: 700;
@@ -136,19 +137,18 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
     font-size: 16px;
     display: block;
     padding: 15px 20px;
-
 }
 
-#navigationbar ul li :HOVER {
+.navigationbar ul li :HOVER {
 	color: black;
 }
 
-#navigationbar .dropdown {
+.navigationbar .dropdown {
     position: relative;
     display: inline-block;
 }
 
-#navigationbar .dropdown-content {
+.navigationbar .dropdown-content {
     display: none;
     position: absolute;
     background-color: #2f5cad;
@@ -158,14 +158,15 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
     z-index: 1;
 }
 
-#navigationbar .last {
-    float: right;
+.navigationbar .last {
+    float: right; /* Kirjaudu ulos -nappi. Asettaa viimeiseksi, oikeaan laitaan kiinni. */
 }
 
-#navigationbar .active{
+.navigationbar .active{
     color: black;
     text-decoration: underline;
 }
+
 
 /********************************************
 	Otsikon tyylittely
@@ -307,7 +308,6 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 	width: 90%;
 }
 
-
 #lista fieldset{
 	border: 1px solid black;
 	margin-top: -1px;
@@ -320,7 +320,7 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 }
 
 #lista a {
-	text-decoration: none;
+	/*text-decoration: none;*/
 	color: black;
 }
 
@@ -334,11 +334,9 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 
 
 /*************************************************
-
 	//TODO: selitä mikä tämä on --JJ
 	//=sekalaisia.... Pitäisi järjestää loogisesti.
 	//Teen myöhemmin.
-
 **************************************************/
 .haku input[type=text], #hakutyyppi, #numerotyyppi{
 	padding: 5pt;
@@ -497,7 +495,7 @@ th {
 
 #painikkeet a {
 	text-align: right;
-	text-decoration: none;
+	/*text-decoration: none;*/
 }
 
 
@@ -574,7 +572,6 @@ Muokkaa asiakasta form
 /****************************************
 Tuotteen MODAL-ikkuna (tuotteen tiedot)
 ****************************************/
-
 #display_img {
 	max-width: 200px;
 	max-height: 300px;
@@ -614,7 +611,6 @@ Loading-icon
 	left: 0;
 	opacity: 0.4;
 	z-index: 1040;
-	/*background-color: #000000;*/ /*TODO: Turha, valittaa IDE. Poista, jos ei hajoita mitään. --JJ */
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
 
@@ -641,6 +637,7 @@ Pieni spinning-icon
 	-ms-transform: translateZ(0);
 	transform: translateZ(0);
 }
+
 .loader:before {
 	width: 50%;
 	height: 50%;
@@ -651,6 +648,7 @@ Pieni spinning-icon
 	left: 0;
 	content: '';
 }
+
 .loader:after {
 	background: #FFFFFF;
 	width: 75%;
@@ -664,6 +662,7 @@ Pieni spinning-icon
 	bottom: 0;
 	right: 0;
 }
+
 @-webkit-keyframes load3 {
 	0% {
 		-webkit-transform: rotate(0deg);
@@ -674,6 +673,7 @@ Pieni spinning-icon
 		transform: rotate(360deg);
 	}
 }
+
 @keyframes load3 {
 	0% {
 		-webkit-transform: rotate(0deg);
@@ -689,7 +689,6 @@ Pieni spinning-icon
 /**************************
 Toimittajien listaukseen
 **************************/
-
 .floating-box {
 	display: inline-block;
 	position: relative;
@@ -712,6 +711,7 @@ Toimittajien listaukseen
 	left: 5%;
 }
 
+
 /*******************************
 Sivustus (pagination) (requires bootstrap)
 *******************************/
@@ -719,11 +719,13 @@ Sivustus (pagination) (requires bootstrap)
 	display: flex;
 	flex-direction: row;
 }
+
 .page_control {
 	display: flex;
 	flex-direction: column;
 	margin: auto 40px auto;
 }
+
 .pageNumberForm, .pageNumber, .productsPerPageForm {
 	display: inline-flex;
 	padding: 0;
@@ -731,5 +733,3 @@ Sivustus (pagination) (requires bootstrap)
 	border: 0;
 	width: 2.7rem;
 }
-
-
