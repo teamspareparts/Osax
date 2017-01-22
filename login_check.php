@@ -3,9 +3,8 @@
  * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
  * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
  */
-require 'tietokanta.php';
-require 'email.php';
-require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
+require 'tietokanta.php'; global $db;
+require 'luokat/email.class.php';
 require 'luokat/IP.class.php';
 require 'tecdoc.php';
 
@@ -51,7 +50,6 @@ function check_IP_address ( DByhteys $db, stdClass $user ) {
 			$match = strcmp( $nykyinen_sijainti, $user->viime_sijainti );
 			if ( $match != 0 ) {
 				Email::lahetaIlmoitus_EpailyttavaIP( $user, $user->viime_sijainti, $nykyinen_sijainti );
-				//laheta_ilmoitus_epailyttava_IP( $user, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
 			}
 		}
 		//päivitetään sijainti tietokantaan
@@ -83,7 +81,6 @@ function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode )
 	}
 	else { // jos salasanaa pyydetty sähköpostiin, lähetetään linkki
 		Email::lahetaSalasanaLinkki( $user->sahkoposti, $key );
-		//laheta_salasana_linkki( $user->sahkoposti, $key );
 		header("Location:index.php?redir=6"); exit(); // Palautuslinkki lähetetty
 	}
 }

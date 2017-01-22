@@ -1,8 +1,7 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
-require 'email.php';
-require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
+require 'luokat/email.class.php';
 
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
 $cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
