@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * TODO: WIP don't use! --JJ
  * Luokka sunnitteilla.
@@ -6,10 +6,12 @@
 class Email {
 
 	//TODO: Move to .ini file? --JJ
+	//TODO: Samalla tavalla kuin db-config.ini.php. Ei välttämätöntä. --SL
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
 	private static $user = "";
 	private static $pass = "";
 
+	const delivery_email = 'noreply@osax.fi';
 	const admin_email = 'myynti@osax.fi';
 	private static $target_email = NULL;
 	private static $subject = NULL;
@@ -37,7 +39,7 @@ class Email {
 			'subject'   => Email::$subject, //otsikko
 			'html'      => Email::$message, //HTML runko
 			'text'      => "",
-			'from'      => "noreply@osax.com", //lähetysosoite
+			'from'      => Email::delivery_email, //lähetysosoite
 			'files['.Email::$fileName.']' => Email::$file //liitetiedosto
 		);
 
@@ -82,7 +84,8 @@ class Email {
 	 * @param int $tilausnro
 	 * @param string $fileName
 	 */
-	static function lahetaTilausvahvistus( /*string*/$email, Ostoskori $cart, /*int*/$tilausnro, /*string*/$fileName ) {
+	static function lahetaTilausvahvistus( /*String*/ $email, Ostoskori $cart, /*int*/ $tilausnro, /*string*/ $fileName ) {
+		Email::$target_email = $email;
 		Email::$subject = "Tilausvahvistus";
 
 		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>

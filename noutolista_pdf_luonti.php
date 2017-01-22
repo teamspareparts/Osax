@@ -24,7 +24,7 @@ $html = "
 			</tr>
 			</thead>
 			<tbody>
-			<tr><td>".date('d.m.Y')."</td><td>$lasku->tilaus_pvm</td>
+			<tr><td>".date('d.m.Y')."</td><td style='text-align: center'>$lasku->tilaus_pvm</td>
 				<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
 				<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
 			</tr>
@@ -59,13 +59,13 @@ $html = "
  * Lisätään tuotteiden tiedot
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
-foreach ( $products as $tuote ) {
+foreach ( $cart->tuotteet as $tuote ) {
 	$html .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
 			<td style='text-align:center;'>{$tuote->nimi}</td>
 			<td style='text-align:center;'>{$tuote->valmistaja}</td>
-			<td style='text-align:right;'>{$tuote->cartCount}</td>
+			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
 			<td style='text-align:center;'>{$tuote->hyllypaikka}</td>
 		</tr>";
 }
@@ -101,5 +101,5 @@ if ( !file_exists('./noutolistat') ) { // Tarkistetaan, että kansio on olemassa
 	mkdir( './noutolistat' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
-$tiedoston_nimi = "noutolista-{$tilaus_id}-{$user->id}.pdf";
+$tiedoston_nimi = "noutolista-{$lasku->tilaus_nro}-{$user->id}.pdf";
 $mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );

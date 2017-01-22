@@ -2,7 +2,7 @@
 require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 require 'email.php';
-//require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
+require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
 
 $user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
 $cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
@@ -60,11 +60,11 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		//lähetetään tilausvahvistus ja lasku asiakkaalle
 		require 'lasku_pdf_luonti.php';
-		laheta_tilausvahvistus( $user->sahkoposti, $cart, $tilaus_id, $tiedoston_nimi );
+		Email::lahetaTilausvahvistus( $user->sahkoposti, $cart, $tilaus_id, $tiedoston_nimi );
 
 		//lähetetään tilaus ylläpidolle noutolistan kanssa
 		require 'noutolista_pdf_luonti.php';
-		laheta_noutolista($tilaus_id, $tiedoston_nimi);
+		Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
 
 		// Tyhjennetään kori, ja lähetetään tilaus_info-sivulle
 		$cart->tyhjenna_kori( $db );

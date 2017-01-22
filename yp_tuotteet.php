@@ -531,8 +531,8 @@ require 'tuotemodal.php';
 					content: '\
                     <div class="dialogi-otsikko">Lisää tuote</div> \
                     <form action="" name="lisayslomake" method="post"> \
-                        <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
-                        <label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
+                        <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
+                        <label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
                         <label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
                         ' + alv_valikko + '\
                         </span><br> \
@@ -540,8 +540,8 @@ require 'tuotemodal.php';
                         ' + hankintapaikka_valikko + '\
                         </span><br> \
                         <label for="tilauskoodi">Tilauskoodi:</label><span class="dialogi-kentta"><input type="text" name="tilauskoodi" value="'+articleNo+'"></span><br> \
-                        <label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
-                        <label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
+                        <label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input type="number" class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
+                        <label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input type="number" class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
                         <label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
                         <input class="nappi" type="submit" name="lisaa" value="Lisää">\
                         <button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
@@ -591,18 +591,18 @@ require 'tuotemodal.php';
 				<div class="dialogi-otsikko">Muokkaa tuotetta<br><br>'+tuotekoodi+'</div> \
 				<form action="" name="muokkauslomake" method="post"> \
 					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta">\
-						<input class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
+						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
 					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta">\
-						<input class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
+						<input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
 					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
 				        '+alv_valikko+'</span><br> \
 				    <label for="tilaskoodi">Tilauskoodi:</label><span class="dialogi-kentta">\
 				        <input style="width: 55pt;" name="tilauskoodi" value="'+tilauskoodi+'"></span><br> \
 					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta">\
-						<input class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
+						<input type="number" class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta">\
-						<input class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
-					<label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta">\
+						<input type="number" class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
+					<label for="hyllypaikka">Hyllypaikka:</label><span class="dialogi-kentta">\
 						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna"\
 						onclick="document.muokkauslomake.submit()">\

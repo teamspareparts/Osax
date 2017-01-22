@@ -5,7 +5,7 @@
  */
 require 'tietokanta.php';
 require 'email.php';
-//require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
+require 'luokat/email.class.php'; //TODO: ota käyttöön kun tarkistettu
 require 'luokat/IP.class.php';
 require 'tecdoc.php';
 
@@ -50,7 +50,8 @@ function check_IP_address ( DByhteys $db, stdClass $user ) {
 		if ( $user->viime_sijainti != "" ) {
 			$match = strcmp( $nykyinen_sijainti, $user->viime_sijainti );
 			if ( $match != 0 ) {
-				laheta_ilmoitus_epailyttava_IP( $user, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
+				Email::lahetaIlmoitus_EpailyttavaIP( $user, $user->viime_sijainti, $nykyinen_sijainti );
+				//laheta_ilmoitus_epailyttava_IP( $user, $user->viime_sijainti, $nykyinen_sijainti ); //lähetetään ylläpidolle ilmoitus
 			}
 		}
 		//päivitetään sijainti tietokantaan
@@ -81,7 +82,8 @@ function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode )
 		header("Location:pw_reset.php?id={$key}"); exit;
 	}
 	else { // jos salasanaa pyydetty sähköpostiin, lähetetään linkki
-		laheta_salasana_linkki( $user->sahkoposti, $key );
+		Email::lahetaSalasanaLinkki( $user->sahkoposti, $key );
+		//laheta_salasana_linkki( $user->sahkoposti, $key );
 		header("Location:index.php?redir=6"); exit(); // Palautuslinkki lähetetty
 	}
 }
