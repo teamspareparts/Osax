@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 
 /**
@@ -75,8 +75,6 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 	else return false;
 }
 
-$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-unset($_SESSION["feedback"]);
 $yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -1, true );
 
@@ -111,8 +109,13 @@ elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"] );
 }
 
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>

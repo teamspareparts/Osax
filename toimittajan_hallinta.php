@@ -13,15 +13,16 @@ if (!($brandName)) {
 }
 
 
-/**
- * Tarkastetaan onko brändi aktivoituna tecdocissa ja samalla haetaan brandin nimi
+/** Tarkastetaan onko brändi aktivoituna tecdocissa ja samalla haetaan brandin nimi.
  * @param $brandId
  * @return bool
  */
 function tarkasta_onko_oikea_brand(/*int*/ $brandId){
 	$brands = getAmBrands();
-	foreach ($brands as $brand) {
-		if($brand->brandId == $brandId) return $brand->brandName;
+	foreach ( $brands as $brand ) {
+		if( $brand->brandId == $brandId ) {
+		    return $brand->brandName;
+        }
 	}
 	return false;
 }
@@ -38,25 +39,6 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
 	return $db->query($query, [], FETCH_ALL);
 }
 
-/**
- * Tulostaa brändin yhteystiedot
- * @param $brandAddress
- */
-function tulosta_yhteystiedot($brandAddress){
-
-	echo '<div style="float:left; padding-right: 150px;">';
-	echo '<table>';
-	echo "<th colspan='2' class='text-center'>Yhteystiedot</th>";
-	echo '<tr><td>Yritys</td><td>'. $brandAddress->name .'</td></tr>';
-	echo '<tr><td>Osoite</td><td>'. $brandAddress->street . '<br>' . $brandAddress->zip . " " . strtoupper($brandAddress->city) .'</td></tr>';
-	echo '<tr><td>Puh</td><td>'. $brandAddress->phone .'</td></tr>';
-	if(isset($brandAddress->fax)) echo '<tr><td>Fax</td><td>'. $brandAddress->fax .'</td></tr>';
-	if(isset($brandAddress->email)) echo '<tr><td>Email</td><td>'. $brandAddress->email .'</td></tr>';
-	echo '<tr><td>URL</td><td>'. $brandAddress->wwwURL .'</td></tr>';
-	echo '</table>';
-	echo '</div>';
-
-}
 
 /**
  * Tallentaa uuden hankintapaikan tietokantaan.
@@ -73,6 +55,7 @@ function tulosta_yhteystiedot($brandAddress){
  * @param $yhteyshenkilo
  * @param $yhteyshenkilo_puhelin
  * @param $yhteyshenkilo_sahkoposti
+ * @param $tilaustapa
  */
 function tallenna_uusi_hankintapaikka(DByhteys $db, $id, $nimi, $katuosoite, $postinumero,
 									  $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
@@ -85,16 +68,33 @@ function tallenna_uusi_hankintapaikka(DByhteys $db, $id, $nimi, $katuosoite, $po
 		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa]);
 }
 
-function muokkaa_hankintapaikkaa(DByhteys $db, $hankintapaikka_id, $katuosoite, $postinumero,
+/**
+ * Muokkaa hankintapaikan tietoja.
+ * @param DByhteys $db
+ * @param $yritys
+ * @param $hankintapaikka_id
+ * @param $katuosoite
+ * @param $postinumero
+ * @param $kaupunki
+ * @param $maa
+ * @param $puhelin
+ * @param $fax
+ * @param $URL
+ * @param $yhteyshenkilo
+ * @param $yhteyshenkilo_puhelin
+ * @param $yhteyshenkilo_sahkoposti
+ * @param $tilaustapa
+ */
+function muokkaa_hankintapaikkaa(DByhteys $db, $yritys, $hankintapaikka_id, $katuosoite, $postinumero,
 								 $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
 								 $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $tilaustapa){
-	$query = "	UPDATE 	hankintapaikka 
-				SET 	katuosoite = ?, postinumero = ?, 
+	$query = "	UPDATE IGNORE hankintapaikka 
+				SET 	nimi = ?, katuosoite = ?, postinumero = ?, 
 			  			kaupunki = ? , maa = ?, puhelin = ?, yhteyshenkilo_nimi = ?,
 			  			yhteyshenkilo_puhelin = ?, yhteyshenkilo_email = ?, fax = ?,
 			  			www_url = ?, tilaustapa = ?
-				WHERE 	id = ? ";
-	$db->query($query, [$katuosoite, $postinumero, $kaupunki, $maa,
+				WHERE 	id = ?";
+	$db->query($query, [$yritys, $katuosoite, $postinumero, $kaupunki, $maa,
 		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa, $hankintapaikka_id,]);
 }
 
@@ -109,9 +109,7 @@ function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
 	//Tarkastetaan onko linkityksiä tuotteisiin...
 	$query = "SELECT * FROM tuote where hankintapaikka_id = ? ";
 	$linkitykset = $db->query($query, [$hankintapaikka_id], FETCH_ALL);
-	if ( count($linkitykset) > 0 ) {
-		return false;
-	}
+	if ( count($linkitykset) > 0 ) { return false; }
 
 	//Poistetaan linkitykset hankintapaikkaan
 	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? ";
@@ -122,17 +120,16 @@ function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
 	return true;
 }
 
-/**
- * Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
+/** Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
  * @param DByhteys $db
  * @param $hankintapaikka_id
  * @param $brandId
+ * @return bool
  */
 function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brandId){
 	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
 	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? AND brandId = ? ";
-	$db->query($query, [$hankintapaikka_id, $brandId]);
-	return;
+	return $db->query($query, [$hankintapaikka_id, $brandId]);
 }
 
 
@@ -163,14 +160,13 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
  				JOIN hankintapaikka
  					ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
  				WHERE valmistajan_hankintapaikka.brandId = ? ";
-	$hankintapaikat = $db->query($query, [$brandId], FETCH_ALL, PDO::FETCH_OBJ);
+	$hankintapaikat = $db->query($query, [$brandId], FETCH_ALL);
 	$i = 1;
 	if (isset($hankintapaikat)) {
 		foreach( $hankintapaikat as $hankintapaikka ) : ?>
 
-            <div style="float:left; padding-right: 30px;">
             <form action="" method="post" class="poista_hankintapaikka_linkitys">
-                <table>
+                <table style="float:left; padding-right: 30pt;">
                     <tr><th colspan='2' class='text-center'>Hankintapaikka <?=$i++?></th></tr>
                     <tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
                     <tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
@@ -204,13 +200,9 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
 				</table>
 
             </form>
-            </div>
         <?php endforeach;
 	}
 }
-
-$message = isset($_SESSION["message"]) ? $_SESSION["message"] : "";
-unset($_SESSION["message"]);
 
 
 if ( isset($_POST['lisaa']) ) {
@@ -229,20 +221,24 @@ elseif( isset($_POST['valitse']) ) {
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka'], $brandName);
 }
 elseif( isset($_POST['muokkaa']) ) {
-	muokkaa_hankintapaikkaa($db, $_POST['hankintapaikka_id'], $_POST['katuosoite'], $_POST['postinumero'],
-		$_POST['kaupunki'], $_POST['maa'],
-		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
-		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
+	muokkaa_hankintapaikkaa($db, $_POST['yritys'], $_POST['hankintapaikka_id'], $_POST['katuosoite'],
+        $_POST['postinumero'], $_POST['kaupunki'], $_POST['maa'],
+		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'],
+        $_POST['yhteyshenkilo_puhelin'], $_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
 }
 elseif( isset($_POST['poista'])){
 	if ( !poista_hankintapaikka($db, $_POST['hankintapaikka']) ) {
-		$_SESSION["message"] = "Hankintapaikkaa ei voitu poistaa, koska siihen on linkitetty tuotteita!";
+		$_SESSION["feedback"] = "<p class='error'>Hankintapaikkaa ei voitu poistaa, koska siihen on linkitetty tuotteita!</p>";
 	}
 }
 
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if (!empty($_POST)) {
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
 	exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 
 
@@ -255,37 +251,43 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/jsmodal-light.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-<script src="js/jsmodal-1.0d.min.js"></script>
-<title>Toimittajat</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/jsmodal-light.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="js/jsmodal-1.0d.min.js"></script>
+    <title>Toimittajat</title>
 </head>
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-<?php if ($message) : ?>
-<p><span class="error"><?=$message?></span></p>
-<?php endif;?>
-<div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
-<div id="painikkeet">
-	<input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
-</div>
-<br>
-<br>
-<div style="text-align: center; display:inline-block;">
+    <?=$feedback?>
+    <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
+    <div id="painikkeet">
+	    <input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
+    </div>
+    <br><br>
+    <!-- Hankintapaikan yhteystiedot -->
+    <table style="float:left; padding-right: 150px;">
+        <thead>
+        <tr><th colspan='2' class='text-center'>Yhteystiedot</th></tr>
+        </thead>
+        <tbody>
+        <tr><td>Yritys</td><td><?=$brandAddress->name?></td></tr>
+        <tr><td>Osoite</td><td><?=$brandAddress->street?><br><?=$brandAddress->zip?> <?=strtoupper($brandAddress->city)?></td></tr>
+        <tr><td>Puh</td><td><?=$brandAddress->phone?></td></tr>
+        <?php if (isset($brandAddress->fax)) : ?>
+            <tr><td>Fax</td><td><?$brandAddress->fax?></td></tr>
+        <?php endif; if(isset($brandAddress->email)) : ?>
+            <tr><td>Email</td><td><?=$brandAddress->email?></td></tr>
+        <?php endif; ?>
+        <tr><td>URL</td><td><?=$brandAddress->wwwURL?></td></tr>
+        </tbody>
+    </table>
 
+    <?php tulosta_hankintapaikat($db, $brandId); ?>
 
-
-<?php
-tulosta_yhteystiedot($brandAddress);
-tulosta_hankintapaikat($db, $brandId);
-?>
-
-
-</div>
 </main>
 
 <script>
@@ -351,7 +353,7 @@ tulosta_hankintapaikat($db, $brandId);
 					<label><span>Tilaustapa</span></label>\
 					<input name="tilaustapa" type="text" pattern=".{1,50}">\
 					<br><br>\
-					<input class="nappi" type="submit" name="lisaa" value="Tallenna" id="lisaa_hankintapaikka"> \				\
+					<input class="nappi" type="submit" name="lisaa" value="Tallenna" id="lisaa_hankintapaikka"> \
 					</form>\
 				</div>\
 				',
@@ -386,8 +388,8 @@ tulosta_hankintapaikat($db, $brandId);
 					<label><span>ID</span></label>\
 					<h5 style="display: inline">'+hankintapaikka_id+'</h5>\
 					<br><br>\
-					<label><span>Yritys</span></label>\
-					<h5 style="display: inline">'+yritys+'</h5>\
+					<label><span>Hankintapaikka</span></label>\
+					<input name="yritys" type="text" placeholder="Nimi" value="'+yritys+'">\
 					<br><br>\
 					<label><span>Katuosoite</span></label>\
 					<input name="katuosoite" type="text" placeholder="Katu" value="'+katuosoite+'">\

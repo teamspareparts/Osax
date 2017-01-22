@@ -1,8 +1,5 @@
 ﻿<?php
 
-//TODO: Vaihda tiedoston nimi esim login.php
-//TODO: Mielestäni sen voisi kokonana jättää pois, jos mahdollista. --JJ
-
 session_start();
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko uudellenohjaus
 

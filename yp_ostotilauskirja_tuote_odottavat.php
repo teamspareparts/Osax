@@ -68,27 +68,23 @@ if( isset($_POST['vastaanotettu']) ) {
 
 if( isset($_POST['muokkaa']) ) {
 	unset($_POST['muokkaa']);
-    if ( $db->query("  UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
-  	                   WHERE tuote_id = ? AND ostotilauskirja_id = ?",
-            [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id])
-        &&
-		$db->query("  UPDATE tuote SET hyllypaikka = ?
-  	                  WHERE id = ?",
-			[$_POST['hyllypaikka'], $_POST['id']]) )
-    {
-	//TODO Pretty sure the above is against every style guide under the sun.
-	} else {
-		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
-    }
+	$sql = "  UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
+  	          WHERE tuote_id = ? AND ostotilauskirja_id = ?";
+	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id]);
+	$sql = "UPDATE tuote SET hyllypaikka = ? WHERE id = ?";
+	$result2 = $db->query($sql, [$_POST['hyllypaikka'], $_POST['id']]);
+    if ( !$result1 || !$result2 ) $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
 }
 
 
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ){
 	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
 	exit();
+} else {
+	$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
+	unset($_SESSION["feedback"]);
 }
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-unset($_SESSION["feedback"]);
 
 
 $sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote_arkisto.kpl AS kokonaishinta FROM ostotilauskirja_tuote_arkisto

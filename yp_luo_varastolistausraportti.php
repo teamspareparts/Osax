@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require "_start.php"; global $db, $user;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
@@ -26,19 +26,19 @@ switch ($_POST["sort"]) {
 
 $tuotteet = [];
 if ( $brand > 0 && $hankintapaikka > 0 ) {
-	$sql = "SELECT * FROM tuote WHERE brandNo = ? AND hankintapaikka_id = ? ORDER BY {$sort}";
+	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND brandNo = ? AND hankintapaikka_id = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$brand, $hankintapaikka], FETCH_ALL);
 }
 elseif ( $brand = 0 && $hankintapaikka > 0 ) {
-	$sql = "SELECT * FROM tuote WHERE hankintapaikka_id = ? ORDER BY {$sort}";
+	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND hankintapaikka_id = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$hankintapaikka], FETCH_ALL);
 }
 elseif ( $brand > 0 && $hankintapaikka = 0 ) {
-	$sql = "SELECT * FROM tuote WHERE brandNo = ? ORDER BY {$sort}";
+	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND brandNo = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$brand], FETCH_ALL);
 }
 else {
-	$sql = "SELECT * FROM tuote ORDER BY {$sort}";
+	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [], FETCH_ALL);
 }
 
