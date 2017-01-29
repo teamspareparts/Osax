@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 
 //Vain ylläpitäjälle
@@ -44,7 +44,12 @@ $hankintapaikat = hae_hankintapaikat($db);
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
-	<h1>Varastolistausraportti</h1>
+    <section>
+        <h1 class="otsikko">Varastolistausraportti</h1>
+        <div id="painikkeet">
+            <a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+        </div>
+    </section>
 
     <div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
 	<fieldset><legend>Raportin rajaukset</legend>

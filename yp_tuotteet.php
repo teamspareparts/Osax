@@ -26,7 +26,7 @@ function add_product_to_catalog( DByhteys $db, array $val ) {
 					sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
 					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
 					minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
-					valmistaja=VALUES(valmistaja), aktiivinen = 1";
+					valmistaja=VALUES(valmistaja), tilauskoodi=VALUES(tilauskoodi), aktiivinen = 1";
 		return $db->query($sql, $val);
 	}
 
@@ -60,19 +60,6 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 
 	return $db->query( $sql,
 		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
-}
-
-/**
- * Lisää tuotteetn ostostilauskirjaan
- * @param DByhteys $db
- * @param array $val
- * @return int <p> Muutettujen rivien määrä (pitäisi olla 1 jos onnistui, 0 muuten.)
- */
-function lisaa_tuote_ostotilauskirjalle( DByhteys $db, array $val ) {
-    $sql = "INSERT IGNORE INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, kpl,
- 				lisays_kayttaja_id, lisays_tapa)
-            VALUES ( ?, ?, ?, ?, 1)";
-    return $db->query( $sql, $val );
 }
 
 /**
@@ -202,20 +189,21 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 /**
  * Järjestetään tuotteet hinnan mukaan.
  * @param $catalog_products
- * @return array <p> Sama array, mutta sorted //TODO: Voisiko olla pelkkä viittaus? Ei muistia kahteen sitten.
  */
-function sortProductsByPrice( $catalog_products ) {
-	/**
-	 * @param $a
-	 * @param $b
-	 * @return bool
-	 */
-	function cmpPrice($a, $b) {
-		return ($a->hinta > $b->hinta);
-	}
+function sortProductsByPrice( &$catalog_products ) {
 	usort($catalog_products, "cmpPrice");
-	return $catalog_products;
 }
+
+/**
+ * Vertailufunktio usortille
+ * @param $a
+ * @param $b
+ * @return bool
+ */
+function cmpPrice($a, $b) {
+	return ($a->hinta > $b->hinta);
+}
+
 
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
@@ -248,7 +236,7 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['brandNo'],
         $_POST['hankintapaikat'],
         $tuotekoodi,
-        $_POST['tilauskoodi'],
+        str_replace(" ", "", $_POST['tilauskoodi']),
 		str_replace(',', '.', $_POST['ostohinta']),
 		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
@@ -271,7 +259,7 @@ elseif ( !empty($_POST['poista']) ) {
 }
 elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
-		$_POST['tilauskoodi'],
+		str_replace(" ", "", $_POST['tilauskoodi']),
 		str_replace(',', '.', $_POST['ostohinta']),
 		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
@@ -342,7 +330,7 @@ if ( !empty($_GET['haku']) ) {
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
 	$all_products = $filtered_product_arrays[1];
-	$catalog_products = sortProductsByPrice($catalog_products);
+	sortProductsByPrice($catalog_products);
 }
 else if ( !empty($_GET["manuf"]) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
@@ -353,7 +341,7 @@ else if ( !empty($_GET["manuf"]) ) {
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
 	$all_products = $filtered_product_arrays[1];
-	$catalog_products = sortProductsByPrice($catalog_products);
+	sortProductsByPrice($catalog_products);
 }
 ?>
 <!DOCTYPE html>
@@ -480,10 +468,9 @@ require 'tuotemodal.php';
 						<tr data-val="<?=$product->articleId?>">
 							<td class="clickable"><?=$product->articleNo?></td>
 							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-							<td><a class="nappi" href='javascript:void(0)'
-								   onclick="showAddDialog(
+							<td><button class="nappi" onclick="showAddDialog(
 										'<?=$product->articleNo?>', <?=$product->brandNo?>,
-									   	'<?=$product->articleName?>', '<?=$product->brandName?>')">Lisää</a></td>
+									   	'<?=$product->articleName?>', '<?=$product->brandName?>')">Lisää</button></td>
 						</tr>
 					<?php endforeach; ?>
 					</tbody>
@@ -531,18 +518,22 @@ require 'tuotemodal.php';
 					content: '\
                     <div class="dialogi-otsikko">Lisää tuote</div> \
                     <form action="" name="lisayslomake" method="post"> \
-                        <label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta"><input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" required> &euro;</span><br> \
-                        <label for="hinta">Myyntihinta (ilman ALV):</label><span class="dialogi-kentta"><input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" required> &euro;</span><br> \
-                        <label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-                        ' + alv_valikko + '\
-                        </span><br> \
-                        <label for="hp">Hankintapaikka:</label><span class="dialogi-kentta"> \
-                        ' + hankintapaikka_valikko + '\
-                        </span><br> \
-                        <label for="tilauskoodi">Tilauskoodi:</label><span class="dialogi-kentta"><input type="text" name="tilauskoodi" value="'+articleNo+'"></span><br> \
-                        <label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta"><input type="number" class="kpl" name="varastosaldo" placeholder="0"> kpl</span><br> \
-                        <label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta"><input type="number" class="kpl" name="minimimyyntiera" placeholder="1" min="1"> kpl</span><br> \
-                        <label for="minimimyyntiera">Hyllypaikka:</label><span class="dialogi-kentta"><input class="kpl" name="hyllypaikka"></span><br> \
+                        <label for="ostohinta">Ostohinta:</label>\
+                            <input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" required> &euro;<br> \
+                        <label for="hinta">Myyntihinta (ilman ALV):</label>\
+                            <input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" required> &euro;<br> \
+                        <label for="alv">ALV Verokanta:</label> \
+                            ' + alv_valikko + '<br> \
+                        <label for="hp">Hankintapaikka:</label> \
+                            ' + hankintapaikka_valikko + '<br> \
+                        <label for="tilauskoodi">Tilauskoodi:</label>\
+                            <input type="text" name="tilauskoodi" value="'+articleNo+'" required><br> \
+                        <label for="varastosaldo">Varastosaldo:</label>\
+                            <input type="number" class="kpl" name="varastosaldo" placeholder="0"> kpl<br> \
+                        <label for="minimimyyntiera">Minimimyyntierä:</label>\
+                            <input type="number" class="kpl" name="minimimyyntiera" placeholder="1" value="1" min="1" required> kpl<br> \
+                        <label for="minimimyyntiera">Hyllypaikka:</label>\
+                            <input class="kpl" name="hyllypaikka"><br> \
                         <input class="nappi" type="submit" name="lisaa" value="Lisää">\
                         <button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
                         <input type="hidden" name="nimi" value="' + nimi + '"> \
@@ -588,22 +579,22 @@ require 'tuotemodal.php';
         let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
         Modal.open( {
             content: '\
-				<div class="dialogi-otsikko">Muokkaa tuotetta<br><br>'+tuotekoodi+'</div> \
+				<div class="dialogi-otsikko">Muokkaa tuotetta'+tuotekoodi+'</div> \
 				<form action="" name="muokkauslomake" method="post"> \
-					<label for="ostohinta">Ostohinta:</label><span class="dialogi-kentta">\
-						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;</span><br> \
-					<label for="hinta">Hinta (ilman ALV):</label><span class="dialogi-kentta">\
-						<input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;</span><br> \
-					<label for="alv">ALV Verokanta:</label><span class="dialogi-kentta"> \
-				        '+alv_valikko+'</span><br> \
-				    <label for="tilaskoodi">Tilauskoodi:</label><span class="dialogi-kentta">\
-				        <input style="width: 55pt;" name="tilauskoodi" value="'+tilauskoodi+'"></span><br> \
-					<label for="varastosaldo">Varastosaldo:</label><span class="dialogi-kentta">\
-						<input type="number" class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl</span><br> \
-					<label for="minimimyyntiera">Minimimyyntierä:</label><span class="dialogi-kentta">\
-						<input type="number" class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'"> kpl</span><br> \
-					<label for="hyllypaikka">Hyllypaikka:</label><span class="dialogi-kentta">\
-						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"></span><br> \
+					<label for="ostohinta">Ostohinta:</label> \
+						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;<br> \
+					<label for="hinta">Hinta (ilman ALV):</label> \
+						<input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;<br> \
+					<label for="alv">ALV Verokanta:</label> \
+				        '+alv_valikko+'<br> \
+				    <label for="tilaskoodi">Tilauskoodi:</label> \
+				        <input style="width: 80pt;" name="tilauskoodi" value="'+tilauskoodi+'" required><br> \
+					<label for="varastosaldo">Varastosaldo:</label> \
+						<input type="number" class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl<br> \
+					<label for="minimimyyntiera">Minimimyyntierä:</label> \
+						<input type="number" class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'" min="1" required> kpl<br> \
+					<label for="hyllypaikka">Hyllypaikka:</label> \
+						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna"\
 						onclick="document.muokkauslomake.submit()">\
 					<button class="nappi red" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\

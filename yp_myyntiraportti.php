@@ -17,7 +17,12 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
-	<h1>Myyntiraportti</h1>
+    <section>
+        <h1 class="otsikko">Myyntiraportti</h1>
+        <div id="painikkeet">
+            <a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+        </div>
+    </section>
 
 	<div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
 	<fieldset><legend>Raportin rajaukset</legend>
@@ -39,7 +44,7 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 </main>
 <script>
 	$(document).ready(function(){
-		$("#varastolistausraportti").on("submit", function(e) {
+		$("#myyntiraportti").on("submit", function(e) {
 			$(".feedback").show().fadeOut(5000);
 
 		});

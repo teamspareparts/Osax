@@ -73,7 +73,9 @@ if( isset($_POST['muokkaa']) ) {
 	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id]);
 	$sql = "UPDATE tuote SET hyllypaikka = ? WHERE id = ?";
 	$result2 = $db->query($sql, [$_POST['hyllypaikka'], $_POST['id']]);
-    if ( !$result1 || !$result2 ) $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+    if ( !$result1 || !$result2 ) {
+        $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+	}
 }
 
 

@@ -67,15 +67,16 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
 
-/** Järjestetään tuotteet hinnan mukaan
+/**
+ * Järjestää tuotteet hinnan mukaan
  * @param $catalog_products
- * @return array <p> Sama array, mutta sorted
  */
-function sortProductsByPrice( $catalog_products ){
+function sortProductsByPrice( &$catalog_products ){
 	usort($catalog_products, "cmpPrice");
-	return $catalog_products;
 }
-/** Vertailufunktio usortille.
+
+/**
+ * Vertailufunktio usortille.
  * @param $a
  * @param $b
  * @return bool
@@ -148,8 +149,8 @@ if ( !empty($_GET['haku']) ) {
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
-	$catalog_products = sortProductsByPrice($catalog_products);
-	$not_available = sortProductsByPrice($not_available);
+	sortProductsByPrice($catalog_products);
+	sortProductsByPrice($not_available);
 }
 
 if ( !empty($_GET["manuf"]) ) {
@@ -162,8 +163,8 @@ if ( !empty($_GET["manuf"]) ) {
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
-	$catalog_products = sortProductsByPrice($catalog_products);
-	$not_available = sortProductsByPrice($not_available);
+	sortProductsByPrice($catalog_products);
+	sortProductsByPrice($not_available);
 }
 ?>
 <!DOCTYPE html>
@@ -182,6 +183,9 @@ if ( !empty($_GET["manuf"]) ) {
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
     <script src="js/jsmodal-1.0d.min.js"></script>
+
+
+
     <title>Tuotehaku</title>
 </head>
 <body>

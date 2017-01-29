@@ -13,7 +13,8 @@ if (!($brandName)) {
 }
 
 
-/** Tarkastetaan onko brändi aktivoituna tecdocissa ja samalla haetaan brandin nimi.
+/**
+ * Tarkastetaan onko brändi aktivoituna tecdocissa ja samalla haetaan brandin nimi.
  * @param $brandId
  * @return bool
  */
@@ -120,7 +121,8 @@ function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
 	return true;
 }
 
-/** Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
+/**
+ * Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
  * @param DByhteys $db
  * @param $hankintapaikka_id
  * @param $brandId

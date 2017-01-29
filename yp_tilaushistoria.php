@@ -30,9 +30,8 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 	<section>
 		<h1 class="otsikko">Tilaushistoria</h1>
 		<div id="painikkeet">
-		<a class="nappi" href="yp_tilaukset.php" style="color:#000; background-color:#c5c5c5; border-color:#000;">
-			Takaisin</a>
-	</div>
+		    <a class="nappi grey" href="yp_tilaukset.php">Takaisin</a>
+	    </div>
 	</section>
 
 	<?php if ($tilaukset) : ?>

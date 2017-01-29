@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require "_start.php"; global $db, $user;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
@@ -29,11 +29,11 @@ if ( $brand > 0 && $hankintapaikka > 0 ) {
 	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND brandNo = ? AND hankintapaikka_id = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$brand, $hankintapaikka], FETCH_ALL);
 }
-elseif ( $brand = 0 && $hankintapaikka > 0 ) {
+elseif ( $brand == 0 && $hankintapaikka > 0 ) {
 	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND hankintapaikka_id = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$hankintapaikka], FETCH_ALL);
 }
-elseif ( $brand > 0 && $hankintapaikka = 0 ) {
+elseif ( $brand > 0 && $hankintapaikka == 0 ) {
 	$sql = "SELECT * FROM tuote WHERE varastosaldo > 0 AND brandNo = ? ORDER BY {$sort}";
 	$tuotteet = $db->query($sql, [$brand], FETCH_ALL);
 }
@@ -53,13 +53,13 @@ header("Expires: 0");
 
 $outstream = fopen("php://output", "w");
 fwrite($outstream, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM  --ehkä turha -SL
-fwrite($outstream, "Hyllypaikka;Tilauskoodi;Nimi;Ostohinta (alv 0%);Varastosaldo\r\n");
+fwrite($outstream, "Hyllypaikka;Tuotekoodi;Nimi;Ostohinta (alv 0%);Varastosaldo\r\n");
 
 foreach ($tuotteet as $tuote) {
-	$row = "$tuote->hyllypaikka" . ";" .
-		"$tuote->tilauskoodi" . ";" .
+	$row = "'$tuote->hyllypaikka'" . ";" .
+		"$tuote->tuotekoodi" . ";" .
 		"$tuote->nimi" . ";" .
-		"$tuote->sisaanostohinta" . ";" .
+		str_replace(".", ",", $tuote->sisaanostohinta) . ";" .
 		"$tuote->varastosaldo" .
 		"\r\n";
 	fwrite($outstream, $row);

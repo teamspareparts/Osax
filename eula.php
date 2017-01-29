@@ -15,7 +15,7 @@ if ( !$eula_txt ) {
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/login_styles.css">
-	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Käyttöoikeussopimus</title>
 </head>
 <body class="eula">

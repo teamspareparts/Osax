@@ -1,24 +1,21 @@
-<!-------------------------------------------------------------------------
-
-    Tiedosto sisältää kaiken tuotemodalin luomista ja näyttämistä varten.
-    Modalin saa näkyviin kutsumalla funktiota productModal ja
-    antamalla sille parametriksi tuotteen id:n.
-
-    Vaatii jQueryn, Tecdocin jsonEndpointin ja bootstrap3.
-    //TODO: Onko tämän tarkoitus näkyä käyttäjälle? Koska se näkyy selaimen koodissa, kaiken muun koodin seassa
-    //  mikä tekee tekstistä hieman oudon. Miten olisi tämän siirtäminen PHP-koodiin? --JJ
-
----------------------------------------------------------------------------->
-<?php require_once 'tecdoc_asetukset.php';?>
+<?php
+/**
+ * Tiedosto sisältää kaiken tuotemodalin luomista ja näyttämistä varten.
+ * Modalin saa näkyviin kutsumalla funktiota productModal ja
+ * antamalla sille parametriksi tuotteen id:n.
+ *
+ * Vaatii jQueryn, Tecdocin jsonEndpointin ja bootstrap3.
+ */
+require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-	<div class="modal-dialog" role="document" style="top:50px;">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="top: 10%">
+	<div class="modal-dialog" role="document">
 		<div class="modal-content">
-			<div class="modal-header" style="height: 35px;">
-				<button type="button" class="close" style="display: inline-block;" data-dismiss="modal" aria-label="Close">
+			<div class="modal-header" style="height: 30pt;">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
-				<ul class="nav nav-pills" id="modalnav" style="position:relative; top:-20px; max-width: 450px;">
+				<ul class="nav nav-pills modal-title" id="modalnav">
 					<li class="active"><a data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
 					<li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
 					<li><a data-toggle="tab" href="#menu3">Vertailunumerot</a></li>
@@ -26,13 +23,14 @@
 				</ul>
 			</div>
 
-			<div class="modal-body" style="margin-top:-20px;">
+
+            <div class="modal-body">
 				<div class="tab-content">
 					<div id="menu1" class="tab-pane fade in active"></div>
 					<div id="menu2" class="tab-pane fade text-center"></div>
 					<div id="menu3" class="tab-pane fade"></div>
 					<div id="menu4" class="tab-pane fade">
-						<br><div id="dd" class="car_dropdown"></div> <!-- Dropdown -->
+						<div id="dd" class="car_dropdown"></div> <!-- Dropdown -->
 					</div>
 				</div>
 			</div>
@@ -286,7 +284,6 @@
 
         //Lisätään modaliin sisältö
         $("#menu1").append('\
-			<br>\
 			<div class="flex_row">\
 			    <div style="display: inline-block;">\
 			        ' + img + '\
@@ -301,9 +298,9 @@
 			    </div>\
 			</div>\
 		');
-        $("#menu2").append("<br>" + imgs);
+        $("#menu2").append(imgs);
 
-        $("#menu3").append("<br>" + OEtable);
+        $("#menu3").append(OEtable);
 
 
         //Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
