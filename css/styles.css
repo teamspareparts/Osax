@@ -25,8 +25,6 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 
 .main_body_container {  /* Self-explanatory */
 	margin: 20px 5vw 3vw; /* <top> <right and left> <bottom> -- Ylhäältä enenmmän jotta ei kiinni headerissa */
-	white-space: nowrap; /* TODO Mikä tämän tarkoitus on? */
-	position: relative; /* TODO: Mikä tämän tarkoitus on, ja se on jo asetettu html{}-osuudessa */
 }
 
 .hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
@@ -475,6 +473,7 @@ th {
 }
 
 .tuotekoodihaku, .ajoneuvomallihaku {
+	white-space: nowrap;
 	padding: 0 30px 30px;
 }
 

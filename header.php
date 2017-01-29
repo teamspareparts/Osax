@@ -40,7 +40,6 @@
                         <li><a href="yp_hallitse_eula.php">EULA</a></li>
                         <li><a href="yp_hankintapyynnot.php">Hankintapyynnöt</a></li>
                         <li><a href="yp_muokkaa_alv.php">ALV-muokkaus</a></li>
-                        <li><a href="yp_luo_hinnastotiedosto.php">Lataa hinnastot</a></li>
                         <li><a href='toimittajat.php'>Toimittajat</a></li>
                         <li><a href='yp_raportit.php'>Raportit</a></li>
                         <li><a href='omat_tiedot.php'>Omat tiedot</a></li>

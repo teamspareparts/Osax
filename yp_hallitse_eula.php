@@ -9,10 +9,13 @@ if ( !$user->isAdmin() ) {
 if ( isset($_FILES['eula']['name']) ) {
 
     if ( !$_FILES['eula']['error'] ) { // Jos ei virheitä
-		$target_file = "eula.txt"; //TODO: Pitäisikö eula olla jossain muussa kansiossa?
+		if ( !file_exists('./eula') ) { // Tarkistetaan, että kansio on olemassa.
+			mkdir( './eula' ); // Jos ei, luodaan se
+		}
+		$target_file = "./eula/eula.txt";
 
 		// Käyttäjien on vahvistettava uusi eula
-		$db->query( "UPDATE kayttaja SET vahvista_eula = 1" );
+		$db->query( "UPDATE kayttaja SET vahvista_eula = 1 WHERE yllapitaja = 0" );
 
 		// Onnistuiko tiedoston siirtäminen serverille
 		if ( move_uploaded_file( $_FILES['eula']['tmp_name'], $target_file ) ) {
@@ -62,7 +65,8 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
         <form action="#" method="post" enctype="multipart/form-data">
             Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
             <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
-            <a href="http://www.osax.fi/eula.txt" download="eula" style="margin-left:100px;">Lataa nykyinen EULA</a>
+            <!-- download ei toimi safarissa -->
+            <a href="./eula/eula.txt" download="eula" target="_blank" style="margin-left:100px;">Lataa nykyinen EULA</a>
         </form>
     </fieldset>
 

@@ -12,7 +12,9 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-	<title>Raportit</title>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <title>Raportit</title>
 </head>
 <body>
 <?php include("header.php");?>
@@ -30,10 +32,10 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 
 			<!-- Päivämäärän valinta -->
 			<label for="pvm_from">From: </label>
-			<input type="date" name="pvm_from" id="pvm_from" required>
+			<input type="text" name="pvm_from" id="pvm_from" class="datepicker" required>
 			<br><br>
 			<label for="pvm_to">To: </label>
-			<input type="date" name="pvm_to" id="pvm_to" value="<?=date("Y-m-d")?>" required>
+			<input type="text" name="pvm_to" id="pvm_to" class="datepicker" value="<?=date("Y-m-d")?>" max="<?=date("Y-m-d")?>" required>
 			<br><br>
 			<input name="luo_raportti" type="submit" value="Lataa raportti">
 
@@ -41,12 +43,17 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 	</fieldset>
 
 
+
 </main>
 <script>
 	$(document).ready(function(){
 		$("#myyntiraportti").on("submit", function(e) {
 			$(".feedback").show().fadeOut(5000);
+		});
 
+		$('.datepicker').datepicker({dateFormat: 'yy-mm-dd'})
+            .keydown(function(e){
+			    e.preventDefault();
 		});
 	});
 </script>

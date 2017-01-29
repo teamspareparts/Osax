@@ -25,7 +25,7 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 
     <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php"><span>Varastolistausraportti</span></div>
     <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
-
+    <div class="floating-box clickable line" data-href="yp_luo_hinnastotiedosto.php"><span>Lataa hinnastot</span></div>
 </main>
 <script>
 	$(document).ready(function(){
