@@ -9,8 +9,8 @@
 require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="top: 10%">
-	<div class="modal-dialog" role="document">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document" style="top: 10%">
 		<div class="modal-content">
 			<div class="modal-header" style="height: 30pt;">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
