@@ -44,73 +44,45 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
 /**
  * Tallentaa uuden hankintapaikan tietokantaan.
  * @param DByhteys $db
- * @param $id
- * @param $nimi
- * @param $katuosoite
- * @param $postinumero
- * @param $kaupunki
- * @param $maa
- * @param $puhelin
- * @param $fax
- * @param $URL
- * @param $yhteyshenkilo
- * @param $yhteyshenkilo_puhelin
- * @param $yhteyshenkilo_sahkoposti
- * @param $tilaustapa
+ * @param array $arr
  */
-function tallenna_uusi_hankintapaikka(DByhteys $db, $id, $nimi, $katuosoite, $postinumero,
-									  $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
-									  $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $tilaustapa){
-	$query = "	INSERT IGNORE INTO hankintapaikka (id, nimi, katuosoite, postinumero, 
-										  kaupunki, maa, puhelin, yhteyshenkilo_nimi, yhteyshenkilo_puhelin,
-										  yhteyshenkilo_email, fax, www_url, tilaustapa)
+function tallenna_uusi_hankintapaikka(DByhteys $db, array $arr){
+	$query = "  INSERT IGNORE INTO hankintapaikka (id, nimi, katuosoite, postinumero, 
+				                          kaupunki, maa, puhelin, fax, www_url, yhteyshenkilo_nimi, 
+										  yhteyshenkilo_puhelin, yhteyshenkilo_email, tilaustapa)
 				VALUES ( ?, ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ?, ? )";
-	$db->query($query, [$id, $nimi, $katuosoite, $postinumero, $kaupunki, $maa,
-		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa]);
+	$db->query($query, $arr);
 }
 
 /**
  * Muokkaa hankintapaikan tietoja.
  * @param DByhteys $db
- * @param $yritys
- * @param $hankintapaikka_id
- * @param $katuosoite
- * @param $postinumero
- * @param $kaupunki
- * @param $maa
- * @param $puhelin
- * @param $fax
- * @param $URL
- * @param $yhteyshenkilo
- * @param $yhteyshenkilo_puhelin
- * @param $yhteyshenkilo_sahkoposti
- * @param $tilaustapa
+ * @param array $arr
  */
-function muokkaa_hankintapaikkaa(DByhteys $db, $yritys, $hankintapaikka_id, $katuosoite, $postinumero,
-								 $kaupunki, $maa, $puhelin, $fax, $URL, $yhteyshenkilo,
-								 $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $tilaustapa){
+function muokkaa_hankintapaikkaa(DByhteys $db, array $arr){
 	$query = "	UPDATE IGNORE hankintapaikka 
 				SET 	nimi = ?, katuosoite = ?, postinumero = ?, 
-			  			kaupunki = ? , maa = ?, puhelin = ?, yhteyshenkilo_nimi = ?,
-			  			yhteyshenkilo_puhelin = ?, yhteyshenkilo_email = ?, fax = ?,
-			  			www_url = ?, tilaustapa = ?
+			  			kaupunki = ? , maa = ?, puhelin = ?, fax = ?, www_url = ?,
+			  			yhteyshenkilo_nimi = ?, yhteyshenkilo_puhelin = ?,
+			  			yhteyshenkilo_email = ?, tilaustapa = ?
 				WHERE 	id = ?";
-	$db->query($query, [$yritys, $katuosoite, $postinumero, $kaupunki, $maa,
-		$puhelin, $yhteyshenkilo, $yhteyshenkilo_puhelin, $yhteyshenkilo_sahkoposti, $fax, $URL, $tilaustapa, $hankintapaikka_id,]);
+	$db->query($query, $arr);
 }
 
 
 /**
  * Poistaa hankintapaikan, jos ei linkityksiä valmistajiin.
  * @param DByhteys $db
- * @param $hankintapaikka_id
+ * @param int $hankintapaikka_id
  * @return array|bool
  */
-function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
+function poista_hankintapaikka( DByhteys $db, /*int*/ $hankintapaikka_id){
 	//Tarkastetaan onko linkityksiä tuotteisiin...
 	$query = "SELECT * FROM tuote where hankintapaikka_id = ? ";
 	$linkitykset = $db->query($query, [$hankintapaikka_id], FETCH_ALL);
-	if ( count($linkitykset) > 0 ) { return false; }
+	if ( count($linkitykset) > 0 ) {
+	    return false;
+	}
 
 	//Poistetaan linkitykset hankintapaikkaan
 	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? ";
@@ -124,8 +96,8 @@ function poista_hankintapaikka( DByhteys $db, $hankintapaikka_id){
 /**
  * Poistaa linkityksen valmistajan ja hankintapaikan väliltä.
  * @param DByhteys $db
- * @param $hankintapaikka_id
- * @param $brandId
+ * @param int $hankintapaikka_id
+ * @param int $brandId
  * @return bool
  */
 function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brandId){
@@ -138,9 +110,9 @@ function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_i
 /**
  * Linkitetään valmistaja hankintapaikkaan
  * @param DByhteys $db
- * @param $brandId
- * @param $hankintapaikkaId
- * @param $brandName
+ * @param int $brandId
+ * @param int $hankintapaikkaId
+ * @param String $brandName
  * @return array|bool|stdClass
  */
 function linkita_valmistaja_hankintapaikkaan( DByhteys $db, /*int*/ $brandId, /*int*/ $hankintapaikkaId, /*String*/ $brandName) {
@@ -208,10 +180,21 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
 
 
 if ( isset($_POST['lisaa']) ) {
-	tallenna_uusi_hankintapaikka($db, $_POST['hankintapaikka_id'], $_POST['nimi'], $_POST['katuosoite'], $_POST['postinumero'],
-		$_POST['kaupunki'], $_POST['maa'],
-		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'], $_POST['yhteyshenkilo_puhelin'],
-		$_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
+    $arr = [
+		$_POST['hankintapaikka_id'],
+        $_POST['nimi'],
+        $_POST['katuosoite'],
+        $_POST['postinumero'],
+		$_POST['kaupunki'],
+        $_POST['maa'],
+		$_POST['puh'],
+        $_POST['fax'],
+        $_POST['url'],
+        $_POST['yhteyshenkilo_nimi'],
+        $_POST['yhteyshenkilo_puhelin'],
+		$_POST['yhteyshenkilo_email'],
+        $_POST['tilaustapa'] ];
+	tallenna_uusi_hankintapaikka($db, $arr);
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka_id'], $brandName);
 }
 
@@ -223,10 +206,22 @@ elseif( isset($_POST['valitse']) ) {
 	linkita_valmistaja_hankintapaikkaan($db, $brandId, $_POST['hankintapaikka'], $brandName);
 }
 elseif( isset($_POST['muokkaa']) ) {
-	muokkaa_hankintapaikkaa($db, $_POST['yritys'], $_POST['hankintapaikka_id'], $_POST['katuosoite'],
-        $_POST['postinumero'], $_POST['kaupunki'], $_POST['maa'],
-		$_POST['puh'], $_POST['fax'], $_POST['url'], $_POST['yhteyshenkilo_nimi'],
-        $_POST['yhteyshenkilo_puhelin'], $_POST['yhteyshenkilo_email'], $_POST['tilaustapa']);
+    $arr = [
+		$_POST['yritys'],
+        $_POST['katuosoite'],
+		$_POST['postinumero'],
+        $_POST['kaupunki'],
+        $_POST['maa'],
+		$_POST['puh'],
+        $_POST['fax'],
+        $_POST['url'],
+        $_POST['yhteyshenkilo_nimi'],
+		$_POST['yhteyshenkilo_puhelin'],
+        $_POST['yhteyshenkilo_email'],
+        $_POST['tilaustapa'],
+		$_POST['hankintapaikka_id'],
+    ];
+	muokkaa_hankintapaikkaa($db, $arr);
 }
 elseif( isset($_POST['poista'])){
 	if ( !poista_hankintapaikka($db, $_POST['hankintapaikka']) ) {
@@ -264,11 +259,15 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-    <?=$feedback?>
-    <div class="otsikko"><img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2></div>
-    <div id="painikkeet">
-	    <input class="nappi" type="button" value="Uusi hankintapaikka" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">
-    </div>
+    <section>
+        <img src="<?= $logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;"><h2 style="display:inline-block; vertical-align:middle;"><?= $brandName?></h2>
+        <div id="painikkeet">
+            <a class="nappi grey" href="toimittajat.php">Takaisin</a>
+            <button class="nappi" onClick="avaa_modal_uusi_hankintapaikka('<?=$brandId?>')">Uusi hankintapaikka</button>
+        </div>
+    </section>
+
+	<?=$feedback?>
     <br><br>
     <!-- Hankintapaikan yhteystiedot -->
     <table style="float:left; padding-right: 150px;">
@@ -383,8 +382,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 			content:  '\
 				<div>\
 				<h4>Muokkaaminen muuttaa hankintapaikan tietoja <br> myös muilta brändeiltä!</h4>\
-				<br>\
-				<hr>\
+				<hr><br>\
 				<form action="" method="post" name="muokkaa_hankintapaikka">\
 					\
 					<label><span>ID</span></label>\

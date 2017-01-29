@@ -148,7 +148,12 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 <?php require 'header.php'; ?>
 
 <main class="main_body_container">
-	<h1><?= $brandName?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+    <section>
+        <h1 class="otsikko"><?= $brandName?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+        <div id="painikkeet">
+            <a class="nappi grey" href="toimittajan_hallinta.php?brandId=<?=$brandId?>">Takaisin</a>
+        </div>
+    </section>
 	<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<span class="question" id="info_tiedostomuoto">?</span></p>
 
 	<fieldset><legend>Lisää tuotteita</legend>
@@ -182,7 +187,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
             </div>
 
 
-
+            <!-- Tilauskoodin luominen lisäämällä liitteet -->
             <div id="liite_plus" class="tilauskoodi_action" hidden>
                 <p>Luo tilauskoodi lisäämällä tuotenumeroon etu- ja takaliite.</p>
                 <label for="etuliite_plus">Etuliite:</label>
@@ -191,6 +196,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
                 <input type="text" name="takaliite_plus" id="takaliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
             </div>
 
+            <!-- Tilauskoodin luominen poistamalla liitteet -->
             <div id="liite_miinus" class="tilauskoodi_action" hidden>
                 <p>Tiedostossa oleva tuotenumero on hankintapaikan käyttämä tilauskoodi.<br>
                     Luo tuotenumero poistamalla tilauskoodista etu- tai takaliite.</p>
@@ -200,6 +206,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
                 <input type="text" name="takaliite_miinus" id="takaliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
             </div>
 
+            <!-- Tilauskoodin lukeminen tiedostosta -->
             <div id="liite_eri" class="tilauskoodi_action" hidden>
                 <p>Tuotenumero ei vastaa lainkaan tilauskoodia.<br>
                     Tiedostossa on oltava seitsämäs sarake tilauskoodia varten!</p>

@@ -246,6 +246,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
 	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
