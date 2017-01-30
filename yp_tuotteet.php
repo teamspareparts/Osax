@@ -614,12 +614,12 @@ require 'tuotemodal.php';
 							title="Alennus-prosentti" required> % \
 					<br> \
 					<label for="pvm_alku" class="required">Pvm-alku:</label> \
-						<input name="pvm_alku" class="kpl number" style="width:65pt;" placeholder="YYYY-MM-DD" \
-							value="" title="Pvm alku" required> \
+						<input type="date" name="pvm_alku" class="kpl number" style="width:95pt;"\
+						    placeholder="YYYY-MM-DD" value="" title="Pvm alku" required> \
 					<br> \
 					<label for="pvm_loppu" class="required">Pvm-Loppu:</label> \
-						<input name="pvm_loppu" class="kpl number" style="width:65pt;" placeholder="YYYY-MM-DD"\
-							value="" title="Pvm loppu" required> \
+						<input type="date" name="pvm_loppu" class="kpl number" style="width:95pt;" \
+						    placeholder="YYYY-MM-DD" value="" title="Pvm loppu" required> \
 					<br> \
 					<label for="yritys_id">Yritys-ID:</label> \
 						 '+yrit_valikko+'\

@@ -41,6 +41,7 @@ class Laskutiedot {
 	function haeTilauksenTiedot( $tilaus_nro = NULL ) {
 		$sql = "SELECT paivamaara, pysyva_rahtimaksu FROM tilaus WHERE id = ? LIMIT 1";
 		$this->tilaus_nro = !empty($tilaus_nro) ? $tilaus_nro : $this->tilaus_nro;
+		$this->laskun_nro = $this->tilaus_nro;
 		$row = $this->db->query( $sql, [$this->tilaus_nro] );
 		if ( $row ) {
 			$this->tilaus_pvm = $row->paivamaara;
@@ -48,6 +49,7 @@ class Laskutiedot {
 			$this->hintatiedot['lisaveloitukset'] += $row->pysyva_rahtimaksu;
 			$this->haeToimitusosoite();
 			$this->haeTuotteet();
+//			$this->haeLaskunNumero();
 		}
 	}
 
@@ -110,6 +112,13 @@ class Laskutiedot {
 			$this->hintatiedot['tuotteet_yht'] + $this->hintatiedot['lisaveloitukset'];
 	}
 
+	function haeLaskunNumero() {
+		$sql = "SELECT laskunro FROM laskunumero LIMIT 1";
+		$row = $this->db->query( $sql );
+		$this->laskun_nro = $row->laskunro;
+		$sql = "UPDATE laskunumero SET laskunro = laskunro + 1 LIMIT 1";
+		$this->db->query( $sql );
+	}
 
 	/** @param $number
 	 * @return string */

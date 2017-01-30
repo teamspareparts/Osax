@@ -81,7 +81,8 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
-	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
 } else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 	unset($_SESSION["feedback"]);
