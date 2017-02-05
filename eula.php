@@ -2,7 +2,7 @@
 session_start();
 if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
-$txt_tiedosto = __DIR__.'/eula.txt';
+$txt_tiedosto = __DIR__.'/eula/eula.txt';
 $eula_txt = @file_get_contents( $txt_tiedosto, false, NULL, 0 );
 
 if ( !$eula_txt ) {

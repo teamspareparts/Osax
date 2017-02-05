@@ -127,11 +127,10 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 				<input class="nappi" value="Poista demorajoitus" type="submit">
 			</label>
 			<br><br>
-			<label style="float:none;">Muuta demoaikaa:<br>
+            <label style="float:none;">Muuta demoaikaa:</label><br>
 				<p style="font-weight:normal;">
 				//TODO, if needed. <br>Se vaatisi käyttäjältä päivämäärän kysymistä,<br>
 				and I have no interest in jumping into that rabbit hole.</p>
-			</label>
 		</fieldset>
 	</form><br><br>
 	<?php endif;?>

@@ -93,10 +93,12 @@ if ( !empty($_POST['submit']) ) {
 			<label for="demo"> Testiasiakas </label>
 			<input name="demo_user" type="hidden" value="false"><!-- Tarvitaan, jos checkbox ei ole valittu -->
 			<input name="demo_user" type="checkbox" title="Asiakas aktiivinen vain määräajan." id="demo">
-			
-			<span id="inner_label" class="">Päivät:</span>
-			<input name="paivat" type="number" value="7" class="" min="1" maxlength="4" id="paivat"
-				   title="Kuinka monta päivää aktiivinen">
+
+            <div id="paivat" style="padding-left: 20px;font-weight: bold; display: inline-block">
+			    <label>Päivät:</label>
+			    <input name="paivat" type="number" value="7" min="1" maxlength="4"
+				   title="Kuinka monta päivää aktiivinen" style="width: 50px;">
+            </div>
 
 			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" >
 			<br><br>
@@ -119,16 +121,13 @@ if ( !empty($_POST['submit']) ) {
 
 		/** Demo-valinnan alustusta */
 		$("#paivat").addClass('disabled');		// Otetaan pvm-input pois käytöstä aluksi
-		$("#inner_label").addClass('disabled');	//Ditto
 		/** Testiasiakas-valinta
 			Onko päivät-valinta disabled? */
 		$("#demo").change(function(){
 			if ( this.checked ) {
 				$("#paivat").removeClass('disabled');
-				$("#inner_label").removeClass('disabled');
 			} else {
 				$("#paivat").addClass('disabled');
-				$("#inner_label").addClass('disabled');
 			}
 		});
 

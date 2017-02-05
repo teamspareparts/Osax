@@ -88,13 +88,13 @@ require_once 'tecdoc_asetukset.php';?>
                 array = array.array;
                 result = "" +
                     '<div style="display:inline-block; width:50%;">' +
-                    '	<table style="margin-left:auto; margin-right:auto;">' +
+                    '	<table class="vertailunumero_table">' +
                     '		<th colspan="2" class="center">OE</th>';
                 for (i = 0; i < array.length; i++) {
                     result += "<tr>";
                     result += "" +
-                        "<td style='font-size:14px;'>" + array[i].brandName + "</td>" +
-                        "<td style='font-size:14px;'><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on' style='color:black;'>" + array[i].oeNumber + "</a></td>";
+                        "<td>" + array[i].brandName + "</td>" +
+                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on' style='color:black;'>" + array[i].oeNumber + "</a></td>";
                     result += "</tr>";
                 }
                 result += "</table>";
@@ -205,10 +205,10 @@ require_once 'tecdoc_asetukset.php';?>
             //luodaan taulu ja lisätään siihen tuote, jota on haettu
             //(Tätä tuotetta ei palauteta vertailunumerojen mukana)
             comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
-                "<table style='margin-left:auto; margin-right:auto;'>" +
+                "<table class='vertailunumero_table'>" +
                 "<th colspan='2' class='center'>Vertailunumerot</th>" +
-                "<tr><td style='font-size:14px;'>" + brand + "</td>" +
-                "<td style='font-size:14px;'><a href='?haku=" + articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>" + articleNo + "</a></td></tr>";
+                "<tr><td>" + brand + "</td>" +
+                "<td><a href='?haku=" + articleNo + "&numerotyyppi=comparable&exact=on'>" + articleNo + "</a></td></tr>";
 
             if (response.length !== 0) {
                 for (i = 0; i < response.length; i++) {

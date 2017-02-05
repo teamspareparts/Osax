@@ -1,4 +1,4 @@
-<div class="header_container">
+﻿<div class="header_container">
     <section class="header_top">
         <div id="head_logo">
             <img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
@@ -48,6 +48,7 @@
 			<?php else : ?>
                 <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                 <li><a href='tilaushistoria.php'>Tilaushistoria</a></li>
+                <li><a href="yp_luo_hinnastotiedosto.php">Lataa Hinnasto</a></li>
 			<?php endif; ?>
             <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>

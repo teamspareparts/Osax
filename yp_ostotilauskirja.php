@@ -52,8 +52,8 @@ else if ( isset($_POST['muokkaa']) ) {
 /** Ostotilauskirjan poistaminen */
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
-    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) &&
-		 $db->query("DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?", array_values($_POST)) ) {
+	$db->query("DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?", array_values($_POST));
+    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -94,7 +94,9 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/jsmodal-light.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
 <script src="js/jsmodal-1.0d.min.js"></script>
 <title>Ostotilauskirjat</title>
 </head>
@@ -166,11 +168,6 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
     <?php endif; ?>
 
 
-
-
-
-
-
 </main>
 
 
@@ -189,7 +186,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 					<input name="tunniste" type="text" placeholder="Ostotilauskirjan nimi" pattern=".{3,}" required>\
 					<br><br>\
 					<label>Saapumispäivä</label>\
-					<input name="saapumispvm" type="date" value="'+date+'" title="Arvioitu saapumispäivä" min="'+date+'" required>\
+					<input name="saapumispvm" type="text" class="datepicker" value="'+date+'" title="Arvioitu saapumispäivä" required>\
 					<br><br>\
 					<label>Rahtimaksu (€)</label>\
 					<input name="rahti" type="number" step="0.01" value="200.00" title="Rahtimaksu" required>\
@@ -228,7 +225,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                     <h4 style="display: inline;">'+tunniste+'</h4>\
 					<br><br>\
 					<label>Saapumispäivä</label>\
-					<input name="saapumispvm" type="date" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" min="'+date+'" required>\
+					<input name="saapumispvm" type="text" class="datepicker" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" required>\
 					<br><br>\
 					<label>Rahtimaksu (€)</label>\
 					<input name="rahti" type="number" step="0.01" value="'+rahti+'" title="Rahtimaksu">\
@@ -281,7 +278,8 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                 return false;
             });
 
-        /** Ostotilauskirjan lisäys moidalin toiminta */
+        /** Ostotilauskirjan lisäys -modalin toiminta */
+
 		$(document.body).on('change', 'input[name="tyyppi"]:radio', function(e) {
 			let toimitusjakso_div = $("#toimitusjakso_div");
 			let toimitusjakso_input = $("#toimitusjakso");
@@ -293,8 +291,18 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 				toimitusjakso_input.prop('required', false);
 				toimitusjakso_div.hide();
 			}
+		})
+        .on('focus', ".datepicker", function () {
+            $(this).datepicker({
+            	dateFormat: 'yy-mm-dd',
+				minDate: new Date(),
+            })
+				.keydown(function(e){
+					e.preventDefault();
+				});
 		});
     });
+
 
 
 </script>

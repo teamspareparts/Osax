@@ -8,7 +8,7 @@ html,body{ background-color: Floralwhite; }
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
 input { padding: 3pt; } /* Näyttää siistimmältä */
-a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
+a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 
 /********************************************
 	Yleisesti pikku asioita koko sivulla
@@ -221,57 +221,15 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 
 
 /********************************************
-	Ylläpitäjän tilaukset sivu
-*********************************************/
-#tilaukset .tilausnumero, #tilaukset .sum,
-#tilaukset .pvm {
-	display: inline-block;
-	width: 14%;
-}
-
-#tilaukset .tilaaja {
-	display: inline-block;
-	width: 19%;
-}
-
-#tilaukset .yritys {
-	display: inline-block;
-	width: 29%;
-}
-
-#tilaukset #lista input[type=checkbox] {
-	position: relative;
-	left: 27px;
-}
-
-.tilaus_info td{
-	background-color:#ffffff;
-	padding-left: 0;
-	padding-right: 30px;
-}
-
-
-/********************************************
 	Kaikkien lomakkeitten (form) tyylittely
 *********************************************/
 .lomake { /* keskitetään form */
-	display: block;
 	text-align: center;
 }
 
-.lomake form {
+.lomake fieldset {
 	display: inline-block;
 	text-align: left;
-}
-
-.lomake form label {
-	float: left;
-	width: 220px;
-	font-weight: bold;
-	white-space: nowrap;
-}
-
-.lomake fieldset {
 	width: 450px;
 	border-radius: 10px;
 	-webkit-border-radius: 10px;
@@ -286,48 +244,16 @@ a, a:hover { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näy
 	font-size: 20px;
 }
 
+.lomake fieldset > label {
+	float: left;
+	width: 220px;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
 .required:after { /* Lisää punaisen asteriskin vaadittujen kenttien kohdalle */
 	content:" *";
 	color: red;
-}
-
-
-/*************************************************
-	Listojen tyylittely (joissa käytetään checkbox)
-**************************************************/
-#lista {
-	text-align: center;
-	display: block;
-}
-
-#lista form {
-	text-align: left;
-	display: inline-block;
-	width: 90%;
-}
-
-#lista fieldset{
-	border: 1px solid black;
-	margin-top: -1px;
-}
-
-#lista .lista_info{
-	padding-bottom: 0;
-	border: 0;
-	font-weight: bold;
-}
-
-#lista a {
-	/*text-decoration: none;*/
-	color: black;
-}
-
-#lista #submit {
-	text-align: right;
-}
-
-#lista #submit input[type=submit]:HOVER {
-	cursor: pointer;
 }
 
 
@@ -484,6 +410,12 @@ th {
 	font-size: 90%;
 }
 
+.tilaus_info td{
+	background-color:#ffffff;
+	padding-left: 0;
+	padding-right: 30px;
+}
+
 /** Otsikon vasemmalla puolella olevat napit */
 #painikkeet {
 	vertical-align: middle;
@@ -552,25 +484,10 @@ div.tooltip p {
 	white-space: nowrap;
 }
 
-
-/*********************
-Muokkaa asiakasta form
-**********************/
-#paivat{
-	position: relative;
-	width: 50px;
-	margin-bottom: -5px;
-}
-
-#inner_label{
-	padding-left: 20px;
-	font-weight: bold;
-}
-
-
 /****************************************
-Tuotteen MODAL-ikkuna (tuotteen tiedot)
+Tuotteen MODAL-ikkuna
 ****************************************/
+
 #display_img {
 	max-width: 200px;
 	max-height: 300px;
@@ -598,6 +515,19 @@ Tuotteen MODAL-ikkuna (tuotteen tiedot)
 	color: black;
 }
 
+/* Vertailunumerot välilehti */
+.vertailunumero_table {
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.vertailunumero_table td {
+	font-size: 14px;
+}
+
+.vertailunumero_table a { color: black }
+
+.vertailunumero_table a:hover { text-decoration: underline }
 
 /*****************
 Loading-icon

@@ -1,7 +1,8 @@
 <?php
+//TODO: Hinnaston luonti siirretään hinnaston sisäänajon yhteyteen / yöajo
+//TODO: Käyttäjä vain lataa hinnaston suoraan serveriltä.
 /**
- * Tällä sivulla luodaan hinnasto.txt tiedosto ja ladataan se käyttäjän
- * koneelle iman, että tämä sivu avautuu käyttäjälle.
+ * Tällä sivulla luodaan hinnasto.txt tiedosto ja lähetetään se käyttäjän koneelle.
  */
 require "_start.php"; global $db, $user;
 require "tecdoc.php";
@@ -14,12 +15,12 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 
-if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-    header("Location:etusivu.php"); exit();
+$tiedoston_nimi = "hinnasto.txt";
+$path = "hinnasto/";
+if ( !file_exists("./{$path}") ) { // Tarkistetaan, että kansio on olemassa.
+	mkdir( "./{$path}" ); // Jos ei, luodaan se
 }
 
-$tiedoston_nimi = "hinnasto.txt";
-$path = "";     //polku
 //Kaatuu jos haetaan kaikki tuotteet (yli 150k)
 //Nopein kun fetchCount ~10k
 $fetchCount = 10000;
@@ -51,9 +52,10 @@ $fullPath = $path.$tiedoston_nimi;
 if ($fd = fopen ($fullPath, "r")) {
     $fsize = filesize($fullPath);
     $path_parts = pathinfo($fullPath);
-    $ext = strtolower($path_parts["extension"]); //extension pdf/txt/csv
-    header("Content-type: application/octet-stream");
-    header("Content-Disposition: filename=\"".$path_parts["basename"]."\"");
+    $ext = strtolower($path_parts["extension"]); //extension
+	header('Content-Description: File Transfer');
+    header("Content-type: text/plain; charset=utf-8"); //UTF-8
+    header("Content-Disposition: attachment; filename=\"".$path_parts["basename"]."\"");
     header("Content-length: $fsize");
     header("Cache-control: private"); //use this to open files directly
     while(!feof($fd)) {
