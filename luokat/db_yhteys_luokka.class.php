@@ -49,17 +49,16 @@ class DByhteys {
 
 	/**
 	 * Konstruktori.
-	 *
-	 * @param string $username
-	 * @param string $password
-	 * @param string $database
-	 * @param string $host [optional] //TODO: 'localhost' ei saata toimia.
+	 * Lukee tarvittavat tiedot suoraan db-config.ini -tiedostosta.
+	 * @param string[] $values [optional] <p> Assoc-array. Kentät: user, pass, name, host
 	 */
-	public function __construct( /*string*/ $username, /*string*/ $password, /*string*/ $database,
-			/*string*/ $host = 'localhost' ) {
+	public function __construct( array $values = NULL ) {
 		define('FETCH_ALL', TRUE);
-		$this->pdo_dsn = "mysql:host={$host};dbname={$database};charset=utf8";
-		$this->connection = new PDO( $this->pdo_dsn, $username, $password, $this->pdo_options );
+		if ( $values === NULL ) {
+			$values = parse_ini_file("../src/tietokanta/db-config.ini.php");
+		}
+		$this->pdo_dsn = "mysql:host={$values['host']};dbname={$values['name']};charset=utf8";
+		$this->connection = new PDO( $this->pdo_dsn, $values['user'], $values['pass'], $this->pdo_options );
 	}
 
 	/**

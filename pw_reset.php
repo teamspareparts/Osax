@@ -1,5 +1,5 @@
 <?php
-require 'tietokanta.php'; global $db;
+require 'luokat/db_yhteys_luokka.class.php';
 
 /**
  * Tarkistetaan onko avain validi ja onko se vanhentunut
@@ -72,6 +72,7 @@ if ( empty($_GET['id']) ) {
 	} else header("location:index.php"); exit();
 }
 
+$db = new DByhteys();
 $error = FALSE;
 $reset_id_hash = sha1( $_GET['id'] );
 $pw_reset = tarkista_pw_reset_key_ja_aika( $db, $reset_id_hash ); // Tässä kohtaa heitetään ulos, jos FALSE.

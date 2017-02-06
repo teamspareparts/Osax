@@ -3,7 +3,7 @@
  * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
  * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
  */
-require 'tietokanta.php'; global $db;
+require 'luokat/db_yhteys_luokka.class.php';
 require 'luokat/email.class.php';
 require 'luokat/IP.class.php';
 require 'tecdoc.php';
@@ -103,6 +103,7 @@ if ( empty($_POST["mode"]) ) {
 	header("Location:index.php?redir=4"); exit(); // Not logged in
 }
 
+$db = new DByhteys();
 $mode = $_POST["mode"];
 $email = isset($_POST["email"]) ? trim($_POST["email"]) : NULL;
 $password = (isset($_POST["password"]) && strlen($_POST["password"]) < 300)

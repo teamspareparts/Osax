@@ -4,8 +4,7 @@ print("<pre>");
 $data = parse_ini_file("../tietokanta/db-config.ini.php", true);
 require '../luokat/db_yhteys_luokka.class.php';
 
-$data_db = $data['Tietokannan tiedot'];
-$db = new DByhteys( $data_db['user'], $data_db['pass'], $data_db['name'], $data_db['host'] );
+$db = new DByhteys();
 $f = file('tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
 foreach ( $f as $k => $v ) { // Poistetaan .sql-tiedoston kommentit

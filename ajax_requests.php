@@ -19,8 +19,7 @@ session_start();
 if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
 require "luokat/db_yhteys_luokka.class.php";
-$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
-$db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
+$db = new DByhteys();
 /**
  * @var Mixed <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
  * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.

@@ -9,8 +9,7 @@ require "luokat/db_yhteys_luokka.class.php";
 /*
  * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.
  */
-$db = parse_ini_file("tietokanta/db-config.ini.php");
-$db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
+$db = new DByhteys();
 
 /*
  * For debugging.

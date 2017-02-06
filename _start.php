@@ -34,8 +34,7 @@ require "luokat/tuote.class.php";
 /*
  * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.
  */
-$db = parse_ini_file("../src/tietokanta/db-config.ini.php");
-$db = new DByhteys( $db['user'], $db['pass'], $db['name'], $db['host'] );
+$db = new DByhteys();
 
 /*
  * Luodaan tarvittava oliot
