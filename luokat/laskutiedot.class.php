@@ -1,5 +1,7 @@
 <?php
-/** */
+/**
+ * @version 2017-02-06
+ */
 class Laskutiedot {
 	public $tilaus_pvm = '[Tilauksen päivämäärä]';
 	public $tilaus_nro = '[Tilauksen numero]';

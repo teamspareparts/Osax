@@ -1,7 +1,7 @@
 <?php
-
 /**
  * Class User
+ * @version 2017-02-06
  */
 class User {
 

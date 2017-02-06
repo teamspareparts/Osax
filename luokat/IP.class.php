@@ -1,10 +1,11 @@
 <?php
-
 /**
  * Class RemoteAddress
+ * //TODO: Onko tämä mistä lainattu? Saisiko linkin/lähteen lisättyä tänne? --JJ/17-02-06
+ *
+ * @version 2017-02-06 <p> Versionumero lisätty
  */
-class RemoteAddress
-{
+class RemoteAddress {
 	/**
 	 * Whether to use proxy addresses or not.
 	 *
@@ -31,21 +32,18 @@ class RemoteAddress
 	 */
 	protected $proxyHeader = 'HTTP_X_FORWARDED_FOR';
 
-	// [...]
-
 	/**
 	 * Returns client IP address.
 	 * @return string IP address.
 	 */
-	public function getIpAddress()
-	{
+	public function getIpAddress () {
 		$ip = $this->getIpAddressFromProxy();
-		if ($ip) {
+		if ( $ip ) {
 			return $ip;
 		}
 
 		// direct IP address
-		if (isset($_SERVER['REMOTE_ADDR'])) {
+		if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
 			return $_SERVER['REMOTE_ADDR'];
 		}
 
@@ -58,39 +56,36 @@ class RemoteAddress
 	 * @see http://tools.ietf.org/html/draft-ietf-appsawg-http-forwarded-10#section-5.2
 	 * @return false|string
 	 */
-	protected function getIpAddressFromProxy()
-	{
-		if (!$this->useProxy
-				|| (isset($_SERVER['REMOTE_ADDR']) && !in_array($_SERVER['REMOTE_ADDR'], $this->trustedProxies))
-				) {
-					return false;
-				}
+	protected function getIpAddressFromProxy () {
+		if ( !$this->useProxy
+			|| (isset( $_SERVER['REMOTE_ADDR'] ) && !in_array( $_SERVER['REMOTE_ADDR'], $this->trustedProxies ))
+		) {
+			return false;
+		}
 
-				$header = $this->proxyHeader;
-				if (!isset($_SERVER[$header]) || empty($_SERVER[$header])) {
-					return false;
-				}
+		$header = $this->proxyHeader;
+		if ( !isset( $_SERVER[$header] ) || empty( $_SERVER[$header] ) ) {
+			return false;
+		}
 
-				// Extract IPs
-				$ips = explode(',', $_SERVER[$header]);
-				// trim, so we can compare against trusted proxies properly
-				$ips = array_map('trim', $ips);
-				// remove trusted proxy IPs
-				$ips = array_diff($ips, $this->trustedProxies);
+		// Extract IPs
+		$ips = explode( ',', $_SERVER[$header] );
+		// trim, so we can compare against trusted proxies properly
+		$ips = array_map( 'trim', $ips );
+		// remove trusted proxy IPs
+		$ips = array_diff( $ips, $this->trustedProxies );
 
-				// Any left?
-				if (empty($ips)) {
-					return false;
-				}
+		// Any left?
+		if ( empty( $ips ) ) {
+			return false;
+		}
 
-				// Since we've removed any known, trusted proxy servers, the right-most
-				// address represents the first IP we do not know about -- i.e., we do
-				// not know if it is a proxy server, or a client. As such, we treat it
-				// as the originating IP.
-				// @see http://en.wikipedia.org/wiki/X-Forwarded-For
-				$ip = array_pop($ips);
-				return $ip;
+		// Since we've removed any known, trusted proxy servers, the right-most
+		// address represents the first IP we do not know about -- i.e., we do
+		// not know if it is a proxy server, or a client. As such, we treat it
+		// as the originating IP.
+		// @see http://en.wikipedia.org/wiki/X-Forwarded-For
+		$ip = array_pop( $ips );
+		return $ip;
 	}
-
-	// [...]
 }

@@ -1,14 +1,15 @@
 ﻿<?php
+
 /**
- * TODO: WIP don't use! --JJ
- * Luokka sunnitteilla.
+ * Staattinen luokka sähköpostin käyttöön.
+ *
+ * @version 2017-02-06 <p> versionumero lisätty, ja metodien PhpDoc lisätty.
  */
 class Email {
-
 	//TODO: Move to .ini file? --JJ
 	//TODO: Samalla tavalla kuin db-config.ini.php. Ei välttämätöntä. --SL
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
-	private static $user = "";
+	private static $user = ""; //TODO: Mutta eikö nämä tiedot pitäisi olla piilotettu käyttäjältä? --JJ/17-02-06
 	private static $pass = "";
 
 	const delivery_email = 'noreply@osax.fi';
@@ -24,48 +25,51 @@ class Email {
 	 * Email constructor.
 	 * Static class, joten tätä ei ole tarkoitus käyttää. Hence: "private".
 	 */
-	private function __construct () {}
+	private function __construct () {
+	}
 
 	/**
-	 * //TODO: PHPdoc
+	 * Lähettää sähköpostin. Luokan sisäiseen käyttöön, muut metodit asettavat arvot,
+	 * ja sitten kutsuvat tämän metodin.
 	 */
-	private static function sendMail() {
-
+	private static function sendMail () {
 		//sähköpostin parametrit
 		$params = array(
-			'api_user'  => Email::$user,
-			'api_key'   => Email::$pass,
-			'to'        => Email::$target_email,
-			'subject'   => Email::$subject, //otsikko
-			'html'      => Email::$message, //HTML runko
-			'text'      => "",
-			'from'      => Email::delivery_email, //lähetysosoite
-			'files['.Email::$fileName.']' => Email::$file //liitetiedosto
+			'api_user' => Email::$user,
+			'api_key' => Email::$pass,
+			'to' => Email::$target_email,
+			'subject' => Email::$subject, //otsikko
+			'html' => Email::$message, //HTML runko
+			'text' => "",
+			'from' => Email::delivery_email, //lähetysosoite
+			'files[' . Email::$fileName . ']' => Email::$file //liitetiedosto
 		);
 
 		// Luodaan cURL pyyntö.
 		$session = curl_init( Email::$request_url );
 		// Käytetään HTTP POSTia.
-		curl_setopt ($session, CURLOPT_POST, true);
+		curl_setopt( $session, CURLOPT_POST, true );
 		// Lisätään viestin runko, otsikko, jne.
-		curl_setopt ($session, CURLOPT_POSTFIELDS, $params);
+		curl_setopt( $session, CURLOPT_POSTFIELDS, $params );
 		// Palauta vastaus, mutta ilman headereja.
-		curl_setopt($session, CURLOPT_HEADER, false);
+		curl_setopt( $session, CURLOPT_HEADER, false );
 		// Käytetään TLS, ei SSL3.
-		curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-		curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt( $session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2 );
+		curl_setopt( $session, CURLOPT_RETURNTRANSFER, true );
 
 		// Lähetetään sähköposti.
-		curl_exec($session);
-		curl_close($session);
+		curl_exec( $session );
+		curl_close( $session );
 	}
 
 	/**
-	 * //TODO: PHPdoc
-	 * @param string $email
-	 * @param string $key
+	 * Lähettää salasanan palautus-linkin annettuun sähköpostiin.
+	 * @param string $email <p> Osoite, johon linkki lähetetään.
+	 * @param string $key <p> Salasanan palautus-avain. Avaimen luonti login_check.php-tiedostossa.
 	 */
-	static function lahetaSalasanaLinkki( /*String*/ $email, /*String*/ $key ) {
+	static function lahetaSalasanaLinkki ( /*String*/
+		$email, /*String*/
+		$key ) {
 		Email::$target_email = $email;
 		Email::$subject = "Osax.fi - Salasanan resetointi";
 		Email::$message = "<p>Salasanan vaihto onnistuu osoitteessa:</p>
@@ -78,19 +82,22 @@ class Email {
 	}
 
 	/**
-	 * //TODO: PHPdoc
-	 * @param string $email
-	 * @param Ostoskori $cart
-	 * @param int $tilausnro
-	 * @param string $fileName
+	 * Lähettää tilausvahvistuksen käyttäjälle; tuotetiedot ja lasku mukaan lukien.
+	 * @param string $email <p> Osoite, johon viesti lähetetään.
+	 * @param Ostoskori $cart <p> Tuotetietoja varten
+	 * @param int $tilausnro <p> Tilauksen numero
+	 * @param string $fileName <p> Laskun nimi (tiedostonimi siis)
 	 */
-	static function lahetaTilausvahvistus( /*String*/ $email, Ostoskori $cart, /*int*/ $tilausnro, /*string*/ $fileName ) {
+	static function lahetaTilausvahvistus ( /*String*/
+		$email, Ostoskori $cart, /*int*/
+		$tilausnro, /*string*/
+		$fileName ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilausvahvistus";
 
 		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
 								<th style="text-align:right;">Kpl</th></tr>';
-		foreach ($cart->tuotteet as $tuote) {
+		foreach ( $cart->tuotteet as $tuote ) {
 			$productTable .= "
 			<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
 				<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
@@ -107,17 +114,19 @@ class Email {
 		Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
 		Email::$fileName = $fileName;
-		Email::$file = file_get_contents("./laskut/{$fileName}");
+		Email::$file = file_get_contents( "./laskut/{$fileName}" );
 
 		Email::sendMail();
 	}
 
 	/**
-	 * //TODO: PHPdoc
-	 * @param $tilausnro
-	 * @param $fileName
+	 * Lähettää noutolistan ylläpidolle myynti@osax.fi osoitteeseen.
+	 * @param int $tilausnro <p> Tilauksen numero
+	 * @param string $fileName <p> Noutolistan tiedoston nimi
 	 */
-	static function lahetaNoutolista( /*int*/$tilausnro, /*String*/ $fileName ) {
+	static function lahetaNoutolista ( /*int*/
+		$tilausnro, /*String*/
+		$fileName ) {
 		Email::$target_email = Email::admin_email;
 		Email::$subject = "Noutolista tilaukseen {$tilausnro}";
 		Email::$message = "<p>Tilauksen {$tilausnro} nouotlista.</p>
@@ -125,32 +134,38 @@ class Email {
 				<p>Käy merkkaamassa tilaus hoidetuksi, kun tilaus on lähetetty!</p>";
 
 		Email::$fileName = $fileName;
-		Email::$file = file_get_contents("./noutolistat/{$fileName}");
+		Email::$file = file_get_contents( "./noutolistat/{$fileName}" );
 
 		Email::sendMail();
 	}
 
 	/**
-	 * //TODO: PHPdoc
-	 * @param $email
-	 * @param $tilausnro
+	 * Lähettää ilmoituksen käyttäjälle annettuun osoitteeseen.
+	 * //TODO: Lisää linkki tilausinfoon? --JJ/2016
+	 * //TODO: Vaatii systeemin sisäänkirjautumiselle ja uudellenohjaukselle. --JJ/2017-02-06
+	 * @param string $email <p> Target email
+	 * @param int $tilausnro <p> Tilauksen numero
 	 */
-	static function lahetaIlmoitus_TilausLahetetty( /*String*/$email, /*int*/$tilausnro ) {
+	static function lahetaIlmoitus_TilausLahetetty ( /*String*/
+		$email, /*int*/
+		$tilausnro ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilaus {$tilausnro}";
-		Email::$message = "Hei! Tilauksesi {$tilausnro} on nyt lähetetty.";
-		//TODO: Lisää linkki tilausinfoon? --JJ
+		Email::$message = "<p>Hei! Tilauksesi {$tilausnro} on nyt lähetetty.</p>";
 
 		Email::sendMail();
 	}
 
 	/**
-	 * //TODO: PHPdoc
-	 * @param stdClass $user
+	 * Lähettää ilmoituksen ylläpidolle myynti@osax.fi osoitteeseen.
+	 * //TODO: WIP Käyttäjän tiedot puuttuu. --JJ 2017-02-06
+	 * @param stdClass $user <p> Epäilyttävän käyttäjän tiedot.
 	 * @param string $vanha_sijainti
 	 * @param string $uusi_sijainti
 	 */
-	static function lahetaIlmoitus_EpailyttavaIP( stdClass $user, /*string*/$vanha_sijainti, /*string*/$uusi_sijainti ) {
+	static function lahetaIlmoitus_EpailyttavaIP ( stdClass $user, /*string*/
+												   $vanha_sijainti, /*string*/
+												   $uusi_sijainti ) {
 		Email::$target_email = Email::admin_email;
 		Email::$subject = "Epäilyttävää käytöstä";
 		Email::$message = "<p>Asiakas ...tiedot tähän..... </p>>

@@ -7,28 +7,30 @@
  *
  * Tiedoston lopussa esimerkkejä käytöstä.
  * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa ylhäällä olevassa linkissä.
+ *
+ * @version 2017-02-06 <p> Uusi konstruktori. Ini-tiedoston luku siirretty konstruktoriin.
  */
 class DByhteys {
 
 	/**
 	 * PDO:n yhteyden luontia varten, sisältää tietokannan tiedot.
-	 * 	"mysql:host={$host};dbname={$database};charset={$charset}"
+	 *    "mysql:host={$host};dbname={$database};charset={$charset}"
 	 * @var string
 	 */
-	protected $pdo_dsn = '';		//PDO:n yhdistämistä varten
+	protected $pdo_dsn = '';        //PDO:n yhdistämistä varten
 	/**
 	 * Optional options for the PDO connection, given at new PDO(...).
 	 * ATTR_* : attribuutti<br>
-	 * 	_ERRMODE : Miten PDO-yhteys toimii virhetilanteissa.<br>
-	 * 	_DEF_FETCH_M : Mitä PDO-haku palauttaa defaultina (arrayn, objektin, ...)<br>
-	 * 	_EMUL_PREP : {@link https://phpdelusions.net/pdo#emulation}
+	 *    _ERRMODE : Miten PDO-yhteys toimii virhetilanteissa.<br>
+	 *    _DEF_FETCH_M : Mitä PDO-haku palauttaa defaultina (arrayn, objektin, ...)<br>
+	 *    _EMUL_PREP : {@link https://phpdelusions.net/pdo#emulation}
 	 * @var array
 	 */
-	protected $pdo_options = [		//PDO:n DB driver specific options
-			PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-			PDO::ATTR_EMULATE_PREPARES   => false,
-			PDO::MYSQL_ATTR_FOUND_ROWS	 => true ];
+	protected $pdo_options = [        //PDO:n DB driver specific options
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
+		PDO::ATTR_EMULATE_PREPARES => false,
+		PDO::MYSQL_ATTR_FOUND_ROWS => true ];
 	/**
 	 * Säilyttää yhdeyten, jota kaikki metodit käyttävät
 	 * @var PDO object
@@ -50,15 +52,16 @@ class DByhteys {
 	/**
 	 * Konstruktori.
 	 * Lukee tarvittavat tiedot suoraan db-config.ini -tiedostosta.
+	 *
 	 * @param string[] $values [optional] <p> Assoc-array. Kentät: user, pass, name, host
 	 */
-	public function __construct( array $values = NULL ) {
-		define('FETCH_ALL', TRUE);
-		if ( $values === NULL ) {
-			$values = parse_ini_file("../src/tietokanta/db-config.ini.php");
+	public function __construct( array $values = null ) {
+		define( 'FETCH_ALL', true );
+		if ( $values === null ) {
+			$values = parse_ini_file( "../src/tietokanta/db-config.ini.php" );
 		}
 		$this->pdo_dsn = "mysql:host={$values['host']};dbname={$values['name']};charset=utf8";
-		$this->connection = new PDO( $this->pdo_dsn, $values['user'], $values['pass'], $this->pdo_options );
+		$this->connection = new PDO( $this->pdo_dsn, $values[ 'user' ], $values[ 'pass' ], $this->pdo_options );
 	}
 
 	/**
@@ -67,23 +70,26 @@ class DByhteys {
 	 * Jos tarvitset useamman, huom. kolmas parametri.<p><p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.<p>
 	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
+	 *
 	 * @param string $query
-	 * @param array $values [optional], default=NULL<p>
-	 *        Muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi, jotka sitten lähetetään tietokannalle.
-	 * @param bool $fetch_All_Rows [optional], default = FALSE<p>
-	 *        Haetaanko kaikki rivit, vai vain yksi.
-	 * @param int $returnType [optional], default = NULL <p>
-	 *        Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
-	 *         constant-muuttujat. <br> Default on PDO::FETCH_OBJ.
-	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
-	 * 		  Huom: $returnType ei tarvitse olla määritelty.<p>
-	 * 		  Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
+	 * @param array  $values         [optional], default = NULL <p>
+	 *                               Muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi, jotka sitten
+	 *                               lähetetään tietokannalle.
+	 * @param bool   $fetch_All_Rows [optional], default = FALSE <p>
+	 *                               Haetaanko kaikki rivit, vai vain yksi.
+	 * @param int    $returnType     [optional], default = NULL <p>
+	 *                               Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan
+	 *                               PDO::FETCH_* constant-muuttujat. <br> Default on PDO::FETCH_OBJ.
+	 * @param string $className      [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
+	 *                               Huom: $returnType ei tarvitse olla määritelty.<p>
+	 *                               Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 * @return array|int|stdClass <p> Palauttaa stdClass[], jos SELECT ja FETCH_ALL==true.
-	 *        Palauttaa stdClass-objektin, jos haetaan vain yksi.<br>
-	 * Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim. INSERT tai DELETE.<br>
+	 *                               Palauttaa stdClass-objektin, jos haetaan vain yksi.<br>
+	 *                               Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim.
+	 *                               INSERT tai DELETE.<br>
 	 */
-	public function query( /*string*/ $query, array $values = NULL, /*bool*/ $fetch_All_Rows = FALSE,
-						   /*int*/ $returnType = NULL, /*string*/ $className = NULL ) {
+	public function query( /*string*/ $query, array $values = null, /*bool*/ $fetch_All_Rows = false,
+						   /*int*/ $returnType = null, /*string*/ $className = null ) {
 		// Katsotaan mikä hakutyyppi kyseessä, jotta voidaan palauttaa hyödyllinen vastaus tyypin mukaan.
 		$q_type = substr( ltrim($query), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
 
@@ -105,17 +111,6 @@ class DByhteys {
 					return $stmt->fetchObject( $className );
 				}
 			}
-/*
-			if ( $fetch_All_Rows ) { // Jos arvo asetettu, niin haetaan kaikki saadut rivit
-				return $stmt->fetchAll( $returnType );
-
-			} else { //Muuten haetaan vain ensimmäinen saatu rivi, ja palautetaan se.
-				if ( empty($className) ) {
-					return $stmt->fetch( $returnType );
-				} else {
-					return $stmt->fetchObject( $className );
-				}
-			} */
 
 		} else { // Palautetaan muutettujen rivien määrän.
 			return $stmt->rowCount();
@@ -123,7 +118,7 @@ class DByhteys {
 	}
 
 	/**
-	 * Valmistelee erillisen haun, jota voi sitten käyttää run_prep_stmt()-metodilla.
+	 * Valmistelee erillisen haun, jota voi sitten käyttää {@see run_prep_stmt()}-metodilla.
 	 * @param string $query
 	 */
 	public function prepare_stmt( /*string*/ $query ) {
@@ -131,13 +126,13 @@ class DByhteys {
 	}
 
 	/**
-	 * Suorittaa valmistellun sql-queryn (valmistelu prepare_stmt()-metodissa).
-	 * Hae tulos get_next_row()-metodilla.
+	 * Suorittaa valmistellun sql-queryn (valmistelu {@see prepare_stmt()}-metodissa).
+	 * Hae tulos {@see get_next_row()}-metodilla.
 	 * @param array $values [optional], default=NULL<p>
-	 *        queryyn upotettavat arvot
+	 *                      queryyn upotettavat arvot
 	 * @return bool
 	 */
-	public function run_prepared_stmt( array $values = NULL ) {
+	public function run_prepared_stmt( array $values = null ) {
 		return $this->prepared_stmt->execute( $values );
 	}
 
@@ -146,15 +141,14 @@ class DByhteys {
 	 * Huom. ei toimi query()-metodin kanssa. Käytä vain prep.stmt -metodien kanssa.<br>
 	 * Lisäksi, toisen haun tekeminen millä tahansa muulla metodilla nollaa tulokset.
 	 * Palauttaa tulokset objektina, jos ei palautustyyppiä.
-	 * @param int $returnType [optional] <p>
-	 *        Missä muodossa haluat tiedot palautettavan. Default on PDO::FETCH_OBJ.
-	 * @param string $className [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
-	 * 		  Huom: $returnType ei tarvitse olla määritely.<p>
-	 * 		  Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
+	 * @param int    $returnType [optional] <p> Missä muodossa haluat tiedot palautettavan. Default on PDO::FETCH_OBJ.
+	 * @param string $className  [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
+	 *                           Huom: $returnType ei tarvitse olla määritely.<p>
+	 *                           Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 * @return mixed|stdClass
 	 */
-	public function get_next_row ( /*int*/ $returnType = NULL, /*string*/ $className = '' ) {
-		if ( empty($className) ) {
+	public function get_next_row( /*int*/ $returnType = null, /*string*/ $className = '' ) {
+		if ( empty( $className ) ) {
 			return $this->prepared_stmt->fetch( $returnType );
 		} else {
 			return $this->prepared_stmt->fetchObject( $className );
@@ -163,11 +157,9 @@ class DByhteys {
 
 	/**
 	 * Metodilla voi muuttaa missä muodossa kaikki luokan sql-haut palautetaan.
-	 * Mahdolliset tyypit:
-	 *        PDO::FETCH_* (niitä on aika monta)
-	 * @param int $pdo_return_type <p>
-	 * 		Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on PDO-luokan PDO::FETCH_*
-	 * 		 constant-muuttujat.<br>PDO::FETCH_OBJ on default jo luokan konstruktorissa.
+	 * @param int $pdo_return_type <p> Missä muodossa haluat tiedot palautettavan. Helpoin tapa valita on
+	 *                             PDO-luokan PDO::FETCH_* constant-muuttujat.<br>
+	 *                             PDO::FETCH_OBJ on default jo luokan konstruktorissa.
 	 */
 	public function setReturnType( /*int*/ $pdo_return_type ) {
 		$this->connection->setAttribute( PDO::ATTR_DEFAULT_FETCH_MODE, (int)$pdo_return_type );
@@ -190,7 +182,7 @@ class DByhteys {
 	 */
 	function __destruct() {
 		$this->close_prepared_stmt();
-		$this->connection = NULL;
+		$this->connection = null;
 	}
 
 	/**

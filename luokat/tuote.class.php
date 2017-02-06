@@ -2,38 +2,7 @@
 /**
  * Class Tuote
  *
- * <h3>Luokan muuttujat</h3>
- * <table>
- *   <tr>  <th>Tyyppi</th> <th>Nimi</th> <th>Kuvaus</th>  </tr>
- *   <tr>  <td>int|NULL</td> <td>$id</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$articleNo</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$brandNo</td> <td></td>  </tr>
- *   <tr>  <td>int</td> <td>$hankintapaikka_id</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$tuotekoodi</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$tilauskoodi</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$tuoteryhma</td> <td></td>  </tr>
- *
- *   <tr>  <td>string</td> <td>$nimi</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$valmistaja</td> <td></td>  </tr>
- *
- *   <tr>  <td>float</td> <td>$a_hinta</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$a_hinta_ilman_alv</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$a_hinta_alennettu</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$a_hinta_ilman_alv_alennettu</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$alv_prosentti</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$alennus_prosentti</td> <td></td>  </tr>
- *
- *   <tr>  <td>int</td> <td>$kpl_maara</td> <td></td>  </tr>
- *   <tr>  <td>float</td> <td>$summa</td> <td></td>  </tr>
- *
- *   <tr>  <td>array</td> <td>$maaraalennukset</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$alennus_huomautus</td> <td></td>  </tr>
- *
- *   <tr>  <td>float</td> <td>$ostohinta</td> <td></td>  </tr>
- *   <tr>  <td>string</td> <td>$hyllypaikka</td> <td></td>  </tr>
- *   <tr>  <td>int</td> <td>$varastosaldo</td> <td></td>  </tr>
- *   <tr>  <td>int</td> <td>$minimimyyntiera</td> <td></td>  </tr>
- * </table>
+ * @version 2017-02-06
  */
 class Tuote {
 	/** @var int|NULL $id <p> Tuotteen ID meidän tietokannassa */ public $id = NULL;

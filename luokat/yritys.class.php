@@ -1,7 +1,8 @@
 <?php
-
 /**
  * Class Yritys
+ *
+ * @version 2017-02-06
  */
 class Yritys {
 

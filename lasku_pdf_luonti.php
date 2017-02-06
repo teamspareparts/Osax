@@ -3,7 +3,7 @@ require_once './mpdf/mpdf.php';
 require './luokat/laskutiedot.class.php';
 
 $mpdf = new mPDF();
-$lasku = new Laskutiedot( $db, $tilaus_id, $user, $yritys );
+$lasku = new Laskutiedot( $db, $tilaus_id, $user );
 
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
