@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kayttaja_id` mediumint UNSIGNED NOT NULL, -- Foreign KEY
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean NOT NULL DEFAULT 0, -- Käyttäjä maksaa laskun tilauksen tallennuksen jälkeen.
+  `paytrail_auth_hash` varchar(255) DEFAULT NULL, -- Paytrailin käyttöä varten, uniikki maksun tunnistus
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   PRIMARY KEY (`id`),

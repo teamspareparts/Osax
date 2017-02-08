@@ -25,14 +25,14 @@ class Email {
 	 * Email constructor.
 	 * Static class, joten tätä ei ole tarkoitus käyttää. Hence: "private".
 	 */
-	private function __construct () {
+	private function __construct() {
 	}
 
 	/**
 	 * Lähettää sähköpostin. Luokan sisäiseen käyttöön, muut metodit asettavat arvot,
 	 * ja sitten kutsuvat tämän metodin.
 	 */
-	private static function sendMail () {
+	private static function sendMail() {
 		//sähköpostin parametrit
 		$params = array(
 			'api_user' => Email::$user,
@@ -67,9 +67,7 @@ class Email {
 	 * @param string $email <p> Osoite, johon linkki lähetetään.
 	 * @param string $key <p> Salasanan palautus-avain. Avaimen luonti login_check.php-tiedostossa.
 	 */
-	static function lahetaSalasanaLinkki ( /*String*/
-		$email, /*String*/
-		$key ) {
+	static function lahetaSalasanaLinkki( /*String*/ $email, /*String*/ $key ) {
 		Email::$target_email = $email;
 		Email::$subject = "Osax.fi - Salasanan resetointi";
 		Email::$message = "<p>Salasanan vaihto onnistuu osoitteessa:</p>
@@ -88,10 +86,8 @@ class Email {
 	 * @param int $tilausnro <p> Tilauksen numero
 	 * @param string $fileName <p> Laskun nimi (tiedostonimi siis)
 	 */
-	static function lahetaTilausvahvistus ( /*String*/
-		$email, Ostoskori $cart, /*int*/
-		$tilausnro, /*string*/
-		$fileName ) {
+	static function lahetaTilausvahvistus(
+			/*String*/ $email, Ostoskori $cart, /*int*/ $tilausnro, /*string*/ $fileName ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilausvahvistus";
 
@@ -124,9 +120,7 @@ class Email {
 	 * @param int $tilausnro <p> Tilauksen numero
 	 * @param string $fileName <p> Noutolistan tiedoston nimi
 	 */
-	static function lahetaNoutolista ( /*int*/
-		$tilausnro, /*String*/
-		$fileName ) {
+	static function lahetaNoutolista( /*int*/ $tilausnro, /*String*/ $fileName ) {
 		Email::$target_email = Email::admin_email;
 		Email::$subject = "Noutolista tilaukseen {$tilausnro}";
 		Email::$message = "<p>Tilauksen {$tilausnro} nouotlista.</p>
@@ -146,9 +140,7 @@ class Email {
 	 * @param string $email <p> Target email
 	 * @param int $tilausnro <p> Tilauksen numero
 	 */
-	static function lahetaIlmoitus_TilausLahetetty ( /*String*/
-		$email, /*int*/
-		$tilausnro ) {
+	static function lahetaIlmoitus_TilausLahetetty( /*String*/ $email, /*int*/ $tilausnro ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilaus {$tilausnro}";
 		Email::$message = "<p>Hei! Tilauksesi {$tilausnro} on nyt lähetetty.</p>";
@@ -163,9 +155,7 @@ class Email {
 	 * @param string $vanha_sijainti
 	 * @param string $uusi_sijainti
 	 */
-	static function lahetaIlmoitus_EpailyttavaIP ( stdClass $user, /*string*/
-												   $vanha_sijainti, /*string*/
-												   $uusi_sijainti ) {
+	static function lahetaIlmoitus_EpailyttavaIP( stdClass $user, /*string*/ $vanha_sijainti, /*string*/ $uusi_sijainti ) {
 		Email::$target_email = Email::admin_email;
 		Email::$subject = "Epäilyttävää käytöstä";
 		Email::$message = "<p>Asiakas ...tiedot tähän..... </p>>

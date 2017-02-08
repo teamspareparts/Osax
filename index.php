@@ -1,5 +1,5 @@
 ﻿<?php
-
+//TODO: Hetkinen, oliko meidän tarkoitus muuttaa tämän tiedoston nimeä? --JJ 17-02-08
 session_start();
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko uudellenohjaus
 
@@ -92,6 +92,12 @@ if ( !empty($mode) && !empty($modes_array) && array_key_exists( $mode, $modes_ar
 <?php endif; ?>
 
 	<fieldset><legend>Sisäänkirjautuminen</legend>
+		<noscript>
+			<p>Sivusto vaatii javascriptin toimiakseen. Juuri nyt käyttämässäsi selaimessa ei ole
+			javascript päällä. Ohjeet miten javascriptin saa päälle selaimessa (englanniksi):
+			<a href="http://www.enable-javascript.com/" target="_blank">
+			instructions how to enable JavaScript in your web browser</a>.</p>
+		</noscript>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:</label><br>
 			<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{8,255}$"
