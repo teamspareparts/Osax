@@ -1,7 +1,13 @@
 ﻿<?php
+/**
+ * @version 2016-02-08 <p> Lisätty versionumero ja <noscript>-varoitus.
+ */
 //TODO: Hetkinen, oliko meidän tarkoitus muuttaa tämän tiedoston nimeä? --JJ 17-02-08
 session_start();
-if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko uudellenohjaus
+/**
+ * Tarkistetaan onko kyseessä uudelleenohjaus, ja tulostetaan viesti sen mukaan.
+ */
+if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 
 	if ( !empty($_SESSION['id']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
 	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
@@ -72,11 +78,13 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {  // Tarkistetaan onko
 			"style" => "style='color:{$colors['note']};'" ),
 	];
 }
+// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
+$css_version = filemtime( 'css/login_styles.css' );
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="css/login_styles.css">
+	<link rel="stylesheet" type="text/css" href="css/login_styles.css?v=<?=$css_version?>">
 	<meta charset="UTF-8">
 	<title>Login</title>
 </head>

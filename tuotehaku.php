@@ -166,6 +166,9 @@ if ( !empty($_GET["manuf"]) ) {
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
+
+// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
+$css_version = filemtime( 'css/styles.css' );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -175,7 +178,7 @@ if ( !empty($_GET["manuf"]) ) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css?v=<?=$css_version?>">
     <link rel="stylesheet" href="css/jsmodal-light.css">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -183,8 +186,6 @@ if ( !empty($_GET["manuf"]) ) {
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
     <script src="js/jsmodal-1.0d.min.js"></script>
-
-
 
     <title>Tuotehaku</title>
 </head>

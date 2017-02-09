@@ -42,19 +42,18 @@ $date = new DateTime('today -10 days');
 $news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL, PDO::FETCH_OBJ );
 
 $fp_content = jaottele_uutiset($news);
+
+// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
+$css_version = filemtime( 'css/styles.css' );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<!-- https://design.google.com/icons/ -->
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
 	<title>Osax - Etusivu</title>
+	<link rel="stylesheet" href="css/styles.css?v=<?=$css_version?>">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style>
 		div, section, ul, li {
 			border: 1px solid;

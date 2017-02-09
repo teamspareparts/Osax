@@ -1,5 +1,4 @@
 @CHARSET "UTF-8";
-
 /********************************************
 	General application.
 *********************************************/
@@ -201,8 +200,8 @@ a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeis
 	-ms-user-select:none;
 	user-select:none;
 	font-weight: 700;
-	font-size: 15px;
-	text-transform: uppercase;
+	font-size: 17px;
+	/*text-transform: uppercase;*/
 	text-decoration: none;
 	font-family: 'Open Sans', sans-serif;
 	display: inline-block;

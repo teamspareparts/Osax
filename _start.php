@@ -1,5 +1,8 @@
 ﻿<?php
 /**
+ * @version 2017-02-08 <p> Lisätty versionumero ja siivottu kommentteja.
+ */
+/**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
  * @param $var
  */
@@ -18,12 +21,14 @@ function format_number( /*double|int*/ $number, /*bool*/ $int = false, /*bool*/ 
 }
 
 /*
- * Aloitetaan sessio
+ * Aloitetaan sessio.
+ * Sessio käyttäjän ID ja sähköposti, ja yrityksen ID.
  */
 session_start();
 
 /*
- * Ladataan sivuston käyttöön tarkoitetut luokat
+ * Ladataan sivuston käyttöön tarkoitetut luokat.
+ * Joitakin näistä ei ladata joka sivulla, mutta ihan varmuuden vuoksi ne ladataan kuitenkin tässä.
  */
 require "luokat/db_yhteys_luokka.class.php";
 require "luokat/user.class.php";
@@ -32,15 +37,12 @@ require "luokat/ostoskori.class.php";
 require "luokat/tuote.class.php";
 
 /*
- * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.
+ * Luodaan tarvittava oliot
+ * Näitä tarvitaan joka sivulla, joten ne luodaan jo tässä vaiheessa.
  */
 $db = new DByhteys();
-
-/*
- * Luodaan tarvittava oliot
- */
 $user = new User( $db, $_SESSION['id'] );
-$cart = new Ostoskori( $db, $user->yritys_id );
+$cart = new Ostoskori( $db, $user->yritys_id ); // Headerin ostoskori-linkki ja tiedot
 
 /*
  * Tarkistetaan, että käyttäjä on olemassa, ja oikea.
@@ -48,7 +50,9 @@ $cart = new Ostoskori( $db, $user->yritys_id );
 if ( !$user->isValid() ) {
 	header( 'Location: index.php?redir=4' ); exit;
 }
-// Lisäksi tarkistetaan EULA, jotta käyttäjä ei pysty käyttämään sivustoa ilman hyväksyntää.
+/*
+ * Lisäksi tarkistetaan EULA, jotta käyttäjä ei pysty käyttämään sivustoa ilman hyväksyntää.
+ */
 elseif ( !$user->eula_hyvaksytty() ) {
     header( 'Location: eula.php' ); exit;
 }

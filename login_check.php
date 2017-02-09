@@ -2,6 +2,7 @@
 /**
  * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
  * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
+ * @version 2017-02-09 <p> Versionumero lisätty
  */
 require 'luokat/db_yhteys_luokka.class.php';
 require 'luokat/email.class.php';
@@ -72,8 +73,7 @@ function password_reset ( DByhteys $db, stdClass $user, /*string*/ $reset_mode )
 	$key = GUID();
 	$key_hashed = sha1( $key );
 	
-	$sql = "INSERT INTO pw_reset (kayttaja_id, reset_key_hash)
-			VALUES ( ?, ? )";
+	$sql = "INSERT INTO pw_reset (kayttaja_id, reset_key_hash) VALUES ( ?, ? )";
 	$db->query( $sql, [$user->id, $key_hashed] );
 	
 	if ( $reset_mode == "expired" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
