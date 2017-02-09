@@ -1,6 +1,6 @@
 ﻿<?php
 /**
- * @version 2016-02-08 <p> Lisätty versionumero ja <noscript>-varoitus.
+ * @version 2017-02-09 <p> Lisätty päivitys-fieldset.
  */
 //TODO: Hetkinen, oliko meidän tarkoitus muuttaa tämän tiedoston nimeä? --JJ 17-02-08
 session_start();
@@ -96,6 +96,12 @@ $css_version = filemtime( 'css/login_styles.css' );
 if ( !empty($mode) && !empty($modes_array) && array_key_exists( $mode, $modes_array ) ) : ?>
 	<fieldset id=error <?= $modes_array[$mode]['style'] ?>><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
 		<p> <?= $modes_array[$mode]['teksti'] ?> </p>
+	</fieldset>
+<?php endif;
+if (false) : ?>
+	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
+		<p style="color:#0a3c93;">Sivuston päivitys.<br>
+		DD.MM.YYYY HH:MM</p>
 	</fieldset>
 <?php endif; ?>
 

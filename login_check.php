@@ -176,3 +176,5 @@ elseif ( $mode == "password_reset" ) {
 		exit();
 	}
 }
+
+header("Location:index.php?redir=666"); exit(); // Something has gone horribly wrong

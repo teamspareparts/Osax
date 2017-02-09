@@ -8,7 +8,7 @@
  * Tiedoston lopussa esimerkkejä käytöstä.
  * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa ylhäällä olevassa linkissä.
  *
- * @version 2017-02-06 <p> Uusi konstruktori. Ini-tiedoston luku siirretty konstruktoriin.
+ * @version 2017-02-09 <p> Korjattu bugi konstruktorin tiedostonluvussa.
  */
 class DByhteys {
 
@@ -58,7 +58,7 @@ class DByhteys {
 	public function __construct( array $values = null ) {
 		define( 'FETCH_ALL', true );
 		if ( $values === null ) {
-			$values = parse_ini_file( "../src/tietokanta/db-config.ini.php" );
+			$values = parse_ini_file( "./tietokanta/db-config.ini.php" );
 		}
 		$this->pdo_dsn = "mysql:host={$values['host']};dbname={$values['name']};charset=utf8";
 		$this->connection = new PDO( $this->pdo_dsn, $values[ 'user' ], $values[ 'pass' ], $this->pdo_options );

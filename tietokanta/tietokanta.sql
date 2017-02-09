@@ -1,3 +1,4 @@
+/* @version 2017-02-09 */
 SET FOREIGN_KEY_CHECKS=0; -- Taulut ovat väärässä järjestyksessä FOREIGN KEY tarkastuksia varten.
 
 CREATE TABLE IF NOT EXISTS `kayttaja` (
