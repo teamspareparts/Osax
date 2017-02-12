@@ -9,8 +9,9 @@ class Email {
 	//TODO: Move to .ini file? --JJ
 	//TODO: Samalla tavalla kuin db-config.ini.php. Ei välttämätöntä. --SL
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
-	private static $user = ""; //TODO: Mutta eikö nämä tiedot pitäisi olla piilotettu käyttäjältä? --JJ/17-02-06
-	private static $pass = "";
+	//private static $user = ""; //TODO: Mutta eikö nämä tiedot pitäisi olla piilotettu käyttäjältä? --JJ/17-02-06
+	//private static $pass = "";
+	private static $ini_path = "./tietokanta/db-config.ini.php";
 
 	const delivery_email = 'noreply@osax.fi';
 	const admin_email = 'myynti@osax.fi';
@@ -33,10 +34,11 @@ class Email {
 	 * ja sitten kutsuvat tämän metodin.
 	 */
 	private static function sendMail() {
+		$values = parse_ini_file( Email::$ini_path );
 		//sähköpostin parametrit
 		$params = array(
-			'api_user' => Email::$user,
-			'api_key' => Email::$pass,
+			'api_user' => $values['email_user'],
+			'api_key' => $values['email_pass'],
 			'to' => Email::$target_email,
 			'subject' => Email::$subject, //otsikko
 			'html' => Email::$message, //HTML runko

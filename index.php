@@ -50,7 +50,8 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 			"style" => "style='color:{$colors['note']};'" ),
 		6 => array(
 			"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
-			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.",
+			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen." . "<p> " .
+                        "Muistathan varmistaa, että sähköposti ei mennyt roskaposteihin.",
 			"style" => "style='color:{$colors['success']};'" ),
 		7 => array(
 			"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
