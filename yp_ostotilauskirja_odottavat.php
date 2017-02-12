@@ -59,13 +59,13 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 	<?php if ( $ostotilauskirjat ) : ?>
 		<table>
 			<thead>
-			<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Varastoon saapuvat tilauskirjat</th></tr>
+			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">Varastoon saapuvat tilauskirjat</th></tr>
 			<tr><th style="max-width: 200pt">Tunniste</th>
 				<th>Lähetetty</th>
 				<th>Saapuu</th>
 				<th>KPL</th>
 				<th>Hinta</th>
-				<th>Rahti</th>
+				<th>Rahti</th><th></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -83,6 +83,8 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 						<?= format_euros($otk->hinta)?></td>
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
 						<?= format_euros($otk->rahti)?></td>
+                    <td><a href="yp_luo_ostotilauskirjatiedosto.php?id=<?=$otk->id?>" class="nappi">
+                            Lataa</a></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>

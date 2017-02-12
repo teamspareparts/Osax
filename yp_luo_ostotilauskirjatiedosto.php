@@ -13,12 +13,13 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? LIMIT
 }
 
 
-$sql = "  SELECT tuote.tilauskoodi, tuote.articleNo, tuote.valmistaja, ostotilauskirja_tuote_arkisto.kpl
-  		  FROM ostotilauskirja_tuote_arkisto
+$sql = "  SELECT 	tuote.tilauskoodi, tuote.articleNo, tuote.valmistaja, 
+  					ostotilauskirja_tuote_arkisto.original_kpl AS kpl
+  		  FROM 		ostotilauskirja_tuote_arkisto
           LEFT JOIN tuote
-            ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
-          WHERE ostotilauskirja_id = ?
-          GROUP BY tuote_id";
+            ON 		ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
+          WHERE 	ostotilauskirja_id = ?
+          GROUP BY 	tuote_id";
 $tuotteet = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 
 

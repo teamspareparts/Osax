@@ -285,6 +285,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `original_kpl` int(11) NOT NULL, -- Alkuperäinen kpl
   `kpl` int(11) NOT NULL,
   `selite` varchar(50) NOT NULL,
   `ostohinta` decimal(11,4) NOT NULL,

@@ -25,7 +25,9 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja)
             SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ? FROM ostotilauskirja
             WHERE id = ? ";
-	if (!$db->query($sql, [$user->id, $ostotilauskirja_id])) return false;
+	if (!$db->query($sql, [$user->id, $ostotilauskirja_id])) {
+	    return false;
+	}
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
 
@@ -34,15 +36,18 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
  			LEFT JOIN tuote
  			 ON ostotilauskirja_tuote.tuote_id = tuote.id
  			WHERE ostotilauskirja_id = ?";
-	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) return false;
+	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) {
+	    return false;
+	}
 	foreach ($products as $product) {
-		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, kpl, 
-										selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
- 								VALUES(?, ?, ?, ?, ?, ?, ?)",
-			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->selite,
-			$product->lisays_pvm, $product->lisays_kayttaja_id,
-			$product->sisaanostohinta]);
-		if( !$result ) return false;
+		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, 
+	                                original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
+ 								VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->kpl, $product->selite,
+			$product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta]);
+		if( !$result ) {
+		    return false;
+		}
     }
 
 	//Tyhjennetään alkuperäinen ostotilauskirja

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * @version 2017-02-08 <p> Lisätty versionumero ja siivottu kommentteja.
  */
