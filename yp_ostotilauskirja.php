@@ -15,21 +15,32 @@ if (!$hp = $db->query("SELECT * FROM hankintapaikka WHERE id = ? LIMIT 1", [$han
 /** Ostotilauskirjan lisäys */
 if ( isset($_POST['lisaa']) ) {
     $toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
-    $arr = [
-        $_POST["tunniste"],
+	$arr = [
+		$_POST["tunniste"],
 		$_POST["saapumispvm"],
 		$_POST["rahti"],
 		$toimitusjakso,
 		$_POST["hankintapaikka_id"],
-    ];
-    $sql = "  INSERT IGNORE INTO ostotilauskirja 
+	];
+    //Tarkastetaan onko hankintapaikalla jo toistuva tilauskirja
+	$sql = "SELECT  id FROM ostotilauskirja 
+            WHERE   toimitusjakso > 0 AND hankintapaikka_id = ?  
+            LIMIT   1";
+	$result = $db->query($sql, [$hankintapaikka_id]);
+    if ( $toimitusjakso && $result) { //Vain yksi toistuva ostotilauskirja
+        $_SESSION["feedback"] = "<p class='error'>Hankintapaikalla voi olla vain 
+                                    yksi aktiivinen tilauskirja.</p>";
+    }
+    else {
+		$sql = "INSERT IGNORE INTO ostotilauskirja 
               (tunniste, oletettu_saapumispaiva, rahti, toimitusjakso, hankintapaikka_id)
               VALUES ( ?, ?, ?, ?, ? )";
-    if ( $db->query($sql, $arr) ) {
-        $_SESSION["feedback"] = "<p class='success'>Uusi ostotilauskirja lisätty.</p>";
-    } else {
-        $_SESSION["feedback"] = "<p class='error'>Ostotilauskirjan tunniste varattu.</p>";
-    }
+		if ($db->query($sql, $arr)) {
+			$_SESSION["feedback"] = "<p class='success'>Uusi ostotilauskirja lisätty.</p>";
+		} else {
+			$_SESSION["feedback"] = "<p class='error'>Ostotilauskirjan tunniste varattu.</p>";
+		}
+	}
 }
 
 /** Ostotilauskirjan muokkaus */
