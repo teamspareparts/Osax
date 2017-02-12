@@ -51,8 +51,8 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
     }
 
 	//Tyhjennetään alkuperäinen ostotilauskirja
-	//$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
-	//if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
+	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
+	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
 
 	return $uusi_otk_id->last_id;
 }
@@ -81,10 +81,10 @@ function cmpName($a, $b) {
 if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
     $sql1 = "  UPDATE ostotilauskirja_tuote
-              SET kpl = ?
+              SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
               WHERE ostotilauskirja_id = ? AND tuote_id = ?";
     $sql2 = " UPDATE tuote SET sisaanostohinta = ? WHERE id = ?";
-    if ( $db->query($sql1, [$_POST['kpl'], $ostotilauskirja_id, $_POST['id']] ) &&
+    if ( $db->query($sql1, [$_POST['kpl'], $user->id, $_POST['selite'], $ostotilauskirja_id, $_POST['id']] ) &&
         $db->query($sql2, [$_POST['ostohinta'], $_POST['id']])) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     } else {
@@ -202,7 +202,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <td class="number"><?=$product->selite?></td>
                     <td class="toiminnot">
                         <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
-                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>)">Muokkaa</button>
+                                '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
+                                '<?=$product->selite?>')">Muokkaa</button>
                         <button class="nappi" onclick="poista_ostotilauskirjalta('<?=$product->id?>')">Poista</button>
                     </td>
                 </tr>
@@ -232,23 +233,27 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
      * @param tuotenumero
      * @param kpl
      * @param ostohinta
+     * @param selite
      */
-    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta){
+    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite){
         Modal.open( {
             content:  '\
 				<h4>Muokkaa tuotteen tietoja ostotilauskirjalla.</h4>\
 				<hr>\
 				<br>\
-				<form action="" method="post" name="muokkaa_hankintapaikka">\
-					<label><span>Tuote</span></label>\
+				<form action="" method="post" name="muokkaa_ostotilauskirja_tuote" id="muokkaa_otk_tuote">\
+					<label>Tuote</label>\
                     <h4 style="display: inline;">'+tuotenumero+'</h4>\
 					<br><br>\
-					<label><span>KPL</span></label>\
+					<label>KPL</label>\
 					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required>\
 					<br><br>\
-					<label><span>Ostohinta (€)</span></label>\
+					<label>Ostohinta (€)</label>\
 					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" title="Tuotteen ostohinta" required>\
 					<br><br>\
+					<label for="selite">Selite:</label><br> \
+                    <textarea rows="3" cols="25" name="selite" form="muokkaa_otk_tuote" placeholder="Miksi lisäät tuotteen käsin?">'+selite+'</textarea>\
+                    <br><br> \
 					<input name="id" type="hidden" value="'+tuote_id+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\

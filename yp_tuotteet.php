@@ -40,6 +40,7 @@ function add_product_to_catalog( DByhteys $db, array $val ) {
  * @return bool <p> onnistuiko poisto. Tosin, jos jotain menee pieleen, niin DByhteys heittää exceptionin.
  */
 function remove_product_from_catalog( DByhteys $db, /*int*/ $id) {
+    $db->query( "DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ?", [$id] );
 	return $db->query( "UPDATE tuote SET aktiivinen = 0 WHERE id = ?", [$id] );
 }
 
