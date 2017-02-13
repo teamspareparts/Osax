@@ -3,7 +3,7 @@
 /**
  * Staattinen luokka sähköpostin käyttöön.
  *
- * @version 2017-02-06 <p> versionumero lisätty, ja metodien PhpDoc lisätty.
+ * @version 2017-02-13 <p> Tilausvahvistus muutettu käyttämään laskua.
  */
 class Email {
 	//TODO: Move to .ini file? --JJ
@@ -82,18 +82,18 @@ class Email {
 	/**
 	 * Lähettää tilausvahvistuksen käyttäjälle; tuotetiedot ja lasku mukaan lukien.
 	 * @param string $email <p> Osoite, johon viesti lähetetään.
-	 * @param Ostoskori $cart <p> Tuotetietoja varten
+	 * @param Laskutiedot $lasku <p> Tuotetietoja varten
 	 * @param int $tilausnro <p> Tilauksen numero
 	 * @param string $fileName <p> Laskun nimi (tiedostonimi siis)
 	 */
 	static function lahetaTilausvahvistus(
-			/*String*/ $email, Ostoskori $cart, /*int*/ $tilausnro, /*string*/ $fileName ) {
+			/*String*/ $email, Laskutiedot $lasku, /*int*/ $tilausnro, /*string*/ $fileName ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilausvahvistus";
 
 		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
 								<th style="text-align:right;">Kpl</th></tr>';
-		foreach ( $cart->tuotteet as $tuote ) {
+		foreach ( $lasku->tuotteet as $tuote ) {
 			$productTable .= "
 			<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
 				<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
@@ -106,8 +106,9 @@ class Email {
 					Jukolankatu 19 80100 Joensuu<br>		
 					puh. 010 5485200<br>
 					janne@osax.fi';
-		Email::$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}<br>Summa: {$cart->summa_toString()}<br>
-		Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
+		Email::$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}
+			<br>Summa: " . format_number( $lasku->hintatiedot[ 'summa_yhteensa' ] ) . "<br>
+			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
 		Email::$fileName = $fileName;
 		Email::$file = file_get_contents( "./laskut/{$fileName}" );

@@ -1,6 +1,6 @@
 ﻿<?php
 /**
- * @version 2017-02-08 <p> Lisätty versionumero ja siivottu kommentteja.
+ * @version 2017-02-13 <p> Lisätty redirect osoite.
  */
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
@@ -48,11 +48,13 @@ $cart = new Ostoskori( $db, $user->yritys_id ); // Headerin ostoskori-linkki ja 
  * Tarkistetaan, että käyttäjä on olemassa, ja oikea.
  */
 if ( !$user->isValid() ) {
+	$_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
 	header( 'Location: index.php?redir=4' ); exit;
 }
 /*
  * Lisäksi tarkistetaan EULA, jotta käyttäjä ei pysty käyttämään sivustoa ilman hyväksyntää.
  */
 elseif ( !$user->eula_hyvaksytty() ) {
+	$_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
     header( 'Location: eula.php' ); exit;
 }
