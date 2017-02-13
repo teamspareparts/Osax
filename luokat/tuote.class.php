@@ -50,7 +50,7 @@ class Tuote {
 	 */
 	function __construct ( DByhteys $db = NULL, /*int*/ $id = NULL ) {
 		if ( $id !== NULL ) { // Varmistetaan parametrin oikeellisuus
-			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilaus_koodi AS tilauskoodi, 
+			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi AS tilauskoodi, 
 						varastosaldo, minimimyyntiera, valmistaja, nimi, ALV_kanta.prosentti AS alv_prosentti, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
@@ -119,7 +119,7 @@ class Tuote {
 			$hinta = $this->a_hinta;
 
 		} elseif ( $ilman_alv && !$ilman_alennus ) { // Hinta ilman ALV:ta, mutta alennuksen kanssa
-			$hinta = $this->a_hinta;
+			$hinta = $this->a_hinta_ilman_alv; //TODO: Korjaa a_hinta_ilman_alv_alennettu
 
 		} else {									// Hinta ALV:n ja alennuksen kanssa
 			$hinta = $this->a_hinta_alennettu;

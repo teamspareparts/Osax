@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * @version 2017-02-13 <p> Lisätty redirect osoite.
  */

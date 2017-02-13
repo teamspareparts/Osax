@@ -36,7 +36,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
 		foreach ( $cart->tuotteet as $tuote ) {
-			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
+			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta_ilman_alv,
 				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
 
 			// Päivitetään varastosaldo jokaisen tuotteen kohdalla.

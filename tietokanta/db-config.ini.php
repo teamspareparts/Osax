@@ -24,6 +24,10 @@ y_puhelin = 000-1234-567
 y_osoite[] = Jukolankatu 19
 y_osoite[] = 80100
 y_osoite[] = JOENSUU
+
+[Sahkopostin tunnarit]
+email_user = 
+email_pass = 
 		   
 
 ;*/

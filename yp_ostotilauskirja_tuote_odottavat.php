@@ -264,7 +264,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <h4 style="display: inline;">'+tuotenumero+'</h4>\
 					<br><br>\
 					<label>KPL</label>\
-					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required>\
+					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="0" required>\
 					<br><br>\
 					<label>Hyllypaikka</label>\
 					<input name="hyllypaikka" type="text" value="'+hyllypaikka+'" title="Hyllypaikka">\
