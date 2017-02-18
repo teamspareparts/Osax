@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-02-13 <p> WIP
+ * @version 2017-02-xx <p> WIP
  */
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
@@ -22,6 +22,8 @@ if ( empty( $_GET ) ) {
 			// Luodaan noutolista, ja lähetetään ylläpidolle ilmoitus
 			require 'noutolista_pdf_luonti.php';
 			Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
+
+			//TODO Lähetä käyttäjä jonnekin
 		}
 	}
 }

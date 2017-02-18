@@ -177,4 +177,5 @@ elseif ( $mode == "password_reset" ) {
 	}
 }
 
+//TODO: Make better --JJ 17-02-13
 header("Location:index.php?redir=666"); exit(); // Something has gone horribly wrong

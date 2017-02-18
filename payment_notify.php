@@ -1,38 +1,75 @@
 <?php
 /**
- * @version 2017-02-13 <p> WIP
+ * @version 2017-02-xx <p> WIP
  */
-require '_start.php'; global $db, $user, $cart;
+
+require "luokat/db_yhteys_luokka.class.php";
+require "luokat/user.class.php";
+require "luokat/ostoskori.class.php"; // Tuotteiden palauttamista ostoskoriin varten.
 require 'luokat/paymentAPI.class.php';
 
+$db = new DByhteys();
+
+// Haetaan kayttajan ID tilauksesta.
+$sql = "SELECT kayttaja_id FROM tilaus WHERE id = ?";
+$row = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ] ] );
+
+$user = new User( $db, $row->kayttaja_id );
 $get_count = count( $_GET );
 
 switch ( $get_count ) {
-	case 3 :
-		// Maksu peruutettu
-		// Peruuta tilaus, ja lisää tuotteet ostoskoriin.
+	/*
+	 * Maksu peruutettu; vain kolme GET-arvoa.
+	 */
+	case 3 : // Maksu peruutettu
+		if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
+			/*
+			 * Päivitetään tilaus peruutetuksi, mutta vain jos sitä ei ole jo peruutettu.
+			 * Jos käyttäjä palaa suoraan takaisin payment_cancel-sivulle, se päivitetään siellä.
+			 * Jos tilaus on jo peruutettu, tällä sivulla ei tehdä mitään.
+			 */
+			$sql = "UPDATE tilaus SET maksettu = -1, kasitelty = -1 WHERE id = ? AND kayttaja_id = ? AND maksettu != -1";
+			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
+
+			if ( $result ) {
+				$sql = "SELECT tuote_id, kpl FROM tilaus_tuote WHERE tilaus_id = ?";
+				$results = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ] ] );
+
+				//TODO: Palauta tuotteiden kpl-määrä.
+
+				foreach ( $results as $tuote ) {
+					$cart->lisaa_tuote( $db, $tuote->id, $tuote->kpl );
+				}
+			}
+
+		}
 		break;
+	/*
+	 * Maksu hyväksytty; kaikki viisi GET-arvot.
+	 */
 	case 5 :
-		// Maksu onnistunut.
-		// Tallenna maksu, ja lähetä lasku.
+		if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
+			/*
+			 * Päivitetään maksu suoritetuksi, mutta vain jos sitä ei ole jo hyväksytty.
+			 * Jos käyttäjä palaa suoraan takaisin payment_process-sivulle, se hyväksytään siellä.
+			 * Jos maksu on jo hyväksytty, tällä sivulla ei tehdä mitään.
+			 */
+			$sql = "UPDATE tilaus SET maksettu = 1 WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
+			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
+			if ( $result ) {
+
+				// Luodaan lasku, ja lähetetään tilausvahvistus.
+				require 'lasku_pdf_luonti.php'; // Laskun luonti tässä tiedostossa
+				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
+
+				// Luodaan noutolista, ja lähetetään ylläpidolle ilmoitus
+				require 'noutolista_pdf_luonti.php';
+				Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
+			}
+		}
 		break;
 	default :
 		// Hei, mitä sinä tällä sivulla teet?!
 		// Get lost!
 		break;
-
-}
-
-if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
-
-	$sql = "UPDATE tilaus SET maksettu = -1, kasitelty = -1 WHERE id = ? AND kayttaja_id = ?";
-	$db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
-
-	$sql = "SELECT tuote_id, kpl FROM tilaus_tuote WHERE tilaus_id = ?";
-	$results = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ] ] );
-
-	foreach ( $results as $tuote ) {
-		$cart->lisaa_tuote( $db, $tuote->id, $tuote->kpl );
-	}
-
 }

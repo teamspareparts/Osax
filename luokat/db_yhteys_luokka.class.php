@@ -8,7 +8,7 @@
  * Tiedoston lopussa esimerkkejä käytöstä.
  * Siinä on myös joitain yksinkertaisia selityksiä, jotka on myös ekassa ylhäällä olevassa linkissä.
  *
- * @version 2017-02-09 <p> Korjattu bugi konstruktorin tiedostonluvussa.
+ * @version 2017-02-09.2 <p> Korjattu bugi konstruktorin tiedostonluvussa.
  */
 class DByhteys {
 
@@ -53,12 +53,14 @@ class DByhteys {
 	 * Konstruktori.
 	 * Lukee tarvittavat tiedot suoraan db-config.ini -tiedostosta.
 	 *
-	 * @param string[] $values [optional] <p> Assoc-array. Kentät: user, pass, name, host
+	 * @param string[] $values [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
 	 */
 	public function __construct( array $values = null ) {
 		define( 'FETCH_ALL', true );
 		if ( $values === null ) {
 			$values = parse_ini_file( "./tietokanta/db-config.ini.php" );
+		} else {
+			$values = [ 'user' => $values[0], 'pass' => $values[1], 'name' => $values[2], 'host' => $values[3] ];
 		}
 		$this->pdo_dsn = "mysql:host={$values['host']};dbname={$values['name']};charset=utf8";
 		$this->connection = new PDO( $this->pdo_dsn, $values[ 'user' ], $values[ 'pass' ], $this->pdo_options );

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-02-13 <p> First public version
+ * @version 2017-02-xx <p> WIP
  */
 class PaymentAPI {
 

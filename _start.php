@@ -28,7 +28,7 @@ session_start();
 
 /*
  * Ladataan sivuston käyttöön tarkoitetut luokat.
- * Joitakin näistä ei ladata joka sivulla, mutta ihan varmuuden vuoksi ne ladataan kuitenkin tässä.
+ * Joitakin näistä ei käytetä joka sivulla, mutta ihan varmuuden vuoksi ne ladataan kuitenkin tässä.
  */
 require "luokat/db_yhteys_luokka.class.php";
 require "luokat/user.class.php";
