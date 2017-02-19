@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `keskiostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
   `hyllypaikka` varchar(10) DEFAULT NULL,
   `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
+  `vuosimyynti` int(11) NOT NULL DEFAULT 0,
+  `ensimmaisen_kerran_varastossa` timestamp DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
+  `paivitettava` boolean DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
@@ -80,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tuote_id` int UNSIGNED NOT NULL, -- PK, FK
   `tuotteen_nimi` varchar(20) NOT NULL,
   `valmistaja` varchar(30) NOT NULL,
-  `pysyva_hinta` decimal(11,4) NOT NULL,
+  `pysyva_hinta` decimal(11,4) NOT NULL, -- Ei sisällä ALV
   `pysyva_alv` decimal(3,2) NOT NULL,
   `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT 0.00,
   `kpl` mediumint NOT NULL DEFAULT 1,
@@ -248,7 +251,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2), -- Rahtimaksu
-  `oletettu_saapumispaiva` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `oletettu_lahetyspaiva` timestamp DEFAULT NULL,
+  `oletettu_saapumispaiva` timestamp DEFAULT NULL,
   `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
@@ -277,6 +281,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `saapumispaiva` timestamp NULL,
   `hyvaksytty` boolean NOT NULL DEFAULT 0, -- Odottavassa tilassa vai vastaanotettu ja hyväksytty
   `vastaanottaja` int(11), -- Tilauskirjan vastaanottajan käyttäjä ID
+  `ostotilauskirja_id` smallint UNSIGNED NOT NULL, -- FK, ei pakollinen
   PRIMARY KEY (`id`),
   CONSTRAINT fk_ostotilauskirjaArkisto_hankintapaikka
     FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)

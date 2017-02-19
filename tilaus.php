@@ -39,8 +39,9 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta_ilman_alv,
 				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
 
-			// Päivitetään varastosaldo jokaisen tuotteen kohdalla.
-			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ? WHERE id = ?" );
+			// Päivitetään varastosaldo jokaisen tuotteen kohdalla ja
+            // merkataan että tuotteen riittävyys pitää tarkastaa.
+			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ?, paivitettava = 1 WHERE id = ?" );
 			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
 		}
 

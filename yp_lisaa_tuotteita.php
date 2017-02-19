@@ -82,7 +82,8 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 						varastosaldo = varastosaldo + VALUES(varastosaldo), 
 						keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) * 
 							VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
-						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl)";
+						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
+						aktiivinen = 1";
 		$response = $db->query($sql,
 			[$articleNo, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
 				$brandId, $hankintapaikka_id, $tuotekoodi, $tilauskoodi, $brandName]);

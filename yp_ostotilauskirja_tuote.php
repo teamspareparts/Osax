@@ -22,8 +22,8 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
  */
 function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	//Lisätään osotilauskirja arkistoon
-	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja)
-            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ? FROM ostotilauskirja
+	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
+            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
 	if (!$db->query($sql, [$user->id, $ostotilauskirja_id])) {
 	    return false;
@@ -50,6 +50,11 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 		}
     }
 
+    //Päivitetään uusi lähetyspäivä ostotilauskirjalle
+	$sql = "UPDATE ostotilauskirja
+	        SET oletettu_lahetyspaiva = now() + INTERVAL toimitusjakso WEEK 
+ 			WHERE id = ?";
+	$db->query($sql, [$ostotilauskirja_id]);
 	//Tyhjennetään alkuperäinen ostotilauskirja
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
 	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
@@ -199,7 +204,13 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <td class="number"><?=format_integer($product->kpl)?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                     <td class="number"><?=format_euros($product->kokonaishinta)?></td>
-                    <td class="number"><?=$product->selite?></td>
+                    <td class="number">
+                        <?php if (!$product->lisays_kayttaja_id) : ?>
+                            <span style="color: red"><?=$product->selite?></span>
+                        <?php else : ?>
+					        <?=$product->selite?>
+                        <?php endif;?>
+                    </td>
                     <td class="toiminnot">
                         <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                                 '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,

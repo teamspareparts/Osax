@@ -10,7 +10,7 @@ require '_start.php'; global $db, $user, $cart;
  * @return stdClass <p> tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
-	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
+	$sql = "SELECT tilaus.id, tilaus.kayttaja_id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
 				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys,
 				CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 				CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
@@ -85,15 +85,26 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 <?php include 'header.php'; ?>
 
 <main class="main_body_container">
-	<section class="flex_row">
-		<h1 class="otsikko">Tilauksen tiedot</h1>
-		<?php if ($tilaus_tiedot->kasitelty == 0) :?>
-			<h4 style="color:red; display:flex; align-items:center;">
-			Odottaa käsittelyä.</h4>
-		<?php else: ?>
-			<h4 style="color:green; display:flex; align-items:center;">
-			Käsitelty ja toimitettu.</h4>
-		<?php endif;?>
+	<section style="white-space: nowrap">
+		<div class="otsikko">
+            <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
+		    <?php if ( $tilaus_tiedot->kasitelty == 0 ) : ?>
+			    <span class="inline-block" style="color:red;">
+			    Odottaa käsittelyä.</span>
+		    <?php else: ?>
+			    <span class="inline-block" style="color:green;">
+			    Käsitelty ja toimitettu.</span>
+		    <?php endif;?>
+        </div>
+        <div id="painikkeet">
+            <?php if ( $user->isAdmin() ) : ?>
+                <a href="./laskut/lasku-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Lasku</a>
+                <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Noutolista</a>
+		    <?php else : ?>
+                <a href="./laskut/lasku-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Lasku</a>
+            <?php endif;?>
+        </div>
+
 	</section>
 	<!-- HTML -->
 	<div class="flex_row">

@@ -17,6 +17,7 @@ if ( isset($_POST['lisaa']) ) {
     $toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
 	$arr = [
 		$_POST["tunniste"],
+		$_POST["lahetyspvm"],
 		$_POST["saapumispvm"],
 		$_POST["rahti"],
 		$toimitusjakso,
@@ -33,8 +34,9 @@ if ( isset($_POST['lisaa']) ) {
     }
     else {
 		$sql = "INSERT IGNORE INTO ostotilauskirja 
-              (tunniste, oletettu_saapumispaiva, rahti, toimitusjakso, hankintapaikka_id)
-              VALUES ( ?, ?, ?, ?, ? )";
+                (tunniste, oletettu_lahetyspaiva, oletettu_saapumispaiva,
+                rahti, toimitusjakso, hankintapaikka_id)
+                VALUES ( ?, ?, ?, ?, ?, ? )";
 		if ($db->query($sql, $arr)) {
 			$_SESSION["feedback"] = "<p class='success'>Uusi ostotilauskirja lisätty.</p>";
 		} else {
@@ -47,17 +49,23 @@ if ( isset($_POST['lisaa']) ) {
 else if ( isset($_POST['muokkaa']) ) {
 	$toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
 	$arr = [
+		$_POST["lahetyspvm"],
 		$_POST["saapumispvm"],
 		$_POST["rahti"],
 		$toimitusjakso,
 		$_POST["ostotilauskirja_id"],
 	];
     $sql = "  UPDATE ostotilauskirja
-              SET oletettu_saapumispaiva = ?, rahti = ?, toimitusjakso = ?
+              SET oletettu_lahetyspaiva = ?, oletettu_saapumispaiva = ?, rahti = ?, toimitusjakso = ?
               WHERE id = ?";
     if ( $db->query($sql, $arr) ) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     }
+    //Merkataan, että tuotteiden riittävyys on laskettava uudelleen
+    $sql = "    UPDATE tuote
+                SET paivitettava = 1
+                WHERE id IN (SELECT tuote_id FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?)";
+    $db->query($sql, [$_POST["ostotilauskirja_id"]]);
 }
 
 /** Ostotilauskirjan poistaminen */
@@ -76,10 +84,9 @@ if ( !empty($_POST) ){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
     exit();
 }
-else {
-	$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-	unset($_SESSION["feedback"]);
-}
+$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
+unset($_SESSION["feedback"]);
+
 
 
 
@@ -134,6 +141,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
             <thead>
             <tr><th>Tunniste</th>
                 <th>Toimitusväli</th>
+                <th>Lähetyspäivä</th>
                 <th>Saapumispäivä</th>
                 <th>Tuotteet</th>
                 <th>Hinta</th>
@@ -154,6 +162,8 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                         <?php endif;?>
                     </td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+						<?= date("d.m.Y", strtotime($otk->oletettu_lahetyspaiva))?></td>
+                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_integer($otk->kpl)?></td>
@@ -164,6 +174,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                     <td class="toiminnot">
                         <a class="nappi" href='javascript:void(0)'
                            onclick="avaa_modal_muokkaa_ostotilauskirja('<?=$otk->tunniste?>',
+                                   '<?= date("Y-m-d", strtotime($otk->oletettu_lahetyspaiva))?>',
                                     '<?= date("Y-m-d", strtotime($otk->oletettu_saapumispaiva))?>',
                                     '<?= $otk->rahti?>', '<?= $otk->toimitusjakso?>', '<?= $otk->id?>')">
                                     Muokkaa</a>
@@ -196,6 +207,9 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 					<label>Tunniste</label>\
 					<input name="tunniste" type="text" placeholder="Ostotilauskirjan nimi" pattern=".{3,}" required>\
 					<br><br>\
+					<label>Lähetyspäivä</label>\
+					<input name="lahetyspvm" type="text" class="datepicker" value="'+date+'" title="Arvioitu saapumispäivä" required>\
+					<br><br>\
 					<label>Saapumispäivä</label>\
 					<input name="saapumispvm" type="text" class="datepicker" value="'+date+'" title="Arvioitu saapumispäivä" required>\
 					<br><br>\
@@ -219,7 +233,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         });
     }
 
-    function avaa_modal_muokkaa_ostotilauskirja(tunniste, saapumispvm, rahti, tilausjakso, ostotilauskirja_id){
+    function avaa_modal_muokkaa_ostotilauskirja(tunniste, lahetyspvm, saapumispvm, rahti, tilausjakso, ostotilauskirja_id){
         let date = new Date().toISOString().slice(0,10);
         if (tilausjakso != 0) {
             tilausjakso = '<input name="toimitusjakso" type="number" step="1" value="'+tilausjakso+'" min="1" placeholder="6" title="Tilausväli viikkoina" required>';
@@ -235,7 +249,10 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 					<label>Tunniste</label>\
                     <h4 style="display: inline;">'+tunniste+'</h4>\
 					<br><br>\
-					<label>Saapumispäivä</label>\
+					<label>Lähetyspäivä</label>\
+					<input name="lahetyspvm" type="text" class="datepicker" value="'+lahetyspvm+'" title="Arvioitu lähetyspäivä" required>\
+					<br><br>\
+                    <label>Saapumispäivä</label>\
 					<input name="saapumispvm" type="text" class="datepicker" value="'+saapumispvm+'" title="Arvioitu saapumispäivä" required>\
 					<br><br>\
 					<label>Rahtimaksu (€)</label>\

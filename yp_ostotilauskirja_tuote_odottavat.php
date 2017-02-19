@@ -52,11 +52,17 @@ if( isset($_POST['vastaanotettu']) ) {
 			$db->query("UPDATE tuote SET varastosaldo = varastosaldo + ?, 
 							keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + sisaanostohinta* ? )/
 							(yhteensa_kpl + ? )),0),
-						yhteensa_kpl = yhteensa_kpl + ?, hyllypaikka = ?
+						yhteensa_kpl = yhteensa_kpl + ?, hyllypaikka = ?,
+						ensimmaisen_kerran_varastossa = IF(ISNULL(ensimmaisen_kerran_varastossa), now(), ensimmaisen_kerran_varastossa)
 						WHERE id = ? ",
 				[$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $hyllypaikka[$index], $id]);
 		}
 
+		//Päivitetään saapumispäivä alkuperäiselle ostotilauskirjalle
+		$sql = "UPDATE ostotilauskirja 
+                SET oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK
+                WHERE id = ?";
+        $db->query($sql, [$otk->ostotilauskirja_id]);
 
 		$_SESSION["feedback"] = "<p class='success'>Tuotteet lisätty varastoon.</p>";
 		header("Location: yp_ostotilauskirja_odottavat.php"); //Estää formin uudelleenlähetyksen

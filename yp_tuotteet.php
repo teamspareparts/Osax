@@ -56,7 +56,7 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 			SET keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
 				yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
 				tilauskoodi = ?, sisaanostohinta = ? ,hinta_ilman_ALV = ?, ALV_kanta = ?, varastosaldo = ?, 
-				minimimyyntiera = ?, hyllypaikka = ?
+				minimimyyntiera = ?, hyllypaikka = ?, paivitettava = 1
 		  	WHERE id = ?";
 
 	return $db->query( $sql,
