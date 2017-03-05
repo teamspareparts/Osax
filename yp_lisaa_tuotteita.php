@@ -164,15 +164,15 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 			<input id=submit_tuote type="submit" name="submit" value="Submit">
 			<br>
 			<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
-			<label for="select0">1:</label><select name=s0 id=select0></select><br>
-            <label for="select1">2:</label><select name=s1 id=select1></select><br>
-            <label for="select2">3:</label><select name=s2 id=select2></select><br>
-            <label for="select3">4:</label><select name=s3 id=select3></select><br>
-            <label for="select4">5:</label><select name=s4 id=select4></select><br>
-            <label for="select5">6:</label><select name=s5 id=select5></select><br>
+			<label for="select0">1:</label><select name="s0" id="select0"></select><br>
+            <label for="select1">2:</label><select name="s1" id="select1"></select><br>
+            <label for="select2">3:</label><select name="s2" id="select2"></select><br>
+            <label for="select3">4:</label><select name="s3" id="select3"></select><br>
+            <label for="select4">5:</label><select name="s4" id="select4"></select><br>
+            <label for="select5">6:</label><select name="s5" id="select5"></select><br>
             <div id="tilauskoodi_sarake" class="tilauskoodi_action" hidden>
                 <label for="select6">7:</label>
-                <select name=s6 id=select6>
+                <select name="tilauskoodi" id="select6">
                     <option>Tilauskoodi</option>
                 </select>
             </div>

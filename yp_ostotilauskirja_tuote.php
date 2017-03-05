@@ -21,7 +21,17 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
  * @return bool Palauttaa false tai arkistoidun ostotilauskirjan id:n.
  */
 function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
-	//Lisätään osotilauskirja arkistoon
+
+    //Haetaan ostotilauskirjan tuotteet
+    $sql = "SELECT * FROM ostotilauskirja_tuote
+ 			LEFT JOIN tuote
+ 			  ON ostotilauskirja_tuote.tuote_id = tuote.id
+ 			WHERE ostotilauskirja_id = ?";
+    if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) {
+        return false;
+    }
+
+	//Lisätään ostotilauskirja arkistoon
 	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
             SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
@@ -31,33 +41,52 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
 
-	//Lisätään ostotilauskirjan tuotteet arkistoon
-	$sql = "SELECT * FROM ostotilauskirja_tuote
- 			LEFT JOIN tuote
- 			 ON ostotilauskirja_tuote.tuote_id = tuote.id
- 			WHERE ostotilauskirja_id = ?";
-	if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) {
-	    return false;
-	}
+    //Lisätään ostotilauskirjan tuotteet arkistoon
 	foreach ($products as $product) {
-		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, 
+		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, automaatti,
 	                                original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
- 								VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-			[$uusi_otk_id->last_id, $product->id, $product->kpl, $product->kpl, $product->selite,
-			$product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta]);
+ 								VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			[$uusi_otk_id->last_id, $product->id, $product->automaatti, $product->kpl, $product->kpl,
+                $product->selite, $product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta]);
 		if( !$result ) {
 		    return false;
 		}
     }
 
+
+    //Pävitetään seuraava saapumispäivä (lasketaan kolmen viime lähetyksen toimitusajan keskiarvo)
     //Päivitetään uusi lähetyspäivä ostotilauskirjalle
-	$sql = "UPDATE ostotilauskirja
-	        SET oletettu_lahetyspaiva = now() + INTERVAL toimitusjakso WEEK 
+    $hankintapaikka_id = $db->query("SELECT hankintapaikka_id FROM ostotilauskirja_arkisto WHERE id = ?",
+        [$uusi_otk_id->last_id])->hankintapaikka_id;
+    $sql = "SELECT lahetetty, saapumispaiva 
+		  	FROM ostotilauskirja_arkisto 
+			WHERE hankintapaikka_id = ? 
+			      AND saapumispaiva IS NOT NULL
+			LIMIT 3";
+    $ostotilauskirjan_aikaleimat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+    $toimitusaika = $i = 0;
+    foreach ( $ostotilauskirjan_aikaleimat as $aikaleimat ) {
+        $toimitusaika += ceil((strtotime($aikaleimat->saapumispaiva) - strtotime($aikaleimat->lahetetty)) / (60 * 60 * 24));
+        $i++;
+    }
+    if ( $toimitusaika ) {
+        $toimitusaika = $toimitusaika / $i; //keskiarvo
+    } else {
+        $toimitusaika = 7; //TODO: oletustoimitusaika
+    }
+
+
+    $sql = "UPDATE ostotilauskirja
+	        SET oletettu_lahetyspaiva = now() + INTERVAL toimitusjakso WEEK,
+	            oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK + INTERVAL ? DAY 
  			WHERE id = ?";
-	$db->query($sql, [$ostotilauskirja_id]);
+    $db->query($sql, [$toimitusaika, $ostotilauskirja_id]);
+
 	//Tyhjennetään alkuperäinen ostotilauskirja
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
-	if( !$db->query($sql, [$ostotilauskirja_id]) ) return false;
+	if( !$db->query($sql, [$ostotilauskirja_id]) ) {
+	    return false;
+    }
 
 	return $uusi_otk_id->last_id;
 }
@@ -87,10 +116,10 @@ if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
     $sql1 = "  UPDATE ostotilauskirja_tuote
               SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
-              WHERE ostotilauskirja_id = ? AND tuote_id = ?";
+              WHERE ostotilauskirja_id = ? AND tuote_id = ? AND automaatti = ?";
     $sql2 = " UPDATE tuote SET sisaanostohinta = ? WHERE id = ?";
-    if ( $db->query($sql1, [$_POST['kpl'], $user->id, $_POST['selite'], $ostotilauskirja_id, $_POST['id']] ) &&
-        $db->query($sql2, [$_POST['ostohinta'], $_POST['id']])) {
+    if ( $db->query($sql1, [$_POST['kpl'], $user->id, $_POST['selite'], $ostotilauskirja_id, $_POST['id'], $_POST['automaatti']]) &&
+        $db->query($sql2, [$_POST['ostohinta'], $_POST['id']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR: Muokkauksessa tapahtui virhe!</p>";
@@ -98,8 +127,8 @@ if ( isset($_POST['muokkaa']) ) {
 }
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
-    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ?",
-                    [$_POST['id'], $ostotilauskirja_id]) ) {
+    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ? ",
+                    [$_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Tuote poistettu ostotilauskirjalta.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -137,7 +166,7 @@ $sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaish
           LEFT JOIN tuote
             ON ostotilauskirja_tuote.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
-          GROUP BY tuote_id";
+          GROUP BY tuote_id, automaatti";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
@@ -204,8 +233,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <td class="number"><?=format_integer($product->kpl)?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                     <td class="number"><?=format_euros($product->kokonaishinta)?></td>
-                    <td class="number">
-                        <?php if (!$product->lisays_kayttaja_id) : ?>
+                    <td>
+                        <?php if ( $product->automaatti ) : ?>
                             <span style="color: red"><?=$product->selite?></span>
                         <?php else : ?>
 					        <?=$product->selite?>
@@ -214,8 +243,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <td class="toiminnot">
                         <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                                 '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
-                                '<?=$product->selite?>')">Muokkaa</button>
-                        <button class="nappi" onclick="poista_ostotilauskirjalta('<?=$product->id?>')">Poista</button>
+                                '<?=$product->selite?>', <?=$product->automaatti?>)">Muokkaa</button>
+                        <button class="nappi" onclick="poista_ostotilauskirjalta(
+                        <?=$product->id?>, <?=$product->automaatti?>)">Poista</button>
                     </td>
                 </tr>
             <?php endforeach;?>
@@ -238,15 +268,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 <script type="text/javascript">
 
 
-    /**
-     *
-     * @param tuote_id
-     * @param tuotenumero
-     * @param kpl
-     * @param ostohinta
-     * @param selite
-     */
-    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite){
+    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite, automaatti){
         Modal.open( {
             content:  '\
 				<h4>Muokkaa tuotteen tietoja ostotilauskirjalla.</h4>\
@@ -266,6 +288,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <textarea rows="3" cols="25" name="selite" form="muokkaa_otk_tuote" placeholder="Miksi lisäät tuotteen käsin?">'+selite+'</textarea>\
                     <br><br> \
 					<input name="id" type="hidden" value="'+tuote_id+'">\
+					<input name="automaatti" type="hidden" value="'+automaatti+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\
 				',
@@ -276,8 +299,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
     /**
      *
      * @param tuote_id
+     * @param automaatti
      */
-    function poista_ostotilauskirjalta(tuote_id){
+	function poista_ostotilauskirjalta(tuote_id, automaatti){
         if( confirm("Haluatko varmasti poistaa tuotteen ostotilauskirjalta?") ) {
             //Rakennetaan form
             let form = document.createElement("form");
@@ -291,11 +315,19 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             field.setAttribute("value", true);
             form.appendChild(field);
 
+            //tuote_id
             field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "id");
             field.setAttribute("value", tuote_id);
             form.appendChild(field);
+
+            //automaatti
+			field = document.createElement("input");
+			field.setAttribute("type", "hidden");
+			field.setAttribute("name", "automaatti");
+			field.setAttribute("value", automaatti);
+			form.appendChild(field);
 
             //form submit
             document.body.appendChild(form);
@@ -357,7 +389,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             .css('cursor', 'pointer')
             .click(function(){
                 window.location = $(this).data('href');
-                return false;
+                //return false;
             });
     });
 
