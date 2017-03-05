@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Ostoautomaatio, yöajossa...
  */
@@ -11,8 +11,7 @@ $min_paivat_myynnissa = 30; //Montako päivää ollut myynnissä, vaikka olisi o
 $varmuusprosentti = 0; //Montako prosenttia tilataan enemmän kuin tarvitaan
 $automaatin_selite = "AUTOMAATTI"; //Ostotilauskirjalle menevä selite, jos automaation lisäämä tuote
 
-$insert = "INSERT IGNORE INTO temp_tuote (id, vuosimyynti) VALUES ";
-$placeholders = [];
+
 /**
  * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
  * @param DByhteys $db
@@ -48,13 +47,12 @@ function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
 //TODO: Fetch limit, että ei kaadu...
 $sql = "  SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo 
   		  FROM tuote
-  		  WHERE aktiivinen = 1 ";//AND paivitettava = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL";
+  		  WHERE aktiivinen = 1 AND paivitettava = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL";
 $tuotteet = $db->query($sql, [], FETCH_ALL);
 
 $date = date("Y-m-d", strtotime("-1 year", time())); //Vuoden takainen pvm
 
 foreach ($tuotteet as $tuote) {
-    echo "0 ";
 
 	/*************************************************************
 	 * Lasketaan tuotteelle viime vuoden myynti
@@ -68,9 +66,7 @@ foreach ($tuotteet as $tuote) {
  			  		AND tilaus_tuote.tuote_id = ? ";
 	$vuoden_myynti = $db->query($sql, [$tuote->id])->myynti;
 
-
-
-    if ( $vuoden_myynti ) { //Jos tuotetta myyty
+	if ( $vuoden_myynti ) { //Jos tuotetta myyty
 		//Jos ollut alle vuoden myynnissä, arvioidaan myynti.
 		if ( $tuote->ensimmaisen_kerran_varastossa > $date ) {
 			$paivat_myynnissa = intval((time() - strtotime($tuote->ensimmaisen_kerran_varastossa)) / (60 * 60 * 24));
@@ -84,17 +80,14 @@ foreach ($tuotteet as $tuote) {
 		$vuoden_myynti = 0;
 	}
 
-	//Otetaan id ja vuosimyynti talteen myöhempää inserttiä varten
-	$insert .= "(?, ?),";
-    $placeholders[] = $tuote->id;
-    $placeholders[] = $vuoden_myynti;
+	//Tallennetaan tuotteen vuosimyynti ja merkataan päivitetyksi
+	//$db->query("UPDATE tuote SET vuosimyynti = ?, paivitettava = 0 WHERE id = ? ", [$vuoden_myynti, $tuote->id]);
 
-    if ( !$vuoden_myynti ) {
+	if ( !$vuoden_myynti ) {
 		continue;
 	}
 
-
-    //Tilausväli & päivät seuraavaan lähetykseen
+	//Tilausväli & päivät seuraavaan lähetykseen
 	$sql = "	SELECT id, toimitusjakso, oletettu_lahetyspaiva
 				FROM ostotilauskirja
 			  	WHERE hankintapaikka_id = ? AND toimitusjakso > 0
@@ -157,8 +150,7 @@ foreach ($tuotteet as $tuote) {
 		$result = $db->query($sql, [$tuote->id, $otk->id]);
 	}
 
-
-    echo	"Varastossa: " . $tuote->varastosaldo .
+	echo	"Varastossa: " . $tuote->varastosaldo .
 		" Myynti/vuosi: " . $vuoden_myynti .
 		" Paivat riitettava: " . $paivat_riitettava .
 		" Menekki: " . $menekki_ennen_tilausta .
@@ -169,20 +161,4 @@ foreach ($tuotteet as $tuote) {
 
 
 }
-
-// Luodaan väliaikainen taulu, jonka avulla päivitetään tuotteiden vuosimyynti
-// ja merkataan tuotteet päivitetyiksi
-$db->query("CREATE TABLE IF NOT EXISTS `temp_tuote`(`id` mediumint UNSIGNED NOT NULL, `vuosimyynti` int(11) NOT NULL, PRIMARY KEY (`id`))");
-$insert = substr($insert, 0, -1);
-$db->query($insert, $placeholders);
-
-$db->query("UPDATE tuote JOIN temp_tuote
-            ON tuote.id = temp_tuote.id 
-            SET tuote.vuosimyynti = temp_tuote.vuosimyynti ,
-                tuote.paivitettava = 0");
-
-$db->query("DROP TABLE temp_tuote");
-
-
-
 
