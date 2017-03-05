@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Ostoautomaatio, yöajossa...
  */
@@ -6,13 +6,38 @@ require "luokat/db_yhteys_luokka.class.php";
 $db = new DByhteys();
 
 /*Config*/
+//TODO: Configit ini -tiedostoon
 $min_paivat_myynnissa = 30; //Montako päivää ollut myynnissä, vaikka olisi oikeasti ollut vähemmän
 $varmuusprosentti = 0; //Montako prosenttia tilataan enemmän kuin tarvitaan
 $automaatin_selite = "AUTOMAATTI"; //Ostotilauskirjalle menevä selite, jos automaation lisäämä tuote
-$oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
 
 
-
+/**
+ * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
+ * @param DByhteys $db
+ * @param int $hankintapaikka_id
+ * @return float|int
+ */
+function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
+    $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
+    //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
+    $sql = "	SELECT lahetetty, saapumispaiva 
+		  		FROM ostotilauskirja_arkisto 
+				WHERE hankintapaikka_id = ? AND saapumispaiva IS NOT NULL
+				LIMIT 3";
+    $ostotilauskirjan_aikaleimat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+    $toimitusaika = $i = 0;
+    foreach ( $ostotilauskirjan_aikaleimat as $aikaleimat ) {
+        $toimitusaika += ceil((strtotime($aikaleimat->saapumispaiva) - strtotime($aikaleimat->lahetetty)) / (60 * 60 * 24));
+        $i++;
+    }
+    if ( $toimitusaika ) {
+        $toimitusaika = ceil($toimitusaika / $i); //keskiarvo
+    } else {
+        $toimitusaika = $oletus_toimitusaika; //default
+    }
+    return $toimitusaika;
+}
 
 /**********************************************************
  * Haetaan tuotteet, joille pitää laskea uusi vuosimyynti
@@ -78,22 +103,8 @@ foreach ($tuotteet as $tuote) {
 	 * ennen uutta tilausmahdollisuutta.
 	 **************************************************/
 
-	//Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
-	$sql = "	SELECT lahetetty, saapumispaiva 
-		  		FROM ostotilauskirja_arkisto 
-				WHERE hankintapaikka_id = ? AND saapumispaiva IS NOT NULL
-				LIMIT 3";
-	$ostotilauskirjan_aikaleimat = $db->query($sql, [$tuote->hankintapaikka_id], FETCH_ALL);
-	$toimitusaika = $i = 0;
-	foreach ( $ostotilauskirjan_aikaleimat as $aikaleimat ) {
-		$toimitusaika += ceil((strtotime($aikaleimat->saapumispaiva) - strtotime($aikaleimat->lahetetty)) / (60 * 60 * 24));
-		$i++;
-	}
-	if ( $toimitusaika ) {
-		$toimitusaika = $toimitusaika / $i; //keskiarvo
-	} else {
-		$toimitusaika = $oletus_toimitusaika; //default
-	}
+	$toimitusaika = get_toimitusaika($db, $tuote->hankintapaikka_id);
+
 	$paivat_seuraavaan_lahetykseen = ceil((strtotime($otk->oletettu_lahetyspaiva) - time()) / (60 * 60 * 24));
 	// oltava > 0
 	$paivat_seuraavaan_lahetykseen = ( $paivat_seuraavaan_lahetykseen <= 0 ) ? 0 : $paivat_seuraavaan_lahetykseen;

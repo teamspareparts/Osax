@@ -61,7 +61,7 @@ if( isset($_POST['vastaanotettu']) ) {
 				[$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $hyllypaikka[$index], $id]);
 		}
 
-		//Päivitetään saapumispäivä alkuperäiselle ostotilauskirjalle
+		//Päivitetään uusin/tarkin saapumispäivä alkuperäiselle ostotilauskirjalle
 		$sql = "UPDATE ostotilauskirja 
                 SET oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK
                 WHERE id = ?";

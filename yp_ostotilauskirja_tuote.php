@@ -12,6 +12,33 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
 	header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
+/**
+ * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
+ * @param DByhteys $db
+ * @param int $hankintapaikka_id
+ * @return float|int
+ */
+function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
+    $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
+    //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
+    $sql = "	SELECT lahetetty, saapumispaiva 
+		  		FROM ostotilauskirja_arkisto 
+				WHERE hankintapaikka_id = ? AND saapumispaiva IS NOT NULL
+				LIMIT 3";
+    $ostotilauskirjan_aikaleimat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+    $toimitusaika = $i = 0;
+    foreach ( $ostotilauskirjan_aikaleimat as $aikaleimat ) {
+        $toimitusaika += ceil((strtotime($aikaleimat->saapumispaiva) - strtotime($aikaleimat->lahetetty)) / (60 * 60 * 24));
+        $i++;
+    }
+    if ( $toimitusaika ) {
+        $toimitusaika = ceil($toimitusaika / $i); //keskiarvo
+    } else {
+        $toimitusaika = $oletus_toimitusaika; //default
+    }
+    return $toimitusaika;
+}
+
 
 /**
  * Ostotilauskirjan lähetys
@@ -31,11 +58,18 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
         return false;
     }
 
+    //Haetaan hankintapaikan keskimääräinen toimitusaika
+    $hankintapaikka_id = $db->query("SELECT hankintapaikka_id FROM ostotilauskirja WHERE id = ?",
+        [$ostotilauskirja_id])->hankintapaikka_id;
+
+    $toimitusaika = get_toimitusaika($db, $hankintapaikka_id);
+
+
 	//Lisätään ostotilauskirja arkistoon
 	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
-            SELECT hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, NOW(), ?, id FROM ostotilauskirja
+            SELECT hankintapaikka_id, tunniste, rahti, NOW() + INTERVAL ? DAY , NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
-	if (!$db->query($sql, [$user->id, $ostotilauskirja_id])) {
+	if (!$db->query($sql, [$toimitusaika, $user->id, $ostotilauskirja_id])) {
 	    return false;
 	}
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
@@ -54,33 +88,13 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
     }
 
 
-    //Pävitetään seuraava saapumispäivä (lasketaan kolmen viime lähetyksen toimitusajan keskiarvo)
-    //Päivitetään uusi lähetyspäivä ostotilauskirjalle
-    $hankintapaikka_id = $db->query("SELECT hankintapaikka_id FROM ostotilauskirja_arkisto WHERE id = ?",
-        [$uusi_otk_id->last_id])->hankintapaikka_id;
-    $sql = "SELECT lahetetty, saapumispaiva 
-		  	FROM ostotilauskirja_arkisto 
-			WHERE hankintapaikka_id = ? 
-			      AND saapumispaiva IS NOT NULL
-			LIMIT 3";
-    $ostotilauskirjan_aikaleimat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
-    $toimitusaika = $i = 0;
-    foreach ( $ostotilauskirjan_aikaleimat as $aikaleimat ) {
-        $toimitusaika += ceil((strtotime($aikaleimat->saapumispaiva) - strtotime($aikaleimat->lahetetty)) / (60 * 60 * 24));
-        $i++;
-    }
-    if ( $toimitusaika ) {
-        $toimitusaika = $toimitusaika / $i; //keskiarvo
-    } else {
-        $toimitusaika = 7; //TODO: oletustoimitusaika
-    }
-
-
+    //Pävitetään seuraava lähetyspäivä ja saapumispäivä ostotilauskirjalle
     $sql = "UPDATE ostotilauskirja
 	        SET oletettu_lahetyspaiva = now() + INTERVAL toimitusjakso WEEK,
 	            oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK + INTERVAL ? DAY 
  			WHERE id = ?";
     $db->query($sql, [$toimitusaika, $ostotilauskirja_id]);
+
 
 	//Tyhjennetään alkuperäinen ostotilauskirja
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
