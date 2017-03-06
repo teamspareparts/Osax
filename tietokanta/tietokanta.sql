@@ -262,11 +262,12 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `automaatti` boolean DEFAULT 0, -- PK -- Onko automaatin lisäämä
   `kpl` int(11) UNSIGNED NOT NULL,
   `selite` varchar(50) NOT NULL,
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (0: automaatio) (FK)
-  PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`),
+  PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`, `automaatti`),
 	CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -290,13 +291,14 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit tilauskirjan tuotteet (MUUTTUMATTOMAT)
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `automaatti` boolean NOT NULL, -- PK -- Onko automaatin lisäämä
   `original_kpl` int(11) NOT NULL, -- Alkuperäinen kpl
   `kpl` int(11) NOT NULL,
   `selite` varchar(50) NOT NULL,
   `ostohinta` decimal(11,4) NOT NULL,
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (0: automaatio) (FK)
-  PRIMARY KEY (`ostotilauskirja_id`, tuote_id),
+  PRIMARY KEY (`ostotilauskirja_id`, tuote_id, automaatti),
   CONSTRAINT fk_ostotilauskirjaTuoteArkisto_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
