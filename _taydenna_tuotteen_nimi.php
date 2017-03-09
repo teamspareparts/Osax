@@ -1,11 +1,11 @@
 <?php
-/*
+/**
  *	Haetaan tuotteille nimi, joilta se vielä puuttuu.
  * 	Tiedosto ajetaan automaattisesti cronjobin avulla, aina 5-10 min välein.
  */
 
 require 'tecdoc.php';
-require "luokat/db_yhteys_luokka.class.php";
+require "luokat/dbyhteys.class.php";
 /*
  * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.
  */

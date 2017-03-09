@@ -1,9 +1,9 @@
 <?php
 /**
- * @version 2017-02-18 <p> Lopullinen versio.
+ * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 
-require "luokat/db_yhteys_luokka.class.php";
+require "luokat/dbyhteys.class.php";
 require "luokat/user.class.php";
 require "luokat/ostoskori.class.php"; // Tuotteiden palauttamista ostoskoriin varten.
 require 'luokat/paymentAPI.class.php';

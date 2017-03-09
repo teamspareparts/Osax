@@ -1,5 +1,5 @@
 <?php
-require 'luokat/db_yhteys_luokka.class.php';
+require 'luokat/dbyhteys.class.php';
 
 /**
  * Tarkistetaan onko avain validi ja onko se vanhentunut

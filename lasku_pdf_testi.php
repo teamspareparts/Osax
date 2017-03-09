@@ -1,7 +1,7 @@
 <?php
 require './mpdf/mpdf.php';
 require './luokat/laskutiedot.class.php';
-require './luokat/db_yhteys_luokka.class.php'; $db = new DByhteys( 'root', '', 'tuoteluettelo_database' );
+require './luokat/dbyhteys.class.php'; $db = new DByhteys( 'root', '', 'tuoteluettelo_database' );
 require './luokat/user.class.php'; $user = new User( $db, 4 );
 require './luokat/yritys.class.php'; $yritys = new Yritys( $db, 2 );
 require './luokat/tuote.class.php';

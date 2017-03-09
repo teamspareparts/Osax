@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-02-13 <p> Lisätty redirect osoite.
+ * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
@@ -30,7 +30,7 @@ session_start();
  * Ladataan sivuston käyttöön tarkoitetut luokat.
  * Joitakin näistä ei käytetä joka sivulla, mutta ihan varmuuden vuoksi ne ladataan kuitenkin tässä.
  */
-require "luokat/db_yhteys_luokka.class.php";
+require "luokat/dbyhteys.class.php";
 require "luokat/user.class.php";
 require "luokat/yritys.class.php";
 require "luokat/ostoskori.class.php";
@@ -54,7 +54,7 @@ if ( !$user->isValid() ) {
 /*
  * Lisäksi tarkistetaan EULA, jotta käyttäjä ei pysty käyttämään sivustoa ilman hyväksyntää.
  */
-elseif ( !$user->eula_hyvaksytty() ) {
+elseif ( !$user->eulaHyvaksytty() ) {
 	$_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
     header( 'Location: eula.php' ); exit;
 }

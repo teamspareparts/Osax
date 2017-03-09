@@ -1,6 +1,7 @@
 ﻿<?php
 /**
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
+ * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 
 /**
@@ -18,7 +19,7 @@ function tallenna_nimi_ja_valmistaja( DByhteys $db, /*int*/ $tuote_id, /*string*
 session_start();
 if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
 
-require "luokat/db_yhteys_luokka.class.php";
+require "luokat/dbyhteys.class.php";
 $db = new DByhteys();
 /**
  * @var Mixed <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu

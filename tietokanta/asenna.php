@@ -2,7 +2,7 @@
 print("<pre>");
 
 $data = parse_ini_file("../tietokanta/db-config.ini.php", true);
-require '../luokat/db_yhteys_luokka.class.php';
+require '../luokat/dbyhteys.class.php';
 
 $db = new DByhteys();
 $f = file('tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
