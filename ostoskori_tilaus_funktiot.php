@@ -117,6 +117,7 @@ function tarkista_hinta_era_alennus ( stdClass $product ) {
 }
 
 /**
+ * //TODO: funktio ei ole enää käytössä, korjaa pois, tai muuta paremmaksi --JJ 170305
  * Palauttaa huomautuksen tuotteen kohdalle, jos sopivaa.
  * Mahdollisia huomautuksia: määräalennus | minimimyyntierä | --- (tyhjä)
  * @param stdClass $product

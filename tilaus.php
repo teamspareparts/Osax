@@ -3,17 +3,16 @@ require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 require 'luokat/email.class.php';
 
-$user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
-$cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+$user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteetn valintaa varten haetaan kaikki toimitusosoitteet.
+$cart->hae_ostoskorin_sisalto( $db, true, true );
 if ( $cart->montako_tuotetta == 0 ) {
 	header("location:ostoskori.php"); exit;
 }
-check_products_in_shopping_cart( $cart, $user);
+check_products_in_shopping_cart( $cart, $user );
 /*
  * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen
  */
 if ( !empty($_POST['vahvista_tilaus']) ) {
-
 	/*
 	 * Varmistuksena käytetään transactionia, jotta kaikki tietokanta-muutokset varmasti toimivat.
 	 * Transactionia varten tarvitaan oma tietokantayhteys, koska sitä ei ole toteutettu luokassa ollenkaan.

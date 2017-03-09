@@ -7,7 +7,7 @@ require '_start.php'; global $db, $user, $cart;
  * @param $variables
  * @return bool
  */
-function muokkaa_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables ) {
+function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
 	$possible_fields = [
 		'etunimi', 'sukunimi', 'sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka'];
 	$i = 1;
@@ -40,7 +40,7 @@ function muokkaa_uudet_tiedot( DByhteys $db, User $user, /*array*/ $variables ) 
  * @param $variables
  * @return bool
  */
-function lisaa_uusi_osoite( DByhteys $db, User $user, /*array*/ $variables ) {
+function lisaa_uusi_osoite( DByhteys $db, User $user, array $variables ) {
 	unset( $variables['tallenna_uusi_osoite'] ); //Poistetaan turha array-index.
 	$variables[] = $user->id;
 	$variables[] = count($user->toimitusosoitteet) + 1; //Lisätään osoite-ID (viimeinen indeksi +1).
@@ -87,7 +87,6 @@ if ( isset($_POST['uudet_tiedot']) ){
 		$_SESSION['feedback'] = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
 	}
 }
-
 elseif ( !empty($_POST['new_password']) ) {
 	if ( strlen($_POST['new_password']) >= 8 ) {
 		if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
@@ -98,17 +97,16 @@ elseif ( !empty($_POST['new_password']) ) {
 		} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vahvistus ei täsmää.</p>"; }
 	} else { $_SESSION['feedback'] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
 }
-
 elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
 	muokkaa_uudet_tiedot( $db, $user, $_POST );
-
-} elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
+}
+elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
 
-} elseif ( !empty($_POST["poista_osoite"]) ) {
+}
+elseif ( !empty($_POST["poista_osoite"]) ) {
 	poista_osoite( $db, $user, $_POST["poista_osoite"] );
 }
-
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen

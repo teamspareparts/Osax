@@ -69,6 +69,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 					       min="0" title="Kappalemäärä"> <!-- Kpl-määrä (käyttäjän muokattavissa) -->
 				</td>
 				<td><?= $tuote->alennus_huomautus ?></td>
+				<!-- //TODO: minimimyyntierähuomautus poistettiin alennuksien kanssa. lisää takaisin --jj 170305 -->
 				<td class="toiminnot"><a class="nappi" href="javascript:void(0)"
 										 onclick="cartAction('<?= $tuote->id ?>')">Päivitä</a></td>
 			</tr>
