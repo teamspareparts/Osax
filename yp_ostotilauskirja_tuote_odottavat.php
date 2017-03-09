@@ -32,7 +32,8 @@ function cmpName($a, $b) {
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? AND hyvaksytty = 0 LIMIT 1",
                         [$ostotilauskirja_id])) {
-	header("Location: yp_ostotilauskirja_odottavat.php"); exit();
+	header("Location: yp_ostotilauskirja_odottavat.php");
+	exit();
 }
 
 if( isset($_POST['vastaanotettu']) ) {
@@ -44,11 +45,13 @@ if( isset($_POST['vastaanotettu']) ) {
 		$ids = $_POST['tuote_ids'];
 		$kpl = $_POST['kpl'];
 		$hyllypaikka = $_POST['hyllypaikat'];
+		$automaatti = $_POST['automaatti'];
 		//Päivitetään lopulliset kappalemäärät sekä ostotilaukseen että varastosaldoihin
 		//TODO: Jaottele rahtimaksu touotteiden ostohintaan
 		foreach ($ids as $index => $id) {
 			$db->query("UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
-  						WHERE tuote_id = ? AND ostotilauskirja_id = ? ", [$kpl[$index], $id, $ostotilauskirja_id] );
+  						WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ?",
+                [$kpl[$index], $id, $ostotilauskirja_id, $automaatti[$index]] );
 			$db->query("UPDATE tuote SET varastosaldo = varastosaldo + ?, 
 							keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + sisaanostohinta* ? )/
 							(yhteensa_kpl + ? )),0),
@@ -58,7 +61,7 @@ if( isset($_POST['vastaanotettu']) ) {
 				[$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $hyllypaikka[$index], $id]);
 		}
 
-		//Päivitetään saapumispäivä alkuperäiselle ostotilauskirjalle
+		//Päivitetään uusin/tarkin saapumispäivä alkuperäiselle ostotilauskirjalle
 		$sql = "UPDATE ostotilauskirja 
                 SET oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK
                 WHERE id = ?";
@@ -75,8 +78,8 @@ if( isset($_POST['vastaanotettu']) ) {
 if( isset($_POST['muokkaa']) ) {
 	unset($_POST['muokkaa']);
 	$sql = "  UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
-  	          WHERE tuote_id = ? AND ostotilauskirja_id = ?";
-	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id]);
+  	          WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ?";
+	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]);
 	$sql = "UPDATE tuote SET hyllypaikka = ? WHERE id = ?";
 	$result2 = $db->query($sql, [$_POST['hyllypaikka'], $_POST['id']]);
     if ( !$result1 || !$result2 ) {
@@ -99,7 +102,7 @@ $sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote_arkisto.kpl AS k
           LEFT JOIN tuote
             ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
-          GROUP BY tuote_id";
+          GROUP BY tuote_id, automaatti";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
@@ -152,6 +155,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<th class="number">Ostohinta</th>
             <th class="number">Yhteensä</th>
 			<th>Hyllypaikka</th>
+            <th>Selite</th>
             <th></th>
 		</tr>
 		</thead>
@@ -160,10 +164,10 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 		<tr><td></td><td></td><td>Rahtimaksu</td><td></td>
 			<td class="number"><?=format_euros($otk->rahti)?></td>
             <td class="number"><?=format_euros($otk->rahti)?></td>
-            <td class="center">---</td><td></td></tr>
+            <td class="center">---</td><td></td><td></td></tr>
 		<!-- Tuotteet -->
 		<?php foreach ($products as $product) : ?>
-			<tr data-id="<?=$product->id?>">
+			<tr data-id="<?=$product->id?>" data-automaatti="<?=$product->automaatti?>">
                 <td><?=$product->tilauskoodi?></td>
 				<td><?=$product->tuotekoodi?></td>
 				<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
@@ -171,9 +175,17 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<td class="number"><?=format_euros($product->ostohinta)?></td>
                 <td class="number"><?=format_euros($product->kokonaishinta)?></td>
 				<td class="center"><?= $product->hyllypaikka?></td>
+                <td>
+                    <?php if ( $product->automaatti ) : ?>
+                        <span style="color: red"><?=$product->selite?></span>
+                    <?php else : ?>
+                        <?=$product->selite?>
+                    <?php endif;?>
+                </td>
                 <td class="toiminnot">
-                    <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
-                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, '<?=$product->hyllypaikka?>')">Muokkaa</button>
+                    <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>, '<?=$product->tuotekoodi?>',
+                        <?=$product->kpl?>, '<?=$product->hyllypaikka?>', <?=$product->automaatti?>)">
+                        Muokkaa</button>
                 </td>
 			</tr>
 		<?php endforeach;?>
@@ -183,6 +195,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
             <td style="border-top: 1px solid black"></td>
 			<td class="number" style="border-top: 1px solid black"><?=format_euros($yht->hinta)?></td>
 			<td style="border-top: 1px solid black"></td>
+            <td style="border-top: 1px solid black"></td>
             <td style="border-top: 1px solid black"></td>
         </tr>
 
@@ -219,8 +232,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 		field.setAttribute("value", ostotilauskirja_id);
 		form.appendChild(field);
 
-
-        //POST["tuote_id"];
+        //POST["tuote_id"] & POST["automaatti"];
 		$('tbody tr:not(:first):not(:last)').each(function () {
 			let tuote_id = $(this).data('id');
 			field = document.createElement("input");
@@ -228,6 +240,12 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			field.setAttribute("name", "tuote_ids[]");
 			field.setAttribute("value", tuote_id);
 			form.appendChild(field);
+            let automaatti = $(this).data('automaatti');
+            field = document.createElement("input");
+            field.setAttribute("type", "hidden");
+            field.setAttribute("name", "automaatti[]");
+            field.setAttribute("value", automaatti);
+            form.appendChild(field);
 		});
 		//Muutetaan hyllypaikka-cellit inputeiksi
 		$('tr td:nth-child(7):not(:first):not(:last)').each(function () {
@@ -244,7 +262,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			$(this).html(input);
 		});
 		//Poistetaan muokkaa -napit
-		$('tr td:nth-child(8):not(:first):not(:last)').each(function () {
+		$('tr td:nth-child(9):not(:first):not(:last)').each(function () {
 			$(this).html("");
 		});
 		document.body.appendChild(form);
@@ -258,7 +276,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 	}
 
 
-	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka){
+	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka, automaatti){
 		Modal.open( {
 			content:  '\
 				<h4>Muokkaa tilatun tuotteen tietoja mikäli saapuva<br>\
@@ -276,6 +294,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 					<input name="hyllypaikka" type="text" value="'+hyllypaikka+'" title="Hyllypaikka">\
 					<br><br>\
 					<input name="id" type="hidden" value="'+tuote_id+'">\
+					<input name="automaatti" type="hidden" value="'+automaatti+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\
 				',
