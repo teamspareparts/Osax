@@ -1,4 +1,4 @@
-﻿<div class="header_container">
+<header class="header_container">
     <section class="header_top">
         <div id="head_logo">
             <img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
@@ -53,7 +53,7 @@
             <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>
     </section>
-</div>
+</header>
 
 
 <script type="text/javascript">

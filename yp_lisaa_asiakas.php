@@ -5,29 +5,36 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-//Tarkastetaan yritys_id:n oikeellisuus
-$yritys_id = !empty($_GET['yritys_id']) ? $_GET['yritys_id'] : 0;
-if (!$db->query("SELECT id FROM yritys WHERE id = ? AND aktiivinen = 1 LIMIT 1", [$yritys_id])){
-	header("Location:yp_yritykset.php"); exit();
+// Tarkastetaan GET-parametrin yritys_id:n oikeellisuus
+$yritys_id = !empty( $_GET[ 'yritys_id' ] ) ? $_GET[ 'yritys_id' ] : 0;
+if ( !$db->query( "SELECT id FROM yritys WHERE id = ? AND aktiivinen = 1 LIMIT 1", [ $yritys_id ] ) ) {
+	header( "Location:yp_yritykset.php" );
+	exit();
 }
 
-if ( !empty($_POST['submit']) ) {
-	$_POST['demo_user'] = (!empty($_POST['demo_user']) && $_POST['demo_user']!=='false') ? '1' : '0';
-	$_POST['paivat'] = !empty($_POST['paivat']) ? (int)$_POST['paivat'] : '1';// Demokäyttäjän käyttöaika
-	if ( $_POST['demo_user'] === 1 && $_POST['paivat'] < 1 ) { // Tarkistetaan demoajan järjellisyys
-		$_POST['paivat'] = 3;
+/*
+ * Lisätään uusi asiakas
+ */
+if ( !empty( $_POST[ 'sposti' ] ) ) {
+	// Tarkistetaan POST-parametrien demo-käyttäjä -tiedot
+	$_POST[ 'demo_user' ] = (!empty( $_POST[ 'demo_user' ] ) && $_POST[ 'demo_user' ] !== 'false') ? '1' : '0';
+	$_POST[ 'paivat' ] = !empty( $_POST[ 'paivat' ] ) ? (int)$_POST[ 'paivat' ] : '1';// Demokäyttäjän käyttöaika
+	if ( $_POST[ 'demo_user' ] === 1 && $_POST[ 'paivat' ] < 1 ) { // Tarkistetaan demoajan järjellisyys
+		$_POST[ 'paivat' ] = 3;
 	}
 	// Tarkistetaan, että halutulla sähköpostilla ei ole jo aktivoitua käyttäjää.
 	$sql = "SELECT id FROM kayttaja WHERE sahkoposti=? AND aktiivinen=1 LIMIT 1";
-	$row = $db->query( $sql, [$_POST['sposti']] );
+	$row = $db->query( $sql, [ $_POST[ 'sposti' ] ] );
 
 	if ( !$row ) {
-		$ss_length = strlen( $_POST['password'] );
+		$ss_length = strlen( $_POST[ 'password' ] );
 		if ( $ss_length >= 8 && $ss_length < 300 ) {
-			if ( $_POST['password'] === $_POST['confirm_password'] ) {
-				$_POST['password'] = password_hash( $_POST['password'], PASSWORD_DEFAULT );
-				$_POST[] = $_POST['paivat']; $_POST[] = $_POST['paivat'];
-				unset($_POST['submit']); unset($_POST['confirm_password']); unset($_POST["paivat"]);
+			if ( $_POST[ 'password' ] === $_POST[ 'confirm_password' ] ) {
+				$_POST[ 'password' ] = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
+				$_POST[] = $_POST[ 'paivat' ]; // for voimassaolopvm
+				$_POST[] = $_POST[ 'paivat' ]; // for duplicate key part
+				unset( $_POST[ 'confirm_password' ] );
+				unset( $_POST[ "paivat" ] ); //TODO: what why how --JJ/170310
 
 				$sql = "INSERT INTO kayttaja 
 							( sahkoposti, etunimi, sukunimi, puhelin, salasana_hajautus,
@@ -36,20 +43,32 @@ if ( !empty($_POST['submit']) ) {
 						ON DUPLICATE KEY UPDATE 
 							sahkoposti=VALUES(sahkoposti), etunimi=VALUES(etunimi), sukunimi=VALUES(sukunimi), 
 							puhelin=VALUES(puhelin), salasana_hajautus=VALUES(salasana_hajautus), 
-							demo=VALUES(demo), yritys_id=VALUES(yritys_id), voimassaolopvm=NOW()+INTERVAL ? DAY,
+							demo=VALUES(demo), yritys_id=VALUES(yritys_id), voimassaolopvm=VALUES(voimassaolopvm),
 							salasana_uusittava='1', aktiivinen='1' ";
-				$db->query($sql, array_values($_POST));
-				header("Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&feedback=success"); exit;
-
-			} else {
-				$feedback = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
+				$db->query( $sql, array_values( $_POST ) );
+				header( "Location:yp_asiakkaat.php?yritys_id={$_GET['yritys_id']}&feedback=success" );
+				//TODO SESSION feedback
+				exit;
 			}
-		} else {
-			$feedback = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
+			else {
+				$_SESSION["feedback"] = "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
+			}
 		}
-	} else {
-		$feedback = "<p class='error'>Kyseisellä sähköpostilla on jo aktivoitu käyttäjä. ID: {$row->id}</p>";
+		else {
+			$_SESSION["feedback"] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
+		}
 	}
+	else {
+		$_SESSION["feedback"] = "<p class='error'>Kyseisellä sähköpostilla on jo aktivoitu käyttäjä. ID: {$row->id}</p>";
+	}
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
+	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] );	exit();
+} else {
+	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
+	unset( $_SESSION[ "feedback" ] );
 }
 ?>
 <!DOCTYPE html>
@@ -106,7 +125,7 @@ if ( !empty($_POST['submit']) ) {
 			<br>
 
 			<div class="center">
-				<input class="nappi" name="submit" value="Lisää asiakas" type="submit" id="asiakas_submit">
+				<input class="nappi" value="Lisää asiakas" type="submit" id="asiakas_submit">
 			</div>
 		</fieldset>
 	</form><br><br>
@@ -120,7 +139,7 @@ if ( !empty($_POST['submit']) ) {
 		let pwCheck = $('#check'); // Ditto
 
 		/** Demo-valinnan alustusta */
-		$("#paivat").addClass('disabled');		// Otetaan pvm-input pois käytöstä aluksi
+		$("#paivat").addClass('disabled'); // Otetaan pvm-input pois käytöstä aluksi
 		/** Testiasiakas-valinta
 			Onko päivät-valinta disabled? */
 		$("#demo").change(function(){

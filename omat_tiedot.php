@@ -3,34 +3,37 @@ require '_start.php'; global $db, $user, $cart;
 
 /**
  * @param DByhteys $db
- * @param User $user
- * @param $variables
+ * @param User     $user
+ * @param array    $variables
  * @return bool
  */
 function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
-	$possible_fields = [
-		'etunimi', 'sukunimi', 'sahkoposti','puhelin','yritys','katuosoite','postinumero','postitoimipaikka'];
+	$possible_fields =
+		[ 'etunimi', 'sukunimi', 'sahkoposti', 'puhelin', 'yritys', 'katuosoite', 'postinumero', 'postitoimipaikka' ];
 	$i = 1;
-	$filtered_array = array_filter($variables); // Poistaa tyhjat
-	unset( $filtered_array['muokkaa_vanha_osoite'] ); // Ei tarvita, ja häritsee SQL-hakua lopussa
-	$len = count($filtered_array) - 1; // Sisältää jo osoite_id:n, jota ei tarvita pituudessa.
+	$filtered_array = array_filter( $variables ); // Poistaa tyhjat
+	unset( $filtered_array[ 'muokkaa_vanha_osoite' ] ); // Ei tarvita, ja häritsee SQL-hakua lopussa
+	$len = count( $filtered_array ) - 1; // Sisältää jo osoite_id:n, jota ei tarvita pituudessa.
 
-	if ( $len >= 1 ) {	// Onko päivitettäviä tietoja? Ei turhia sql-hakuja.
+	if ( $len >= 1 ) {    // Onko päivitettäviä tietoja? Ei turhia sql-hakuja.
 		$sql_query = "UPDATE toimitusosoite SET "; //Aloitusosa
 
-		foreach ( $filtered_array as $key => $value ) {	// Täytetään hakuun päivitettävät arvot
+		foreach ( $filtered_array as $key => $value ) {    // Täytetään hakuun päivitettävät arvot
 			$k = htmlspecialchars( $key );
 			if ( in_array( $k, $possible_fields ) ) {
 				$sql_query .= $k . " = ?";
-				if ( $i < $len ) { $sql_query .= ', '; } // Jos vielä arvoja, lisätään erotin
+				if ( $i < $len ) {
+					$sql_query .= ', ';
+				} // Jos vielä arvoja, lisätään erotin
 				$i++;
 			}
 		}
 
 		$sql_query .= " WHERE osoite_id = ? AND kayttaja_id = ?"; //Loppuosa
 		$filtered_array[] = $user->id; // Lisätään käyttäjän ID arrayhin db->querya varten
-		return $db->query( $sql_query, array_values($filtered_array) );
+		return $db->query( $sql_query, array_values( $filtered_array ) );
 	}
+
 	return false; //Jos ei yhtään päivitettävää osaa
 }
 
@@ -295,7 +298,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<label>Postinumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>\
 				<label>Postitoimipaikka</label>\
-					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required>\
+					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required><br>\
 				<label>Maa</label>\
 					<input name="maa" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Maa">\
 				<br><br>\

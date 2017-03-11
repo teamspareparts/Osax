@@ -2,17 +2,19 @@
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-    header("Location:tuotehaku.php"); exit();
+	header( "Location:tuotehaku.php" );
+	exit();
 }
 
-/** Lisätään yrityksen tiedot tietokantaan */
-if (isset($_POST['nimi'])) {
+/**
+ * Uuden yrityksen tietojen lisäys
+ */
+if ( !empty( $_POST[ 'nimi' ] ) ) {
 	// Tarkistetaan, että halutulla tiedoilla ei ole jo aktivoitua yritystä.
 	$sql = "SELECT id FROM yritys WHERE (y_tunnus=? OR nimi=?) AND aktiivinen=1 LIMIT 1";
-	$row = $db->query( $sql, [$_POST['y_tunnus'],$_POST['nimi']] );
+	$row = $db->query( $sql, [ $_POST[ 'y_tunnus' ], $_POST[ 'nimi' ] ] );
 
 	if ( !$row ) {
-		unset($_POST['submit']); //Poistetaan turha array-index. Rikkoo SQL-haun.
 		$sql = "INSERT INTO yritys 
 					( nimi, y_tunnus, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka, maa )
 				VALUES ( ?, ?, ?, ?, ?, ?, ?, ? )
@@ -21,15 +23,25 @@ if (isset($_POST['nimi'])) {
 					puhelin=VALUES(puhelin), katuosoite=VALUES(katuosoite), postinumero=VALUES(postinumero), 
 					postitoimipaikka=VALUES(postitoimipaikka), maa=VALUES(maa), aktiivinen='1' ";
 
-		if ( $db->query($sql, array_values($_POST)) ) {
+		if ( $db->query( $sql, array_values( $_POST ) ) ) {
 			$db->query( "INSERT INTO ostoskori (yritys_id) SELECT id FROM yritys WHERE nimi = ? AND y_tunnus = ?",
-							[$_POST['nimi'], $_POST['y_tunnus']]);
-			header("Location:yp_yritykset.php?feedback=success"); exit;
+						[ $_POST[ 'nimi' ], $_POST[ 'y_tunnus' ] ] );
+			header( "Location:yp_yritykset.php?feedback=success" );
+			exit;
 		}
-	} else {
-		//TODO: Hmm, voisko sitä SESSION feedback ideaa käyttää tässä?
-		$feedback = "<p class='error'>Kyseisellä Y-tunnuksella tai nimellä on jo aktivoitu yritys. ID: {$row->id}</p>";
 	}
+	else {
+		$_SESSION['feedback'] = "<p class='error'>Kyseisellä Y-tunnuksella tai nimellä on jo aktivoitu yritys.
+			<br>ID: {$row->id}</p>";
+	}
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 ?>
 <!DOCTYPE html>
@@ -77,7 +89,7 @@ if (isset($_POST['nimi'])) {
 			<span class="small_note"> <span style="color:red;">*</span> = pakollinen kenttä</span>
 			<br>
 			<div class="center">
-				<input class="nappi" name="submit" value="Lisää yritys" type="submit">
+				<input class="nappi" value="Lisää yritys" type="submit">
 			</div>
 		</fieldset>
 	</form><br><br>

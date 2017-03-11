@@ -80,8 +80,8 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 			<td>---</td>
 			<td class="number"><?= $user->rahtimaksu_toString() ?></td>
 			<td class="number">---</td>
-			<td class="number">1</td>
-			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus'
+			<td class="number">---</td>
+			<td colspan="2"><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus'
 					: "Ilmainen toimitus<br>{$user->ilmToimRaja_toString()}:n jälkeen." ?></td>
 		</tr>
 		</tbody>

@@ -130,7 +130,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<td>---</td><!-- Tuotteen valmistaja -->
 			<td class="number"><?= $user->rahtimaksu_toString() ?></td><!-- Hinta yhteensä -->
 			<td class="number">---</td><!-- Kpl-hinta (sis. ALV) -->
-			<td class="number">1</td><!-- Kpl-määrä -->
+			<td class="number">---</td><!-- Kpl-määrä -->
 			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus' : "---" ?></td><!-- Info -->
 		</tr>
 		</tbody>

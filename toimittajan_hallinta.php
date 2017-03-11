@@ -12,7 +12,6 @@ if (!($brandName)) {
 	exit();
 }
 
-
 /**
  * Tarkastetaan onko brändi aktivoituna tecdocissa ja samalla haetaan brandin nimi.
  * @param $brandId
@@ -28,8 +27,6 @@ function tarkasta_onko_oikea_brand(/*int*/ $brandId){
 	return false;
 }
 
-
-
 /**
  * Hakee kaikki hankintapaikat.
  * @param DByhteys $db
@@ -39,7 +36,6 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
 	$query = "SELECT id, nimi, LPAD(`id`,3,'0') AS hankintapaikka_id FROM hankintapaikka";
 	return $db->query($query, [], FETCH_ALL);
 }
-
 
 /**
  * Tallentaa uuden hankintapaikan tietokantaan.
@@ -68,7 +64,6 @@ function muokkaa_hankintapaikkaa(DByhteys $db, array $arr){
 				WHERE 	id = ?";
 	$db->query($query, $arr);
 }
-
 
 /**
  * Poistaa hankintapaikan, jos ei linkityksiä valmistajiin.
@@ -105,7 +100,6 @@ function poista_hankintapaikka_linkitys( DByhteys $db, /*int*/ $hankintapaikka_i
 	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? AND brandId = ? ";
 	return $db->query($query, [$hankintapaikka_id, $brandId]);
 }
-
 
 /**
  * Linkitetään valmistaja hankintapaikkaan
@@ -334,7 +328,8 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 					<input name="maa" type="text" pattern=".{1,50}" placeholder="Maa">\
 					<br><br>\
 					<label><span>Puh</span></label>\
-					<input name="puh" type="text" pattern=".{5,15}" placeholder="040 123 4567">\
+					<input name="puh" type="text" placeholder="040 123 4567" \
+						   pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" >\
 					<br><br>\
 					<label><span>Fax</span></label>\
 					<input name="fax" type="text" pattern=".{1,50}" placeholder="01 234567">\
@@ -404,7 +399,8 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 					<input name="maa" type="text" pattern=".{1,50}" placeholder="Maa" value="'+maa+'">\
 					<br><br>\
 					<label><span>Puh</span></label>\
-					<input name="puh" type="text" pattern=".{5,15}" placeholder="040 123 4567" value="'+puhelin+'">\
+					<input name="puh" type="text" placeholder="040 123 4567" value="'+puhelin+'" \
+						   pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" >\
 					<br><br>\
 					<label><span>Fax</span></label>\
 					<input name="fax" type="text" pattern=".{1,50}" placeholder="01234567" value="'+fax+'">\
@@ -441,7 +437,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 				//Estetään valitsemasta hankintapaikaksi labelia
                 let hankintapaikka = document.getElementById("hankintapaikka");
                 let id = parseInt(hankintapaikka.options[hankintapaikka.selectedIndex].value);
-                if (id == 0) {
+                if (id === 0) {
                     e.preventDefault();
                     return false;
                 }
