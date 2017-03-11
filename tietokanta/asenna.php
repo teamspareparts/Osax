@@ -1,11 +1,11 @@
 <?php
 print("<pre>");
 
-$data = parse_ini_file("../tietokanta/db-config.ini.php", true);
+$data = parse_ini_file("./db-config.ini.php", true);
 require '../luokat/dbyhteys.class.php';
 
-$db = new DByhteys();
-$f = file('tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
+$db = new DByhteys(['root','','tuoteluettelo_database','localhost']);
+$f = file('./tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
 foreach ( $f as $k => $v ) { // Poistetaan .sql-tiedoston kommentit
 	$f[$k] = strstr($v, '--', true) ?: $v;

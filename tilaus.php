@@ -59,7 +59,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		//lähetetään tilausvahvistus ja lasku asiakkaalle
 		require 'lasku_pdf_luonti.php';
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $cart, $tilaus_id, $tiedoston_nimi );
+		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
 
 		//lähetetään tilaus ylläpidolle noutolistan kanssa
 		require 'noutolista_pdf_luonti.php';

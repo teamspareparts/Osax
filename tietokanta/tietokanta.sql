@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `hyllypaikka` varchar(10) DEFAULT NULL,
   `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
   `vuosimyynti` int(11) NOT NULL DEFAULT 0,
-  `ensimmaisen_kerran_varastossa` timestamp DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
+  `ensimmaisen_kerran_varastossa` timestamp NULL DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
   `paivitettava` boolean DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
@@ -251,8 +251,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2), -- Rahtimaksu
-  `oletettu_lahetyspaiva` timestamp DEFAULT NULL,
-  `oletettu_saapumispaiva` timestamp DEFAULT NULL,
+  `oletettu_lahetyspaiva` timestamp NULL DEFAULT NULL,
+  `oletettu_saapumispaiva` timestamp NULL DEFAULT NULL,
   `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`, `hankintapaikka_id`), UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
