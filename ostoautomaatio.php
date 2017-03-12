@@ -11,7 +11,6 @@ $min_paivat_myynnissa = 30; //Montako päivää ollut myynnissä, vaikka olisi o
 $varmuusprosentti = 0; //Montako prosenttia tilataan enemmän kuin tarvitaan
 $automaatin_selite = "AUTOMAATTI"; //Ostotilauskirjalle menevä selite, jos automaation lisäämä tuote
 
-$insert_query = "INSERT IGNORE INTO temp_tuote (id, vuosimyynti) VALUES ";
 $placeholders = [];
 /**
  * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
@@ -85,9 +84,7 @@ foreach ($tuotteet as $tuote) {
 	}
 
 	//Otetaan id ja vuosimyynti talteen myöhempää inserttiä varten
-	$insert_query .= "(?, ?),";
-    $placeholders[] = $tuote->id;
-    $placeholders[] = $vuoden_myynti;
+    array_push($placeholders, $tuote->id, $vuoden_myynti);
 
     if ( !$vuoden_myynti ) {
 		continue;
@@ -172,16 +169,19 @@ foreach ($tuotteet as $tuote) {
 
 // Luodaan väliaikainen taulu, jonka avulla päivitetään tuotteiden vuosimyynti
 // ja merkataan tuotteet päivitetyiksi
-$db->query("CREATE TABLE IF NOT EXISTS `temp_tuote`(`id` mediumint UNSIGNED NOT NULL, `vuosimyynti` int(11) NOT NULL, PRIMARY KEY (`id`))");
-$insert_query = substr($insert_query, 0, -1);
-$db->query($insert_query, $placeholders);
+if ( count($tuotteet) ) {
+    $db->query("CREATE TABLE IF NOT EXISTS `temp_tuote`(`id` MEDIUMINT UNSIGNED NOT NULL, `vuosimyynti` INT(11) NOT NULL, PRIMARY KEY (`id`))");
+    $questionmarks = implode(',', array_fill(0, count($tuotteet), '(?,?)'));
+    $sql = "INSERT IGNORE INTO temp_tuote (id, vuosimyynti) VALUES {$questionmarks}";
+    $db->query($sql, $placeholders);
 
-$db->query("UPDATE tuote JOIN temp_tuote
+    $db->query("UPDATE tuote JOIN temp_tuote
             ON tuote.id = temp_tuote.id 
             SET tuote.vuosimyynti = temp_tuote.vuosimyynti ,
                 tuote.paivitettava = 0");
 
-$db->query("DROP TABLE temp_tuote");
+    $db->query("DROP TABLE temp_tuote");
+}
 
 
 

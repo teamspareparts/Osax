@@ -1,10 +1,10 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 require 'luokat/email.class.php';
 
 ignore_user_abort(true); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
-
+set_time_limit(100);
 $user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteetn valintaa varten haetaan kaikki toimitusosoitteet.
 $cart->hae_ostoskorin_sisalto( $db, true, true );
 if ( $cart->montako_tuotetta == 0 ) {
@@ -32,20 +32,43 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		$tilaus_id = $conn->lastInsertId(); // Haetaan tilaus-ID, sitä tarvitaan vielä.
 
-		// Prep.stmt. tuotteiden lisäys tietokantaan. Ostoskorista yksi kerrallaan.
-		$stmt = $conn->prepare( '
+		// Prep.stmt. tuotteiden lisäys tietokantaan. Lisätään kaikki tuotteet kerralla.
+		$questionmarks = implode(',', array_fill(0, count($cart->tuotteet), '(?,?,?,?,?,?,?,?)'));
+        $placeholders = [];
+        $stmt = $conn->prepare( "
 			INSERT INTO tilaus_tuote
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
-		foreach ( $cart->tuotteet as $tuote ) {
-			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta_ilman_alv,
-				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
+			VALUES {$questionmarks}" );
 
-			// Päivitetään varastosaldo jokaisen tuotteen kohdalla ja
-            // merkataan että tuotteen riittävyys pitää tarkastaa.
-			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ?, paivitettava = 1 WHERE id = ?" );
-			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
+        //Luodaan temp-taulu, johon lisätään tuotteiden päivitetyt varastosaldot
+        $stmt2 = $conn->prepare("CREATE TABLE IF NOT EXISTS `temp_tuote`(`id` mediumint UNSIGNED NOT NULL, `varastosaldo` int(11) NOT NULL, PRIMARY KEY (`id`))");
+        $stmt2->execute();
+        $questionmarks2 = implode(',', array_fill(0, count($cart->tuotteet), '(?,?)'));
+        $placeholders2 = [];
+        $stmt2 = $conn->prepare("INSERT INTO temp_tuote (id, varastosaldo) VALUES {$questionmarks2}");
+
+		foreach ( $cart->tuotteet as $tuote ) {
+		    array_push($placeholders, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
+                $tuote->a_hinta_ilman_alv, $tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara);
+
+            array_push($placeholders2, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
 		}
+
+		//Lisätään tilauksen tuotteet
+		$stmt->execute($placeholders);
+		//Lisätään päivitetyt varastosaldot temp-tauluun
+		$stmt2->execute($placeholders2);
+        //Päivitetään oikeiden tuotteiden varastosaldot temp-taulun perusteella
+		$stmt = $conn->prepare("
+            UPDATE tuote 
+            JOIN temp_tuote
+              ON tuote.id = temp_tuote.id 
+            SET tuote.varastosaldo = temp_tuote.varastosaldo,
+                tuote.paivitettava = 1");
+		$stmt->execute();
+		//Poistetaan temp-taulu
+        $stmt = $conn->prepare("DROP TABLE temp_tuote");
+        $stmt->execute();
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(
@@ -60,9 +83,11 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		// Tallennetaan muutokset, jos ei yhtään virhettä.
 		$conn->commit();
 
+		//TODO: Laskun luonti on hirvittävän hidasta kun tuotteita on satoja --12.3 SL
+        	//TODO: Pitäisi lasku luoda taustalla esim exec("php luo_pdf > /dev/null &")
 		//lähetetään tilausvahvistus ja lasku asiakkaalle
 		require 'lasku_pdf_luonti.php';
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
+        	Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
 
 		//lähetetään tilaus ylläpidolle noutolistan kanssa
 		require 'noutolista_pdf_luonti.php';
@@ -70,7 +95,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 
 		// Tyhjennetään kori, ja lähetetään tilaus_info-sivulle
 		$cart->tyhjenna_kori( $db );
-		header( "location:tilaus_info.php?id={$tilaus_id}" );
+        	header( "location:tilaus_info.php?id={$tilaus_id}" );
 		exit;
 
 	} catch ( PDOException $ex ) {
