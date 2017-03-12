@@ -2,8 +2,6 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
-set_time_limit(120);
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting( E_ALL );
@@ -23,11 +21,10 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $brandName, /*int*/ $hankintapaikka_id) {
 	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
 
-	if ( isset($_POST['otsikkorivi']) ) { // Hypätään ensimmäisen rivin yli, jos otsikkorivi
-		$row = -1;
-	} else {
-		$row = 0;
-	}
+	$ohita_otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
+    $row = 0;
+    $successful_inserts = 0;
+    $failed_inserts = []; //Otetaan talteen epäonnistuneiden lisäysten rivinumerot
 
 	//SQL:ää varten rakennetaan vain yksi kysely.
 	$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
@@ -36,22 +33,20 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 	$placeholders = [];
 
 	//Käydään läpi csv tiedosto rivi kerrallaan
-	$failed_inserts = 0;
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
-		if ($row == -1) {
-			$row++;
+        $row++;
+		if ( $ohita_otsikkorivi ) {
+			$ohita_otsikkorivi = false;
 			continue;
 		}
-		$row++;
 
-		//TODO: Tarkasta myös $datan sisältö, väärien syötteiden varalta!
 		$num = count($data); // rivin sarakkeiden lkm
-		if (($num != 7 && isset($_POST["tilauskoodi"])) || ($num != 6 && !isset($_POST["tilauskoodi"]))) {
-			$failed_inserts++;
+		if (($num != 7 && ($_POST["tilauskoodin_tyyppi"] == "liite_eri")) || ($num != 6 && ($_POST["tilauskoodin_tyyppi"]) != "liite_eri") ) {
+			$failed_inserts[] = $row;
 			continue;
 		}
 
-
+        $hankintapaikka_id = (int)$hankintapaikka_id;
 		$articleNo = str_replace(" ", "", $data[$_POST["s0"]]);
 		$ostohinta = (double)str_replace(",", ".", $data[$_POST["s1"]]);
 		$myyntihinta = (double)str_replace(",", ".", $data[$_POST["s2"]]);
@@ -81,6 +76,12 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		}
 		$tuotekoodi = $hankintapaikka_id . "-" . $articleNo; //esim: 100-QTB249
 
+        //Tarkastetaan csv:n solujen oikeellisuus
+        if ( !($hankintapaikka_id && $ostohinta && $myyntihinta && $minimimyyntiera && $articleNo) ) {
+            $failed_inserts[] = $row;
+            continue;
+        }
+
         //Rakennetaan multi insert kyselyä
 		$insert_query .=  "( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?),";
 		$placeholders[] = $articleNo;
@@ -94,11 +95,15 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
         $placeholders[] = $tuotekoodi;
         $placeholders[] = $tilauskoodi;
         $placeholders[] = $brandName;
+
+        $successful_inserts++;
+
 	}
 
-	//SQL-kyselyn loppuosa
-    $insert_query = substr($insert_query, 0, -1);
-    $insert_query .= "ON DUPLICATE KEY
+	if ( $successful_inserts ) {
+        //SQL-kyselyn loppuosa
+        $insert_query = substr($insert_query, 0, -1);
+        $insert_query .= "ON DUPLICATE KEY
                             UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
                                 ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
                                 varastosaldo = varastosaldo + VALUES(varastosaldo),
@@ -106,11 +111,12 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
                                     VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
                                 yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
                                 aktiivinen = 1";
-    //Ajetaan tuotteet kantaan
-    $response = $db->query($insert_query, $placeholders);
+        //Ajetaan tuotteet kantaan
+        $response = $db->query($insert_query, $placeholders);
+    }
 	fclose($handle);
 
-	return array($row, $failed_inserts); //kaikki rivit , epäonnistuneet syötöt
+	return array($successful_inserts, $failed_inserts); //kaikki rivit , array epäonnistuneet syötöt
 }
 
 $brandId = isset($_GET['brandId']) ? $_GET['brandId'] : '';
@@ -120,7 +126,9 @@ $hankintapaikkaId = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '
 if ( !$valmistajanHankintapaikka = $db->query(
 		"SELECT brandName FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? AND brandId = ? LIMIT 1",
 		[$hankintapaikkaId, $brandId]) ) {
-	header("Location:toimittajat.php"); exit(); }
+	header("Location:toimittajat.php");
+	exit();
+}
 
 // Alustetaan valmistajan nimi ja hankintapaikka
 $brandName = $valmistajanHankintapaikka->brandName;
@@ -131,15 +139,20 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 	//Jos ei virheitä...
 	if ( !$_FILES['tuotteet']['error'] ) {
         $result = lue_hinnasto_tietokantaan( $db, $brandId, $brandName, $hankintapaikka->id );
+        $onnistuneet = $result[0];
+        $epaonnistuneet = $result[1];
+        $kaikki = $onnistuneet + count($epaonnistuneet);
 
 		// Päivitetään hinnaston sisäänluku päivämäärä.
 		$db->query("UPDATE valmistajan_hankintapaikka SET hinnaston_sisaanajo_pvm = NOW() 
 					WHERE brandId = ? AND hankintapaikka_id = ?",
 			[$brandId, $hankintapaikkaId] );
 
-		$onnistuneet = $result[0] - $result[1];
-		$kaikki = $result[0];
-		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.</p>";
+		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
+		if ($epaonnistuneet) {
+            $_SESSION['feedback'] .= "<br>Hylättyjen rivien numerot: " .rtrim(implode(', ',$epaonnistuneet), ',') ."</p>";
+        }
+
     }
 	else { // Jos virhe...
 		$_SESSION['feedback'] = "Error: " . $_FILES['tuotteet']['error'];
