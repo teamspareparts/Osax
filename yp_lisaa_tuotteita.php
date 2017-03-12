@@ -9,7 +9,8 @@ ini_set('display_startup_errors', 1);
 error_reporting( E_ALL );
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-	header("Location:etusivu.php"); exit();
+	header("Location:etusivu.php");
+	exit();
 }
 
 /**
@@ -28,6 +29,13 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		$row = 0;
 	}
 
+	//SQL:ää varten rakennetaan vain yksi kysely.
+	$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
+					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
+					VALUES ";
+	$placeholders = [];
+
+	//Käydään läpi csv tiedosto rivi kerrallaan
 	$failed_inserts = 0;
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
 		if ($row == -1) {
@@ -73,24 +81,36 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 		}
 		$tuotekoodi = $hankintapaikka_id . "-" . $articleNo; //esim: 100-QTB249
 
-		$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
-					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
-				VALUES ( ?, ?, sisaanostohinta, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-				ON DUPLICATE KEY
-					UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
-						ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
-						varastosaldo = varastosaldo + VALUES(varastosaldo), 
-						keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) * 
-							VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
-						yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
-						aktiivinen = 1";
-		$response = $db->query($sql,
-			[$articleNo, $ostohinta, $myyntihinta, $vero_id, $minimimyyntiera, $kappaleet, $kappaleet,
-				$brandId, $hankintapaikka_id, $tuotekoodi, $tilauskoodi, $brandName]);
+        //Rakennetaan multi insert kyselyä
+		$insert_query .=  "( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?),";
+		$placeholders[] = $articleNo;
+        $placeholders[] = $ostohinta;
+        $placeholders[] = $myyntihinta;
+        $placeholders[] = $vero_id;
+        $placeholders[] = $minimimyyntiera;
+        $placeholders[] = $kappaleet;
+        $placeholders[] = $brandId;
+        $placeholders[] = $hankintapaikka_id;
+        $placeholders[] = $tuotekoodi;
+        $placeholders[] = $tilauskoodi;
+        $placeholders[] = $brandName;
 	}
 
+	//SQL-kyselyn loppuosa
+    $insert_query = substr($insert_query, 0, -1);
+    $insert_query .= "ON DUPLICATE KEY
+                            UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
+                                ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
+                                varastosaldo = varastosaldo + VALUES(varastosaldo),
+                                keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
+                                    VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
+                                yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
+                                aktiivinen = 1";
+    //Ajetaan tuotteet kantaan
+    $response = $db->query($insert_query, $placeholders);
 	fclose($handle);
-	return array($row, $failed_inserts);    //kaikki rivit , epäonnistuneet syötöt
+
+	return array($row, $failed_inserts); //kaikki rivit , epäonnistuneet syötöt
 }
 
 $brandId = isset($_GET['brandId']) ? $_GET['brandId'] : '';
@@ -102,14 +122,15 @@ if ( !$valmistajanHankintapaikka = $db->query(
 		[$hankintapaikkaId, $brandId]) ) {
 	header("Location:toimittajat.php"); exit(); }
 
-$brandName = $valmistajanHankintapaikka->brandName; // Alustetaan valmistajan nimi ja hankintapaikka
-$hankintapaikka = $db->query(
-	"SELECT LPAD(`id`,3,'0') AS id, nimi FROM hankintapaikka WHERE id = ? LIMIT 1", [$hankintapaikkaId]);
+// Alustetaan valmistajan nimi ja hankintapaikka
+$brandName = $valmistajanHankintapaikka->brandName;
+$hankintapaikka = $db->query("SELECT LPAD(`id`,3,'0') AS id, nimi FROM hankintapaikka WHERE id = ? LIMIT 1",
+                                [$hankintapaikkaId]);
 
 if ( isset($_FILES['tuotteet']['name']) ) {
 	//Jos ei virheitä...
 	if ( !$_FILES['tuotteet']['error'] ) {
-        $result = lue_hinnasto_tietokantaan( $db, $brandId, $brandName, $hankintapaikka->id);
+        $result = lue_hinnasto_tietokantaan( $db, $brandId, $brandName, $hankintapaikka->id );
 
 		// Päivitetään hinnaston sisäänluku päivämäärä.
 		$db->query("UPDATE valmistajan_hankintapaikka SET hinnaston_sisaanajo_pvm = NOW() 
@@ -120,7 +141,6 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 		$kaikki = $result[0];
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.</p>";
     }
-
 	else { // Jos virhe...
 		$_SESSION['feedback'] = "Error: " . $_FILES['tuotteet']['error'];
 	}
@@ -128,7 +148,8 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
 } else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
 	unset($_SESSION["feedback"]);
@@ -257,7 +278,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 			return true;
 		});
 
-		//Tilauskoodin tyyppi -valiko
+		//Tilauskoodin tyyppi -valikko
 		$('#tilauskoodin_tyyppi').change(function(e) {
 			$('.tilauskoodi_action').hide();
 			let tyyppi = $(this).val();
