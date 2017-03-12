@@ -3,10 +3,13 @@ require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 require 'luokat/email.class.php';
 
+ignore_user_abort(true); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
+
 $user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteetn valintaa varten haetaan kaikki toimitusosoitteet.
 $cart->hae_ostoskorin_sisalto( $db, true, true );
 if ( $cart->montako_tuotetta == 0 ) {
-	header("location:ostoskori.php"); exit;
+	header("location:ostoskori.php");
+	exit;
 }
 check_products_in_shopping_cart( $cart, $user );
 /*

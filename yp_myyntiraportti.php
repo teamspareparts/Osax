@@ -35,7 +35,7 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 			<input type="text" name="pvm_from" id="pvm_from" class="datepicker" required>
 			<br><br>
 			<label for="pvm_to">To: </label>
-			<input type="text" name="pvm_to" id="pvm_to" class="datepicker" value="<?=date("Y-m-d")?>" max="<?=date("Y-m-d")?>" required>
+			<input type="text" name="pvm_to" id="pvm_to" class="datepicker" value="<?=date("Y-m-d")?>" required>
 			<br><br>
 			<input name="luo_raportti" type="submit" value="Lataa raportti">
 
@@ -51,7 +51,10 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 			$(".feedback").show().fadeOut(5000);
 		});
 
-		$('.datepicker').datepicker({dateFormat: 'yy-mm-dd'})
+		$('.datepicker').datepicker({
+		    dateFormat: 'yy-mm-dd',
+            maxDate: '+0d',
+		})
             .keydown(function(e){
 			    e.preventDefault();
 		});
