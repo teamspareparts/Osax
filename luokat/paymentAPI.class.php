@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @version 2017-02-xx <p> WIP
  */
@@ -90,15 +91,15 @@ class PaymentAPI {
 
 	/**
 	 * @param array $getVariables <p> $_GET-arvot sellaisenaan.
-	 * @param bool  $isCancel [otional] <p> Onko maksun peruutus?
+	 * @param bool  $isCancel     [otional] <p> Onko maksun peruutus?
 	 * @return bool
 	 */
 	public static function checkReturnAuthCode( array $getVariables, /*bool*/ $isCancel = false ) {
 		if ( $isCancel ) {
-			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ]. '|' . $getVariables[ 'TIMESTAMP' ];
-		} else {
-			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ]. '|' . $getVariables[ 'TIMESTAMP' ] . '|'
-				. $getVariables[ 'PAID' ] . '|' . $getVariables[ 'METHOD' ];
+			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ];
+		}
+		else {
+			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ] . '|' . $getVariables[ 'PAID' ] . '|' . $getVariables[ 'METHOD' ];
 		}
 
 		PaymentAPI::$auth_code = strtoupper( md5( PaymentAPI::$auth_code ) );

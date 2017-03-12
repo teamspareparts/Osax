@@ -1,16 +1,11 @@
 ﻿<?php
-
 /**
  * Staattinen luokka sähköpostin käyttöön.
  *
  * @version 2017-02-13 <p> Tilausvahvistus muutettu käyttämään laskua.
  */
 class Email {
-	//TODO: Move to .ini file? --JJ
-	//TODO: Samalla tavalla kuin db-config.ini.php. Ei välttämätöntä. --SL
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
-	//private static $user = ""; //TODO: Mutta eikö nämä tiedot pitäisi olla piilotettu käyttäjältä? --JJ/17-02-06
-	//private static $pass = "";
 	private static $ini_path = "./tietokanta/db-config.ini.php";
 
 	const delivery_email = 'noreply@osax.fi';
@@ -126,7 +121,7 @@ class Email {
 	static function lahetaNoutolista( /*int*/ $tilausnro, /*String*/ $fileName ) {
 		Email::$target_email = Email::admin_email;
 		Email::$subject = "Noutolista tilaukseen {$tilausnro}";
-		Email::$message = "<p>Tilauksen {$tilausnro} nouotlista.</p>
+		Email::$message = "<p>Tilauksen {$tilausnro} noutolista.</p>
 				<p>Liitteenä PDF-tiedosto.</p>
 				<p>Käy merkkaamassa tilaus hoidetuksi, kun tilaus on lähetetty!</p>";
 
