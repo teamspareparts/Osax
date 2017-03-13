@@ -1,15 +1,12 @@
 <?php
-
 /**
- * @version 2017-02-06.2 <p> Whitespace
+ * @version 2017-02-xx <p> WIP
  */
 class Laskutiedot {
 
-	public $tilaus_pvm = '[Tilauksen päivämäärä]';
-	public $tilaus_nro = '[Tilauksen numero]';
-	public $laskun_nro = '[Laskun numero]';
-	public $maksutapa = '[Maksutapa]';
-	public $toimitustapa = '[Toimitustapa]';
+	public $tilaus_pvm = ''; // Tilauksen päivämäärä. Haetaan tietokannasta.
+	public $tilaus_nro = ''; // Tilausnumero. Haetaan tietokannasta.
+	public $laskun_nro = ''; // Laskun numero. Merkitään laskua luodessa.
 
 	/** @var User */
 	public $asiakas = null;
@@ -18,23 +15,21 @@ class Laskutiedot {
 	/** @var Yritys */
 	public $osax = null;
 
-	/**
-	 * @var Toimitusosoite|null $toimitusosoite
-	 */
+	/** @var String[] */
 	public $toimitusosoite = null;
-	/**
-	 * @var DByhteys|null $db
-	 */
+	/** @var DByhteys */
 	public $db = null;
-	/**@var Tuote[] */
-	public $tuotteet = array();
+	/** @var Tuote[] */
+	public $tuotteet = null;
+	/** @var array */
 	public $hintatiedot = array(
-		'alv_kannat' => array(),// Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
-		'alv_perus' => 0.00,        // Summa yhteensä josta alv lasketaan
-		'alv_maara' => 0.00,        // yhteenlaskettu ALV-maara
-		'tuotteet_yht' => 0.00,        // Yhteenlaskettu summa kaikista tuotteista
-		'lisaveloitukset' => 0.00,    // Esim. rahtimaksu
-		'summa_yhteensa' => 0.00,    // Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
+		'alv_kannat' => array(),  // Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
+		'alv_perus' => 0.00,      // Summa yhteensä, josta alv lasketaan
+		'alv_maara' => 0.00,      // yhteenlaskettu ALV-maara
+		'tuotteet_yht' => 0.00,   // Yhteenlaskettu summa kaikista tuotteista
+		'rahtimaksu' => 0.00,     // Rahtimaksu, with ALV
+		'rahtimaksu_alv' => 0.24, // Rahtimaksun ALV. 24 % vakituinen arvo
+		'summa_yhteensa' => 0.00, // Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
 	);
 
 	/**
@@ -43,86 +38,125 @@ class Laskutiedot {
 	 * @param User     $user
 	 */
 	function __construct( DByhteys $db, $tilaus_id = null, User $user ) {
+		/*
+		 * Alustetaan luokan muuttujat ja oliot
+		 */
 		$this->tilaus_nro = !empty( $tilaus_id ) ? $tilaus_id : '[Til nro]';
 		$this->db = $db;
 		$this->asiakas = $user;
 		$this->osax = new Yritys( $db, 1 );
-		$this->toimitusosoite = new Toimitusosoite();
-		$this->haeTilauksenTiedot( $this->tilaus_nro );
+		/*
+		 * Haetaan tilauksen tiedot, toimitusosoite, tuotteet, ja lopuksi laskun numero tietokannasta.
+		 */
+		$this->haeTilauksenTiedot();
+		$this->haeToimitusosoite();
+		$this->haeTuotteet();
+		$this->haeLaskunNumero();
 	}
 
-	/** @param $tilaus_nro */
-	function haeTilauksenTiedot( $tilaus_nro = null ) {
+	/**
+	 * Hakee tilauksen päivämäärän ja rahtimaksun tietokannasta.
+	 */
+	function haeTilauksenTiedot() {
 		$sql = "SELECT paivamaara, pysyva_rahtimaksu FROM tilaus WHERE id = ? LIMIT 1";
-		$this->tilaus_nro = !empty( $tilaus_nro ) ? $tilaus_nro : $this->tilaus_nro;
-		$this->laskun_nro = $this->tilaus_nro;
 		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
 		if ( $row ) {
 			$this->tilaus_pvm = $row->paivamaara;
-			$this->toimitustapa = 'Rahti, 14 päivän toimitus';
-			$this->hintatiedot[ 'lisaveloitukset' ] += $row->pysyva_rahtimaksu;
-			$this->haeToimitusosoite();
-			$this->haeTuotteet();
-//			$this->haeLaskunNumero();
+			$this->hintatiedot[ 'rahtimaksu' ] = $row->pysyva_rahtimaksu;
 		}
 	}
 
-	/** */
+	/**
+	 * Hakee toimitusosoitteen tiedot.
+	 */
 	function haeToimitusosoite() {
-		$sql = "SELECT CONCAT(pysyva_etunimi, ' ', pysyva_sukunimi) AS koko_nimi, pysyva_puhelin, 
-					pysyva_sahkoposti, pysyva_katuosoite, pysyva_postinumero, pysyva_postitoimipaikka, pysyva_yritys
-				FROM tilaus_toimitusosoite WHERE tilaus_id = ?";
-		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
-		if ( $row ) {
-			$this->toimitusosoite->koko_nimi = $row->koko_nimi;
-			$this->toimitusosoite->sahkoposti = $row->pysyva_sahkoposti;
-			$this->toimitusosoite->puhelin = $row->pysyva_puhelin;
-			$this->toimitusosoite->katuosoite = $row->pysyva_katuosoite;
-			$this->toimitusosoite->postinumero = $row->pysyva_postinumero;
-			$this->toimitusosoite->postitoimipaikka = $row->pysyva_postitoimipaikka;
-		}
+		$sql = "SELECT pysyva_katuosoite AS katuosoite, pysyva_postinumero AS postinumero,
+					pysyva_postitoimipaikka AS postitoimipaikka
+				FROM tilaus_toimitusosoite WHERE tilaus_id = ? LIMIT 1";
+		$this->toimitusosoite = $this->db->query( $sql, [ $this->tilaus_nro ], false, PDO::FETCH_ASSOC );
 	}
 
-	/** */
+	/**
+	 * Hakee tilattujen tuotteiden tiedot, ja laskee hintatiedot ja summat ja ALV:t samassa.
+	 */
 	function haeTuotteet() {
 		$this->tuotteet = array();
-		$sql = "SELECT tuote.id, tuote.tuotekoodi, tilaus_tuote.tuotteen_nimi, tilaus_tuote.valmistaja, tilaus_tuote.kpl, 
-					tilaus_tuote.pysyva_hinta, tilaus_tuote.pysyva_alv, tilaus_tuote.pysyva_alennus,
+
+		/*
+		 * SQL-käsky, ja DB-luokan metodit
+		 */
+		$sql = "SELECT tuote.id, tuote.tuotekoodi,
+					tilaus_tuote.tuotteen_nimi AS nimi,
+					tilaus_tuote.valmistaja, 
+					tilaus_tuote.kpl AS kpl_maara,
+					tilaus_tuote.pysyva_hinta AS a_hinta_ilman_alv,
+					tilaus_tuote.pysyva_alv AS alv_prosentti, 
+					tilaus_tuote.pysyva_alennus AS alennus_prosentti,
+					(tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))
+						AS a_hinta,					
 					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
-						AS maksettu_hinta
-				FROM tilaus_tuote LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id 
+						AS a_hinta_alennettu,
+					(((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
+					 	* tilaus_tuote.kpl)
+						AS summa 
+				FROM tilaus_tuote
+				LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id 
 				WHERE tilaus_tuote.tilaus_id = ?";
 		$this->db->prepare_stmt( $sql );
 		$this->db->run_prepared_stmt( [ $this->tilaus_nro ] );
-		while ( $row = $this->db->get_next_row() ) {
-			$tuote = new Tuote();
-			$tuote->id = $row->id;
-			$tuote->tuotekoodi = $row->tuotekoodi;
-			$tuote->nimi = $row->tuotteen_nimi;
-			$tuote->valmistaja = $row->valmistaja;
-			$tuote->a_hinta = round( $row->maksettu_hinta, 2 );
-			$tuote->a_hinta_ilman_alv = $row->pysyva_hinta * (1 - $row->pysyva_alennus);
-			$tuote->alv_prosentti = (int)((float)$row->pysyva_alv * 100); // 0.24 => 24
-			$tuote->alennus = (int)((float)$row->pysyva_alennus * 100); // 0.24 => 24
-			$tuote->kpl_maara = $row->kpl;
-			$tuote->summa = ($row->maksettu_hinta * $row->kpl);
-			$this->tuotteet[] = $tuote;
 
-			// Tarkistetaan, että tuotteen ALV-kanta on listalla
-			if ( !array_key_exists( $tuote->alv_prosentti, $this->hintatiedot[ 'alv_kannat' ] ) ) {
-				$this->hintatiedot[ 'alv_kannat' ][ $tuote->alv_prosentti ][ 'kanta' ] = $tuote->alv_prosentti;
-				$this->hintatiedot[ 'alv_kannat' ][ $tuote->alv_prosentti ][ 'perus' ] = 0;
-				$this->hintatiedot[ 'alv_kannat' ][ $tuote->alv_prosentti ][ 'maara' ] = 0;
+		/*
+		 * Käydään läpi tuotteet yksi kerrallaan
+		 */
+		while ( $row = $this->db->get_next_row( null, 'Tuote' ) ) {
+
+			/** @var $row Tuote */
+			$this->tuotteet[] = $row;
+			$this->hintatiedot[ 'tuotteet_yht' ] += $row->summa;
+
+			/*
+			 * Loppu on hintatietojen laskelua, josta suurin osa ALV-tietojen muistiin pistämistä.
+			 * ALV-tiedot säilytetään arrayssa, jossa on kolme arvoa:
+			 *   kanta, esim. 24 (%);
+			 *   perus, eli summa josta ALV lasketaan; ja
+			 *   määrä, eli lasketun ALV:n määrä.
+			 */
+			// Tarkistetaan, että tuotteen ALV-kanta on listalla (arrayssa).
+			if ( !array_key_exists( $row->alv_toString(), $this->hintatiedot[ 'alv_kannat' ] ) ) {
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'kanta' ] = $row->alv_toString();
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'perus' ] = 0;
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'maara' ] = 0;
 			}
-			// Lisätään ALV-tiedot arrayhin. Ensin yksittäisen ALV-kannan tiedot...
-			$this->hintatiedot[ 'alv_kannat' ][ $tuote->alv_prosentti ][ 'perus' ] += $tuote->a_hinta_ilman_alv * $tuote->kpl_maara;
-			$this->hintatiedot[ 'alv_kannat' ][ $tuote->alv_prosentti ][ 'maara' ] += ($tuote->a_hinta - $tuote->a_hinta_ilman_alv) * $tuote->kpl_maara;
-			// ... ja sitten ALV-kannat yhteensä. En tiedä onko tämä tarpeellista, mutta se nyt on siinä.
-			$this->hintatiedot[ 'alv_perus' ] += $tuote->a_hinta_ilman_alv * $tuote->kpl_maara;
-			$this->hintatiedot[ 'alv_maara' ] += ($tuote->a_hinta - $tuote->a_hinta_ilman_alv) * $tuote->kpl_maara;
-			$this->hintatiedot[ 'tuotteet_yht' ] += $tuote->summa;
+			/*
+			 * Lisätään ALV-tiedot arrayhin. Ensin yksittäiset ALV-kannat.
+			 */
+			// Ensimmäisenä lasketaan ALV-perus. Kpl-hinta-ilman-ALV * Kpl-määrä
+			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'perus' ]
+				+= $row->a_hinta_ilman_alv * $row->kpl_maara;
+			// ALV-määrä. ALV:n määrä * Kpl-määrä
+			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'maara' ]
+				+= ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
+			// ... ja sitten ALV-kannat yhteensä.
+			$this->hintatiedot[ 'alv_perus' ] += $row->a_hinta_ilman_alv * $row->kpl_maara;
+			$this->hintatiedot[ 'alv_maara' ] += ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
+
 		}
-		$this->hintatiedot[ 'summa_yhteensa' ] = $this->hintatiedot[ 'tuotteet_yht' ] + $this->hintatiedot[ 'lisaveloitukset' ];
+
+		// Vielä lopuksi lisätään rahtimaksun tiedot ALV-hintaan (jos > 0), ja kokonaissummaan.
+		if ( $this->hintatiedot[ 'rahtimaksu' ] > 0 ) {
+			// Lasketaan veroton rahtimaksu
+			$rahti_ilman_alv = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
+			// Lisätään ALV:n määrä muiden joukkoon.
+			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'kanta' ] = '24 &#37;'; // &#37; == %
+			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'perus' ] += $rahti_ilman_alv;
+			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'maara' ]
+				+= $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
+
+			$this->hintatiedot[ 'alv_perus' ] += $rahti_ilman_alv;
+			$this->hintatiedot[ 'alv_maara' ] += $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
+		}
+		$this->hintatiedot[ 'summa_yhteensa' ] =
+			$this->hintatiedot[ 'tuotteet_yht' ] + $this->hintatiedot[ 'rahtimaksu' ];
 	}
 
 	function haeLaskunNumero() {
@@ -139,28 +173,32 @@ class Laskutiedot {
 	function float_toString( /*float*/ $number ) {
 		return number_format( (double)$number, 2, ',', '.' );
 	}
-}
 
-/** */
-class Toimitusosoite {
+	/**
+	 * Palauttaa rahtimaksun muodossa 15[ €], joko verollisena tai ilman.
+	 * @param bool $veroton    [optional] default=false <p> Veroton (ilman ALV)
+	 * @param bool $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @return string
+	 */
+	function rahtimaksu_toString ( /*bool*/ $veroton = false, /*bool*/ $ilman_euro = false ) {
+		if ( $veroton ) {
+			$rahti = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
+		} else {
+			$rahti = $this->hintatiedot[ 'rahtimaksu' ];
+		}
+		return number_format( $rahti, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
+	}
 
-	public $koko_nimi = '[Koko nimi]';
-	public $sahkoposti = '[Sähköposti]';
-	public $puhelin = '[Puhelin]';
-	public $katuosoite = '[Katuosoite]';
-	public $postinumero = '[Postinumero]';
-	public $postitoimipaikka = '[Postitoimipaikka]';
-
-	/** */
-	function __toString() {
-		return "<p>
-			Toimitusosoitteen tiedot:<br>
-			Nimi: {$this->koko_nimi}<br>
-			Sähköposti: {$this->sahkoposti}<br>
-			Puhelin: {$this->puhelin}<br>
-			Katuosoite: {$this->katuosoite}<br>
-			Postinumero: {$this->postinumero}<br>
-			Postitoimipaikka: {$this->postitoimipaikka}<br>
-			</p>";
+	/**
+	 * Palauttaa rahtimaksun ALV:n. Mahdollinen formaatti: [0,]xx[ %]
+	 * @param bool $ilman_pros [optional] default=false <p> Tulostetaanko ALV ilman %-merkkiä.
+	 * @param bool $decimaalina [optional] default=false <p> Tulostetaanko ALV decimaalina (vai kokonaislukuna).
+	 * @return string
+	 */
+	function rahtimaksuALV_toString ( /*bool*/ $ilman_pros = false, /*bool*/ $decimaalina = false ) {
+		if ( !$decimaalina ) {
+			return round( (float)$this->hintatiedot[ 'rahtimaksu_alv' ] * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
+		} else
+			return number_format( (double)$this->hintatiedot[ 'rahtimaksu_alv' ], 2, ',' );
 	}
 }

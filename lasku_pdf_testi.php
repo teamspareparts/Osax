@@ -1,14 +1,13 @@
 <?php
 require './mpdf/mpdf.php';
 require './luokat/laskutiedot.class.php';
-require './luokat/dbyhteys.class.php'; $db = new DByhteys( 'root', '', 'tuoteluettelo_database' );
-require './luokat/user.class.php'; $user = new User( $db, 4 );
+require './luokat/dbyhteys.class.php'; $db = new DByhteys( ['root','','tuoteluettelo_database','localhost'] );
+require './luokat/user.class.php'; $user = new User( $db, 6 );
 require './luokat/yritys.class.php'; $yritys = new Yritys( $db, 2 );
 require './luokat/tuote.class.php';
 
 $mpdf = new mPDF();
-$lasku = new Laskutiedot( $db, 10, $user, $yritys );
-$lasku->tuotteet[] = new Tuote();
+$lasku = new Laskutiedot( $db, 1, $user, $yritys );
 
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
@@ -28,7 +27,7 @@ $html = "
 				<th>Päivämäärä</th></tr>
 			</thead>
 			<tbody>
-			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
+			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskun_nro)."</td>
 				<td style='text-align:center;'>".date('d.m.Y')."</td>
 			</tr>
 			</tbody>
@@ -40,8 +39,8 @@ $html = "
 	<tbody>
 	<tr><th style='text-align:left;'>Asiakas (".sprintf('%04d', $lasku->asiakas->id).")</th></tr>
 	<tr><td>{$lasku->asiakas->yrityksen_nimi}<br>
-			{$lasku->toimitusosoite->katuosoite}<br>
-			{$lasku->toimitusosoite->postinumero} {$lasku->toimitusosoite->postitoimipaikka}<br><br>
+			{$lasku->toimitusosoite[' katuosoite ']}<br>
+			{$lasku->toimitusosoite[' postinumero ']} {$lasku->toimitusosoite[' postitoimipaikka ']}<br><br>
 			
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			</td>
@@ -52,21 +51,19 @@ $html = "
 </table>
 <hr>
 <!-- Tilauksen numero ja tilausaika -->
-<table style='width:60%;'>
-	<tbody>
-	<tr><td style='text-align:center;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</td>
-		<td style='text-align:center;'>Tilausaika: {$lasku->tilaus_pvm}</td>
-	</tr>
-	</tbody>
-</table>
+<div>
+	<span style='padding-right:20px;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</span>
+	<span>Tilausaika: {$lasku->tilaus_pvm}</span>
+</div>
+<hr>
 <!-- Tuotteet-taulukko, header-rivi -->
 <table style='width:100%;font-size:80%;'>
 	<thead>
-	<tr><th colspan='9' class='center'><h2>Tilatut tuotteet</h2></th></tr>
+	<tr><th colspan='8' class='center'><h2>Tilatut tuotteet</h2></th></tr>
 	<tr><th style='text-align:right;'>#</th>
 		<th>Tuotekoodi</th>
 		<th>Nimi</th>
-		<th></th>
+		<th>Valmistaja</th>
 		<th style='text-align:right;'>Veroton<br>&agrave;-hinta</th>
 		<th style='text-align:right;'>ALV</th>
 		<th style='text-align:right;'>Ale</th>
@@ -85,10 +82,10 @@ foreach ( $lasku->tuotteet as $tuote ) {
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td>{$tuote->tuotekoodi}</td>
 			<td>{$tuote->nimi}</td>
-			<td></td>
+			<td>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->a_hinta_toString( true )}</td>
-			<td style='text-align:right;'>{$tuote->alv_prosentti} %</td>
-			<td style='text-align:right;'>{$tuote->alennus} %</td>
+			<td style='text-align:right;'>{$tuote->alv_toString()}</td>
+			<td style='text-align:right;'>{$tuote->alennus_toString()}</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
 			<td style='text-align:right;'>{$tuote->summa_toString( true )}</td>
 		</tr>";
@@ -98,16 +95,16 @@ foreach ( $lasku->tuotteet as $tuote ) {
  * Lisätään rahti tuote-listaukseen
  */
 $html .= "
-		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
-			<td></td>
-			<td>Rahtimaksu</td>
-			<td></td>
-			<td style='text-align:right;'>{$lasku->asiakas->rahtimaksu_toString()}</td>
-			<td style='text-align:right;'>24 %</td>
-			<td style='text-align:right;'>". (($lasku->asiakas->rahtimaksu === 0) ? "100 %" : "") ."</td>
-			<td style='text-align:right;'>1</td>
-			<td style='text-align:right;'>{$lasku->asiakas->rahtimaksu_toString()}</td>
-		</tr>";
+	<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
+		<td></td>
+		<td>Rahtimaksu</td>
+		<td></td>
+		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(true)}</td>
+		<td style='text-align:right;'>{$lasku->rahtimaksuALV_toString()}</td>
+		<td style='text-align:right;'>". (($lasku->hintatiedot[ 'rahtimaksu' ] === 0) ? "100 %" : "") ."</td>
+		<td style='text-align:right;'></td>
+		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(true)}</td>
+	</tr>";
 
 /**
  * ALV-kantojen listauksen header-row
@@ -175,7 +172,6 @@ $html .= "
 	</tbody>
 </table>
 ";
-
 
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n luonti */
