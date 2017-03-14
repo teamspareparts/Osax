@@ -3,16 +3,20 @@ require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 require 'luokat/email.class.php';
 
-$user->haeToimitusosoitteet($db, -1); // Toimitusosoitteen valinta tilausta varten.
-$cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+ignore_user_abort( true ); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
+set_time_limit( 100 );
+
+$user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteen valinta tilausta varten.
+$cart->hae_ostoskorin_sisalto( $db, true, true );
 if ( $cart->montako_tuotetta == 0 ) {
-	header("location:ostoskori.php"); exit;
+	header( "location:ostoskori.php" );
+	exit;
 }
-check_products_in_shopping_cart( $cart, $user);
+check_products_in_shopping_cart( $cart, $user );
 /*
  * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen
  */
-if ( !empty($_POST['vahvista_tilaus']) ) {
+if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 
 	/*
 	 * Varmistuksena käytetään transactionia, jotta kaikki tietokanta-muutokset varmasti toimivat.
@@ -20,29 +24,56 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 	 */
 	$conn = $db->getConnection();
 	$conn->beginTransaction();
-    $toimitusosoite_id = $_POST['toimitusosoite_id'];
+	$toimitusosoite_id = $_POST[ 'toimitusosoite_id' ];
 
 	try {
-
 		// Tallennetaan tilauksen tiedot tietokantaan
 		$stmt = $conn->prepare( 'INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)' );
-		$stmt->execute( [$user->id, $_POST['rahtimaksu']] );
+		$stmt->execute( [ $user->id, $_POST[ 'rahtimaksu' ] ] );
 
 		$tilaus_id = $conn->lastInsertId(); // Haetaan tilaus-ID, sitä tarvitaan vielä.
 
-		// Prep.stmt. tuotteiden lisäys tietokantaan. Ostoskorista yksi kerrallaan.
-		$stmt = $conn->prepare( '
+		/*
+		 * Prep.stmt. tuotteiden lisäys tietokantaan. Lisätään kaikki tuotteet kerralla.
+		 * Kustomi haun rakennusta tehokkuuden vuoksi. Yksitellen tehtynä hyvin hidasta.
+		 */
+		$questionmarks = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?,?,?,?,?,?,?)' ) );
+		$placeholders = [];
+		$stmt = $conn->prepare( "
 			INSERT INTO tilaus_tuote
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)' );
-		foreach ( $cart->tuotteet as $tuote ) {
-			$stmt->execute( [$tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja, $tuote->a_hinta,
-				$tuote->alv_prosentti, $tuote->alennus_prosentti, $tuote->kpl_maara] );
+			VALUES {$questionmarks}" );
 
-			// Päivitetään varastosaldo jokaisen tuotteen kohdalla.
-			$stmt2 = $conn->prepare( "UPDATE tuote SET varastosaldo = ? WHERE id = ?" );
-			$stmt2->execute( [($tuote->varastosaldo - $tuote->kpl_maara), $tuote->id] );
+		// Luodaan temp-taulu, johon lisätään tuotteiden päivitetyt varastosaldot
+		$stmt_varastosaldot = $conn->prepare( "CREATE TABLE IF NOT EXISTS `temp_tuote`
+			(`id` MEDIUMINT UNSIGNED NOT NULL, `varastosaldo` INT(11) NOT NULL, PRIMARY KEY (`id`))" );
+		$stmt_varastosaldot->execute();
+		$questionmarks2 = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?)' ) );
+		$placeholders2 = [];
+		$stmt_varastosaldot = $conn->prepare( "INSERT INTO temp_tuote (id, varastosaldo) VALUES {$questionmarks2}");
+
+		foreach ( $cart->tuotteet as $tuote ) {
+			array_push( $placeholders, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
+						$tuote->a_hinta_ilman_alv, $tuote->alv_prosentti, $tuote->alennus_prosentti,
+						$tuote->kpl_maara );
+
+			array_push( $placeholders2, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
 		}
+
+		// Lisätään tilauksen tuotteet
+		$stmt->execute( $placeholders );
+		// Lisätään päivitetyt varastosaldot temp-tauluun
+		$stmt_varastosaldot->execute( $placeholders2 );
+
+		// Päivitetään oikeiden tuotteiden varastosaldot temp-taulun perusteella
+		$stmt_varastosaldot = $conn->prepare( "
+            UPDATE tuote 
+            JOIN temp_tuote ON tuote.id = temp_tuote.id 
+            SET tuote.varastosaldo = temp_tuote.varastosaldo, tuote.paivitettava = 1" );
+		$stmt_varastosaldot->execute();
+		//Poistetaan temp-taulu
+		$stmt_varastosaldot = $conn->prepare( "DROP TABLE temp_tuote" );
+		$stmt_varastosaldot->execute();
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(
@@ -62,7 +93,7 @@ if ( !empty($_POST['vahvista_tilaus']) ) {
 		// Tallenetaan seuraavaa sivua varten tilauksen perustiedot.
 		$_SESSION['tilaus'] = [	$tilaus_id, ($cart->summa_yhteensa + $user->rahtimaksu),
 			$cart->montako_tuotetta, $cart->montako_tuotetta_kpl_maara_yhteensa ];
-		//TODO: toimitusosoite/tilaaja myös?
+		//TODO: toimitusosoite/tilaaja myös? Seuraavan sivun HTML-tulostusta varten, siis. --JJ/170314
 		header( "location:payment_process.php" );
 		exit;
 
