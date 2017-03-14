@@ -33,9 +33,8 @@ for ( $i=0; $i<count($data['Admin tunnukset']['kayttajatunnus']); $i++ ) {
 	]);
 }
 
-
 // Luodaan ylläpitäjälle yritys ja ostoskori
-$result = $db->query(
+$db->query(
 	"INSERT INTO yritys (nimi, y_tunnus, maa, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka) VALUES (?,?,?,?,?,?,?,?)",
 	[	$data['Admin tunnukset']['y_nimi'],
 		$data['Admin tunnukset']['y_tunnus'],
@@ -46,9 +45,10 @@ $result = $db->query(
 		$data['Admin tunnukset']['y_osoite'][1],
 		$data['Admin tunnukset']['y_osoite'][2]
 	] );
-$result = $db->query(
-	"INSERT INTO ostoskori (yritys_id) VALUES (?)",
-	[1]);
+$db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
+
+$db->query( "INSERT INTO laskunumero (laskunro) VALUES (?)", [1]);
+$db->query( "INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [0,0.00]);
 
 if ( $result ) {
     echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';

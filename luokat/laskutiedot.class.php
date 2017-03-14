@@ -89,10 +89,11 @@ class Laskutiedot {
 					tilaus_tuote.tuotteen_nimi AS nimi,
 					tilaus_tuote.valmistaja, 
 					tilaus_tuote.kpl AS kpl_maara,
-					tilaus_tuote.pysyva_hinta AS a_hinta_ilman_alv,
-					tilaus_tuote.pysyva_alv AS alv_prosentti, 
+					tilaus_tuote.pysyva_alv AS alv_prosentti,
 					tilaus_tuote.pysyva_alennus AS alennus_prosentti,
-					(tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))
+					(tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus)) 
+						AS a_hinta_ilman_alv,
+					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
 						AS a_hinta,					
 					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
 						AS a_hinta_alennettu,
@@ -123,18 +124,18 @@ class Laskutiedot {
 			 */
 			// Tarkistetaan, että tuotteen ALV-kanta on listalla (arrayssa).
 			if ( !array_key_exists( $row->alv_toString(), $this->hintatiedot[ 'alv_kannat' ] ) ) {
-				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'kanta' ] = $row->alv_toString();
-				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'perus' ] = 0;
-				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'maara' ] = 0;
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'kanta' ] = $row->alv_toString();
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'perus' ] = 0;
+				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'maara' ] = 0;
 			}
 			/*
 			 * Lisätään ALV-tiedot arrayhin. Ensin yksittäiset ALV-kannat.
 			 */
 			// Ensimmäisenä lasketaan ALV-perus. Kpl-hinta-ilman-ALV * Kpl-määrä
-			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'perus' ]
+			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'perus' ]
 				+= $row->a_hinta_ilman_alv * $row->kpl_maara;
 			// ALV-määrä. ALV:n määrä * Kpl-määrä
-			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString() ][ 'maara' ]
+			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'maara' ]
 				+= ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
 			// ... ja sitten ALV-kannat yhteensä.
 			$this->hintatiedot[ 'alv_perus' ] += $row->a_hinta_ilman_alv * $row->kpl_maara;
@@ -147,9 +148,9 @@ class Laskutiedot {
 			// Lasketaan veroton rahtimaksu
 			$rahti_ilman_alv = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
 			// Lisätään ALV:n määrä muiden joukkoon.
-			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'kanta' ] = '24 &#37;'; // &#37; == %
-			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'perus' ] += $rahti_ilman_alv;
-			$this->hintatiedot[ 'alv_kannat' ][ '24 &#37;' ][ 'maara' ]
+			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'kanta' ] = '24 &#37;'; // &#37; == %
+			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'perus' ] += $rahti_ilman_alv;
+			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'maara' ]
 				+= $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
 
 			$this->hintatiedot[ 'alv_perus' ] += $rahti_ilman_alv;
@@ -167,11 +168,13 @@ class Laskutiedot {
 		$this->db->query( $sql );
 	}
 
-	/** @param $number
+	/**
+	 * @param $number
+	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function float_toString( /*float*/ $number ) {
-		return number_format( (double)$number, 2, ',', '.' );
+	function float_toString( /*float*/ $number, /*int*/ $dec_count = 2 ) {
+		return number_format( (float)$number, $dec_count, ',', '.' );
 	}
 
 	/**

@@ -8,6 +8,9 @@ $eula_txt = @file_get_contents( $txt_tiedosto, false, NULL, 0 );
 if ( !$eula_txt ) {
 	$eula_txt = "Oikeaa käyttöoikeussopimusta ei löytynyt. Ole hyvä ja ilmoita ylläpitäjälle.\n
 		Jos olet ylläpitäjä, niin sinun varmaan kannattaisi päivittää uusi käyttöoikeussopimus serverille.";
+} else {
+	// Ota käyttöön, jos encoding eulassa ei näy oikein
+	// $eula_txt = mb_convert_encoding($eula_txt, "UTF-8", 'windows-1252');
 }
 ?>
 <!DOCTYPE html>

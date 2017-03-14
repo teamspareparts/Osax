@@ -139,10 +139,11 @@ class Tuote {
 	 * @param boolean $ilman_alv     [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro    [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @param bool    $ilman_alennus [optional] default=false <p> Tulostetaanko hinta ilman alennusta.
+	 * @param int     $dec_count     [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
 	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false,
-			/*bool*/ $ilman_alennus = false ) {
+			/*bool*/ $ilman_alennus = false, /*int*/ $dec_count = 2 ) {
 
 		if ( $ilman_alv && !$ilman_alennus ) {      // Hinta ilman ALV:ta ja alennusta
 			$hinta = $this->a_hinta_ilman_alv;
@@ -154,18 +155,19 @@ class Tuote {
 			$hinta = $this->a_hinta_alennettu;
 		}
 
-		return number_format( (float)$hinta, 2, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
+		return number_format( (float)$hinta, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}
 
 	/**
 	 * @param boolean $ilman_alv  [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
+	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false ) {
+	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
 		$summa = $ilman_alv ? ($this->a_hinta_ilman_alv * $this->kpl_maara) : $this->summa;
 
-		return number_format( (double)$summa, 2, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
+		return number_format( (float)$summa, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}
 
 	/**
@@ -179,7 +181,7 @@ class Tuote {
 			return round( (float)$this->alv_prosentti * 100 ) . ($ilman_pros ? '' : ' &#37;');
 		}
 		else {
-			return number_format( (double)$this->alv_prosentti, 2, ',' );
+			return number_format( (float)$this->alv_prosentti, 2, ',' );
 		}
 	}
 

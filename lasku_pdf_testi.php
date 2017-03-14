@@ -128,7 +128,7 @@ $html .= "
  */
 foreach ( $lasku->hintatiedot['alv_kannat'] as $kanta ) {
 	$html .= "
-		<tr><td style='text-align:right;'>{$kanta['kanta']} %</td>
+		<tr><td style='text-align:right;'>{$kanta['kanta']}</td>
 			<td style='text-align:right;'>{$lasku->float_toString($kanta['perus'])} €</td>
 			<td style='text-align:right;'>{$lasku->float_toString($kanta['maara'])} €</td></tr>";
 }
@@ -146,7 +146,7 @@ $html .= "
 		<thead><tr><th colspan='2' style='text-align: center;'>LOPPUSUMMA</th></tr></thead>
 		<tbody>
 		<tr><td>Summa yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'], 3)} €</td></tr>
 		</tbody>
 	</table></td></tr>
 </table>
