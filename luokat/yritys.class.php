@@ -23,6 +23,8 @@ class Yritys {
 	public $rahtimaksu = 0.00;
 	public $ilm_toim_sum_raja = 0.00;
 	public $yleinen_alennus = 0.00;
+	/** @var int <p> Käyttäjän sallitut maksutavat. <br>0: Paytrail, 1: lasku 14pv, >1: 501 HTTP */
+	public $maksutapa = 0;
 
 	/**
 	 * Yritys-luokan konstruktori.<p>

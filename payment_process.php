@@ -8,7 +8,7 @@ require 'luokat/email.class.php';
 require 'lasku_pdf_luonti.php';
 require 'noutolista_pdf_luonti.php';
 
-if ( empty( $_GET ) ) {
+if ( !empty( $_GET ) ) {
 
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
 		$sql = "UPDATE tilaus SET maksettu = 1 WHERE id = ? AND kayttaja_id = ?";
@@ -16,6 +16,7 @@ if ( empty( $_GET ) ) {
 		if ( $result ) {
 
 			// Luodaan lasku, ja lähetetään tilausvahvistus.
+			$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
 			require 'lasku_pdf_luonti.php'; // Laskun luonti tässä tiedostossa
 			Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
 
@@ -25,6 +26,23 @@ if ( empty( $_GET ) ) {
 
 			//TODO Lähetä käyttäjä jonnekin
 		}
+	}
+}
+elseif ( !empty( $_POST[ 'ORDER_NUMBER' ] ) ) {
+	$sql = "UPDATE tilaus SET maksettu = 1 WHERE id = ? AND kayttaja_id = ?";
+	$result = $db->query( $sql, [ $_POST[ 'ORDER_NUMBER' ], $user->id ] );
+	if ( $result ) {
+
+		// Luodaan lasku, ja lähetetään tilausvahvistus.
+		$tilaus_id = $_POST[ 'ORDER_NUMBER' ];
+		require 'lasku_pdf_luonti.php'; // Laskun luonti tässä tiedostossa
+		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
+
+		// Luodaan noutolista, ja lähetetään ylläpidolle ilmoitus
+		require 'noutolista_pdf_luonti.php';
+		Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
+
+		//TODO Lähetä käyttäjä jonnekin
 	}
 }
 elseif ( !empty( $_SESSION[ 'tilaus' ] ) ) {
@@ -49,6 +67,12 @@ else {
 <?php require 'header.php'; ?>
 <section class="main_body_container">
 	<?= PaymentAPI::getS1Form() ?>
+
+	<?php
+	if ( $user->maksutapa ) {
+		PaymentAPI::getLaskuForm();
+	}
+	?>
 </section>
 
 

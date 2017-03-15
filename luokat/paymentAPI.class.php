@@ -80,6 +80,19 @@ class PaymentAPI {
 	}
 
 	/**
+	 * Käyttötapa: <code><?= PaymentAPI::getS1Form ?></code> HTML:n puolella.<p>
+	 * <code>Payment::preparePayment</code> pitää kutsua ennen tämän metodin käyttöä.
+	 * @return string <p> HTML-form
+	 */
+	public static function getLaskuForm() {
+		return "
+			<form method='post'>
+				<input name='ORDER_NUMBER' type='hidden' value='" . PaymentAPI::$order_id . "'>
+				<input type='submit' value='Maksa laskulla'>
+			</form>";
+	}
+
+	/**
 	 * @param string $formType [optional] default = 'S1'
 	 */
 	private static function calculateAuthCode( /*string*/ $formType = 'S1' ) {

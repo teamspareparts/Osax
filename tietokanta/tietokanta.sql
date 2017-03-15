@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT 1000.00,
   `alennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
+  `maksutapa` tinyint(1) UNSIGNED NOT NULL DEFAULT 0, -- 0: Paytrail, 1: lasku 14pv, >1: 501 HTTP
   PRIMARY KEY (`id`), UNIQUE KEY (`y_tunnus`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci AUTO_INCREMENT=1;
 

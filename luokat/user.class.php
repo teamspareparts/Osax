@@ -24,9 +24,11 @@ class User {
 	/** @var stdClass[] */
 	public $toimitusosoitteet = array();
 
-	public $yleinen_alennus = 0.00;
-	public $rahtimaksu = 0.00;
-	public $ilm_toim_sum_raja = 0.00;
+	/** @var float <p> Yrityksen tiedoista. */ public $yleinen_alennus = 0.00;
+	/** @var float <p> Yrityksen tiedoista. */ public $rahtimaksu = 0.00;
+	/** @var float <p> Yrityksen tiedoista. */ public $ilm_toim_sum_raja = 0.00;
+	/** @var int <p> Käyttäjän sallitut maksutavat. <br> 0: Paytrail, 1: lasku 14pv, >1: 501 HTTP */
+	public $maksutapa = 0;
 
 	/**
 	 * Käyttäjä-luokan konstruktori.
