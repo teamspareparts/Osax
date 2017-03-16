@@ -57,7 +57,7 @@ class PaymentAPI {
 	 */
 	public static function getS1Form() {
 		return "
-			<form action='https://payment.paytrail.com/' method='post'>
+			<form action='https://payment.paytrail.com/' method='post' id='payment'>
 				<input name='MERCHANT_ID' type='hidden' value='" . PaymentAPI::$merchant_id . "'>
 				<input name='AMOUNT' type='hidden' value='" . PaymentAPI::$amount . "'>
 				<input name='ORDER_NUMBER' type='hidden' value='" . PaymentAPI::$order_id . "'>
@@ -76,19 +76,6 @@ class PaymentAPI {
 				<input name='GROUP' type='hidden' value='" . PaymentAPI::$group . "'>
 				<input name='AUTHCODE' type='hidden' value='" . PaymentAPI::$auth_code . "'>
 				<input type='submit' value='Siirry maksamaan'>
-			</form>";
-	}
-
-	/**
-	 * Käyttötapa: <code><?= PaymentAPI::getS1Form ?></code> HTML:n puolella.<p>
-	 * <code>Payment::preparePayment</code> pitää kutsua ennen tämän metodin käyttöä.
-	 * @return string <p> HTML-form
-	 */
-	public static function getLaskuForm() {
-		return "
-			<form method='post'>
-				<input name='ORDER_NUMBER' type='hidden' value='" . PaymentAPI::$order_id . "'>
-				<input type='submit' value='Maksa laskulla'>
 			</form>";
 	}
 

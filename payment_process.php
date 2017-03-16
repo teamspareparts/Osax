@@ -65,21 +65,23 @@ else {
 <body>
 
 <?php require 'header.php'; ?>
-<section class="main_body_container">
-	<?= PaymentAPI::getS1Form() ?>
 
-	<?php
-	if ( $user->maksutapa ) {
-		PaymentAPI::getLaskuForm();
-	}
-	?>
+<section class="main_body_container">
+	<?php if ( true OR $user->maksutapa ) : ?>
+		<form method='post'>
+			<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ] ?>'>
+			<input type='submit' class="nappi" value='Maksa laskulla'>
+		</form>
+	<?php endif; ?>
+
+	<?= PaymentAPI::getS1Form() ?>
 </section>
 
 
-<script type="text/javascript" src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>
+<script src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>
 <script>
 	$(document).ready(function () {
-		SV.widget.initWithForm('payment', {charset: 'ISO-8859-1'});
+		SV.widget.initWithForm('payment', {charset: 'UTF-8'});
 	});
 </script>
 
