@@ -6,12 +6,12 @@ require '_start.php'; global $db, $user, $cart;
  *  ja tilaukset loppusumman ja kpl-määrän. Ei hae tuotteita. Käyttäjän tiedot erikseen, eikä $user-oliosta,
  *  jotta ylläpitäjä voi käyttää sivua.
  * @param DByhteys $db
- * @param int $tilaus_id
+ * @param int      $tilaus_id
  * @return stdClass <p> tilauksen tiedot, pois lukien tuotteet
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 	$sql = "SELECT tilaus.id, tilaus.kayttaja_id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
-				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys,
+				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys, tilaus.maksettu, 
 				CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 				CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 				tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
@@ -27,13 +27,13 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 			LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
 			WHERE tilaus.id = ?";
 
-	return $db->query($sql, [$tilaus_id]);
+	return $db->query( $sql, [ $tilaus_id ] );
 }
 
 /**
  * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
  * @param DByhteys $db
- * @param int $tilaus_id
+ * @param int      $tilaus_id
  * @return Tuote[] <p> Tiedot tilatuista tuotteista.
  */
 function hae_tilauksen_tuotteet( DByhteys $db, /*int*/ $tilaus_id ) {
@@ -47,26 +47,29 @@ function hae_tilauksen_tuotteet( DByhteys $db, /*int*/ $tilaus_id ) {
 			LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id
 			WHERE tilaus_id = ?";
 
-	return $db->query( $sql, [$tilaus_id], FETCH_ALL, PDO::FETCH_CLASS, 'Tuote' );
+	return $db->query( $sql, [ $tilaus_id ], FETCH_ALL, PDO::FETCH_CLASS, 'Tuote' );
 }
 
 // Tarkistetaan URL:n ID
-if ( empty($_GET['id']) ) {
-	header("Location:tilaushistoria.php?id={$user->id}"); exit();
+if ( empty( $_GET[ 'id' ] ) ) {
+	header( "Location:tilaushistoria.php?id={$user->id}" );
+	exit();
 }
 
-$tilaus_tiedot = hae_tilauksen_tiedot( $db, $_GET['id'] );
+$tilaus_tiedot = hae_tilauksen_tiedot( $db, $_GET[ 'id' ] );
 
 // Löytyikö tilauksen tiedot ID:llä. Tarkistus NULL:lla, eikä empty():lla,
 //  koska haku palauttaa ei-tyhjää aina jostain syystä.
-if ( $tilaus_tiedot->id === NULL ) {
-	header("Location:tilaushistoria.php"); exit();
+if ( $tilaus_tiedot->id === null ) {
+	header( "Location:tilaushistoria.php" );
+	exit();
 }
 
 // Tarkistetaan onko tilaus sen hetkisen käyttäjän tekemä, tai onko käyttäjä admin.
 // Lähetään pois, jos ei kumpaankin.
 elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin() ) {
-	header("Location:tilaushistoria.php"); exit();
+	header( "Location:tilaushistoria.php" );
+	exit();
 }
 
 /** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
@@ -88,25 +91,26 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 	<section style="white-space: nowrap">
 		<div class="otsikko">
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
-		    <?php if ( $tilaus_tiedot->kasitelty == 0 ) : ?>
-			    <span class="inline-block" style="color:red;">
-			    Odottaa käsittelyä.</span>
-		    <?php else: ?>
-			    <span class="inline-block" style="color:green;">
-			    Käsitelty ja toimitettu.</span>
-		    <?php endif;?>
-        </div>
-        <div id="painikkeet">
-            <?php if ( $user->isAdmin() ) : ?>
-                <a href="./laskut/lasku-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Lasku</a>
-                <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Noutolista</a>
-		    <?php else : ?>
-                <a href="./laskut/lasku-<?=$tilaus_tiedot->id?>-<?=$tilaus_tiedot->kayttaja_id?>.pdf" download="" target="_blank" class="nappi">Lasku</a>
-            <?php endif;?>
-        </div>
-
+			<?php if ( $tilaus_tiedot->maksettu == 0 ) : ?>
+				<span class="inline-block" style="color:red;"> Odottaa maksua. Lasku ei saatavilla. </span>
+			<?php elseif ( $tilaus_tiedot->kasitelty == 0 ) : ?>
+				<span class="inline-block" style="color:red;"> Odottaa käsittelyä. </span>
+			<?php else: ?>
+				<span class="inline-block" style="color:green;"> Käsitelty ja toimitettu. </span>
+			<?php endif; ?>
+		</div>
+		<div id="painikkeet">
+			<?php if ( $tilaus_tiedot->maksettu == 0 ) : ?>
+				<a href="./laskut/lasku-<?= $tilaus_tiedot->id ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
+				   download="" target="_blank" class="nappi">Lasku</a>
+				<?php if ( $user->isAdmin() ) : ?>
+					<a href="./noutolistat/noutolista-<?=$tilaus_tiedot->id ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
+					   download="" target="_blank" class="nappi">Noutolista</a>
+				<?php endif; ?>
+			<?php endif; ?>
+		</div>
 	</section>
-	<!-- HTML -->
+
 	<div class="flex_row">
 
 		<table class='tilaus_info'>

@@ -53,7 +53,8 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		<thead>
 		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ostoskori</th></tr>
 		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th>
-			<th class="number">Hinta</th> <th class="number">Kpl-hinta</th> <th>Kpl</th> <th>Info</th> <th></th> </tr>
+			<th class="number">Hinta</th> <th class="number">Kpl-hinta</th> <th class="number">Kpl</th>
+			<th>Info</th> <th></th> </tr>
 		</thead>
 		<tbody>
 		<?php foreach ( $cart->tuotteet as $tuote) : ?>
@@ -63,7 +64,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 				<td><?= $tuote->valmistaja?></td> <!-- Tuotteen valmistaja -->
 				<td class="number"><?= $tuote->summa_toString() ?></td> <!-- Hinta yhteensä (sis. ALV) -->
 				<td class="number"><?= $tuote->a_hinta_toString() ?></td> <!-- Kpl-hinta (sis. ALV) -->
-				<td style="padding-top: 0; padding-bottom: 0;"><!-- TODO: Tarkista mika tarkoitus style-säännöllä. -->
+				<td class="number" style="padding-top: 0; padding-bottom: 0;"><!-- TODO: Tarkista mika tarkoitus style-säännöllä. -->
 					<input id="maara_<?= $tuote->id ?>" name="maara_<?= $tuote->id ?>"
 					       class="maara number" type="number" value="<?= $tuote->kpl_maara ?>"
 					       min="0" title="Kappalemäärä"> <!-- Kpl-määrä (käyttäjän muokattavissa) -->
