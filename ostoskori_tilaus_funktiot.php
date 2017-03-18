@@ -13,23 +13,35 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
 	 * Käydään läpi kaikki ostoskorin tuotteet ja tarkistetaan jokaisesta alennukset, ja oikea hinta.
 	 */
 	foreach ( $cart->tuotteet as $tuote ) {
-		// Asetetaan aloitusarvo tuotteen alennukselle
-		$tuote->alennus_prosentti = $user->yleinen_alennus; // Yrityksen yleinen alennusprosentti
+		// Tarkistetaan, että tuotetta on tilattu tarpeeksi, ennen kuin lasketaan alennus.
+		if ( $tuote->kpl_maara >= $tuote->minimimyyntiera ) {
+			// Asetetaan aloitusarvo tuotteen alennukselle
+			$tuote->alennus_prosentti = $user->yleinen_alennus; // Yrityksen yleinen alennusprosentti
 
-		// Tarkistetaan määräalennukset (sortattu kappale-määrän mukaan)
-		foreach ( $tuote->maaraalennukset as $ale ) {
-			if ( $ale->maaraalennus_kpl <= $tuote->kpl_maara ) { // Onko tuotetta tilattu tarpeeksi alennukseen?
-				// Onko alennus isompi kuin jo tallennettu arvo? (Ale-prosentit eivät mene järjestyksessä.)
-				if ( $ale->alennus_prosentti > $tuote->alennus_prosentti ) {
-					$tuote->alennus_prosentti = $ale->alennus_prosentti;
+			// Tarkistetaan määräalennukset (sortattu kappale-määrän mukaan)
+			foreach ( $tuote->maaraalennukset as $ale ) {
+				if ( $ale->maaraalennus_kpl <= $tuote->kpl_maara ) { // Onko tuotetta tilattu tarpeeksi alennukseen?
+					// Onko alennus isompi kuin jo tallennettu arvo? (Ale-prosentit eivät mene järjestyksessä.)
+					if ( $ale->alennus_prosentti > $tuote->alennus_prosentti ) {
+						$tuote->alennus_prosentti = $ale->alennus_prosentti;
+					}
 				}
-			} else {
-				break;
+				else {
+					break;
+				}
 			}
+			// Asetetaan alennushuomautus, jos tuotteella on alennus.
+			if ( $tuote->alennus_prosentti > 0 ) {
+				$tuote->alennus_huomautus = "{$tuote->alennus_toString()}:n alennus.";
+			}
+		}
+		else { // Jos tuotteen minimyyntierää ei ole ylitetty
+			$tuote->alennus_huomautus = "<span style='color:red;'>
+				Minimyyntierä: {$tuote->minimimyyntiera} kpl</span>";
 		}
 
 		$tuote->a_hinta_alennettu = $tuote->a_hinta * (1-$tuote->alennus_prosentti);
-		$tuote->summa = $tuote->kpl_maara * $tuote->a_hinta;
+		$tuote->summa = $tuote->kpl_maara * $tuote->a_hinta_alennettu;
 
 		$cart->summa_yhteensa += $tuote->summa;
 	}
@@ -37,21 +49,6 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
 	if ( $cart->summa_yhteensa > $user->ilm_toim_sum_raja ) { // Tarkistetaan rahtimaksu
 		$user->rahtimaksu = 0; // Jos ilmaisen toimituksen raja ylitetty, tallenetaan uusi rahtimaksu.
 	}
-}
-
-/**
- * Tulostaa rahtimaksun alennushuomautuksen, tarkistuksen jälkeen.
- * @param User $user
- * @param boolean $ostoskori <p> Onko funktio ostoskoria, vai tilaus-vahvistusta varten?
- * @return string
- */
-function tulosta_rahtimaksu_alennus_huomautus ( User $user, /*bool*/ $ostoskori ) {
-	if ( $user->rahtimaksu == 0 ) {
-		return "Ilmainen toimitus";
-	} elseif ( $ostoskori ) {
-		return "Ilmainen toimitus <br>" . format_euros($user->ilm_toim_sum_raja) . ":n jälkeen.";
-	} else {
-		return "---"; }
 }
 
 /**
@@ -95,25 +92,6 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /*int*
 	if ( $osoitekirja_pituus > 0 ) {
 		return $nappi_html_toimiva;
 	} else return $nappi_html_disabled;
-}
-
-/**
- * Tarkistaa annetun tuotteen hinnan; erityisesti määräalennuksen
- * @param stdClass $product <p> Tuote-olio
- * @return float <p> Palauttaa olion hinnan.
- */
-function tarkista_hinta_era_alennus ( stdClass $product ) {
-	if ( (int)$product->alennusera_kpl != 0 ) {
-		$jakotulos =  (int)$product->cartCount / (int)$product->alennusera_kpl;
-
-		if ( $jakotulos >= 1 ) {
-			$alennus_prosentti = 1 - (float)$product->alennusera_prosentti;
-			$product->hinta = (float)$product->hinta * $alennus_prosentti;
-		}
-	} else {
-		$product->alennusera_prosentti = 0.0;
-	}
-	return $product->hinta;
 }
 
 /**
