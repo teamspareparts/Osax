@@ -6,7 +6,7 @@ class Laskutiedot {
 
 	public $tilaus_pvm = ''; // Tilauksen päivämäärä. Haetaan tietokannasta.
 	public $tilaus_nro = ''; // Tilausnumero. Haetaan tietokannasta.
-	public $laskun_nro = ''; // Laskun numero. Merkitään laskua luodessa.
+	public $laskunro = null; // Laskun numero. Merkitään laskua luodessa.
 
 	/** @var User */
 	public $asiakas = null;
@@ -58,11 +58,12 @@ class Laskutiedot {
 	 * Hakee tilauksen päivämäärän ja rahtimaksun tietokannasta.
 	 */
 	function haeTilauksenTiedot() {
-		$sql = "SELECT paivamaara, pysyva_rahtimaksu FROM tilaus WHERE id = ? LIMIT 1";
+		$sql = "SELECT paivamaara, pysyva_rahtimaksu, laskunro FROM tilaus WHERE id = ? LIMIT 1";
 		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
 		if ( $row ) {
 			$this->tilaus_pvm = $row->paivamaara;
 			$this->hintatiedot[ 'rahtimaksu' ] = $row->pysyva_rahtimaksu;
+			$this->laskunro = $row->laskunro;
 		}
 	}
 
@@ -161,11 +162,15 @@ class Laskutiedot {
 	}
 
 	function haeLaskunNumero() {
-		$sql = "SELECT laskunro FROM laskunumero LIMIT 1";
-		$row = $this->db->query( $sql );
-		$this->laskun_nro = $row->laskunro;
-		$sql = "UPDATE laskunumero SET laskunro = laskunro + 1 LIMIT 1";
-		$this->db->query( $sql );
+		if ( $this->laskunro === null ) {
+			$sql = "SELECT laskunro FROM laskunumero LIMIT 1";
+			$row = $this->db->query( $sql );
+			$this->laskunro = $row->laskunro;
+			$sql = "UPDATE laskunumero SET laskunro = laskunro + 1 LIMIT 1";
+			$this->db->query( $sql );
+			$sql = "UPDATE tilaus SET laskunro = ? WHERE id = ? LIMIT 1";
+			$this->db->query( $sql, [ $this->laskunro, $this->tilaus_nro ] );
+		}
 	}
 
 	/**

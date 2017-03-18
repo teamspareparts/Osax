@@ -11,7 +11,8 @@ require '_start.php'; global $db, $user, $cart;
  */
 function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 	$sql = "SELECT tilaus.id, tilaus.kayttaja_id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
-				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys, tilaus.maksettu, 
+				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys, tilaus.maksettu,
+				tilaus.laskunro,
 				CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
 				CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
 				tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
@@ -101,10 +102,10 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 		</div>
 		<div id="painikkeet">
 			<?php if ( $tilaus_tiedot->maksettu == 0 ) : ?>
-				<a href="./laskut/lasku-<?= $tilaus_tiedot->id ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
+				<a href="./laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
 				   download="" target="_blank" class="nappi">Lasku</a>
 				<?php if ( $user->isAdmin() ) : ?>
-					<a href="./noutolistat/noutolista-<?=$tilaus_tiedot->id ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
+					<a href="./noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
 					   download="" target="_blank" class="nappi">Noutolista</a>
 				<?php endif; ?>
 			<?php endif; ?>

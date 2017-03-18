@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean NOT NULL DEFAULT 0, -- Käyttäjä maksaa laskun tilauksen tallennuksen jälkeen.
   `paytrail_auth_hash` varchar(255) DEFAULT NULL, -- Paytrailin käyttöä varten, uniikki maksun tunnistus
+  `laskunro` int NOT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   PRIMARY KEY (`id`),
@@ -313,6 +314,7 @@ CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+/* Juokseva numerointi. Tilausta tehdessä otetaan sen hetkinen numero, joka tallennetaan pysyvästi tilaus-tauluun. */
 CREATE TABLE IF NOT EXISTS `laskunumero` (
   `laskunro` int(11) UNSIGNED NOT NULL, -- Laskujen juoksevaa numerointia varten
   PRIMARY KEY (`laskunro`)
