@@ -101,5 +101,5 @@ if ( !file_exists('./noutolistat') ) { // Tarkistetaan, että kansio on olemassa
 	mkdir( './noutolistat' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
-$tiedoston_nimi = "noutolista-{$lasku->tilaus_nro}-{$lasku->asiakas->id}.pdf";
+$tiedoston_nimi = "noutolista-{$lasku->laskunro}-{$lasku->asiakas->id}.pdf";
 $mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );
