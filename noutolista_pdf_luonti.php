@@ -32,9 +32,9 @@ $html = "
 		</table></td>
 	</tr>
 	<tr><th>Toimitusosoite</th><th>Asiakkaan tiedot</th></tr>
-	<tr><td>{$lasku->toimitusosoite->koko_nimi}<br>
-			{$lasku->toimitusosoite->katuosoite}<br>
-			{$lasku->toimitusosoite->postinumero} {$lasku->toimitusosoite->postitoimipaikka}<br></td>
+	<tr><td>{$lasku->asiakas->kokoNimi()}<br>
+			{$lasku->toimitusosoite["katuosoite"]}<br>
+			{$lasku->toimitusosoite["postinumero"]} {$lasku->toimitusosoite["postitoimipaikka"]}<br></td>
 		<td>{$lasku->asiakas->kokoNimi()}<br>
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			{$lasku->asiakas->yrityksen_nimi}</td></tr>
@@ -59,7 +59,7 @@ $html = "
  * Lisätään tuotteiden tiedot
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
-foreach ( $cart->tuotteet as $tuote ) {
+foreach ( $lasku->tuotteet as $tuote ) {
 	$html .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
@@ -101,5 +101,5 @@ if ( !file_exists('./noutolistat') ) { // Tarkistetaan, että kansio on olemassa
 	mkdir( './noutolistat' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
-$tiedoston_nimi = "noutolista-{$lasku->tilaus_nro}-{$user->id}.pdf";
+$tiedoston_nimi = "noutolista-{$lasku->tilaus_nro}-{$lasku->asiakas->id}.pdf";
 $mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );

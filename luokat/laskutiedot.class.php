@@ -86,7 +86,7 @@ class Laskutiedot {
 		/*
 		 * SQL-käsky, ja DB-luokan metodit
 		 */
-		$sql = "SELECT tuote.id, tuote.tuotekoodi,
+		$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.hyllypaikka,
 					tilaus_tuote.tuotteen_nimi AS nimi,
 					tilaus_tuote.valmistaja, 
 					tilaus_tuote.kpl AS kpl_maara,

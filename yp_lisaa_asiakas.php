@@ -32,7 +32,6 @@ if ( !empty( $_POST[ 'sposti' ] ) ) {
 			if ( $_POST[ 'password' ] === $_POST[ 'confirm_password' ] ) {
 				$_POST[ 'password' ] = password_hash( $_POST[ 'password' ], PASSWORD_DEFAULT );
 				$_POST[] = $_POST[ 'paivat' ]; // for voimassaolopvm
-				$_POST[] = $_POST[ 'paivat' ]; // for duplicate key part
 				unset( $_POST[ 'confirm_password' ] );
 				unset( $_POST[ "paivat" ] ); //TODO: what why how --JJ/170310
 

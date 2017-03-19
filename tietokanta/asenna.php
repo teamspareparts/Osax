@@ -50,6 +50,9 @@ $db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
 $db->query( "INSERT INTO laskunumero (laskunro) VALUES (?)", [1]);
 $db->query( "INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [0,0.00]);
 
+//TODO: Undefined variable: result --SL 19.3
+/*
 if ( $result ) {
     echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';
 }
+*/

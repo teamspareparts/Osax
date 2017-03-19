@@ -38,41 +38,38 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		 * Kustomi haun rakennusta tehokkuuden vuoksi. Yksitellen tehtynä hyvin hidasta.
 		 */
 		$questionmarks = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?,?,?,?,?,?,?)' ) );
-		$placeholders = [];
+		$values = [];
 		$stmt = $conn->prepare( "
 			INSERT INTO tilaus_tuote
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES {$questionmarks}" );
 
-		// Luodaan temp-taulu, johon lisätään tuotteiden päivitetyt varastosaldot
-		$stmt_varastosaldot = $conn->prepare( "CREATE TABLE IF NOT EXISTS `temp_tuote`
-			(`id` MEDIUMINT UNSIGNED NOT NULL, `varastosaldo` INT(11) NOT NULL, PRIMARY KEY (`id`))" );
-		$stmt_varastosaldot->execute();
+		//Tuotteiden varastosaldot temp-tauluun
 		$questionmarks2 = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?)' ) );
-		$placeholders2 = [];
-		$stmt_varastosaldot = $conn->prepare( "INSERT INTO temp_tuote (id, varastosaldo) VALUES {$questionmarks2}");
+		$values2 = [];
+		$stmt_varastosaldot = $conn->prepare( "INSERT INTO temp_tuote (tuote_id, varastosaldo) VALUES {$questionmarks2}");
 
 		foreach ( $cart->tuotteet as $tuote ) {
-			array_push( $placeholders, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
+			array_push( $values, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
 						$tuote->a_hinta_ilman_alv, $tuote->alv_prosentti, $tuote->alennus_prosentti,
 						$tuote->kpl_maara );
 
-			array_push( $placeholders2, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
+			array_push( $values2, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
 		}
 
 		// Lisätään tilauksen tuotteet
-		$stmt->execute( $placeholders );
+		$stmt->execute( $values );
 		// Lisätään päivitetyt varastosaldot temp-tauluun
-		$stmt_varastosaldot->execute( $placeholders2 );
+		$stmt_varastosaldot->execute( $values2 );
 
 		// Päivitetään oikeiden tuotteiden varastosaldot temp-taulun perusteella
 		$stmt_varastosaldot = $conn->prepare( "
             UPDATE tuote 
-            JOIN temp_tuote ON tuote.id = temp_tuote.id 
+            JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
             SET tuote.varastosaldo = temp_tuote.varastosaldo, tuote.paivitettava = 1" );
 		$stmt_varastosaldot->execute();
-		//Poistetaan temp-taulu
-		$stmt_varastosaldot = $conn->prepare( "DROP TABLE temp_tuote" );
+		//Tyhjennetään temp_tuote
+		$stmt_varastosaldot = $conn->prepare( "DELETE FROM temp_tuote" );
 		$stmt_varastosaldot->execute();
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.

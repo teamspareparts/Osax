@@ -1,4 +1,4 @@
-/* @version 2017-02-09 */
+﻿/* @version 2017-02-09 */
 SET FOREIGN_KEY_CHECKS=0; -- Taulut ovat väärässä järjestyksessä FOREIGN KEY tarkastuksia varten.
 
 CREATE TABLE IF NOT EXISTS `kayttaja` (
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean NOT NULL DEFAULT 0, -- Käyttäjä maksaa laskun tilauksen tallennuksen jälkeen.
   `paytrail_auth_hash` varchar(255) DEFAULT NULL, -- Paytrailin käyttöä varten, uniikki maksun tunnistus
-  `laskunro` int NOT NULL, -- Otetaan laskunumero-taulusta
+  `laskunro` int DEFAULT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   PRIMARY KEY (`id`),
@@ -318,4 +318,13 @@ CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
 CREATE TABLE IF NOT EXISTS `laskunumero` (
   `laskunro` int(11) UNSIGNED NOT NULL, -- Laskujen juoksevaa numerointia varten
   PRIMARY KEY (`laskunro`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+
+/* TEMP-taulu varastosaldon päivitystä varten tilausta tehdessä. */
+CREATE TABLE IF NOT EXISTS `temp_tuote`(
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `varastosaldo` int(11) NOT NULL,
+  PRIMARY KEY (`tuote_id`),
+  CONSTRAINT fk_tuoteVarastosaldo FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
