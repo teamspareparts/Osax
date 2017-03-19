@@ -101,9 +101,10 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 			<?php endif; ?>
 		</div>
 		<div id="painikkeet">
+            <?php if( $user->isAdmin() || !($tilaus_tiedot->maksettu == 0) ) : ?>
             <a href="./laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
                download="" target="_blank" class="nappi">Lasku</a>
-            <?php if ( $user->isAdmin() ) : ?>
+            <?php endif; if ( $user->isAdmin() ) : ?>
                 <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
                    download="" target="_blank" class="nappi">Noutolista</a>
             <?php endif; ?>

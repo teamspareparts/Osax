@@ -273,8 +273,8 @@ require 'tuotemodal.php';
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
 							   type="number" value="0" min="0" title="Kappale-määrä"></td>
-					<td class="toiminnot" id="tuote_cartAdd_<?=$product->id?>">
-						<button class="nappi" onclick="addToShoppingCart(
+					<td class="toiminnot">
+						<button class="nappi" id="tuote_cartAdd_<?=$product->id?>" onclick="addToShoppingCart(
 							<?=$product->id?>,'<?=$product->articleName?>','<?=$product->brandName?>')">
 							<i class="material-icons">add_shopping_cart</i>Osta</button>
 						<?php if ($user->isAdmin()) : ?>
