@@ -38,7 +38,7 @@ class Yritys {
 		if ( $yritys_id !== null ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT id, aktiivinen, nimi, sahkoposti, puhelin, y_tunnus, katuosoite, postinumero, 
 						postitoimipaikka, maa, rahtimaksu, ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja,
-						alennus_prosentti AS yleinen_alennus
+						alennus_prosentti AS yleinen_alennus, maksutapa
 					FROM yritys 
 					WHERE yritys.id = ? 
 					LIMIT 1";

@@ -7,19 +7,17 @@ if ( !$user->isAdmin() || !$yritys->isValid() ) {
 }
 
 /** Yrityksen tietojen muokkaus */
-if (isset($_POST['muokkaa_yritysta'])) {
-	unset($_POST['muokkaa_yritysta']);
+if ( !empty($_POST['email'])) {
 	$sql = "UPDATE yritys 
 			SET sahkoposti = ?, puhelin = ?, katuosoite = ?, postinumero = ?, postitoimipaikka = ?, maa = ?
-			WHERE nimi = ? AND y_tunnus = ?";
+			WHERE id = ? LIMIT 1";
 	$db->query( $sql, array_values( $_POST ) );
     $_SESSION["feedback"] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
 }
 
 /** Yrityksen rahtimaksun muokkaus */
-elseif (isset($_POST['muokkaa_rahtimaksu'])) {
-	unset( $_POST['muokkaa_rahtimaksu'] );
-	$sql = "UPDATE yritys SET rahtimaksu = ?, ilmainen_toimitus_summa_raja = ? WHERE id = ?";
+elseif ( !empty($_POST['rahtimaksu'])) {
+	$sql = "UPDATE yritys SET rahtimaksu = ?, ilmainen_toimitus_summa_raja = ? WHERE id = ? LIMIT 1";
 	$db->query( $sql, array_values($_POST) );
     $_SESSION['feedback'] = "<p class='success'>Rahtimaksu ja ilmaisen toimituksen raja päivitetty.</p>";
 }
@@ -27,9 +25,16 @@ elseif (isset($_POST['muokkaa_rahtimaksu'])) {
 /** Yrityksen alennuksen lisääminen/muokkaaminen */
 elseif ( !empty($_POST['muokkaa_alennus']) ) {
 	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10;
-	$sql = "UPDATE yritys SET alennus_prosentti = ? WHERE id = ?";
+	$sql = "UPDATE yritys SET alennus_prosentti = ? WHERE id = ? LIMIT 1";
 	$db->query( $sql, array_values($_POST) );
 	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
+}
+
+/** Yrityksen maksutavan */
+elseif ( !empty($_POST['maksutapa']) ) {
+	$sql = "UPDATE yritys SET maksutapa = ? WHERE id = ? LIMIT 1";
+	$db->query( $sql, array_values($_POST) );
+	$_SESSION['feedback'] = "<p class='success'>Yrityksen maksutapoja päivitetty </p>";
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -80,11 +85,10 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
             <br><br>
             <label for="maa"> Maa </label>
             <input id="maa" name="maa" type="text" value="<?= $yritys->maa?>">
-            <input name="nimi" type="hidden" value="<?= $yritys->nimi?>">
-            <input name="y_tunnus" type="hidden" value="<?= $yritys->y_tunnus?>">
             <br><br>
             <div class="center">
-                <input class="nappi" name="muokkaa_yritysta" value="Muokkaa yritystä" type="submit">
+	            <input name="id" type="hidden" value="<?= $yritys->id?>">
+                <input class="nappi" value="Muokkaa yritystä" type="submit">
             </div>
         </fieldset>
     </form>
@@ -96,9 +100,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<label> Yleinen alennus: </label>
 			<input type="number" name="yleinen_alennus" min="0" max="100"
 			       value="<?= $yritys->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
-			<input type="hidden" name="muokkaa_alennus" value="<?= $yritys->id ?>">
 			<br><br>
 			<div class="center">
+				<input type="hidden" name="muokkaa_alennus" value="<?= $yritys->id ?>">
 				<input type="submit" value="Muokkaa alennusta" class="nappi">
 			</div>
 		</fieldset>
@@ -118,10 +122,28 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
             <br>
             <div class="center">
 				<input name="id" value="<?=$yritys->id?>" type="hidden">
-                <input name="muokkaa_rahtimaksu" value="Muokkaa rahtimaksua" type="submit" class="nappi">
+                <input value="Muokkaa rahtimaksua" type="submit" class="nappi">
             </div>
         </fieldset>
     </form>
+	<br><br>
+	<form method="post">
+		<fieldset><legend>Maksutavan valinta</legend>
+			<span>Käyttäjä voi silti valita maksaa Paytraililla.<br>
+			Nykyinen arvo: <?= $yritys->maksutapa ?></span>
+			<br><br>
+			<label for="mt"> Maksutapa: </label>
+			<select id="mt" name="maksutapa">
+				<option value="0">0: Vain Paytrail</option>
+				<option value="1">1: Paytrail + Lasku</option>
+			</select>
+			<br><br>
+			<div class="center">
+				<input name="id" value="<?=$yritys->id?>" type="hidden">
+				<input value="Muokkaa rahtimaksua" type="submit" class="nappi">
+			</div>
+		</fieldset>
+	</form>
 </main>
 </body>
 </html>

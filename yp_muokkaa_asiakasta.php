@@ -26,17 +26,6 @@ elseif ( isset($_POST['demo_away']) ) {
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaan tili on nyt pysyvä.</p>";
 }
 
-/** Yrityksen alennuksen lisääminen/muokkaaminen */
-elseif ( !empty($_POST['muokkaa_alennus']) ) {
-	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10
-	$sql = "INSERT INTO yritys_erikoishinta (yritys_id, alennus_prosentti, alkuPvm, loppuPvm)
-			VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_DATE + INTERVAL 15 DAY)
-			ON DUPLICATE KEY UPDATE 
-				alennus_prosentti = VALUES(alennus_prosentti), alkuPvm = VALUES(alkuPvm), loppuPvm = VALUES(loppuPvm)";
-	$db->query( $sql, array_values($_POST) );
-	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
-}
-
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
@@ -101,21 +90,6 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 				<input name="reset_password" value="<?= $asiakas->id ?>" type="hidden">
 				<input class="nappi" value="Resetoi salasana" type="submit">
 			</label>
-		</fieldset>
-	</form><br><br>
-
-	<form action="#" name="muuta_tuotaalennus" method="post">
-		<fieldset class="center"><legend>Yrityksen alennus</legend>
-			<span>Yleinen alennus, koskee kaikkia tuotteita.<br>Alennus on yrityskohtainen.</span>
-			<br><br>
-			<label> Yleinen alennus: </label>
-			<input type="hidden" name="muokkaa_alennus" value="<?= $asiakas->yritys_id ?>">
-			<input type="number" name="yleinen_alennus" min="0" max="100"
-			       value="<?= $asiakas->yleinen_alennus * 100 ?>" title="Anna alennus kokonaislukuna"> %
-			<br><br>
-			<div class="center">
-				<input type="submit" value="Muokkaa alennusta" class="nappi">
-			</div>
 		</fieldset>
 	</form><br><br>
 
