@@ -48,7 +48,7 @@
 			<?php else : ?>
                 <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                 <li><a href='tilaushistoria.php'>Tilaushistoria</a></li>
-                <li><a href="yp_luo_hinnastotiedosto.php">Lataa Hinnasto</a></li>
+                <li><a href='hinnasto/hinnasto.txt' charset="UTF-8" download='hinnasto' target='_blank'>Lataa hinnasto</a></li>
 			<?php endif; ?>
             <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>

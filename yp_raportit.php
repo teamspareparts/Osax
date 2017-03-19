@@ -25,13 +25,17 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 
     <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php"><span>Varastolistausraportti</span></div>
     <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
-    <div class="floating-box clickable line" data-href="yp_luo_hinnastotiedosto.php"><span>Lataa hinnastot</span></div>
+    <div class="floating-box clickable line">
+        <span><a href='hinnasto/hinnasto.txt' charset='UTF-8' download='hinnasto' target='_blank' style="color: inherit;">Lataa hinnasto</a></span>
+    </div>
 </main>
 <script>
 	$(document).ready(function(){
 
         $('.clickable').click(function(){
-			window.document.location = $(this).data('href');
+            if ( $(this).data('href') ) {
+                window.document.location = $(this).data('href');
+            }
         }).css('cursor', 'pointer');
 
 	});

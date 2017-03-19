@@ -1,11 +1,14 @@
 <?php
-//TODO: Hinnaston luonti siirretään hinnaston sisäänajon yhteyteen / yöajo
-//TODO: Käyttäjä vain lataa hinnaston suoraan serveriltä.
 /**
- * Tällä sivulla luodaan hinnasto.txt tiedosto ja lähetetään se käyttäjän koneelle.
+ * Tällä sivulla luodaan hinnasto.txt tiedosto.
+ * Tiedosto ajetaan cronjobilla kerran päivässä.
  */
-require "_start.php"; global $db, $user;
-require "tecdoc.php";
+
+//Määritellään työskentelykansio cronjobia varten
+chdir(dirname(__FILE__));
+require 'luokat/db_yhteys_luokka.class.php';
+$db = new DByhteys();
+
 
 set_time_limit(180);
 
@@ -28,11 +31,16 @@ $fetchCount = 10000;
 
 /** Hinnastotiedoston tallentaminen serverille */
 $hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi avata!");
-fwrite($hinnastotiedosto, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM
+//fwrite($hinnastotiedosto, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM
 $offset = 0;
 $products = true;
 while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
-    $products = $db->query("SELECT * FROM tuote LEFT JOIN ALV_kanta ON tuote.ALV_kanta=ALV_kanta.kanta WHERE aktiivinen=1 LIMIT ?, ?",
+    $products = $db->query("
+        SELECT * FROM tuote 
+        LEFT JOIN ALV_kanta 
+          ON tuote.ALV_kanta=ALV_kanta.kanta 
+        WHERE aktiivinen=1 
+        LIMIT ?, ?",
         [$offset, $fetchCount], FETCH_ALL);
     $offset += $fetchCount;
 
@@ -45,8 +53,14 @@ while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
     }
 }
 
+fclose($hinnastotiedosto);
+
+
+
+
 
 /** Ladataan tiedosto serveriltä */
+/*
 $fullPath = $path.$tiedoston_nimi;
 
 if ($fd = fopen ($fullPath, "r")) {
@@ -65,4 +79,5 @@ if ($fd = fopen ($fullPath, "r")) {
 }
 fclose ($fd);
 exit;
+*/
 ?>
