@@ -1,7 +1,8 @@
-<?php
+﻿<?php
 /**
  * @version 2017-02-xx <p> WIP
  */
+//TODO: Mitä jos käyttäjä vain poistuu sivulta tai sulkee selaimen? --SL 19.3
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';

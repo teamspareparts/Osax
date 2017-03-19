@@ -170,17 +170,17 @@ foreach ($tuotteet as $tuote) {
 // Luodaan väliaikainen taulu, jonka avulla päivitetään tuotteiden vuosimyynti
 // ja merkataan tuotteet päivitetyiksi
 if ( count($tuotteet) ) {
-    $db->query("CREATE TABLE IF NOT EXISTS `temp_tuote`(`id` MEDIUMINT UNSIGNED NOT NULL, `vuosimyynti` INT(11) NOT NULL, PRIMARY KEY (`id`))");
+    $db->query("CREATE TABLE IF NOT EXISTS `temp_tuote_vuosimyynti`(`id` MEDIUMINT UNSIGNED NOT NULL, `vuosimyynti` INT(11) NOT NULL, PRIMARY KEY (`id`))");
     $questionmarks = implode(',', array_fill(0, count($tuotteet), '(?,?)'));
-    $sql = "INSERT IGNORE INTO temp_tuote (id, vuosimyynti) VALUES {$questionmarks}";
+    $sql = "INSERT IGNORE INTO temp_tuote_vuosimyynti (id, vuosimyynti) VALUES {$questionmarks}";
     $db->query($sql, $placeholders);
 
-    $db->query("UPDATE tuote JOIN temp_tuote
-            ON tuote.id = temp_tuote.id 
-            SET tuote.vuosimyynti = temp_tuote.vuosimyynti ,
+    $db->query("UPDATE tuote JOIN temp_tuote_vuosimyynti
+            ON tuote.id = temp_tuote_vuosimyynti.id 
+            SET tuote.vuosimyynti = temp_tuote_vuosimyynti.vuosimyynti ,
                 tuote.paivitettava = 0");
 
-    $db->query("DROP TABLE temp_tuote");
+    $db->query("DROP TABLE temp_tuote_vuosimyynti");
 }
 
 

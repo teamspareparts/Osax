@@ -1,3 +1,9 @@
+<noscript>
+    <p>Sivusto vaatii javascriptin toimiakseen. Juuri nyt käyttämässäsi selaimessa ei ole
+        javascript päällä. Ohjeet miten javascriptin saa päälle selaimessa (englanniksi):
+        <a href="http://www.enable-javascript.com/" target="_blank">
+            instructions how to enable JavaScript in your web browser</a>.</p>
+</noscript>
 <header class="header_container">
     <section class="header_top">
         <div id="head_logo">

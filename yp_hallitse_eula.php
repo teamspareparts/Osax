@@ -65,7 +65,6 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
         <form action="#" method="post" enctype="multipart/form-data">
             Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
             <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
-            <!-- download ei toimi safarissa -->
             <a href="./eula/eula.txt" download="eula" target="_blank" style="margin-left:100px;">Lataa nykyinen EULA</a>
         </form>
     </fieldset>

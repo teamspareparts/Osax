@@ -20,13 +20,14 @@ function add_product_to_catalog( DByhteys $db, array $val ) {
 		$sql = "INSERT INTO tuote
 					(articleNo, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, sisaanostohinta, hinta_ilman_ALV,
 					 ALV_kanta, varastosaldo, minimimyyntiera, hyllypaikka, nimi, valmistaja, yhteensa_kpl, 
-					 keskiostohinta)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta)
+					 keskiostohinta, ensimmaisen_kerran_varastossa)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, varastosaldo, sisaanostohinta, now())
 				ON DUPLICATE KEY UPDATE
 					sisaanostohinta=VALUES(sisaanostohinta), hinta_ilman_ALV=VALUES(hinta_ilman_ALV), 
 					ALV_kanta=VALUES(ALV_kanta), varastosaldo=VALUES(varastosaldo),
 					minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
-					valmistaja=VALUES(valmistaja), tilauskoodi=VALUES(tilauskoodi), aktiivinen = 1";
+					valmistaja=VALUES(valmistaja), tilauskoodi=VALUES(tilauskoodi),
+					ensimmaisen_kerran_varastossa = now(), aktiivinen = 1";
 		return $db->query($sql, $val);
 	}
 

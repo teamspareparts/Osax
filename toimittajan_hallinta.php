@@ -133,41 +133,37 @@ function tulosta_hankintapaikat( DByhteys $db, /* int */ $brandId) {
 	if (isset($hankintapaikat)) {
 		foreach( $hankintapaikat as $hankintapaikka ) : ?>
 
-            <form action="" method="post" class="poista_hankintapaikka_linkitys">
-                <table style="float:left; padding-right: 30pt;">
-                    <tr><th colspan='2' class='text-center'>Hankintapaikka <?=$i++?></th></tr>
-                    <tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
-                    <tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
-                    <tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
-                    <tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
-                    <tr><td>Puh</td><td><?= $hankintapaikka->puhelin?></td></tr>
-                    <tr><td>Fax</td><td><?= $hankintapaikka->fax?></td></tr>
-                    <tr><td>URL</td><td><?= $hankintapaikka->www_url?></td></tr>
-                    <tr><td>Tilaustapa</td><td><?= $hankintapaikka->tilaustapa?></td></tr>
-                    <tr><th colspan='2' class='text-center'>Yhteyshenkilö</th></tr>
-                    <tr><td>Nimi</td><td><?= $hankintapaikka->yhteyshenkilo_nimi?></td></tr>
-                    <tr><td>Puh</td><td><?= $hankintapaikka->yhteyshenkilo_puhelin?></td></tr>
-                    <tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
-                    <tr>
-                        <td colspan="2">
-                            <input name="hankintapaikka_id" type="hidden" value="<?=$hankintapaikka->id?>">
-                            <input name="poista_linkitys" class="nappi" type="submit" value="Poista" style="background:#d20006; border-color:#b70004;">
-                            <span onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>',
-                                '<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
+            <table style="float:left; padding-right: 30pt;">
+                <tr><th colspan='2' class='text-center'>Hankintapaikka <?=$i++?></th></tr>
+                <tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
+                <tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
+                <tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
+                <tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
+                <tr><td>Puh</td><td><?= $hankintapaikka->puhelin?></td></tr>
+                <tr><td>Fax</td><td><?= $hankintapaikka->fax?></td></tr>
+                <tr><td>URL</td><td><?= $hankintapaikka->www_url?></td></tr>
+                <tr><td>Tilaustapa</td><td><?= $hankintapaikka->tilaustapa?></td></tr>
+                <tr><th colspan='2' class='text-center'>Yhteyshenkilö</th></tr>
+                <tr><td>Nimi</td><td><?= $hankintapaikka->yhteyshenkilo_nimi?></td></tr>
+                <tr><td>Puh</td><td><?= $hankintapaikka->yhteyshenkilo_puhelin?></td></tr>
+                <tr><td>Email</td><td><?= $hankintapaikka->yhteyshenkilo_email?></td></tr>
+                <tr>
+                    <td colspan="2">
+                        <button onclick="poista_linkitys(<?=$hankintapaikka->id?>)" class="nappi red">Poista</button>
+                        <button onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>','<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
                                 '<?=$hankintapaikka->maa?>','<?=$hankintapaikka->puhelin?>','<?=$hankintapaikka->fax?>',
                                 '<?=$hankintapaikka->www_url?>', '<?=$hankintapaikka->yhteyshenkilo_nimi?>', '<?=$hankintapaikka->yhteyshenkilo_puhelin?>',
-                                '<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</span>
-                        </td>
-                    </tr>
-					<tr>
-						<td colspan="2">
-							<a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a>
-							<a href="yp_valikoima.php?brand=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Valikoima</a>
-						</td>
-					</tr>
-				</table>
+                                '<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <a href="yp_lisaa_tuotteita.php?brandId=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a>
+                        <a href="yp_valikoima.php?brand=<?=$brandId?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Valikoima</a>
+                    </td>
+                </tr>
+            </table>
 
-            </form>
         <?php endforeach;
 	}
 }
@@ -297,7 +293,7 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 				<h4>Anna uuden hankintapaikan tiedot tai valitse listasta.</h4>\
 				<br>\
 				<form action="" method="post" id="valitse_hankintapaikka">\
-				<label><span>Hankintapaikat</span></label>\
+				<label>Hankintapaikat</label>\
 					<select name="hankintapaikka" id="hankintapaikka">\
 						<option value="0">-- Hankintapaikka --</option>\
 					</select>\
@@ -309,44 +305,44 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 				<hr>\
 				<form action="" method="post" name="uusi_hankintapaikka" id="uusi_hankintapaikka">\
 					\
-					<label><span>ID</span></label>\
+					<label class="required">ID</label>\
 					<input name="hankintapaikka_id" type="text" placeholder="000" title="Numero väliltä 001-999" pattern="00[1-9]|0[1-9][0-9]|[1-9][0-9]{2}" required>\
 					<br><br>\
-					<label><span>Yritys</span></label>\
+					<label class="required">Yritys</label>\
 					<input name="nimi" type="text" placeholder="Yritys Oy" title="" required>\
 					<br><br>\
-					<label><span>Katuosoite</span></label>\
+					<label>Katuosoite</label>\
 					<input name="katuosoite" type="text" placeholder="Katu" title="">\
 					<br><br>\
-					<label><span>Postiumero</span></label>\
+					<label>Postiumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{1,20}" placeholder="00000">\
 					<br><br>\
-					<label><span>Kaupunki</span></label>\
+					<label>Kaupunki</label>\
 					<input name="kaupunki" type="text" pattern=".{1,50}" placeholder="KAUPUNKI">\
 					<br><br>\
-					<label><span>Maa</span></label>\
+					<label>Maa</label>\
 					<input name="maa" type="text" pattern=".{1,50}" placeholder="Maa">\
 					<br><br>\
-					<label><span>Puh</span></label>\
+					<label>Puh</label>\
 					<input name="puh" type="text" placeholder="040 123 4567" \
 						   pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" >\
 					<br><br>\
-					<label><span>Fax</span></label>\
+					<label>Fax</label>\
 					<input name="fax" type="text" pattern=".{1,50}" placeholder="01 234567">\
 					<br><br>\
-					<label><span>URL</span></label>\
+					<label>URL</label>\
 					<input name="url" type="text" pattern=".{1,50}" placeholder="www.url.fi">\
 					<br><br>\
-					<label><span>Yhteyshenkilö</span></label>\
+					<label>Yhteyshenkilö</label>\
 					<input name="yhteyshenkilo_nimi" type="text" pattern=".{1,50}" placeholder="Etunimi Sukunimi">\
 					<br><br>\
-					<label><span>Yhteyshenk. puh.</span></label>\
+					<label>Yhteyshenk. puh.</label>\
 					<input name="yhteyshenkilo_puhelin" type="text" pattern=".{1,50}" placeholder="040 123 4567">\
 					<br><br>\
-					<label><span>Yhteyshenk. email</span></label>\
+					<label>Yhteyshenk. email</label>\
 					<input name="yhteyshenkilo_email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi">\
 					<br><br>\
-					<label><span>Tilaustapa</span></label>\
+					<label>Tilaustapa</label>\
 					<input name="tilaustapa" type="text" pattern=".{1,50}">\
 					<br><br>\
 					<input class="nappi" type="submit" name="lisaa" value="Tallenna" id="lisaa_hankintapaikka"> \
@@ -380,44 +376,44 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 				<hr><br>\
 				<form action="" method="post" name="muokkaa_hankintapaikka">\
 					\
-					<label><span>ID</span></label>\
+					<label>ID</label>\
 					<h5 style="display: inline">'+hankintapaikka_id+'</h5>\
 					<br><br>\
-					<label><span>Hankintapaikka</span></label>\
-					<input name="yritys" type="text" placeholder="Nimi" value="'+yritys+'">\
+					<label class="required">Hankintapaikka</label>\
+					<input name="yritys" type="text" placeholder="Nimi" value="'+yritys+'" required>\
 					<br><br>\
-					<label><span>Katuosoite</span></label>\
+					<label>Katuosoite</label>\
 					<input name="katuosoite" type="text" placeholder="Katu" value="'+katuosoite+'">\
 					<br><br>\
-					<label><span>Postiumero</span></label>\
+					<label>Postiumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{1,20}" placeholder="00000" value="'+postinumero+'">\
 					<br><br>\
-					<label><span>Kaupunki</span></label>\
+					<label>Kaupunki</label>\
 					<input name="kaupunki" type="text" pattern=".{1,50}" placeholder="KAUPUNKI" value="'+postitoimipaikka+'">\
 					<br><br>\
-					<label><span>Maa</span></label>\
+					<label>Maa</label>\
 					<input name="maa" type="text" pattern=".{1,50}" placeholder="Maa" value="'+maa+'">\
 					<br><br>\
-					<label><span>Puh</span></label>\
+					<label>Puh</label>\
 					<input name="puh" type="text" placeholder="040 123 4567" value="'+puhelin+'" \
 						   pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" >\
 					<br><br>\
-					<label><span>Fax</span></label>\
+					<label>Fax</label>\
 					<input name="fax" type="text" pattern=".{1,50}" placeholder="01234567" value="'+fax+'">\
 					<br><br>\
-					<label><span>URL</span></label>\
+					<label>URL</label>\
 					<input name="url" type="text" pattern=".{1,50}" placeholder="www.url.fi" value="'+www_url+'">\
 					<br><br>\
-					<label><span>Yhteyshenkilö</span></label>\
+					<label>Yhteyshenkilö</label>\
 					<input name="yhteyshenkilo_nimi" type="text" pattern=".{1,50}" placeholder="Etunimi Sukunimi" value="'+yhteyshenkilo_nimi+'">\
 					<br><br>\
-					<label><span>Yhteyshenk. puh.</span></label>\
+					<label>Yhteyshenk. puh.</label>\
 					<input name="yhteyshenkilo_puhelin" type="text" pattern=".{1,50}" placeholder="040 123 4567" value="'+yhteyshenkilo_puhelin+'">\
 					<br><br>\
-					<label><span>Yhteyshenk. email</span></label>\
+					<label>Yhteyshenk. email</label>\
 					<input name="yhteyshenkilo_email" type="text" pattern=".{1,50}" placeholder="osoite@osoite.fi" value="'+yhteyshenkilo_email+'">\
 					<br><br>\
-					<label><span>Tilaustapa</span></label>\
+					<label>Tilaustapa</label>\
 					<input name="tilaustapa" type="text" pattern=".{1,50}" value="'+tilaustapa+'">\
 					<br><br>\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
@@ -428,6 +424,36 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 			draggable: true
 		});
 	}
+
+	function poista_linkitys (hankintapaikka_id) {
+        let c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?");
+        if (c == false) {
+            e.preventDefault();
+            return false;
+        }
+        let form = document.createElement("form");
+        form.setAttribute("method", "POST");
+        form.setAttribute("action", "");
+        form.setAttribute("name", "poista_linkitys");
+
+
+        //POST["poista_linkitys"]
+        let field = document.createElement("input");
+        field.setAttribute("type", "hidden");
+        field.setAttribute("name", "poista_linkitys");
+        field.setAttribute("value", true);
+        form.appendChild(field);
+
+        //POST["hankintapaikka_id"]
+        field = document.createElement("input");
+        field.setAttribute("type", "hidden");
+        field.setAttribute("name", "hankintapaikka_id");
+        field.setAttribute("value", hankintapaikka_id);
+        form.appendChild(field);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
 
     $(document).ready(function() {
         $(document.body)
@@ -465,13 +491,6 @@ $hankintapaikat = hae_kaikki_hankintapaikat( $db );
 					}
 				}
 			});
-		$('.poista_hankintapaikka_linkitys').submit(function (e) {
-			let c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?");
-			if (c == false) {
-				e.preventDefault();
-				return false;
-			}
-		});
     });
 	
 </script>
