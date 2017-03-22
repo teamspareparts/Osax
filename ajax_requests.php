@@ -1,7 +1,7 @@
 ﻿<?php
 /**
  * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
- * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
+ * @version 2017-03-22 <p> Poistettu EULA-pyyntö.
  */
 
 /**
@@ -62,14 +62,6 @@ elseif ( !empty($_POST['tuote_hankintapyynto']) ) {
 	$result = $db->query( $sql,
 		[ $_POST['articleNo'], $_POST['valmistaja'], $_POST['tuotteen_nimi'],
 			$_POST['selitys'], $_POST['korvaava_okey'], $_SESSION['id'] ] );
-}
-
-/**
- * Eulan vahvistus
- */
-elseif ( !empty($_POST['eula_vahvista']) ) {
-	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
-	$result = $db->query( $sql, [$_POST['user_id']] );
 }
 
 /**

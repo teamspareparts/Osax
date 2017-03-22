@@ -156,7 +156,7 @@ class User {
 	}
 
 	/**
-	 * Palauttaa, onko olio käytettävissä, eikä NULL.
+	 * Palauttaa, onko olio käytettävissä (ei NULL).
 	 * @return bool
 	 */
 	public function isValid() {

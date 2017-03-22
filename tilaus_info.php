@@ -92,21 +92,22 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 	<section style="white-space: nowrap">
 		<div class="otsikko">
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
-			<?php if ( $tilaus_tiedot->maksettu == 0 ) : ?>
+			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:red;"> Odottaa maksua. Lasku ei saatavilla. </span>
-			<?php elseif ( $tilaus_tiedot->kasitelty == 0 ) : ?>
+			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
 				<span class="inline-block" style="color:red;"> Odottaa käsittelyä. </span>
 			<?php else: ?>
 				<span class="inline-block" style="color:green;"> Käsitelty ja toimitettu. </span>
 			<?php endif; ?>
 		</div>
 		<div id="painikkeet">
-            <?php if( $user->isAdmin() || !($tilaus_tiedot->maksettu == 0) ) : ?>
-            <a href="./laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
-               download="" target="_blank" class="nappi">Lasku</a>
-            <?php endif; if ( $user->isAdmin() ) : ?>
-                <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
-                   download="" target="_blank" class="nappi">Noutolista</a>
+            <?php if ( $tilaus_tiedot->maksettu ) : ?>
+	            <a href="./laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
+	               download="" target="_blank" class="nappi">Lasku</a>
+                <?php if ( $user->isAdmin() ) : ?>
+	                <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
+	                   download="" target="_blank" class="nappi">Noutolista</a>
+				<?php endif; ?>
             <?php endif; ?>
 		</div>
 	</section>

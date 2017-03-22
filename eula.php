@@ -1,14 +1,35 @@
 <?php
 session_start();
-if ( empty($_SESSION['id']) ) { header('Location: index.php?redir=4'); exit; }
+if ( empty( $_SESSION[ 'id' ] ) ) {
+	header( 'Location: index.php?redir=4' );
+	exit;
+}
 
-$txt_tiedosto = __DIR__.'/eula/eula.txt';
-$eula_txt = @file_get_contents( $txt_tiedosto, false, NULL, 0 );
+require "luokat/dbyhteys.class.php";
+$db = new DByhteys();
+
+if ( !empty( $_POST[ 'hyvaksy_eula' ] ) ) {
+	$sql = "UPDATE kayttaja SET vahvista_eula = '0' WHERE id = ?";
+	$result = $db->query( $sql, [$_SESSION[ 'id' ]] );
+
+	if ($result) {
+		header( 'Location: etusivu.php' );
+		exit;
+	}
+}
+elseif ( !empty( $_POST[ 'hylkaa_eula' ] ) ) {
+	header( 'Location: index.php?redir=10' ); // 10 == sinun pitää hyväksyä EULA
+	exit;
+}
+
+$txt_tiedosto = __DIR__ . '/eula/eula.txt';
+$eula_txt = @file_get_contents( $txt_tiedosto, false, null, 0 );
 
 if ( !$eula_txt ) {
 	$eula_txt = "Oikeaa käyttöoikeussopimusta ei löytynyt. Ole hyvä ja ilmoita ylläpitäjälle.\n
 		Jos olet ylläpitäjä, niin sinun varmaan kannattaisi päivittää uusi käyttöoikeussopimus serverille.";
-} else {
+}
+else {
 	// Ota käyttöön, jos encoding eulassa ei näy oikein
 	// $eula_txt = mb_convert_encoding($eula_txt, "UTF-8", 'windows-1252');
 }
@@ -18,7 +39,6 @@ if ( !$eula_txt ) {
 <head>
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="css/login_styles.css">
-    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Käyttöoikeussopimus</title>
 </head>
 <body class="eula">
@@ -34,28 +54,16 @@ if ( !$eula_txt ) {
 </header>
 	
 <main id="eula_body">
+
 	<textarea id="eula_scrollable_textbox" ReadOnly title="Käyttöoikeussopimus">
 		<?php echo $eula_txt; ?>
 	</textarea><br>
-	<div id="eula_napit_container">
-		<span id="hyvaksy_eula"><button class="nappi" id="hyvaksy_nappi" onClick="hyvaksy_eula();">Hyväksy</button></span>
-		<span id="hylkaa_eula"><button class="nappi" id="hylkaa_nappi" onClick="hylkaa_eula();">Hylkää</button><br></span>
-	</div>
+	<form method="post">
+		<input type="submit" name="hyvaksy_eula" value="Hyväksy">
+		<input type="submit" name="hylkaa_eula" value="Hylkää">
+	</form>
+
 </main>
-
-<script>
-	function hyvaksy_eula () {
-		$.post("ajax_requests.php",
-			{	eula_vahvista: true,
-				user_id: <?= $_SESSION['id'] ?> }
-		);
-		window.location="./etusivu.php";
-	}
-
-	function hylkaa_eula () {
-		window.location="./logout.php?redir=10";
-	}
-</script>
 
 </body>
 </html>
