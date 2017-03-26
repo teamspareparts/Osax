@@ -90,7 +90,7 @@ $css_version = filemtime( 'css/login_styles.css' );
 	<title>Login</title>
 </head>
 <body>
-<main class="login_container">
+<div class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
 <?php
@@ -141,7 +141,7 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 		Osax Oy, Lahti<p>
 		janne (at) osax.fi
 	</fieldset>
-</main>
+</div>
 
 <script>
     //Enable "Kirjaudu sisään" -painike
