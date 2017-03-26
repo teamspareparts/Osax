@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -55,17 +55,24 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
     </style>
 </head>
 <body>
+
+<!-- Tiedoston latausta varten -->
+<form id="download_form" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="eula/eula.txt">
+</form>
+
 <?php require 'header.php'; ?>
 <main class="main_body_container">
     <h1>EULA</h1>
     <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
+    <p><i><small>Käytäthän uudessa EULA:ssa ANSI-koodausta, jotta skandit näkyvät oikein.</small></i></p>
 
     <br><br>
     <fieldset><legend>Käyttöoikeussopimus</legend>
         <form action="#" method="post" enctype="multipart/form-data">
             Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
             <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
-            <a href="./eula/eula.txt" download="eula" target="_blank" style="margin-left:100px;">Lataa nykyinen EULA</a>
+            <a href="#" onclick="document.getElementById('download_form').submit()" style="margin-left:100px;">Lataa nykyinen EULA</a>
         </form>
     </fieldset>
 
@@ -73,6 +80,7 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 </main>
 
 <script type="text/javascript">
+
     $(document).ready(function(){
         $('#eula_tiedosto').on("change", function() {
             $('#submit_eula').prop('disabled', !$(this).val());

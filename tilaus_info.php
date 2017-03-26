@@ -75,6 +75,7 @@ elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin()
 
 /** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
 $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -86,6 +87,15 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 	<title>Tilaus-info</title>
 </head>
 <body>
+
+<!-- Tiedoston latausta varten -->
+<form id="download_lasku" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf">
+</form>
+<form id="download_noutolista" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf">
+</form>
+
 <?php include 'header.php'; ?>
 
 <main class="main_body_container">
@@ -102,11 +112,11 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 		</div>
 		<div id="painikkeet">
             <?php if ( $tilaus_tiedot->maksettu ) : ?>
-	            <a href="./laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf"
-	               download="" target="_blank" class="nappi">Lasku</a>
+	            <a href="#" onclick="document.getElementById('download_lasku').submit()"
+                   class="nappi">Lasku</a>
                 <?php if ( $user->isAdmin() ) : ?>
-	                <a href="./noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf"
-	                   download="" target="_blank" class="nappi">Noutolista</a>
+	                <a href="#" onclick="document.getElementById('download_noutolista').submit()"
+	                   class="nappi">Noutolista</a>
 				<?php endif; ?>
             <?php endif; ?>
 		</div>

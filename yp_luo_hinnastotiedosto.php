@@ -28,7 +28,6 @@ if ( !file_exists("./{$path}") ) { // Tarkistetaan, että kansio on olemassa.
 //Nopein kun fetchCount ~10k
 $fetchCount = 10000;
 
-
 /** Hinnastotiedoston tallentaminen serverille */
 $hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi avata!");
 //fwrite($hinnastotiedosto, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM
@@ -46,38 +45,19 @@ while($products) {  //Haetaan fetchCount verran tuotteita kerrallaan
 
     //Kirjoitetaan haetut tuotteet tiedostoon
     foreach ($products as $p) {
+        //Kannassa käytetään UTF-8 encodingia. Muutetaan tuotteen nimi windows-1252 (ANSI) muotoon.
         $row = str_pad($p->tuotekoodi, 20 , " ") .
                 str_pad(number_format((1+$p->prosentti)*$p->hinta_ilman_ALV,2,',',''), 10 , " ", STR_PAD_LEFT) .
-                str_pad($p->nimi, 40 , " ") . "\r\n";
+                str_pad(mb_convert_encoding($p->nimi, "windows-1252", "UTF-8"), 40 , " ") . "\r\n";
         fwrite($hinnastotiedosto, $row);
     }
 }
 
+//Poistetaan tiedostosta viimeinen newline
+$stat = fstat($hinnastotiedosto);
+ftruncate($hinnastotiedosto, $stat['size']-1);
+//Suljetaan tiedostokahva
 fclose($hinnastotiedosto);
 
 
-
-
-
-/** Ladataan tiedosto serveriltä */
-/*
-$fullPath = $path.$tiedoston_nimi;
-
-if ($fd = fopen ($fullPath, "r")) {
-    $fsize = filesize($fullPath);
-    $path_parts = pathinfo($fullPath);
-    $ext = strtolower($path_parts["extension"]); //extension
-	header('Content-Description: File Transfer');
-    header("Content-type: text/plain; charset=utf-8"); //UTF-8
-    header("Content-Disposition: attachment; filename=\"".$path_parts["basename"]."\"");
-    header("Content-length: $fsize");
-    header("Cache-control: private"); //use this to open files directly
-    while(!feof($fd)) {
-        $buffer = fread($fd, 2048);
-        echo $buffer;
-    }
-}
-fclose ($fd);
-exit;
-*/
 ?>

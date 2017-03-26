@@ -4,6 +4,12 @@
         <a href="http://www.enable-javascript.com/" target="_blank">
             instructions how to enable JavaScript in your web browser</a>.</p>
 </noscript>
+
+<!-- Tiedoston latausta varten -->
+<form id="download_hinnasto" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
+</form>
+
 <header class="header_container">
     <section class="header_top">
         <div id="head_logo">
@@ -54,7 +60,7 @@
 			<?php else : ?>
                 <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                 <li><a href='tilaushistoria.php'>Tilaushistoria</a></li>
-                <li><a href='hinnasto/hinnasto.txt' charset="UTF-8" download='hinnasto' target='_blank'>Lataa hinnasto</a></li>
+                <li><a href='#' onclick="document.getElementById('download_hinnasto').submit()">Lataa hinnasto</a></li>
 			<?php endif; ?>
             <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>
@@ -63,6 +69,7 @@
 
 
 <script type="text/javascript">
+
     //navbar active link
     let pgurl = window.location.href.substr(window.location.href
             .lastIndexOf("/")+1).split('?')[0];
@@ -98,7 +105,7 @@
 	}
 
     $(".navigationbar a").each(function(){
-        if ( $(this).attr("href") == pgurl ) {
+        if ( $(this).attr("href") === pgurl ) {
             $(this).addClass("active");
             //Jos dropdpdown valikko, myös "MUUT"-painike active
 			if ($("ul li ul li").has(this).length) {
@@ -118,5 +125,6 @@
             $(".dropdown-content").hide();
         }
     });
+
 
 </script>
