@@ -124,6 +124,7 @@ a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeis
 
 .navigationbar ul li {
 	display: inline-block;
+	position: relative;
 	margin: 0;
 }
 
@@ -140,11 +141,6 @@ a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeis
 
 .navigationbar ul li :HOVER {
 	color: black;
-}
-
-.navigationbar .dropdown {
-    position: relative;
-    display: inline-block;
 }
 
 .navigationbar .dropdown-content {

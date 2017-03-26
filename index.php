@@ -122,7 +122,7 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
 			<br><br>
 			<input type="hidden" name="mode" value="login">
-			<input type="submit" value="Kirjaudu sisään" id="login_submit">
+			<input type="submit" value="Kirjaudu sisään" id="login_submit" disabled>
 		</form>
 	</fieldset>
 
@@ -144,6 +144,8 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 </main>
 
 <script>
+    //Enable "Kirjaudu sisään" -painike
+    document.getElementById('login_submit').removeAttribute('disabled');
 	window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
 	//TODO: Evästeet
 </script>
