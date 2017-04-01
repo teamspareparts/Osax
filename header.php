@@ -1,9 +1,12 @@
 <noscript>
-    <p>Sivusto vaatii javascriptin toimiakseen. Juuri nyt käyttämässäsi selaimessa ei ole
-        javascript päällä. Ohjeet miten javascriptin saa päälle selaimessa (englanniksi):
-        <a href="http://www.enable-javascript.com/" target="_blank">
-            instructions how to enable JavaScript in your web browser</a>.</p>
+    <meta http-equiv="refresh" content="0; url=index.php">
 </noscript>
+
+<!-- Tiedoston latausta varten -->
+<form id="download_hinnasto" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
+</form>
+
 <header class="header_container">
     <section class="header_top">
         <div id="head_logo">
@@ -39,8 +42,8 @@
                 <li><a href='yp_tuotteet.php'>Tuotteet</a></li>
                 <li><a href='yp_tilaukset.php'>Tilaukset</a></li>
 
-                <li class="dropdown"><a href="javascript:void(0)">Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></a>
-                    <ul class="dropdown-content">
+                <li><a id="dropdown_link" href="javascript:void(0)">Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></a>
+                    <ul class="dropdown-content" id="navbar_dropdown-content">
                         <li><a href="yp_ostotilauskirja_odottavat.php">Varastoon saapuminen</a></li>
                         <li><a href="yp_ostotilauskirja_hankintapaikka.php">Tilauskirjat</a></li>
                         <li><a href="yp_hallitse_eula.php">EULA</a></li>
@@ -54,7 +57,7 @@
 			<?php else : ?>
                 <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                 <li><a href='tilaushistoria.php'>Tilaushistoria</a></li>
-                <li><a href='hinnasto/hinnasto.txt' charset="UTF-8" download='hinnasto' target='_blank'>Lataa hinnasto</a></li>
+                <li><a href='#' onclick="document.getElementById('download_hinnasto').submit()">Lataa hinnasto</a></li>
 			<?php endif; ?>
             <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
         </ul>
@@ -63,6 +66,7 @@
 
 
 <script type="text/javascript">
+
     //navbar active link
     let pgurl = window.location.href.substr(window.location.href
             .lastIndexOf("/")+1).split('?')[0];
@@ -97,26 +101,29 @@
 			break;
 	}
 
-    $(".navigationbar a").each(function(){
-        if ( $(this).attr("href") == pgurl ) {
-            $(this).addClass("active");
+    let links = document.getElementsByClassName("navigationbar")[0].getElementsByTagName("a");
+    for ( i = 0; i < links.length; i++ ) {
+        if ( links[i].getAttribute("href") === pgurl ) {
+            links[i].className += "active";
             //Jos dropdpdown valikko, myös "MUUT"-painike active
-			if ($("ul li ul li").has(this).length) {
-				$(".dropdown > a").addClass("active");
-			}
+            if ( links[i].parentElement.parentElement.className === "dropdown-content") {
+                document.getElementById("dropdown_link").className += "active";
+            }
         }
-    });
+    }
 
     //dropdown icon toiminnallisuus
-    $(".dropdown a").click(function () {
-        const dropdown_icon = $("#dropdown_icon");
-        if ( dropdown_icon.text() === "arrow_drop_down" ){
-            dropdown_icon.text("arrow_drop_up");
-            $(".dropdown-content").show();
+    document.getElementById("dropdown_link").onclick = function () {
+        const dropdown_icon = document.getElementById("dropdown_icon");
+        const dropdown_content = document.getElementById("navbar_dropdown-content");
+        if ( dropdown_icon.innerHTML === "arrow_drop_down" ){
+            dropdown_icon.innerHTML = "arrow_drop_up";
+            dropdown_content.style.display = 'block';
         } else {
-            dropdown_icon.text("arrow_drop_down");
-            $(".dropdown-content").hide();
+            dropdown_icon.innerHTML = "arrow_drop_down";
+            dropdown_content.style.display = 'none';
         }
-    });
+    };
+
 
 </script>

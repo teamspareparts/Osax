@@ -4,7 +4,6 @@ require '_start.php'; global $db, $user, $cart;
 //Vain ylläpitäjälle
 if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 
-
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -19,15 +18,19 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
     </style>
 </head>
 <body>
+
+<!-- Tiedoston latausta varten -->
+<form id="download_hinnasto_yp" method="post" action="download.php">
+    <input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
+</form>
+
 <?php include("header.php");?>
 <main class="main_body_container">
     <h1>Raportit</h1>
 
     <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php"><span>Varastolistausraportti</span></div>
     <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
-    <div class="floating-box clickable line">
-        <span><a href='hinnasto/hinnasto.txt' charset='UTF-8' download='hinnasto' target='_blank' style="color: inherit;">Lataa hinnasto</a></span>
-    </div>
+    <div onclick="document.getElementById('download_hinnasto_yp').submit()" class="floating-box clickable line"><span>Lataa hinnasto</span></div>
 </main>
 <script>
 	$(document).ready(function(){

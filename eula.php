@@ -30,8 +30,8 @@ if ( !$eula_txt ) {
 		Jos olet ylläpitäjä, niin sinun varmaan kannattaisi päivittää uusi käyttöoikeussopimus serverille.";
 }
 else {
-	// Ota käyttöön, jos encoding eulassa ei näy oikein
-	// $eula_txt = mb_convert_encoding($eula_txt, "UTF-8", 'windows-1252');
+	// Ota käyttöön, jos encoding eulassa on ANSI.
+	$eula_txt = mb_convert_encoding($eula_txt, "UTF-8", 'windows-1252');
 }
 ?>
 <!DOCTYPE html>

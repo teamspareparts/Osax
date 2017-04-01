@@ -125,6 +125,7 @@ main { display: block; } /* F*** IE */
 
 .navigationbar ul li {
 	display: inline-block;
+	position: relative;
 	margin: 0;
 }
 
@@ -141,11 +142,6 @@ main { display: block; } /* F*** IE */
 
 .navigationbar ul li :HOVER {
 	color: black;
-}
-
-.navigationbar .dropdown {
-    position: relative;
-    display: inline-block;
 }
 
 .navigationbar .dropdown-content {

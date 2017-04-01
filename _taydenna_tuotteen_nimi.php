@@ -4,11 +4,9 @@
  * 	Tiedosto ajetaan automaattisesti cronjobin avulla, aina 5-10 min välein.
  */
 
+chdir(dirname(__FILE__));
 require 'tecdoc.php';
 require "luokat/dbyhteys.class.php";
-/*
- * Haetaan tietokannan tiedot erillisestä tiedostosta, ja yhdistetään tietokantaan.
- */
 $db = new DByhteys();
 
 /*

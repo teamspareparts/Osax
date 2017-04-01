@@ -90,7 +90,7 @@ $css_version = filemtime( 'css/login_styles.css' );
 	<title>Login</title>
 </head>
 <body>
-<main class="login_container">
+<div class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
 <?php
@@ -122,7 +122,7 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
 			<br><br>
 			<input type="hidden" name="mode" value="login">
-			<input type="submit" value="Kirjaudu sisään" id="login_submit">
+			<input type="submit" value="Kirjaudu sisään" id="login_submit" disabled>
 		</form>
 	</fieldset>
 
@@ -141,9 +141,11 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 		Osax Oy, Lahti<p>
 		janne (at) osax.fi
 	</fieldset>
-</main>
+</div>
 
 <script>
+    //Enable "Kirjaudu sisään" -painike
+    document.getElementById('login_submit').removeAttribute('disabled');
 	window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
 	//TODO: Evästeet
 </script>
