@@ -9,6 +9,7 @@ body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
 input { padding: 3pt; } /* Näyttää siistimmältä */
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
+main { display: block; } /* F*** IE */
 
 /********************************************
 	Yleisesti pikku asioita koko sivulla

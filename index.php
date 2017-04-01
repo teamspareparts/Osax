@@ -85,8 +85,8 @@ $css_version = filemtime( 'css/login_styles.css' );
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="css/login_styles.css?v=<?=$css_version?>">
 	<meta charset="UTF-8">
+	<link rel="stylesheet" type="text/css" href="css/login_styles.css?v=<?=$css_version?>">
 	<title>Login</title>
 </head>
 <body>

@@ -27,7 +27,7 @@ $html = "
 				<th>Päivämäärä</th></tr>
 			</thead>
 			<tbody>
-			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskun_nro)."</td>
+			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskunro)."</td>
 				<td style='text-align:center;'>".date('d.m.Y')."</td>
 			</tr>
 			</tbody>

@@ -174,8 +174,8 @@ class Laskutiedot {
 	}
 
 	/**
-	 * @param $number
-	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
+	 * @param float $number
+	 * @param int   $dec_count [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
 	function float_toString( /*float*/ $number, /*int*/ $dec_count = 2 ) {
