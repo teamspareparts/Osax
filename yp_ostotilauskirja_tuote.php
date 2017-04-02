@@ -128,6 +128,9 @@ function cmpName($a, $b) {
 
 if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
+    if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
+        $_POST['selite'] = "AUTOMAATTI";
+    }
     $sql1 = "  UPDATE ostotilauskirja_tuote
               SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
               WHERE ostotilauskirja_id = ? AND tuote_id = ? AND automaatti = ?";

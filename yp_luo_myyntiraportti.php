@@ -11,12 +11,12 @@ if ( !isset($_POST["luo_raportti"]) ) {
 //TODO: Hae myös myynti maksutavan mukaan kortti/verkkomaksu --SL
 
 /** Haetaan kokonaismyynti annetulla aikavälillä */
-$sql = "	SELECT COUNT(tilaus.id) AS tapahtumat, SUM(pysyva_hinta*kpl) AS myynti_alviton,
+$sql = "	SELECT COUNT( DISTINCT tilaus.id) AS tapahtumat, SUM(pysyva_hinta*kpl) AS myynti_alviton,
 	 		SUM(pysyva_hinta*(1+pysyva_alv)*kpl) AS myynti_alvillinen
 			FROM tilaus
 			LEFT JOIN tilaus_tuote
 				ON tilaus.id = tilaus_tuote.tilaus_id
-			WHERE tilaus.paivamaara > ? AND tilaus.paivamaara < ? + INTERVAL 1 DAY";
+			WHERE tilaus.paivamaara > ? AND tilaus.paivamaara < ? + INTERVAL 1 DAY AND maksettu = 1";
 $myynti = $db->query($sql, [$_POST["pvm_from"], $_POST["pvm_to"]]);
 
 /** Haetaan myynti luokiteltuna ALV-ryhmiin */

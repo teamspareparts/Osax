@@ -1,7 +1,11 @@
 <?php
 /**
- * Ostoautomaatio, yöajossa...
+ * Ostoautomaatio. Listään tarpeen mukaan tuotteita ostotilauskirjoille.
  */
+
+chdir(dirname(__FILE__)); //Määritellään työskentelykansio
+set_time_limit(300);
+
 require "luokat/db_yhteys_luokka.class.php";
 $db = new DByhteys();
 
@@ -11,7 +15,7 @@ $min_paivat_myynnissa = 30; //Montako päivää ollut myynnissä, vaikka olisi o
 $varmuusprosentti = 0; //Montako prosenttia tilataan enemmän kuin tarvitaan
 $automaatin_selite = "AUTOMAATTI"; //Ostotilauskirjalle menevä selite, jos automaation lisäämä tuote
 
-$placeholders = [];
+$sql_insert_values = [];
 /**
  * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
  * @param DByhteys $db
@@ -45,7 +49,7 @@ function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
 
 // Tuote päivitettävä jos: tilaus, ostotilauskirjan muokkaus, varastosaldon muokkaus
 //TODO: Fetch limit, että ei kaadu...
-$sql = "  SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo 
+$sql = "  SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo , articleNo
   		  FROM tuote
   		  WHERE aktiivinen = 1 AND paivitettava = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL";
 $tuotteet = $db->query($sql, [], FETCH_ALL);
@@ -53,7 +57,6 @@ $tuotteet = $db->query($sql, [], FETCH_ALL);
 $date = date("Y-m-d", strtotime("-1 year", time())); //Vuoden takainen pvm
 
 foreach ($tuotteet as $tuote) {
-    echo "0 ";
 
 	/*************************************************************
 	 * Lasketaan tuotteelle viime vuoden myynti
@@ -64,7 +67,8 @@ foreach ($tuotteet as $tuote) {
   			  	LEFT JOIN tilaus
   			  		ON tilaus.id = tilaus_tuote.tilaus_id
  			  	WHERE tilaus.paivamaara >= curdate() - INTERVAL 1 YEAR
- 			  		AND tilaus_tuote.tuote_id = ? ";
+ 			  		AND tilaus_tuote.tuote_id = ? 
+ 			  		AND tilaus.maksettu = 1 ";
 	$vuoden_myynti = $db->query($sql, [$tuote->id])->myynti;
 
 
@@ -84,7 +88,7 @@ foreach ($tuotteet as $tuote) {
 	}
 
 	//Otetaan id ja vuosimyynti talteen myöhempää inserttiä varten
-    array_push($placeholders, $tuote->id, $vuoden_myynti);
+    array_push($sql_insert_values, $tuote->id, $vuoden_myynti);
 
     if ( !$vuoden_myynti ) {
 		continue;
@@ -145,7 +149,8 @@ foreach ($tuotteet as $tuote) {
 	  					(ostotilauskirja_id, tuote_id, automaatti, kpl, lisays_kayttaja_id, selite)
   				VALUES ( ?, ?, ?, ?, ?, ? )
   				ON DUPLICATE KEY UPDATE
-  					kpl = IF(lisays_kayttaja_id = 0, VALUES(kpl), kpl)";
+  				kpl = VALUES(kpl)";
+		//kpl = IF(lisays_kayttaja_id = 0, VALUES(kpl), kpl)"; Ignore, jos käyttäjä muuttanut automaation lisäämää tuotetta
 		$result = $db->query($sql, [$otk->id, $tuote->id, 1, $kpl_tarvittavat, 0, $automaatin_selite]);
 	} else {
 		//Poistetaan tilauskirjalta, jos automaatin lisäämä
@@ -155,13 +160,14 @@ foreach ($tuotteet as $tuote) {
 	}
 
 
-    echo	"Varastossa: " . $tuote->varastosaldo .
+    echo    "Tuote: <b>{$tuote->articleNo}</b> " .
+	    "Varastossa: " . $tuote->varastosaldo .
 		" Myynti/vuosi: " . $vuoden_myynti .
 		" Paivat riitettava: " . $paivat_riitettava .
 		" Menekki: " . $menekki_ennen_tilausta .
 		" Tarvitaan: " . $kpl_tarvittavat .
 		" Toimitusaika: " . $toimitusaika .
-		" Seuraava lähetys paivat: " . $paivat_seuraavaan_lahetykseen ."<br>";
+		" Seuraava lähetys paivat: " . $paivat_seuraavaan_lahetykseen ."<br><br>";
 
 
 
@@ -173,7 +179,7 @@ if ( count($tuotteet) ) {
     $db->query("CREATE TABLE IF NOT EXISTS `temp_tuote_vuosimyynti`(`id` MEDIUMINT UNSIGNED NOT NULL, `vuosimyynti` INT(11) NOT NULL, PRIMARY KEY (`id`))");
     $questionmarks = implode(',', array_fill(0, count($tuotteet), '(?,?)'));
     $sql = "INSERT IGNORE INTO temp_tuote_vuosimyynti (id, vuosimyynti) VALUES {$questionmarks}";
-    $db->query($sql, $placeholders);
+    $db->query($sql, $sql_insert_values);
 
     $db->query("UPDATE tuote JOIN temp_tuote_vuosimyynti
             ON tuote.id = temp_tuote_vuosimyynti.id 
