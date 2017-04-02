@@ -59,6 +59,7 @@ main { display: block; } /* F*** IE */
 	height: 6.5em;
 	background-color: #fff; /* Jannen pyynnöstä asetettu täysin valkoinen tausta. Koska logon tausta on valkoinen */
 	display: flex; /* Ei toimi ilman. Asettaa elementit siististi. */
+	align-items: center; /* IE */
 }
 
 .header_top #head_logo { /* Osaxin logon container */
@@ -493,8 +494,9 @@ Tuotteen MODAL-ikkuna
 	margin-right: 20px;
 }
 
-.kuva{
+.kuva:hover{
 	cursor: pointer;
+	opacity: 0.7;
 }
 
 .tuote_img {

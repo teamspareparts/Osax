@@ -180,9 +180,11 @@ $css_version = filemtime( 'css/styles.css' );
     <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="css/styles.css?v=<?=$css_version?>">
     <link rel="stylesheet" type="text/css" href="css/jsmodal-light.css">
+    <link rel="stylesheet" type="text/css" href="css/image_modal.css">
+
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
     <script src="js/jsmodal-1.0d.min.js"></script>
@@ -555,11 +557,11 @@ require 'tuotemodal.php';
 	//funktion tapaan tietoa
 	let qs = (function(a) {
 		let p, i, b = {};
-		if (a != "") {
+		if (a !== "") {
 			for ( i = 0; i < a.length; ++i ) {
 				p = a[i].split('=', 2);
 
-				if (p.length == 1) {
+				if (p.length === 1) {
 					b[p[0]] = "";
 				} else {
 					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " ")); }
@@ -601,15 +603,15 @@ require 'tuotemodal.php';
 
 	if( qs["numerotyyppi"] ){
 		let number_type = qs["numerotyyppi"];
-        if (number_type == "all" || number_type == "articleNo" ||
-            number_type == "comparable" || number_type == "oe") {
+        if (number_type === "all" || number_type === "articleNo" ||
+            number_type === "comparable" || number_type === "oe") {
             $("#numerotyyppi").val(number_type);
         }
 	}
 
 	if ( qs["exact"] ){
 		let exact = qs["exact"];
-        if (exact == "true" || exact == "false") {
+        if (exact === "true" || exact === "false") {
             $("#hakutyyppi").val(exact);
         }
 	}
