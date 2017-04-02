@@ -23,9 +23,12 @@ if ( !$user->isAdmin() || !$yritys->isValid() ) {
 }
 
 //Käyttäjien poistaminen
-if ( !empty($_POST['ids']) ){
+if ( !empty($_POST['poista']) ){
 	$db->prepare_stmt( "UPDATE kayttaja SET aktiivinen = 0 WHERE id = ?" );
 	foreach ($_POST['ids'] as $asiakas_id) {
+	    if ( $asiakas_id == $user->id ) { //Ei anneta käyttäjän poistaa itseään
+	        continue;
+        }
 		$db->run_prepared_stmt( [$asiakas_id] );
 	}
 	$_SESSION['feedback'] = "<p class='success'>Asiakkaat deaktivoitu</p>";
@@ -89,7 +92,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 	</table>
 	<form id="poista_asiakas" method="post">
 		<div style="text-align:right;padding-top:10px;">
-			<input type="submit" value="Poista valitut asiakkaat" class="nappi red">
+			<input type="submit" name="poista" value="Poista valitut asiakkaat" class="nappi red">
 		</div>
 	</form>
 </main>

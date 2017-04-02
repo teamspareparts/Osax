@@ -1,10 +1,12 @@
-<?php
+﻿<?php
+
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
+error_reporting(E_ALL);
 
 /** Järjestetään tuotteet artikkelinumeron mukaan
  * @param $catalog_products
@@ -37,7 +39,6 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? AND h
 }
 
 if( isset($_POST['vastaanotettu']) ) {
-
 	unset($_POST['vastaanotettu']);
 	if ( $db->query("UPDATE ostotilauskirja_arkisto SET saapumispaiva = NOW(), hyvaksytty = 1, vastaanottaja = ?
   					WHERE id = ? ", [$user->id, $_POST['id']]) ) {
@@ -48,6 +49,63 @@ if( isset($_POST['vastaanotettu']) ) {
 		$automaatti = $_POST['automaatti'];
 		//Päivitetään lopulliset kappalemäärät sekä ostotilaukseen että varastosaldoihin
 		//TODO: Jaottele rahtimaksu touotteiden ostohintaan
+
+        //Haetaan tuotteet
+	    $questionmarks = "(" . implode(',', array_fill(0, count($ids), '?')) . ")";
+	    $products = $db->query("SELECT * FROM tuote WHERE id IN {$questionmarks}", $ids, FETCH_ALL);
+
+		//Päivitetään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
+		$sql_update_values_arkisto = [];
+		$questionmarks = implode(',', array_fill(0, count($ids), '(?, ?, ?, ?)'));
+		$sql = "  INSERT INTO ostotilauskirja_tuote_arkisto (tuote_id, ostotilauskirja_id, automaatti, kpl) 
+                  VALUES {$questionmarks}
+                  ON DUPLICATE KEY UPDATE
+                  kpl = VALUES(kpl)";
+
+		//Päivitetään tuotteille uudet tiedot (kaikki kerralla)
+		$sql_update_values_tuote = [];
+		$questionmarks = implode(',', array_fill(0, count($ids), '(?, ?, ?, ?, ?)'));
+		$sql2 = "   INSERT INTO tuote (id, varastosaldo, keskiostohinta, yhteensa_kpl, hyllypaikka) 
+                    VALUES {$questionmarks}
+                    ON DUPLICATE KEY UPDATE
+                        varastosaldo = VALUES(varastosaldo), 
+					    keskiostohinta = VALUES(keskiostohinta),
+					    yhteensa_kpl = VALUES(yhteensa_kpl),
+					    hyllypaikka = VALUES(hyllypaikka),
+					    ensimmaisen_kerran_varastossa = IF(ISNULL(ensimmaisen_kerran_varastossa), now(), ensimmaisen_kerran_varastossa)
+		";
+
+		//Haetaan kaikki päivitettävät tiedot tauluun
+		foreach ($ids as $index => $id) {
+			array_push($sql_update_values_arkisto, $id, $ostotilauskirja_id, $automaatti[$index], $kpl[$index]);
+
+			//Etsitään id:tä vastaava tuote
+			$p = null;
+			foreach ($products as $product) {
+				if ($product->id == $id) {
+					$p = $product;
+					break 1;
+				}
+			}
+
+			//Lasketaan tuotteen uudet arvot valmiiksi
+            $varastosaldo = $p->varastosaldo + $kpl[$index];
+            $keskiostohinta = 0;
+            if ( $p->yhteensa_kpl != 0 ) {
+                $keskiostohinta = ($p->keskiostohinta*$p->yhteensa_kpl +
+		                $p->sisaanostohinta* $kpl[$index] )/
+							    ($p->yhteensa_kpl + $kpl[$index]);
+            }
+            $yhteensa_kpl = $p->yhteensa_kpl + $kpl[$index];
+			array_push($sql_update_values_tuote, $id, $varastosaldo, $keskiostohinta,
+                    $yhteensa_kpl, $hyllypaikka[$index]);
+		}
+
+		$db->query($sql, $sql_update_values_arkisto);
+		$db->query($sql2, $sql_update_values_tuote);
+
+		//TODO: Poista kun uusi koodi on todettu hyväksi
+/*
 		foreach ($ids as $index => $id) {
 			$db->query("UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
   						WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ?",
@@ -60,6 +118,7 @@ if( isset($_POST['vastaanotettu']) ) {
 						WHERE id = ? ",
 				[$kpl[$index],  $kpl[$index], $kpl[$index], $kpl[$index], $hyllypaikka[$index], $id]);
 		}
+*/
 
 		//Päivitetään uusin/tarkin saapumispäivä alkuperäiselle ostotilauskirjalle
 		$sql = "UPDATE ostotilauskirja 
@@ -70,9 +129,9 @@ if( isset($_POST['vastaanotettu']) ) {
 		$_SESSION["feedback"] = "<p class='success'>Tuotteet lisätty varastoon.</p>";
 		header("Location: yp_ostotilauskirja_odottavat.php"); //Estää formin uudelleenlähetyksen
 		exit();
-	} else {
-		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
-	}
+    } else {
+	    $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+    }
 }
 
 if( isset($_POST['muokkaa']) ) {
