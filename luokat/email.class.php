@@ -7,6 +7,7 @@
 class Email {
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
 	private static $ini_path = "./tietokanta/db-config.ini.php";
+	//private static $ini_path = "./config/config.ini.php";
 
 	const delivery_email = 'noreply@osax.fi';
 	const admin_email = 'myynti@osax.fi';

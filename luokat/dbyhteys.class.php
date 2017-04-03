@@ -53,6 +53,7 @@ class DByhteys {
 		define( 'FETCH_ALL', true );
 		if ( $values === null ) {
 			$values = parse_ini_file( "./tietokanta/db-config.ini.php" );
+			//$values = parse_ini_file( "./config/config.ini.php" );
 		}
 		else {
 			$values = [ 'user' => $values[ 0 ], 'pass' => $values[ 1 ], 'name' => $values[ 2 ], 'host' => $values[ 3 ] ];
