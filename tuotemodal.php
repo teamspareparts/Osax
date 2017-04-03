@@ -4,7 +4,7 @@
  * Modalin saa näkyviin kutsumalla funktiota productModal ja
  * antamalla sille parametriksi tuotteen id:n.
  *
- * Vaatii jQueryn, Tecdocin jsonEndpointin ja bootstrap3.
+ * Vaatii jQueryn, Tecdocin jsonEndpointin, bootstrap3 ja image_modal.css
  */
 require_once 'tecdoc_asetukset.php';?>
 
@@ -38,8 +38,16 @@ require_once 'tecdoc_asetukset.php';?>
 		</div>
 	</div>
 </div>
+
 <!-- Spinning kuvake ladattaessa -->
 <div id="cover"></div>
+
+<!-- Kuvalle oma modal -->
+<div id="imageModal" class="image_modal">
+    <span class="image_modal-close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+    <img class="image_modal-content" id="image_modal_img" src="" >
+    <div id="caption"></div>
+</div>
 
 <!--suppress JSUnresolvedVariable -->
 <script type="text/javascript">
@@ -54,8 +62,10 @@ require_once 'tecdoc_asetukset.php';?>
      */
     function productModal ( id ) {
 
-        //spinning icon
-        $("#cover").addClass("loading");
+        //spinning icon (max 5s)
+        let cover = $("#cover");
+        cover.addClass("loading");
+        setTimeout(function (){ cover.removeClass("loading") }, 5000);
 
         //Haetaan tuotteen tiedot
         let functionName = "getDirectArticlesByIds6";
@@ -125,14 +135,14 @@ require_once 'tecdoc_asetukset.php';?>
             let infos = "";
 
             //saatavuustiedot
-            if (response.directArticle.articleState != 1) {
+            if (response.directArticle.articleState !== 1) {
                 infos += "<span style='color:red;'>" + response.directArticle.articleStateName + "</span><br>";
             }
             //pakkaustiedot
-            if (typeof response.directArticle.packingUnit != 'undefined') {
+            if (typeof response.directArticle.packingUnit !== 'undefined') {
                 infos += "Pakkauksia: " + response.directArticle.packingUnit + "<br>";
             }
-            if (typeof response.directArticle.quantityPerPackingUnit != 'undefined') {
+            if (typeof response.directArticle.quantityPerPackingUnit !== 'undefined') {
                 infos += "Kpl/pakkaus: " + response.directArticle.quantityPerPackingUnit + "<br>";
             }
 
@@ -141,13 +151,13 @@ require_once 'tecdoc_asetukset.php';?>
             //infot
             if (response.articleAttributes != "") {
                 for (i = 0; i < response.articleAttributes.array.length; i++) {
-                    if (typeof response.articleAttributes.array[i].attrName != 'undefined') {
+                    if (typeof response.articleAttributes.array[i].attrName !== 'undefined') {
                         infos += response.articleAttributes.array[i].attrName;
                     }
-                    if (typeof response.articleAttributes.array[i].attrValue != 'undefined') {
+                    if (typeof response.articleAttributes.array[i].attrValue !== 'undefined') {
                         infos += ": " + response.articleAttributes.array[i].attrValue + " ";
                     }
-                    if (typeof response.articleAttributes.array[i].attrUnit != 'undefined') {
+                    if (typeof response.articleAttributes.array[i].attrUnit !== 'undefined') {
                         infos += response.articleAttributes.array[i].attrUnit;
                     }
                     infos += "<br>";
@@ -165,7 +175,7 @@ require_once 'tecdoc_asetukset.php';?>
             if (response.articleDocuments != "") {
                 for (i = 0; i < response.articleDocuments.array.length; i++) {
                     //Dokumentit
-                    if (response.articleDocuments.array[i].docTypeName != "Valokuva" && response.articleDocuments.array[i].docTypeName != "Kuva") {
+                    if (response.articleDocuments.array[i].docTypeName !== "Valokuva" && response.articleDocuments.array[i].docTypeName !== "Kuva") {
                         doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
                         docName = response.articleDocuments.array[i].docFileName;
                         docTypeName = response.articleDocuments.array[i].docTypeName;
@@ -316,13 +326,13 @@ require_once 'tecdoc_asetukset.php';?>
         //Valitaan DIV painetun elementin data-manuId:n avulla
         let car_dropdown = $("#manufacturer-"+elmnt.getAttribute('data-manuId'));
 		//Haetaan autot, jos niitä ei ole vielä haettu
-		if (elmnt.getAttribute("data-list-filled") == "false") {
+		if (elmnt.getAttribute("data-list-filled") === "false") {
 			elmnt.setAttribute("data-list-filled", "true");
 			car_dropdown.addClass("loader");
 			getLinkedVehicleIds(articleId, elmnt.getAttribute("data-manuId"));
 		}
 		//car_dropdown.show();
-		if (car_dropdown.css("display") == "none") {
+		if (car_dropdown.css("display") === "none") {
 			car_dropdown.show();
 		}
 		else {
@@ -354,7 +364,7 @@ require_once 'tecdoc_asetukset.php';?>
                         "linkingTargetId" : response.articleLinkages.array[i].linkingTargetId
                     };
                     articleIdPairs.push(pair);
-                    if ( articleIdPairs.length == 25 ) {
+                    if ( articleIdPairs.length === 25 ) {
                         getLinkedVehicleInfos(articleId, articleIdPairs);
                         articleIdPairs = [];
                     }
@@ -387,7 +397,7 @@ require_once 'tecdoc_asetukset.php';?>
         let i;
         for (i=0; i<response.data.array.length ; i++) {
             let yearTo = "";
-            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo != 'undefined') {
+            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
                 yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
             }
             $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
@@ -424,15 +434,32 @@ require_once 'tecdoc_asetukset.php';?>
             $(this).css("text-decoration", "none");
         });
 
-    //avaa tuotteen kuvan isona uuteen ikkunaan
+    //avaa tuotteen kuvan uuteen modaliin
     $(document.body).on('click', '.kuva', function(){
         let src = this.src;
+        /* TODO: Poista kun Juhani on hyväksynyt uuden koodin
         let w = this.naturalWidth;
         let h = this.naturalHeight;
         let left = (screen.width/2)-(w/2);
         let top = (screen.height/2)-(h/2);
-        //TODO: will this change work? myWindow =
-        window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+        //window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
+        */
+        let image_modal = document.getElementById('imageModal');
+        let modal_img = document.getElementById("image_modal_img");
+        let caption_text = document.getElementById("caption");
+        image_modal.style.display = "block";
+        modal_img.src = src;
+        caption_text.innerHTML = this.src;
+
+        image_modal.onclick = function(event) {
+            if (event.target === image_modal) {
+                image_modal.style.display = "none";
+            }
+        }
+
     }); //close click
+
+
+
 
 </script>

@@ -5,8 +5,11 @@ if ( !$user->isAdmin() ) {
 }
 
 /** Yrityksen, ja sen asiakkaiden, deaktivointi */
-if ( !empty($_POST['ids']) ) {
+if ( !empty($_POST['poista']) ) {
 	foreach ($_POST['ids'] as $yritys_id) {
+	    if ( $yritys_id == $user->yritys_id ) { //Ei anneta käyttäjän poistaa omaa yritystään
+	        continue;
+        }
 		$query = "UPDATE yritys SET aktiivinen = 0 WHERE id = ?";
 		$db->query($query, [$yritys_id]);
 		$query = "UPDATE kayttaja SET aktiivinen = 0 WHERE yritys_id = ?";
@@ -37,6 +40,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 <body>
 <?php include 'header.php'; ?>
 <main class="main_body_container">
+	<?= $feedback ?>
 	<table style="width: 100%;">
 		<thead>
 		<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Asiakasyritykset</th></tr>
@@ -71,7 +75,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 
 		<form action="" method="post" id="deactivate_company">
 			<span style="flex-grow:5; text-align:end;">
-				<input type="submit" value="Poista valitut Yritykset" class="nappi red">
+				<input type="submit" name="poista" value="Poista valitut Yritykset" class="nappi red">
 			</span>
 		</form>
 	</section>

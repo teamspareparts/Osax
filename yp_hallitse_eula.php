@@ -65,7 +65,7 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 <main class="main_body_container">
     <h1>EULA</h1>
     <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
-    <p><i><small>Käytäthän uudessa EULA:ssa ANSI-koodausta, jotta skandit näkyvät oikein.</small></i></p>
+    <p><i><small>Käytäthän uudessa EULA:ssa windows-1252 (ANSI) -koodausta, jotta skandit näkyvät oikein.</small></i></p>
 
     <br><br>
     <fieldset><legend>Käyttöoikeussopimus</legend>

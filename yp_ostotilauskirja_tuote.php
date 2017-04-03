@@ -75,17 +75,22 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
 
-    //Lisätään ostotilauskirjan tuotteet arkistoon
+    //Lisätään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
+    $sql_insert_values = [];
+    $questionmarks = implode(',', array_fill(0, count($products), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'));
+	$sql = "INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, automaatti,
+	        original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
+ 								VALUES {$questionmarks}";
+
 	foreach ($products as $product) {
-		$result = $db->query("	INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, automaatti,
-	                                original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
- 								VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
-			[$uusi_otk_id->last_id, $product->id, $product->automaatti, $product->kpl, $product->kpl,
-                $product->selite, $product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta]);
-		if( !$result ) {
-		    return false;
-		}
+		array_push($sql_insert_values, $uusi_otk_id->last_id, $product->id, $product->automaatti, $product->kpl, $product->kpl,
+			$product->selite, $product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta);
     }
+
+    $result = $db->query($sql, $sql_insert_values);
+	if( !$result ) {
+		return false;
+	}
 
 
     //Pävitetään seuraava lähetyspäivä ja saapumispäivä ostotilauskirjalle
@@ -128,6 +133,9 @@ function cmpName($a, $b) {
 
 if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
+    if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
+        $_POST['selite'] = "AUTOMAATTI";
+    }
     $sql1 = "  UPDATE ostotilauskirja_tuote
               SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
               WHERE ostotilauskirja_id = ? AND tuote_id = ? AND automaatti = ?";
