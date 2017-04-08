@@ -6,11 +6,7 @@
  */
 class Email {
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
-	private static $ini_path = "./tietokanta/db-config.ini.php";
-	//private static $ini_path = "./config/config.ini.php";
 
-	const delivery_email = 'noreply@osax.fi';
-	const admin_email = 'myynti@osax.fi';
 	private static $target_email = NULL;
 	private static $subject = NULL;
 	private static $message = NULL;
@@ -30,17 +26,16 @@ class Email {
 	 * ja sitten kutsuvat tämän metodin.
 	 */
 	private static function sendMail() {
-		$values = parse_ini_file( Email::$ini_path );
-		//sähköpostin parametrit
-		$params = array(
+		$values = parse_ini_file( "./config/config.ini.php" );
+		$apiParametres = array(
 			'api_user' => $values['email_user'],
 			'api_key' => $values['email_pass'],
 			'to' => Email::$target_email,
-			'subject' => Email::$subject, //otsikko
-			'html' => Email::$message, //HTML runko
+			'subject' => Email::$subject,
+			'html' => Email::$message,
 			'text' => "",
-			'from' => Email::delivery_email, //lähetysosoite
-			'files[' . Email::$fileName . ']' => Email::$file //liitetiedosto
+			'from' => $values['delivery_email'],
+			'files[' . Email::$fileName . ']' => Email::$file
 		);
 
 		// Luodaan cURL pyyntö.
@@ -48,7 +43,7 @@ class Email {
 		// Käytetään HTTP POSTia.
 		curl_setopt( $session, CURLOPT_POST, true );
 		// Lisätään viestin runko, otsikko, jne.
-		curl_setopt( $session, CURLOPT_POSTFIELDS, $params );
+		curl_setopt( $session, CURLOPT_POSTFIELDS, $apiParametres );
 		// Palauta vastaus, mutta ilman headereja.
 		curl_setopt( $session, CURLOPT_HEADER, false );
 		// Käytetään TLS, ei SSL3.

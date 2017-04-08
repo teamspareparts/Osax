@@ -47,4 +47,4 @@ if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 
 // Lähetetään käyttäjä takaisin ostoskoriin. Se vaikuttaisi loogiselta kohteelta.
 header( "location:ostoskori.php" );
-//exit;
+exit;

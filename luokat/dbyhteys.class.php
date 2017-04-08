@@ -46,14 +46,13 @@ class DByhteys {
 
 	/**
 	 * Konstruktori.
-	 * Lukee tarvittavat tiedot suoraan db-config.ini -tiedostosta.
+	 * Lukee tarvittavat tiedot suoraan config.ini -tiedostosta.
 	 * @param string[] $values [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
 	 */
 	public function __construct( array $values = null ) {
 		define( 'FETCH_ALL', true );
 		if ( $values === null ) {
-			$values = parse_ini_file( "./tietokanta/db-config.ini.php" );
-			//$values = parse_ini_file( "./config/config.ini.php" );
+			$values = parse_ini_file( "./config/config.ini.php" );
 		}
 		else {
 			$values = [ 'user' => $values[ 0 ], 'pass' => $values[ 1 ], 'name' => $values[ 2 ], 'host' => $values[ 3 ] ];

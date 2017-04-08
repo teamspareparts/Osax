@@ -2,7 +2,6 @@
 /**
  * @version 2017-02-09 <p> Lisätty päivitys-fieldset.
  */
-//TODO: Hetkinen, oliko meidän tarkoitus muuttaa tämän tiedoston nimeä? --JJ 17-02-08
 session_start();
 /**
  * Tarkistetaan onko kyseessä uudelleenohjaus, ja tulostetaan viesti sen mukaan.
@@ -41,8 +40,8 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 			"style" => "style='color:{$colors['warning']};'" ),
 		4 => array(
 			"otsikko" => " Et ole kirjautunut sisään ",
-			"teksti" => "Ole hyvä, ja kirjaudu sisään." . "<p>" .
-						"Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
+			"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>
+						 Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
 			"style" => "style='color:{$colors['warning']};'" ),
 		5 => array(
 			"otsikko" => " Kirjaudutaan ulos ",
@@ -50,8 +49,8 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 			"style" => "style='color:{$colors['note']};'" ),
 		6 => array(
 			"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
-			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen." . "<p> " .
-                        "Muistathan varmistaa, että sähköposti ei mennyt roskaposteihin.",
+			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.<p> 
+						 Muistathan varmistaa, että sähköposti ei mennyt roskaposteihin.",
 			"style" => "style='color:{$colors['success']};'" ),
 		7 => array(
 			"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
@@ -103,6 +102,12 @@ if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
 		<p style="color:#0a3c93;">Sivuston päivitys.<br>
 		DD.MM.YYYY HH:MM</p>
+	</fieldset>
+<?php endif;
+if (true) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
+	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
+		<p style="color:#0a3c93;">Localhost testaussivusto<br>
+			Maksumoduuli uusin päivitys</p>
 	</fieldset>
 <?php endif; ?>
 

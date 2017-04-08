@@ -20,10 +20,10 @@ class PaymentAPI {
 	private static $reference_number = ''; // Tyhjä tarkoituksella
 	private static $order_descr = ''; // Tyhjä tarkoituksella
 	private static $currency = "EUR";
-	private static $return_addr = "https://www.osax.fi/payment_process.php";
-	private static $cancel_addr = "https://www.osax.fi/payment_cancel.php";
+	private static $return_addr = ""; // Haetaan config.ini tiedostosta
+	private static $cancel_addr = ""; // Haetaan config.ini tiedostosta
 	private static $pending_addr = ''; // Tyhjä tarkoituksella. Ei käytössä Paytrailin API:ssa.
-	private static $notify_addr = "https://www.osax.fi/payment_notify.php";
+	private static $notify_addr = ""; // Haetaan config.ini tiedostosta
 	private static $type = "S1"; // S1-form. Yksinkertaisempi vaihtoehto.
 	private static $culture = "fi_FI";
 	private static $preselected_method = ''; // Tyhjä tarkoituksella
@@ -47,6 +47,10 @@ class PaymentAPI {
 	public static function preparePaymentFormInfo( /*int*/ $tilaus_id, /*float*/ $summa ) {
 		PaymentAPI::$order_id = $tilaus_id;
 		PaymentAPI::$amount = $summa;
+		$values = parse_ini_file( "./config/config.ini.php" );
+		PaymentAPI::$return_addr = $values['return_osoite'];
+		PaymentAPI::$cancel_addr = $values['cancel_osoite'];
+		PaymentAPI::$notify_addr = $values['notify_osoite'];
 		PaymentAPI::calculateAuthCode();
 	}
 

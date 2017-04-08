@@ -206,8 +206,9 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
 
 CREATE TABLE IF NOT EXISTS `ostoskori` (
   `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `yritys_id` smallint UNSIGNED NOT NULL, -- PK, FK
-  PRIMARY KEY (`id`,`yritys_id`),
+  `yritys_id` smallint UNSIGNED NOT NULL, -- UK, FK
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`yritys_id`),
   CONSTRAINT fk_ostoskori_yritys FOREIGN KEY (`yritys_id`) REFERENCES `yritys`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -326,5 +327,5 @@ CREATE TABLE IF NOT EXISTS `temp_tuote`(
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `varastosaldo` int(11) NOT NULL,
   PRIMARY KEY (`tuote_id`),
-  CONSTRAINT fk_tuoteVarastosaldo FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+  CONSTRAINT fk_tempTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
