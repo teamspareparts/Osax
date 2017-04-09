@@ -62,6 +62,12 @@ require_once 'tecdoc_asetukset.php';?>
      */
     function productModal ( id ) {
 
+        //Tyhjennetään modal
+        $( "#menu1" ).empty();
+        $( "#menu2" ).empty();
+        $( "#menu3" ).empty();
+        $( "#dd" ).empty();
+
         //spinning icon (max 5s)
         let cover = $("#cover");
         cover.addClass("loading");
@@ -418,15 +424,6 @@ require_once 'tecdoc_asetukset.php';?>
         return (text.substr(0, 4) + "/" + text.substr(4));
     }
 
-
-    //Tyhjennetään modalin sisältö sen sulkeutuessa
-    $('#myModal').on('hidden.bs.modal', function () {
-        $( "#menu1" ).empty();
-        $( "#menu2" ).empty();
-        $( "#menu3" ).empty();
-        $( "#dd" ).empty();
-    });
-
     $(document.body)
         .on('mouseover', '#asennusohje', function(){
             $(this).css("text-decoration", "underline"); })
@@ -437,13 +434,6 @@ require_once 'tecdoc_asetukset.php';?>
     //avaa tuotteen kuvan uuteen modaliin
     $(document.body).on('click', '.kuva', function(){
         let src = this.src;
-        /* TODO: Poista kun Juhani on hyväksynyt uuden koodin
-        let w = this.naturalWidth;
-        let h = this.naturalHeight;
-        let left = (screen.width/2)-(w/2);
-        let top = (screen.height/2)-(h/2);
-        //window.open(src, src, "width="+w+",height="+h+",left="+left+",top="+top+"");
-        */
         let image_modal = document.getElementById('imageModal');
         let modal_img = document.getElementById("image_modal_img");
         let caption_text = document.getElementById("caption");

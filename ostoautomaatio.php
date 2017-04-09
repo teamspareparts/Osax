@@ -6,7 +6,7 @@
 chdir(dirname(__FILE__)); //Määritellään työskentelykansio
 set_time_limit(300);
 
-require "luokat/db_yhteys_luokka.class.php";
+require "luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
 /*Config*/
