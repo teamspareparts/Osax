@@ -1,24 +1,26 @@
 <?php
 print("<pre>");
 
-$data = parse_ini_file("./db-config.ini.php", true);
+$config = parse_ini_file( "../config/config.ini.php", true);
 require '../luokat/dbyhteys.class.php';
 
 $db = new DByhteys(['root','','tuoteluettelo_database','localhost']);
 $f = file('./tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
-foreach ( $f as $k => $v ) { // Poistetaan .sql-tiedoston kommentit
+// Poistetaan .sql-tiedoston kommentit
+foreach ( $f as $k => $v ) {
 	$f[$k] = strstr($v, '--', true) ?: $v;
 }
 
-$db_file = explode( ";", implode("", $f) ); // Muunnetaan jokainen query omaan indexiin
+// Muunnetaan jokainen query omaan indexiin
+$db_file = explode( ";", implode("", $f) );
 foreach ( $db_file as $sql ) {
 	if ( !empty($sql) && strlen($sql) > 5 ) {
 		$db->query( $sql );
 	}
 }
 
-// Ei tehdä mitään, jos tietokanta on jo alustettu
+// Ei tehdä mitään, jos tietokanta on jo alustettu, ja täytetty alustavilla tiedoilla
 if ( $db->query( "SELECT 1 FROM kayttaja LIMIT 1" ) ) {
 	die('Tietokanta on jo alustettu!');
 }
@@ -26,24 +28,24 @@ if ( $db->query( "SELECT 1 FROM kayttaja LIMIT 1" ) ) {
 
 $db->prepare_stmt( "INSERT INTO kayttaja (sahkoposti, salasana_hajautus, yllapitaja, yritys_id) 
 		VALUES (?, ?, 1, 1)");
-for ( $i=0; $i<count($data['Admin tunnukset']['kayttajatunnus']); $i++ ) {
+for ( $i=0; $i<count( $config['Admin']['kayttajatunnus']); $i++ ) {
 	$db->run_prepared_stmt([
-		$data['Admin tunnukset']['kayttajatunnus'][$i],
-		password_hash($data['Admin tunnukset']['salasana'][$i], PASSWORD_DEFAULT)
+		$config['Admin']['kayttajatunnus'][$i],
+		password_hash( $config['Admin']['salasana'][$i], PASSWORD_DEFAULT)
 	]);
 }
 
 // Luodaan ylläpitäjälle yritys ja ostoskori
 $db->query(
 	"INSERT INTO yritys (nimi, y_tunnus, maa, sahkoposti, puhelin, katuosoite, postinumero, postitoimipaikka) VALUES (?,?,?,?,?,?,?,?)",
-	[	$data['Admin tunnukset']['y_nimi'],
-		$data['Admin tunnukset']['y_tunnus'],
-		$data['Admin tunnukset']['y_maa'],
-		$data['Admin tunnukset']['y_sahkoposti'],
-		$data['Admin tunnukset']['y_puhelin'],
-		$data['Admin tunnukset']['y_osoite'][0],
-		$data['Admin tunnukset']['y_osoite'][1],
-		$data['Admin tunnukset']['y_osoite'][2]
+	[	$config['Admin']['y_nimi'],
+		$config['Admin']['y_tunnus'],
+		$config['Admin']['y_maa'],
+		$config['Admin']['y_sahkoposti'],
+		$config['Admin']['y_puhelin'],
+		$config['Admin']['y_osoite'][0],
+		$config['Admin']['y_osoite'][1],
+		$config['Admin']['y_osoite'][2]
 	] );
 $db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
 
@@ -56,3 +58,4 @@ if ( $result ) {
     echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';
 }
 */
+echo 'Done.';

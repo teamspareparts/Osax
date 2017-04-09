@@ -4,9 +4,13 @@
  */
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
- * @param $var
+ * @param mixed $var
+ * @param bool  $var_dump
  */
-function debug($var){echo"<br><pre>Print_r ::<br>";print_r($var);return;echo"<br>Var_dump ::<br>";var_dump($var);echo"</pre><br>";}
+function debug($var,$var_dump=false){
+	echo"<br><pre>Print_r ::<br>";print_r($var);echo"</pre>";
+	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
+}
 
 /**
  * Tulostaa numeron muodossa 1.000[,00 [€]]

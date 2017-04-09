@@ -75,7 +75,6 @@ elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin()
 
 /** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
 $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
-
 ?>
 <!DOCTYPE html>
 <html lang="fi">

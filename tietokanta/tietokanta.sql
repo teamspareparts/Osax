@@ -1,4 +1,4 @@
-﻿/* @version 2017-02-09 */
+/* @version 2017-04-09 <p> paytrail_auth_hash poistettu */
 SET FOREIGN_KEY_CHECKS=0; -- Taulut ovat väärässä järjestyksessä FOREIGN KEY tarkastuksia varten.
 
 CREATE TABLE IF NOT EXISTS `kayttaja` (
@@ -72,7 +72,6 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kayttaja_id` mediumint UNSIGNED NOT NULL, -- Foreign KEY
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean NOT NULL DEFAULT 0, -- Käyttäjä maksaa laskun tilauksen tallennuksen jälkeen.
-  `paytrail_auth_hash` varchar(255) DEFAULT NULL, -- Paytrailin käyttöä varten, uniikki maksun tunnistus
   `laskunro` int DEFAULT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,

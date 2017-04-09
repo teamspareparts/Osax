@@ -101,7 +101,7 @@ if ( !empty($mode) && !empty($modes_array) && array_key_exists( $mode, $modes_ar
 if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
 	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
 		<p style="color:#0a3c93;">Sivuston päivitys.<br>
-		DD.MM.YYYY HH:MM</p>
+		YYYY-MM-DD hh:mm</p>
 	</fieldset>
 <?php endif;
 if (true) : //TODO: Siirrä ylös --JJ 17-02-13 ?>

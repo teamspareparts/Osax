@@ -205,6 +205,7 @@ class Ostoskori {
 	/**
 	 * Palauttaa ostoskorissa olevien tuotteiden määrän.
 	 * @return int tuotteiden maara
+	 * @deprecated Minä juuri päätin, että me katsomme suoraan luokan muuttujan.
 	 */
 	public function get_tuotteiden_maara() {
 		return $this->montako_tuotetta;
@@ -213,6 +214,7 @@ class Ostoskori {
 	/**
 	 * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
 	 * @return int kaikkien tuotteiden kappalemäärä
+	 * @deprecated Minä juuri päätin, että me katsomme suoraan luokan muuttujan.
 	 */
 	public function get_kaikkien_tuotteiden_kappalemaara() {
 		return $this->montako_tuotetta_kpl_maara_yhteensa;

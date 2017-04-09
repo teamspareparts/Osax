@@ -47,18 +47,18 @@ class DByhteys {
 	/**
 	 * Konstruktori.
 	 * Lukee tarvittavat tiedot suoraan config.ini -tiedostosta.
-	 * @param string[] $values [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
+	 * @param string[] $config [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
 	 */
-	public function __construct( array $values = null ) {
+	public function __construct( array $config = null ) {
 		define( 'FETCH_ALL', true );
-		if ( $values === null ) {
-			$values = parse_ini_file( "./config/config.ini.php" );
+		if ( $config === null ) {
+			$config = parse_ini_file( "./config/config.ini.php" );
 		}
 		else {
-			$values = [ 'user' => $values[ 0 ], 'pass' => $values[ 1 ], 'name' => $values[ 2 ], 'host' => $values[ 3 ] ];
+			$config = [ 'user' => $config[ 0 ], 'pass' => $config[ 1 ], 'name' => $config[ 2 ], 'host' => $config[ 3 ] ];
 		}
-		$this->pdo_dsn = "mysql:host={$values[ 'host' ]};dbname={$values[ 'name' ]};charset=utf8";
-		$this->connection = new PDO( $this->pdo_dsn, $values[ 'user' ], $values[ 'pass' ], $this->pdo_options );
+		$this->pdo_dsn = "mysql:host={$config[ 'host' ]};dbname={$config[ 'name' ]};charset=utf8";
+		$this->connection = new PDO( $this->pdo_dsn, $config[ 'user' ], $config[ 'pass' ], $this->pdo_options );
 	}
 
 	/**

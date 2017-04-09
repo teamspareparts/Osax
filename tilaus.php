@@ -68,9 +68,9 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
             JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
             SET tuote.varastosaldo = temp_tuote.varastosaldo, tuote.paivitettava = 1" );
 		$stmt_varastosaldot->execute();
+
 		//Tyhjennetään temp_tuote
-		$stmt_varastosaldot = $conn->prepare( "DELETE FROM temp_tuote" );
-		$stmt_varastosaldot->execute();
+		$conn->query( "DELETE FROM temp_tuote" );
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(

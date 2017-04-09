@@ -26,15 +26,15 @@ class Email {
 	 * ja sitten kutsuvat tämän metodin.
 	 */
 	private static function sendMail() {
-		$values = parse_ini_file( "./config/config.ini.php" );
+		$config = parse_ini_file( "./config/config.ini.php" );
 		$apiParametres = array(
-			'api_user' => $values['email_user'],
-			'api_key' => $values['email_pass'],
+			'api_user' => $config['email_user'],
+			'api_key' => $config['email_pass'],
 			'to' => Email::$target_email,
 			'subject' => Email::$subject,
 			'html' => Email::$message,
 			'text' => "",
-			'from' => $values['delivery_email'],
+			'from' => $config['delivery_email'],
 			'files[' . Email::$fileName . ']' => Email::$file
 		);
 
@@ -115,7 +115,8 @@ class Email {
 	 * @param string $fileName <p> Noutolistan tiedoston nimi
 	 */
 	static function lahetaNoutolista( /*int*/ $tilausnro, /*String*/ $fileName ) {
-		Email::$target_email = Email::admin_email;
+		$config = parse_ini_file( "./config/config.ini.php" );
+		Email::$target_email = $config['admin_email'];
 		Email::$subject = "Noutolista tilaukseen {$tilausnro}";
 		Email::$message = "<p>Tilauksen {$tilausnro} noutolista.</p>
 				<p>Liitteenä PDF-tiedosto.</p>
