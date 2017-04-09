@@ -6,7 +6,7 @@
 
 //Määritellään työskentelykansio cronjobia varten
 chdir(dirname(__FILE__));
-require 'luokat/db_yhteys_luokka.class.php';
+require 'luokat/dbyhteys.class.php';
 $db = new DByhteys();
 
 

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Ostoautomaatio. Listään tarpeen mukaan tuotteita ostotilauskirjoille.
  */
@@ -61,14 +61,14 @@ foreach ($tuotteet as $tuote) {
 	/*************************************************************
 	 * Lasketaan tuotteelle viime vuoden myynti
 	 ************************************************************/
-	//Haetaan viimeisen vuoden tilaukset
+	//Haetaan viimeisen vuoden tilaukset, jotka odottavassa tilassa tai maksettu
 	$sql = "	SELECT SUM(tilaus_tuote.kpl) AS myynti
   			  	FROM tilaus_tuote
   			  	LEFT JOIN tilaus
   			  		ON tilaus.id = tilaus_tuote.tilaus_id
  			  	WHERE tilaus.paivamaara >= curdate() - INTERVAL 1 YEAR
  			  		AND tilaus_tuote.tuote_id = ? 
- 			  		AND tilaus.maksettu = 1 ";
+ 			  		AND tilaus.maksettu >= 0 ";
 	$vuoden_myynti = $db->query($sql, [$tuote->id])->myynti;
 
 

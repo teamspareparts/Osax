@@ -29,7 +29,7 @@ main { display: block; } /* F*** IE */
 }
 
 .hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
-.material-icons { vertical-align: middle; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
+.material-icons { vertical-align: middle; font-size: 18px; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
 .center { text-align: center; justify-content: center; margin: auto; } /* Sisällön keskittämiseen joka suunnassa */
 .end { text-align: end; } /* Self-explanatory */
 
@@ -55,7 +55,7 @@ main { display: block; } /* F*** IE */
 *********************************************/
 /* Headerin yläosa, navigointipalkin yläpuolella (navbarin säännöt on omassa osiossa) */
 .header_top {
-	width: 100%;
+	width: auto;
 	height: 6.5em;
 	background-color: #fff; /* Jannen pyynnöstä asetettu täysin valkoinen tausta. Koska logon tausta on valkoinen */
 	display: flex; /* Ei toimi ilman. Asettaa elementit siististi. */
@@ -105,17 +105,12 @@ main { display: block; } /* F*** IE */
 	background: #2f5cad;
 	width: auto;
 	height: auto;
-	min-width: 640pt;
 }
 
 .navigationbar ul {
-	list-style: none;
+	list-style-type: none;
 	margin: 0;
 	padding: 0;
-	line-height: 1;
-	display: block;
-	zoom: 1;
-	text-align: left;
 }
 
 .navigationbar ul:after {
@@ -125,20 +120,19 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar ul li {
-	display: inline-block;
+	float: left;
 	position: relative;
-	margin: 0;
+	vertical-align: middle;
 }
 
 .navigationbar ul li a {
-    /*text-decoration: none;*/
-    color: #ffffff;
+    color: white;
     font-family: 'Open Sans', sans-serif;
     font-weight: 700;
     text-transform: uppercase;
     font-size: 16px;
     display: block;
-    padding: 15px 20px;
+    padding: 14px 16px;
 }
 
 .navigationbar ul li :HOVER {
@@ -153,6 +147,10 @@ main { display: block; } /* F*** IE */
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
     padding: 0 0;
     z-index: 1;
+}
+
+.navigationbar .dropdown-content li {
+	width: 100%;
 }
 
 .navigationbar .last {
