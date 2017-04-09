@@ -1,29 +1,23 @@
 <?php
 
 /**
- * @version 2017-02-xx <p> WIP
+ * @version 2017-04-09
  */
 class PaymentAPI {
 
-	/**
-	 * @var string <p> Public test authentication.
-	 */
-	private static $merchant_auth_hash = "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ";
-	/**
-	 * @var string <p> Public test merchant ID.
-	 */
-	private static $merchant_id = "13466";
+	private static $merchant_id = '13466'; // Test credentials
+	private static $merchant_auth_hash = '6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ'; // Test credentials
 
+	private static $order_id = '';
 	private static $amount = '';
-	private static $order_id = "123456";
 
 	private static $reference_number = ''; // Tyhjä tarkoituksella
 	private static $order_descr = ''; // Tyhjä tarkoituksella
 	private static $currency = "EUR";
-	private static $return_addr = ""; // Haetaan config.ini tiedostosta
-	private static $cancel_addr = ""; // Haetaan config.ini tiedostosta
+	private static $return_addr = ''; // Haetaan config.ini tiedostosta
+	private static $cancel_addr = ''; // Haetaan config.ini tiedostosta
 	private static $pending_addr = ''; // Tyhjä tarkoituksella. Ei käytössä Paytrailin API:ssa.
-	private static $notify_addr = ""; // Haetaan config.ini tiedostosta
+	private static $notify_addr = ''; // Haetaan config.ini tiedostosta
 	private static $type = "S1"; // S1-form. Yksinkertaisempi vaihtoehto.
 	private static $culture = "fi_FI";
 	private static $preselected_method = ''; // Tyhjä tarkoituksella
@@ -46,11 +40,13 @@ class PaymentAPI {
 	 */
 	public static function preparePaymentFormInfo( /*int*/ $tilaus_id, /*float*/ $summa ) {
 		PaymentAPI::$order_id = $tilaus_id;
-		PaymentAPI::$amount = $summa;
-		$values = parse_ini_file( "./config/config.ini.php" );
-		PaymentAPI::$return_addr = $values['return_osoite'];
-		PaymentAPI::$cancel_addr = $values['cancel_osoite'];
-		PaymentAPI::$notify_addr = $values['notify_osoite'];
+		PaymentAPI::$amount = round( $summa, 2 );
+		$config = parse_ini_file( "./config/config.ini.php" );
+		PaymentAPI::$return_addr = $config[ 'return_osoite' ];
+		PaymentAPI::$cancel_addr = $config[ 'cancel_osoite' ];
+		PaymentAPI::$notify_addr = $config[ 'notify_osoite' ];
+		PaymentAPI::$merchant_id = $config[ 'merch_id' ];
+		PaymentAPI::$merchant_auth_hash = $config[ 'merch_auth' ];
 		PaymentAPI::calculateAuthCode();
 	}
 
@@ -84,7 +80,7 @@ class PaymentAPI {
 	}
 
 	/**
-	 * @param string $formType [optional] default = 'S1'
+	 * @param string $formType [optional] <p> default = 'S1'
 	 */
 	private static function calculateAuthCode( /*string*/ $formType = 'S1' ) {
 		if ( $formType === 'S1' ) {
@@ -94,21 +90,21 @@ class PaymentAPI {
 	}
 
 	/**
-	 * @param array $getVariables <p> $_GET-arvot sellaisenaan.
+	 * @param array $getVariables <p> $_GET-arvot sellaisenaan (assoc-array).
 	 * @param bool  $isCancel     [otional] <p> Onko maksun peruutus?
 	 * @return bool
 	 */
 	public static function checkReturnAuthCode( array $getVariables, /*bool*/ $isCancel = false ) {
 		if ( $isCancel ) {
-			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ];
+			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ] . '|' . PaymentAPI::$merchant_auth_hash;
 		}
 		else {
-			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ] . '|' . $getVariables[ 'PAID' ] . '|' . $getVariables[ 'METHOD' ];
+			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ] . '|' . $getVariables[ 'PAID' ] . '|' . $getVariables[ 'METHOD' ] . '|' . PaymentAPI::$merchant_auth_hash;
 		}
 
 		PaymentAPI::$auth_code = strtoupper( md5( PaymentAPI::$auth_code ) );
 
-		if ( PaymentAPI::$auth_code === $getVariables[ 'RETURN_AUTHCODE' ] ) {
+		if ( PaymentAPI::$auth_code == $getVariables[ 'RETURN_AUTHCODE' ] ) {
 			return true;
 		}
 

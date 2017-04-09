@@ -2,7 +2,7 @@
 /**
  * Class Ostoskori <p>
  * Sivuston yrityksen yhteisen ostoskorin toiminnan hallintaa varten.
- * @version 2017-02-06
+ * @version 2017-04-09
  */
 class Ostoskori {
 	/**
@@ -30,11 +30,11 @@ class Ostoskori {
 	/**
 	 * @var int <p> Ostoskorin omistavan yrityksen ID.
 	 */
-	private $yritys_id = null;
+	public $yritys_id = null;
 	/**
 	 * @var int <p> Ostoskorin ID tietokannassa.
 	 */
-	private $ostoskori_id = null;
+	public $ostoskori_id = null;
 	/**
 	 * @var int <p> Mitkä tiedot haettu. Sama kuin konstruktorin $cart_mode, mutta pysyvään
 	 * tallenukseen.

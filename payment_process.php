@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * @version 2017-02-xx <p> WIP
  */
@@ -52,7 +52,7 @@ if ( !empty( $tilaus_id ) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
-	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] ); // $_SERVER[ 'REQUEST_URI' ] == nykyinen sivu
+	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] );
 	exit();
 } else {
 	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
