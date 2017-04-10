@@ -38,7 +38,7 @@ if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 		$stmt = $conn->prepare("
 				UPDATE tuote 
 				JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
-				SET tuote.varastosaldo = tuote.varastosaldo - temp_tuote.varastosaldo, tuote.paivitettava = 1" );
+				SET tuote.varastosaldo = tuote.varastosaldo + temp_tuote.varastosaldo, tuote.paivitettava = 1" );
 		$stmt->execute();
 
 		// Lisätään lopuksi tuotteet takaisin ostoskoriin.

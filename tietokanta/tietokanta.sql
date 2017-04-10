@@ -203,7 +203,7 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
     FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-CREATE TABLE IF NOT EXISTS `ostoskori` (
+CREATE TABLE IF NOT EXISTS `ostoskori` ( -- Teknisesti ottaen täysin turha taulu.
   `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `yritys_id` smallint UNSIGNED NOT NULL, -- UK, FK
   PRIMARY KEY (`id`),
@@ -276,7 +276,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
+  `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,
@@ -299,7 +299,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `selite` varchar(50) NOT NULL,
   `ostohinta` decimal(11,4) NOT NULL,
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (0: automaatio) (FK)
+  `lisays_kayttaja_id` mediumint UNSIGNED, -- FK, Kuka lisännyt (0: automaatio)
   PRIMARY KEY (`ostotilauskirja_id`, tuote_id, automaatti),
   CONSTRAINT fk_ostotilauskirjaTuoteArkisto_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
