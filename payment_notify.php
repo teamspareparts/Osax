@@ -3,6 +3,8 @@
  * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 
+sleep(300);
+
 require "luokat/dbyhteys.class.php";
 require "luokat/user.class.php";
 require "luokat/ostoskori.class.php"; // Tuotteiden palauttamista ostoskoriin varten.
