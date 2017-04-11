@@ -276,7 +276,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY -- nimi, jolla tunnistetaan
+  `tunniste` varchar(50) NOT NULL,  -- nimi, jolla tunnistetaan
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,

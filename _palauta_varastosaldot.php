@@ -7,7 +7,7 @@
 chdir(dirname(__FILE__)); //Määritellään työskentelykansio
 set_time_limit(300);
 
-require "luokat/dbyhteys.class.php";
+require "./luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
 //Haetaan keskeneräisten tilausten tuotteet, jotka olleet kesken yli 4 päivää
@@ -43,7 +43,7 @@ $db->query($sql, $values);
 //Päivitetään tuotteiden varastosaldot ja merkataan ostoautomaatiota varten
 $db->query("UPDATE tuote JOIN temp_tuote
             ON tuote.id = temp_tuote.tuote_id 
-            SET tuote.varastosaldo = ( tuote.varastosaldo - temp_tuote.varastosaldo ) ,
+            SET tuote.varastosaldo = ( tuote.varastosaldo + temp_tuote.varastosaldo ) ,
                 tuote.paivitettava = 1");
 $db->query( "DELETE FROM temp_tuote" );
 
