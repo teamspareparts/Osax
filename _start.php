@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
+ * @version 2017-03-09.02 <p> DByhteys.class-tiedoston nimeä vaihdettu, debug-funktio better
  */
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.

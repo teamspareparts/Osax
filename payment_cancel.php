@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-04-09 <p> Korjattu varastosaldojen palautus. Ostoskorin palautus.
+ * @version 2017-04-10 <p> Korjattu varastosaldojen palautus. Ostoskorin palautus.
  */
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
@@ -16,21 +16,20 @@ if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 	$conn->beginTransaction();
 
 	try {
-		$stmt = $conn->prepare( 'UPDATE tilaus SET maksettu = -1, kasitelty = -1
-			WHERE id = ? AND kayttaja_id = ?' );
+		$stmt = $conn->prepare(
+			'UPDATE tilaus SET maksettu = -1, kasitelty = -1 WHERE id = ? AND kayttaja_id = ?' );
 		$stmt->execute( [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
-
 
 		$stmt = $conn->prepare( "SELECT tuote_id, kpl FROM tilaus_tuote WHERE tilaus_id = ?" );
 		$stmt->execute( [ $_GET[ 'ORDER_NUMBER' ] ] );
-
+		$results = $stmt->fetchAll();
 
 		// Tuotteiden varastosaldojen palautus takaisin.
 		$placeholders = implode( ',', array_fill(0, count($results), '(?,?)') );
 		$values = array();
 		$stmt = $conn->prepare( "INSERT INTO temp_tuote (tuote_id, varastosaldo) VALUES {$placeholders}" );
 		foreach ( $results as $tuote ) {
-			array_push( $values, $tuote->id, ($tuote->varastosaldo - $tuote->kpl) );
+			array_push( $values, $tuote->tuote_id, $tuote->kpl );
 		}
 		$stmt->execute( $values );
 
@@ -38,7 +37,7 @@ if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 		$stmt = $conn->prepare("
 				UPDATE tuote 
 				JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
-				SET tuote.varastosaldo = tuote.varastosaldo - temp_tuote.varastosaldo, tuote.paivitettava = 1" );
+				SET tuote.varastosaldo = tuote.varastosaldo + temp_tuote.varastosaldo, tuote.paivitettava = 1" );
 		$stmt->execute();
 
 		// Lisätään lopuksi tuotteet takaisin ostoskoriin.
@@ -52,8 +51,6 @@ if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 		$conn->query( "DELETE FROM temp_tuote" );
 
 		$conn->commit();
-		// Viesti käyttäjälle.
-		//TODO: Lisää passivis-agressiivinen kommentti "Voisitko olla tekemättä tuota uudelleen? It really hurts."
 		$_SESSION['feedback'] = "<p class='error'>Tilaus peruutettu. Tuotteet on lisätty takaisin ostoskoriin.</p>";
 
 	} catch ( PDOException $ex ) {
