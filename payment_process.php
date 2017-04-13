@@ -1,8 +1,7 @@
 <?php
 /**
- * @version 2017-02-xx <p> WIP
+ * @version 2017-xx-xx <p> WIP
  */
-//TODO: Mitä jos käyttäjä vain poistuu sivulta tai sulkee selaimen? --SL 19.3
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';
@@ -72,7 +71,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 
 <?php require 'header.php'; ?>
 
-<section class="main_body_container">
+<main class="main_body_container">
 	<?php if ( true OR $user->maksutapa ) : ?>
 		<form method='post'>
 			<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
@@ -82,7 +81,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	<?php endif; ?>
 
 	<?= PaymentAPI::getS1Form() ?>
-</section>
+</main>
 
 
 <script src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>

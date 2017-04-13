@@ -192,5 +192,6 @@ if ( !file_exists('./laskut') ) { // Tarkistetaan, että kansio on olemassa.
 	mkdir( './laskut' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
 }
 
+//$laskunro_formatted = sprintf('%0d', $lasku->laskunro);
 $tiedoston_nimi = "lasku-{$lasku->laskunro}-{$user->id}.pdf";
 $mpdf->Output( "./laskut/{$tiedoston_nimi}", 'F' );

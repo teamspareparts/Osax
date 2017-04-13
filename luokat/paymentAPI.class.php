@@ -1,15 +1,14 @@
 <?php
-
 /**
  * @version 2017-04-09
  */
 class PaymentAPI {
 
-	private static $merchant_id = '13466'; // Test credentials
-	private static $merchant_auth_hash = '6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ'; // Test credentials
+	private static $merchant_id = null;
+	private static $merchant_auth_hash = null;
 
-	private static $order_id = '';
-	private static $amount = '';
+	private static $order_id = null;
+	private static $amount = null;
 
 	private static $reference_number = ''; // Tyhjä tarkoituksella
 	private static $order_descr = ''; // Tyhjä tarkoituksella
@@ -38,15 +37,23 @@ class PaymentAPI {
 	 * @param int   $tilaus_id <p> Tilauksen ID
 	 * @param float $summa     <p> Tilauksen maksettava summa
 	 */
-	public static function preparePaymentFormInfo( /*int*/ $tilaus_id, /*float*/ $summa ) {
-		PaymentAPI::$order_id = $tilaus_id;
-		PaymentAPI::$amount = round( $summa, 2 );
+	public static function haeConfigTiedot() {
 		$config = parse_ini_file( "./config/config.ini.php" );
 		PaymentAPI::$return_addr = $config[ 'return_osoite' ];
 		PaymentAPI::$cancel_addr = $config[ 'cancel_osoite' ];
 		PaymentAPI::$notify_addr = $config[ 'notify_osoite' ];
 		PaymentAPI::$merchant_id = $config[ 'merch_id' ];
 		PaymentAPI::$merchant_auth_hash = $config[ 'merch_auth' ];
+	}
+
+	/**
+	 * @param int   $tilaus_id <p> Tilauksen ID
+	 * @param float $summa     <p> Tilauksen maksettava summa
+	 */
+	public static function preparePaymentFormInfo( /*int*/ $tilaus_id, /*float*/ $summa ) {
+		PaymentAPI::$order_id = $tilaus_id;
+		PaymentAPI::$amount = round( $summa, 2 );
+		PaymentAPI::haeConfigTiedot();
 		PaymentAPI::calculateAuthCode();
 	}
 
@@ -95,6 +102,7 @@ class PaymentAPI {
 	 * @return bool
 	 */
 	public static function checkReturnAuthCode( array $getVariables, /*bool*/ $isCancel = false ) {
+		PaymentAPI::haeConfigTiedot();
 		if ( $isCancel ) {
 			PaymentAPI::$auth_code = $getVariables[ 'ORDER_NUMBER' ] . '|' . $getVariables[ 'TIMESTAMP' ] . '|' . PaymentAPI::$merchant_auth_hash;
 		}

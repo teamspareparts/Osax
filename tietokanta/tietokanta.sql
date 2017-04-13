@@ -251,13 +251,13 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
 CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,  -- UNIQUE KEY
+  `tunniste` varchar(50) NOT NULL,
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_lahetyspaiva` timestamp NULL DEFAULT NULL,
   `oletettu_saapumispaiva` timestamp NULL DEFAULT NULL,
   `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`, `hankintapaikka_id`),
-  UNIQUE KEY (`tunniste`, `hankintapaikka_id`),
+  UNIQUE KEY (`hankintapaikka_id`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
 	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
   `kpl` int(11) UNSIGNED NOT NULL,
   `selite` varchar(50) NOT NULL,
   `lisays_pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
-  `lisays_kayttaja_id` mediumint UNSIGNED, -- Kuka lisännyt (0: automaatio) (FK)
+  `lisays_kayttaja_id` mediumint UNSIGNED, -- FK, Kuka lisännyt (0: automaatio)
   PRIMARY KEY (`ostotilauskirja_id`, `tuote_id`, `automaatti`),
 	CONSTRAINT fk_ostotilauskirjaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
@@ -277,8 +277,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,  -- nimi, jolla tunnistetaan
-  `rahti` decimal(11,2), -- Rahtimaksu
+  `tunniste` varchar(50) NOT NULL,
+  `rahti` decimal(11,2),
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,
   `lahettaja` int(11), -- Tilauskirjan lähettäjän käyttäjä ID
@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote_arkisto` ( -- Tänne valmiit t
   `ostotilauskirja_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `automaatti` boolean NOT NULL, -- PK -- Onko automaatin lisäämä
-  `original_kpl` int(11) NOT NULL, -- Alkuperäinen kpl
+  `original_kpl` int(11) NOT NULL,
   `kpl` int(11) NOT NULL,
   `selite` varchar(50) NOT NULL,
   `ostohinta` decimal(11,4) NOT NULL,
