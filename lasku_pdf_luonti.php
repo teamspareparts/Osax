@@ -5,6 +5,8 @@ require './luokat/laskutiedot.class.php';
 $mpdf = new mPDF();
 $lasku = new Laskutiedot( $db, $tilaus_id, $user );
 
+$config = parse_ini_file( "./config/config.ini.php" );
+
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
 /** ////////////////////////////////////////////////////////////////////// */
@@ -15,19 +17,21 @@ $html = "
 <!-- Laskun logo, pvm, ja numero -->
 <table style='width:100%;'>
 	<tbody>
-	<tr><td><img src='img/osax_logo.jpg' alt='Osax.fi'></td>
+	<tr><td>{$config['lasku_header']}</td>
 		<td colspan='2'>
-		<table style='width:70%;padding:15px;'>
-			<thead>
-			<tr><th>Laskunro</th>
-				<th>Päivämäärä</th></tr>
-			</thead>
-			<tbody>
-			<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskunro)."</td>
-				<td style='text-align:center;'>".date('d.m.Y')."</td>
-			</tr>
-			</tbody>
-		</table></td></tr>
+			<table style='width:70%;padding:15px;'>
+				<thead>
+				<tr><th>Laskunro</th>
+					<th>Päivämäärä</th></tr>
+				</thead>
+				<tbody>
+				<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskunro)."</td>
+					<td style='text-align:center;'>".date('d.m.Y')."</td>
+				</tr>
+				</tbody>
+			</table>
+		</td>
+	</tr>
 	</tbody>
 </table><br>
 <!-- Asiakkaan tiedot/toimitusosoite, ja maksutapa -->
@@ -142,7 +146,7 @@ $html .= "
 		<thead><tr><th colspan='2' style='text-align: center;'>LOPPUSUMMA</th></tr></thead>
 		<tbody>
 		<tr><td>Summa yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'], 3)} €</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'], 2)} €</td></tr>
 		</tbody>
 	</table></td></tr>
 </table>
