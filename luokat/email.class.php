@@ -15,13 +15,6 @@ class Email {
 	private static $fileName = NULL;
 
 	/**
-	 * Email constructor.
-	 * Static class, joten tätä ei ole tarkoitus käyttää. Hence: "private".
-	 */
-	private function __construct() {
-	}
-
-	/**
 	 * Lähettää sähköpostin. Luokan sisäiseen käyttöön, muut metodit asettavat arvot,
 	 * ja sitten kutsuvat tämän metodin.
 	 */
