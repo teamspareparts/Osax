@@ -413,10 +413,10 @@ require 'tuotemodal.php';
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>
-					<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
+					<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
 					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
 						<th class="number">Saldo</th> <th class="number">Hinta (sis. ALV)</th>
-                        <th class="number">Ostohinta ALV0%</th>
+                        <th class="number">Ostohinta ALV0%</th><th class="number">Kate %</th>
 						<th>Hyllypaikka</th>
 						<th></th>
 					</tr>
@@ -438,6 +438,7 @@ require 'tuotemodal.php';
 							<td class="number"><?=format_integer($product->varastosaldo)?></td>
 							<td class="number"><?=format_euros($product->hinta)?></td>
                             <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+                            <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
