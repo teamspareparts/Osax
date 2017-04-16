@@ -29,7 +29,7 @@ main { display: block; } /* F*** IE */
 }
 
 .hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
-.material-icons { vertical-align: middle; font-size: 18px; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
+.material-icons { vertical-align: middle !important; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
 .center { text-align: center; justify-content: center; margin: auto; } /* Sisällön keskittämiseen joka suunnassa */
 .end { text-align: end; } /* Self-explanatory */
 
@@ -114,7 +114,7 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar ul:after {
-	content: " ";
+	content: "";
 	display: block;
 	clear: both;
 }
@@ -122,10 +122,10 @@ main { display: block; } /* F*** IE */
 .navigationbar ul li {
 	float: left;
 	position: relative;
-	vertical-align: middle;
 }
 
 .navigationbar ul li a {
+	line-height: 26px;
     color: white;
     font-family: 'Open Sans', sans-serif;
     font-weight: 700;
@@ -151,6 +151,10 @@ main { display: block; } /* F*** IE */
 
 .navigationbar .dropdown-content li {
 	width: 100%;
+}
+
+.navigationbar .dropdown-content li a {
+	padding: 5px 10px;
 }
 
 .navigationbar .last {
