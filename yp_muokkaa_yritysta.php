@@ -108,7 +108,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		</fieldset>
 	</form>
 	<br><br>
-    <form method="post">
+    <form name="muuta_rahtimaksu" method="post">
         <fieldset><legend>Yrityksen rahtimaksu</legend>
             <span>Kumpikin arvo euroina (€). <br> Jos nolla, ilmainen toimitus aina.</span>
             <br><br>
@@ -127,7 +127,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
         </fieldset>
     </form>
 	<br><br>
-	<form method="post">
+	<form name="muuta_maksutapa" method="post">
 		<fieldset><legend>Maksutavan valinta</legend>
 			<span>Käyttäjä voi silti valita maksaa Paytraililla.<br>
 			Nykyinen arvo: <?= $yritys->maksutapa ?></span>

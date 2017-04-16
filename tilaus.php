@@ -216,13 +216,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	}
 
 	function laheta_Tilaus () {
-		let form_ID = "laheta_tilaus_form";
-		let vahvistus = confirm( "Haluatko vahvistaa tilauksen?");
-		if ( vahvistus ) {
-			document.getElementById(form_ID).submit();
-		} else {
-			return false;
-		}
+		//TODO: Remove this javascript. Change to form. --JJ 20170416
+		document.getElementById("laheta_tilaus_form").submit();
 	}
 
 	$(document).ready(function() {

@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` mediumint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `kayttaja_id` mediumint UNSIGNED NOT NULL, -- Foreign KEY
   `kasitelty` boolean NOT NULL DEFAULT 0,
-  `maksettu` boolean NOT NULL DEFAULT 0, -- Käyttäjä maksaa laskun tilauksen tallennuksen jälkeen.
+  `maksettu` boolean NOT NULL DEFAULT 0,
+  `maksutapa` tinyint DEFAULT NULL,
   `laskunro` int DEFAULT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,

@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-xx-xx <p> WIP
+ * @version 2017-04-16 <p> Form siirretty HTML:ään.
  */
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
@@ -10,11 +10,13 @@ require 'luokat/email.class.php';
 if ( !empty( $_GET ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
 		$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
+		$maksutapa = 0;
 	}
 }
 // _POST-muuttuja, jos käyttäjä valinnut laskulla maksun
 elseif ( !empty( $_POST[ 'tilaus_id' ] ) ) {
 	$tilaus_id = $_POST[ 'tilaus_id' ];
+	$maksutapa = $_POST[ 'maksutapa' ];
 }
 
 // Ei maksunsuoritus; käyttäjä vasta tullut tilaus.php-sivulta
@@ -30,8 +32,9 @@ else {
  * Onnistuneen maksun suoritus. Ylhäällä tarkistetaan onko _GET tai _POST, tässä viimeistellään varsinainen maksu.
  */
 if ( !empty( $tilaus_id ) ) {
-	$sql = "UPDATE tilaus SET maksettu = 1 WHERE id = ? AND kayttaja_id = ?";
-	$result = $db->query( $sql, [ $tilaus_id, $user->id ] );
+	$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = ? 
+			WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
+	$result = $db->query( $sql, [ $maksutapa, $tilaus_id, $user->id ] );
 	// Jos maksu on jo hyväksytty (maksettu == 1), niin kyselyn pitäisi palauttaa 0 (muutettua riviä).
 	if ( $result ) {
 
@@ -72,15 +75,44 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 <?php require 'header.php'; ?>
 
 <main class="main_body_container">
-	<?php if ( true OR $user->maksutapa ) : ?>
-		<form method='post'>
-			<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
-			<input name='maksutapa' type='hidden' value='lasku'>
-			<input type='submit' class="nappi" value='Maksa laskulla'>
+	<div style="width: 503px;">
+		<form method='post' style="width:50%; display:inline;">
+			<input name='peruuta_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
+			<input type='submit' class="nappi grey" value='Peruuta' style="width:40%;">
 		</form>
-	<?php endif; ?>
 
-	<?= PaymentAPI::getS1Form() ?>
+		<?php if ( $user->maksutapa ) : ?>
+			<form method='post' style="width:50%; display:inline;">
+				<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
+				<input name='maksutapa' type='hidden' value='<?= $user->maksutapa ?>'>
+				<input type='submit' class="nappi" value='Maksa laskulla' style="width:50%; float:right;">
+			</form>
+		<?php endif; ?>
+	</div>
+
+	<br>
+
+	<h2>Maksu Paytrailin kautta:</h2>
+	<form action='https://payment.paytrail.com/' method='post' id='payment'>
+		<input name='MERCHANT_ID' type='hidden' value='<?= PaymentAPI::$merchant_id ?>'>
+		<input name='AMOUNT' type='hidden' value='<?= PaymentAPI::$amount ?>'>
+		<input name='ORDER_NUMBER' type='hidden' value='<?= PaymentAPI::$order_id ?>'>
+		<input name='REFERENCE_NUMBER' type='hidden' value='<?= PaymentAPI::$reference_number ?>'>
+		<input name='ORDER_DESCRIPTION' type='hidden' value='<?= PaymentAPI::$order_descr ?>'>
+		<input name='CURRENCY' type='hidden' value='<?= PaymentAPI::$currency ?>'>
+		<input name='RETURN_ADDRESS' type='hidden' value='<?= PaymentAPI::$return_addr ?>'>
+		<input name='CANCEL_ADDRESS' type='hidden' value='<?= PaymentAPI::$cancel_addr ?>'>
+		<input name='PENDING_ADDRESS' type='hidden' value='<?= PaymentAPI::$pending_addr ?>'>
+		<input name='NOTIFY_ADDRESS' type='hidden' value='<?= PaymentAPI::$notify_addr ?>'>
+		<input name='TYPE' type='hidden' value='<?= PaymentAPI::$type ?>'>
+		<input name='CULTURE' type='hidden' value='<?= PaymentAPI::$culture ?>'>
+		<input name='PRESELECTED_METHOD' type='hidden' value='<?= PaymentAPI::$preselected_method ?>'>
+		<input name='MODE' type='hidden' value='<?= PaymentAPI::$mode ?>'>
+		<input name='VISIBLE_METHODS' type='hidden' value='<?= PaymentAPI::$visible_method ?>'>
+		<input name='GROUP' type='hidden' value='<?= PaymentAPI::$group ?>'>
+		<input name='AUTHCODE' type='hidden' value='<?= PaymentAPI::$auth_code ?>'>
+		<input type='submit' value='Siirry maksamaan'>
+	</form>
 </main>
 
 
