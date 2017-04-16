@@ -130,7 +130,7 @@ if ( $mode === "login" ) {
 	session_regenerate_id( true );
 
 	// Haetaan käyttäjän tiedot
-	$sql = "SELECT id, sahkoposti, salasana_hajautus, vahvista_eula, aktiivinen, demo,
+	$sql = "SELECT id, yritys_id, sahkoposti, salasana_hajautus, vahvista_eula, aktiivinen, demo,
 				voimassaolopvm,	viime_sijainti, salasana_vaihdettu, salasana_uusittava
 			FROM kayttaja WHERE sahkoposti = ?";
 	$login_user = $db->query( $sql, [ $email ] );
@@ -152,6 +152,7 @@ if ( $mode === "login" ) {
 
 		else { //JOS KAIKKI OK->
 			$_SESSION[ 'id' ] = $login_user->id;
+			$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
 			$_SESSION[ 'email' ] = $login_user->sahkoposti;
 			$_SESSION[] = parse_ini_file( "./config/config.ini.php", true );
 

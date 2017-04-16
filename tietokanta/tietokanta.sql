@@ -250,14 +250,14 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
-  `tunniste` varchar(50) NOT NULL,
+  `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- FK, UK
+  `tunniste` varchar(50) NOT NULL, -- UK
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_lahetyspaiva` timestamp NULL DEFAULT NULL,
   `oletettu_saapumispaiva` timestamp NULL DEFAULT NULL,
   `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`, `hankintapaikka_id`),
-  UNIQUE KEY (`hankintapaikka_id`),
+  UNIQUE KEY (`hankintapaikka_id`, `tunniste`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
 	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

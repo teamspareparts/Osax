@@ -38,8 +38,8 @@ if ( isset($_POST['ostoskori_toiminto']) ) {
     if ( $result ) {
         $result = [
             'success' => true,
-            'tuotteet_kpl' => $cart->get_tuotteiden_maara(),
-            'yhteensa_kpl' => $cart->get_kaikkien_tuotteiden_kappalemaara(),
+            'tuotteet_kpl' => $cart->montako_tuotetta,
+            'yhteensa_kpl' => $cart->montako_tuotetta_kpl_maara_yhteensa,
         ];
     }
 }
