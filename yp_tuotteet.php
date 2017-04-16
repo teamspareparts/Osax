@@ -371,7 +371,7 @@ require 'header.php';
 require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
-	<section class="flex_row">
+	<section>
 		<div class="tuotekoodihaku">
 			<form action="" method="get" class="haku">
 				<div class="inline-block">
@@ -400,10 +400,6 @@ require 'tuotemodal.php';
 				<br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
-			<?php if ( $haku ) : ?>
-				<h3>Yhteensä löydettyjä tuotteita:
-					<?=count($catalog_products) + count($all_products) ?></h3>
-			<?php endif; ?>
 		</div>
 		<?php require 'ajoneuvomallillahaku.php'; ?>
 	</section>
@@ -412,6 +408,8 @@ require 'tuotemodal.php';
 
 	<section class="hakutulokset">
 		<?php if ( $haku ) : ?>
+            <h3>Yhteensä löydettyjä tuotteita:
+				<?=count($catalog_products) + count($all_products) ?></h3>
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>

@@ -400,8 +400,10 @@ th {
 }
 
 .tuotekoodihaku, .ajoneuvomallihaku {
+	display: inline-block;
 	white-space: nowrap;
-	padding: 0 30px 30px;
+	padding: 0 30px 10px;
+	vertical-align: top;
 }
 
 .ajoneuvomallihaku select {
