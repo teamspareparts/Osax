@@ -296,7 +296,7 @@ $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 $yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_lisaa_alasvetovalikko( $db );
 
-if ( !empty($_GET['haku']) ) {
+if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));  //hakunumero
 	$etuliite = null;                                           //mahdollinen etuliite
@@ -334,7 +334,7 @@ if ( !empty($_GET['haku']) ) {
 	$all_products = $filtered_product_arrays[1];
 	sortProductsByPrice($catalog_products);
 }
-else if ( !empty($_GET["manuf"]) ) {
+else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$selectCar = $_GET["car"];
 	$selectPartType = $_GET["osat_alalaji"];
@@ -344,6 +344,17 @@ else if ( !empty($_GET["manuf"]) ) {
 	$catalog_products = $filtered_product_arrays[0];
 	$all_products = $filtered_product_arrays[1];
 	sortProductsByPrice($catalog_products);
+}
+else if ( !empty($_GET["hyllypaikka"]) ) { // Hyllypaikallahaku
+	$haku = TRUE;
+	$hyllypaikka = str_replace(" ", "", $_GET["hyllypaikka"]);
+	$sql = "SELECT  *, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta 
+            FROM    tuote
+            JOIN    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+            WHERE   hyllypaikka = ? AND aktiivinen = 1";
+    $catalog_products = $db->query($sql, [$hyllypaikka], FETCH_ALL);
+    get_basic_product_info( $catalog_products );
+    merge_products_with_optional_data( $catalog_products );
 }
 ?>
 <!DOCTYPE html>
@@ -402,6 +413,13 @@ require 'tuotemodal.php';
 			</form>
 		</div>
 		<?php require 'ajoneuvomallillahaku.php'; ?>
+        <div class="hyllypaikkahaku" style="padding-right: 0">
+            <form action="" method="get" class="haku">
+                <label for="hyllypaikka">Hae hyllypaikalla:</label><br>
+                <input type="text" id="hyllypaikka" name="hyllypaikka" placeholder="Hyllypaikka"><br>
+                <input class="nappi" type="submit" value="Hae">
+            </form>
+        </div>
 	</section>
 
     <?= $feedback ?>
