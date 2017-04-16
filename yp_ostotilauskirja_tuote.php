@@ -237,6 +237,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <th>Tuotenumero</th>
                 <th>Tuote</th>
                 <th class="number">KPL</th>
+                <th class="number">Varastosaldo</th>
                 <th class="number">Ostohinta</th>
                 <th class="number">Yhteensä</th>
                 <th>Selite</th>
@@ -245,7 +246,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             </thead>
             <tbody>
             <!-- Rahtimaksu -->
-            <tr><td></td><td></td><td>Rahtimaksu</td><td class="number"></td><td class="number"><?=format_euros($otk->rahti)?></td>
+            <tr><td></td><td></td><td>Rahtimaksu</td><td></td><td></td><td class="number"><?=format_euros($otk->rahti)?></td>
                 <td class="number"><?=format_euros($otk->rahti)?></td><td></td><td></td></td></tr>
             <!-- Tuotteet -->
             <?php foreach ($products as $product) : ?>
@@ -253,6 +254,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <td><?=$product->tuotekoodi?></td>
                     <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
                     <td class="number"><?=format_integer($product->kpl)?></td>
+                    <td class="number"><?=$product->varastosaldo?></td>
                     <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                     <td class="number"><?=format_euros($product->kokonaishinta)?></td>
                     <td>
@@ -276,7 +278,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <td class="number" style="border-top: 1px solid black"><?= format_integer($yht_kpl)?></td>
                 <td style="border-top: 1px solid black"></td>
                 <td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
-                <td colspan="2" style="border-top: 1px solid black"></td>
+                <td colspan="3" style="border-top: 1px solid black"></td>
             </tr>
 
 

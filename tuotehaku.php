@@ -2,7 +2,6 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
-
 /**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
@@ -180,7 +179,6 @@ $css_version = filemtime( 'css/styles.css' );
     <link rel="stylesheet" type="text/css" href="css/jsmodal-light.css">
     <link rel="stylesheet" type="text/css" href="css/image_modal.css">
 
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -195,7 +193,7 @@ require 'header.php';
 require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
-	<section class="flex_row">
+	<section>
 		<div class="tuotekoodihaku">
 			<form action="tuotehaku.php" method="get" class="haku">
                 <div class="inline-block">
@@ -224,16 +222,14 @@ require 'tuotemodal.php';
                 <br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
-			<?php if ( $haku ) : ?>
-			<h3>Yhteensä löydettyjä tuotteita:
-				<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h3>
-			<?php endif; ?>
 		</div>
         <?php require 'ajoneuvomallillahaku.php';?>
 	</section>
 
 	<section class="hakutulokset">
 	<?php if ( $haku ) : ?>
+        <h3>Yhteensä löydettyjä tuotteita:
+			<?=count($catalog_products) + count($not_available) + count($not_in_catalog)?></h3>
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>

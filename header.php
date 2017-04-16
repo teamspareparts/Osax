@@ -35,14 +35,15 @@
     <section class="navigationbar">
         <ul>
             <li><a href='etusivu.php' style="padding-left:16px; padding-right: 0;">
-                <i class="material-icons">home</i></a></li>
+                <i class="material-icons" style="margin-top: -3px;">home</i></a></li>
             <li><a href='tuotehaku.php'>Tuotehaku</a></li>
             <?php if ( $user->isAdmin() ) : ?>
                 <li><a href='yp_yritykset.php'>Yritykset</a></li>
                 <li><a href='yp_tuotteet.php'>Tuotteet</a></li>
                 <li><a href='yp_tilaukset.php'>Tilaukset</a></li>
 
-                <li><a id="dropdown_link" href="javascript:void(0)">Muut<i id="dropdown_icon" class="material-icons">arrow_drop_down</i></a>
+                <li><a id="dropdown_link" href="javascript:void(0)">Muut
+                        <i id="dropdown_icon" class="material-icons" style="font-size: 18px;">arrow_drop_down</i></a>
                     <ul class="dropdown-content" id="navbar_dropdown-content">
                         <li><a href="yp_ostotilauskirja_odottavat.php">Varastoon saapuminen</a></li>
                         <li><a href="yp_ostotilauskirja_hankintapaikka.php">Tilauskirjat</a></li>

@@ -296,7 +296,7 @@ $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 $yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_lisaa_alasvetovalikko( $db );
 
-if ( !empty($_GET['haku']) ) {
+if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));  //hakunumero
 	$etuliite = null;                                           //mahdollinen etuliite
@@ -334,7 +334,7 @@ if ( !empty($_GET['haku']) ) {
 	$all_products = $filtered_product_arrays[1];
 	sortProductsByPrice($catalog_products);
 }
-else if ( !empty($_GET["manuf"]) ) {
+else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
 	$selectCar = $_GET["car"];
 	$selectPartType = $_GET["osat_alalaji"];
@@ -344,6 +344,17 @@ else if ( !empty($_GET["manuf"]) ) {
 	$catalog_products = $filtered_product_arrays[0];
 	$all_products = $filtered_product_arrays[1];
 	sortProductsByPrice($catalog_products);
+}
+else if ( !empty($_GET["hyllypaikka"]) ) { // Hyllypaikallahaku
+	$haku = TRUE;
+	$hyllypaikka = str_replace(" ", "", $_GET["hyllypaikka"]);
+	$sql = "SELECT  *, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta 
+            FROM    tuote
+            JOIN    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+            WHERE   hyllypaikka = ? AND aktiivinen = 1";
+    $catalog_products = $db->query($sql, [$hyllypaikka], FETCH_ALL);
+    get_basic_product_info( $catalog_products );
+    merge_products_with_optional_data( $catalog_products );
 }
 ?>
 <!DOCTYPE html>
@@ -371,7 +382,7 @@ require 'header.php';
 require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
-	<section class="flex_row">
+	<section>
 		<div class="tuotekoodihaku">
 			<form action="" method="get" class="haku">
 				<div class="inline-block">
@@ -400,25 +411,30 @@ require 'tuotemodal.php';
 				<br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
-			<?php if ( $haku ) : ?>
-				<h3>Yhteensä löydettyjä tuotteita:
-					<?=count($catalog_products) + count($all_products) ?></h3>
-			<?php endif; ?>
 		</div>
 		<?php require 'ajoneuvomallillahaku.php'; ?>
+        <div class="hyllypaikkahaku" style="padding-right: 0">
+            <form action="" method="get" class="haku">
+                <label for="hyllypaikka">Hae hyllypaikalla:</label><br>
+                <input type="text" id="hyllypaikka" name="hyllypaikka" placeholder="Hyllypaikka"><br>
+                <input class="nappi" type="submit" value="Hae">
+            </form>
+        </div>
 	</section>
 
     <?= $feedback ?>
 
 	<section class="hakutulokset">
 		<?php if ( $haku ) : ?>
+            <h3>Yhteensä löydettyjä tuotteita:
+				<?=count($catalog_products) + count($all_products) ?></h3>
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>
-					<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
+					<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
 					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
 						<th class="number">Saldo</th> <th class="number">Hinta (sis. ALV)</th>
-                        <th class="number">Ostohinta ALV0%</th>
+                        <th class="number">Ostohinta ALV0%</th><th class="number">Kate %</th>
 						<th>Hyllypaikka</th>
 						<th></th>
 					</tr>
@@ -440,6 +456,7 @@ require 'tuotemodal.php';
 							<td class="number"><?=format_integer($product->varastosaldo)?></td>
 							<td class="number"><?=format_euros($product->hinta)?></td>
                             <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+                            <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->

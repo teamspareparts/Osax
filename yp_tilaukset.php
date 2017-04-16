@@ -12,8 +12,10 @@ if ( !$user->isAdmin() ) {
  * @return stdClass[]
  */
 function hae_tilaukset( DByhteys $db ) {
-	$sql = "SELECT tilaus.id, tilaus.paivamaara, kayttaja.etunimi, kayttaja.sukunimi, 
-				SUM(tilaus_tuote.kpl * (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv))) AS summa
+	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.pysyva_rahtimaksu, kayttaja.etunimi, kayttaja.sukunimi,
+				SUM( tilaus_tuote.kpl * 
+			        (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv) * (1-tilaus_tuote.pysyva_alennus)) )
+			        AS summa
 			FROM tilaus
 			LEFT JOIN kayttaja
 				ON kayttaja.id = tilaus.kayttaja_id
@@ -64,7 +66,7 @@ $tilaukset = hae_tilaukset( $db );
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa)?></td>
+						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
 						<td><label>Valitse<input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
 							</label></td>
 					</tr>
