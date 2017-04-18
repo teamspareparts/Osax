@@ -6,8 +6,11 @@ require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';
 
+debug( $_SESSION );
+debug( $_POST );
+
 // Tarkistetaan onko maksusuoritus Paytrailin sivulta _GET-muuttujaan
-if ( !empty( $_GET ) ) {
+if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
 		$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
 		$maksutapa = 0;
@@ -17,6 +20,19 @@ if ( !empty( $_GET ) ) {
 elseif ( !empty( $_POST[ 'tilaus_id' ] ) ) {
 	$tilaus_id = $_POST[ 'tilaus_id' ];
 	$maksutapa = $_POST[ 'maksutapa' ];
+}
+// Tilauksen peruutus ("Peruuta"-nappi)
+elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
+
+	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_POST[ 'peruuta_id' ], $cart->ostoskori_id ) ) {
+		$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
+	}
+	else {
+		$_SESSION[ "feedback" ] = "<p class='error'>Tilauksen peruutus ei onnistunut. 
+			Ole hyvä, ja ota yhteys ylläpitäjiin.<br>Virhe: " . print_r( $ex->errorInfo, 1 ) . "</p>";
+	}
+	header( "location:ostoskori.php" );
+	exit;
 }
 
 // Ei maksunsuoritus; käyttäjä vasta tullut tilaus.php-sivulta
@@ -78,14 +94,14 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	<div style="width: 503px;">
 		<form method='post' style="width:50%; display:inline;">
 			<input name='peruuta_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
-			<input type='submit' class="nappi grey" value='Peruuta' style="width:40%;">
+			<input type='submit' value='Peruuta tilaus' class="nappi grey" style="width:40%;">
 		</form>
 
 		<?php if ( $user->maksutapa ) : ?>
 			<form method='post' style="width:50%; display:inline;">
 				<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
 				<input name='maksutapa' type='hidden' value='<?= $user->maksutapa ?>'>
-				<input type='submit' class="nappi" value='Maksa laskulla' style="width:50%; float:right;">
+				<input type='submit' value='Maksa laskulla' class="nappi" style="width:50%; float:right;">
 			</form>
 		<?php endif; ?>
 	</div>

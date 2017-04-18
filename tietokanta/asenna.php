@@ -4,7 +4,7 @@ print("<pre>");
 $config = parse_ini_file( "../config/config.ini.php", true);
 require '../luokat/dbyhteys.class.php';
 
-$db = new DByhteys(['root','','tuoteluettelo_database','localhost']);
+$db = new DByhteys( ['root','','tuoteluettelo_database','localhost'] );
 $f = file('./tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
 // Poistetaan .sql-tiedoston kommentit
@@ -52,10 +52,4 @@ $db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
 $db->query( "INSERT INTO laskunumero (laskunro) VALUES (?)", [1]);
 $db->query( "INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [0,0.00]);
 
-//TODO: Undefined variable: result --SL 19.3
-/*
-if ( $result ) {
-    echo 'Ylläpitäjä luotu.<br>Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';
-}
-*/
 echo 'Done.';

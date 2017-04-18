@@ -30,23 +30,13 @@ switch ( $get_count ) {
 			 * Jos käyttäjä palaa suoraan takaisin payment_cancel-sivulle, se päivitetään siellä.
 			 * Jos tilaus on jo peruutettu, tällä sivulla ei tehdä mitään.
 			 */
-			$sql = "UPDATE tilaus SET maksettu = -1, kasitelty = -1 WHERE id = ? AND kayttaja_id = ? AND maksettu != -1";
+
+			$sql = "SELECT id FROM tilaus WHERE id = ? AND kayttaja_id = ? AND maksettu = 0";
 			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
 
 			if ( $result ) {
-				$sql = "SELECT tuote_id, kpl FROM tilaus_tuote WHERE tilaus_id = ?";
-				$results = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ] ] );
-
-				// Varastosaldon korjaus takaisin.
-				$db->prepare_stmt( "UPDATE tuote SET varastosaldo = varastosaldo + ? WHERE id = ?" );
-
-				foreach ( $results as $tuote ) {
-					$db->run_prepared_stmt( [ $tuote->kpl, $tuote->id ] ); // Varastosaldon korjaus takaisin
-					//Lisätään tuotteet takaisin ostoskoriin.
-					$cart->lisaa_tuote( $db, $tuote->id, $tuote->kpl );
-				}
+				PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_GET[ 'ORDER_NUMBER' ], $cart->ostoskori_id );
 			}
-
 		}
 		break;
 	/*

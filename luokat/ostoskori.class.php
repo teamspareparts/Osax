@@ -203,24 +203,6 @@ class Ostoskori {
 	}
 
 	/**
-	 * Palauttaa ostoskorissa olevien tuotteiden määrän.
-	 * @return int tuotteiden maara
-	 * @deprecated Minä juuri päätin, että me katsomme suoraan luokan muuttujan.
-	 */
-	public function get_tuotteiden_maara() {
-		return $this->montako_tuotetta;
-	}
-
-	/**
-	 * Palauttaa ostoskorissa olevien tuotteiden kappalemäärän yhteensä.
-	 * @return int kaikkien tuotteiden kappalemäärä
-	 * @deprecated Minä juuri päätin, että me katsomme suoraan luokan muuttujan.
-	 */
-	public function get_kaikkien_tuotteiden_kappalemaara() {
-		return $this->montako_tuotetta_kpl_maara_yhteensa;
-	}
-
-	/**
 	 * @param boolean $ilman_alv  [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
