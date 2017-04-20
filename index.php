@@ -3,13 +3,18 @@
  * @version 2017-02-09 <p> Lisätty päivitys-fieldset.
  */
 session_start();
+$config = parse_ini_file( "./config/config.ini.php" );
+
 /**
  * Tarkistetaan onko kyseessä uudelleenohjaus, ja tulostetaan viesti sen mukaan.
  */
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 
-	if ( !empty($_SESSION['id']) ) { $mode = 99; } //Tarkistetaan onko käyttäjä jo kirjautunut sisään
-	else { $mode = $_GET["redir"]; } // Otetaan talteen uudelleenohjauksen syy
+	if ( !empty( $_SESSION[ 'id' ] ) ) { // Jo sisäänkirjautunut
+		$mode = 99;
+	} else {
+		$mode = $_GET[ "redir" ]; // Uudelleenohjauksen syy
+	}
 
 	/**
 	 * @var array <p> Error-boxin väritys. Muuta haluamaasi väriin. Jos haluat muuttaa
@@ -85,29 +90,27 @@ $css_version = filemtime( 'css/login_styles.css' );
 <html>
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" type="text/css" href="css/login_styles.css?v=<?=$css_version?>">
+	<link rel="stylesheet" type="text/css" href="css/login_styles.css?v=<?= $css_version ?>">
 	<title>Login</title>
 </head>
 <body>
 <main class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
-<?php
-if ( !empty($mode) && !empty($modes_array) && array_key_exists( $mode, $modes_array ) ) : ?>
-	<fieldset id=error <?= $modes_array[$mode]['style'] ?>><legend> <?= $modes_array[$mode]['otsikko'] ?> </legend>
-		<p> <?= $modes_array[$mode]['teksti'] ?> </p>
+<?php if ( !empty( $mode ) && !empty( $modes_array ) && array_key_exists( $mode, $modes_array ) ) : ?>
+	<fieldset id=error <?= $modes_array[ $mode ][ 'style' ] ?>>
+		<legend> <?= $modes_array[ $mode ][ 'otsikko' ] ?> </legend>
+		<p> <?= $modes_array[ $mode ][ 'teksti' ] ?> </p>
 	</fieldset>
 <?php endif;
-if (false) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
-	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
-		<p style="color:#0a3c93;">Sivuston päivitys.<br>
-		YYYY-MM-DD hh:mm</p>
+if ( $config[ 'update' ] ) : ?>
+	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Sivuston päivitys</legend>
+		<?= $config[ 'update_txt' ] ?>
 	</fieldset>
 <?php endif;
-if (true) : //TODO: Siirrä ylös --JJ 17-02-13 ?>
-	<fieldset style="color:#0a3c93; border-color:#0a3c93;">
-		<p style="color:#0a3c93;">Localhost testaussivusto<br>
-			Maksumoduuli uusin päivitys</p>
+if ( $config[ 'indev' ] ) : ?>
+	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Localhost testaussivusto</legend>
+		<?= $config[ 'indev_txt' ] ?>
 	</fieldset>
 <?php endif; ?>
 
