@@ -31,13 +31,14 @@ class Laskutiedot {
 		'rahtimaksu_alv' => 0.24, // Rahtimaksun ALV. 24 % vakituinen arvo
 		'summa_yhteensa' => 0.00, // Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
 	);
+	public $maksutapa = null;
 
 	/**
 	 * @param DByhteys $db
 	 * @param int      $tilaus_id
 	 * @param User     $user
 	 */
-	function __construct( DByhteys $db, $tilaus_id = null, User $user ) {
+	function __construct( DByhteys $db, /*int*/ $tilaus_id = null, User $user ) {
 		/*
 		 * Alustetaan luokan muuttujat ja oliot
 		 */
@@ -58,11 +59,12 @@ class Laskutiedot {
 	 * Hakee tilauksen päivämäärän ja rahtimaksun tietokannasta.
 	 */
 	function haeTilauksenTiedot() {
-		$sql = "SELECT paivamaara, pysyva_rahtimaksu, laskunro FROM tilaus WHERE id = ? LIMIT 1";
+		$sql = "SELECT paivamaara, pysyva_rahtimaksu, maksutapa, laskunro FROM tilaus WHERE id = ? LIMIT 1";
 		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
 		if ( $row ) {
 			$this->tilaus_pvm = $row->paivamaara;
 			$this->hintatiedot[ 'rahtimaksu' ] = $row->pysyva_rahtimaksu;
+			$this->maksutapa = $row->maksutapa;
 			$this->laskunro = $row->laskunro;
 		}
 	}

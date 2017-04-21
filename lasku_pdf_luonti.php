@@ -7,6 +7,11 @@ $lasku = new Laskutiedot( $db, $tilaus_id, $user );
 
 $config = parse_ini_file( "./config/config.ini.php" );
 
+$maksutapa = ($lasku->maksutapa) ? "Lasku 14 pv." : "e-korttimaksu";
+$maksutapa_loppuhuomautus = ($lasku->maksutapa)
+	? "! Maksetaan laskulla &mdash; maksuaika 14 päivää !"
+	: "! Maksettu korttiveloituksena tilausta tehdessä !";
+
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
 /** ////////////////////////////////////////////////////////////////////// */
@@ -44,7 +49,7 @@ $html = "
 			
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			</td>
-		<td>Maksutapa: e-korttimaksu<br>
+		<td style='font-weight:bold;'>Maksutapa: {$maksutapa}<br>
 			</td>
 		</tr>
 	</tbody>
@@ -152,7 +157,7 @@ $html .= "
 </table>
 <hr>
 
-<p style='font-weight:bold;'>! Maksettu korttiveloituksena tilausta tehdessä !</p>
+<p style='font-weight:bold;'>{$maksutapa_loppuhuomautus}</p>
 
 <hr>
 <table style='width:100%; font-size:80%;'>

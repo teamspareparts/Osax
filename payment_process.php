@@ -6,9 +6,6 @@ require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';
 
-debug( $_SESSION );
-debug( $_POST );
-
 // Tarkistetaan onko maksusuoritus Paytrailin sivulta _GET-muuttujaan
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {

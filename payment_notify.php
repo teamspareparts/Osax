@@ -3,7 +3,7 @@
  * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 
-sleep(300);
+sleep(300); // Jotta käyttäjä varmasti ehtii ensin payment_process sivulle.
 
 require "luokat/dbyhteys.class.php";
 require "luokat/user.class.php";
@@ -49,7 +49,7 @@ switch ( $get_count ) {
 			 * Jos käyttäjä palaa suoraan takaisin payment_process-sivulle, se hyväksytään siellä.
 			 * Jos maksu on jo hyväksytty, tällä sivulla ei tehdä mitään.
 			 */
-			$sql = "UPDATE tilaus SET maksettu = 1 WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
+			$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = 0 WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
 			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
 			if ( $result ) {
 
