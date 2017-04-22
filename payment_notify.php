@@ -1,8 +1,4 @@
 <?php
-/**
- * @version 2017-03-09 <p> DByhteys.class-tiedoston nimeä vaihdettu
- */
-
 sleep(300); // Jotta käyttäjä varmasti ehtii ensin payment_process sivulle.
 
 require "luokat/dbyhteys.class.php";

@@ -2,7 +2,6 @@
 /**
  * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
  * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
- * @version 2017-03- <p> DByhteys.class-tiedoston nimeä vaihdettu
  */
 require 'luokat/dbyhteys.class.php';
 require 'luokat/email.class.php';

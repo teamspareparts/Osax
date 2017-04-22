@@ -1,7 +1,4 @@
 ﻿<?php
-/**
- * @version 2017-02-09 <p> Lisätty päivitys-fieldset.
- */
 session_start();
 $config = parse_ini_file( "./config/config.ini.php" );
 

@@ -1,7 +1,4 @@
 <?php
-/**
- * @version 2017-04-10.2 <p> Korjattu varastosaldojen palautus. Ostoskorin palautus.
- */
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 

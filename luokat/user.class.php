@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Class User
  * @version 2017-03-12 <p> eula_hyväksytty korvattu eulaHyvaksytty-metodilla

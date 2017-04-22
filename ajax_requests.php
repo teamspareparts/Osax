@@ -1,10 +1,5 @@
 ﻿<?php
 /**
- * Tässä tiedostossa olisi tarkoitus pitää kaikki mahdolliset AJAX-request tyyppiset pyynnöt.
- * @version 2017-03-22 <p> Poistettu EULA-pyyntö.
- */
-
-/**
  * @param DByhteys $db
  * @param $tuote_id
  * @param $nimi

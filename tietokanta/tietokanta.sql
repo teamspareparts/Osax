@@ -1,4 +1,3 @@
-/* @version 2017-04-09 <p> paytrail_auth_hash poistettu */
 SET FOREIGN_KEY_CHECKS=0; -- Taulut ovat väärässä järjestyksessä FOREIGN KEY tarkastuksia varten.
 
 CREATE TABLE IF NOT EXISTS `kayttaja` (

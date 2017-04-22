@@ -1,7 +1,4 @@
 <?php
-/**
- * @version 2017-04-16 <p> Form siirretty HTML:ään.
- */
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';

@@ -1,7 +1,6 @@
 ﻿<?php
 /**
  * Staattinen luokka sähköpostin käyttöön.
- *
  * @version 2017-02-13 <p> Tilausvahvistus muutettu käyttämään laskua.
  */
 class Email {
