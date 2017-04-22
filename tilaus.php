@@ -44,10 +44,14 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES {$questionmarks}" );
 
-		//Tuotteiden varastosaldot temp-tauluun
+		// Päivitetään tuotteiden varastosaldot
 		$questionmarks2 = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?)' ) );
 		$values2 = [];
-		$stmt_varastosaldot = $conn->prepare( "INSERT INTO temp_tuote (tuote_id, varastosaldo) VALUES {$questionmarks2}");
+
+		$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks2}
+		        ON DUPLICATE KEY 
+		        UPDATE varastosaldo = VALUES(varastosaldo), paivitettava = 1";
+		$stmt_varastosaldot = $conn->prepare( $sql);
 
 		foreach ( $cart->tuotteet as $tuote ) {
 			array_push( $values, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
@@ -59,18 +63,8 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 
 		// Lisätään tilauksen tuotteet
 		$stmt->execute( $values );
-		// Lisätään päivitetyt varastosaldot temp-tauluun
+		// Päivitetään varastosaldot
 		$stmt_varastosaldot->execute( $values2 );
-
-		// Päivitetään oikeiden tuotteiden varastosaldot temp-taulun perusteella
-		$stmt_varastosaldot = $conn->prepare( "
-            UPDATE tuote 
-            JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
-            SET tuote.varastosaldo = temp_tuote.varastosaldo, tuote.paivitettava = 1" );
-		$stmt_varastosaldot->execute();
-
-		//Tyhjennetään temp_tuote
-		$conn->query( "DELETE FROM temp_tuote" );
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(

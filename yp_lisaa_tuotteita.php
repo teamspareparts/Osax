@@ -19,28 +19,28 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * @return array
  */
 function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $brandName, /*int*/ $hankintapaikka_id) {
-	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
+	// Tiedostokahva
+    $handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
 
 	$ohita_otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
     $row = 0;
     $successful_inserts = 0;
     $failed_inserts = []; //Otetaan talteen epäonnistuneiden lisäysten rivinumerot
 
-	//SQL:ää varten rakennetaan vain yksi kysely.
-	$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
-					minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
-					VALUES ";
+    //Placeholderit sql-kyselyyn
 	$placeholders = [];
 
 	//Käydään läpi csv tiedosto rivi kerrallaan
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
         $row++;
+        // Jos tiedostossa otsikkorivi, hypätään sen yli
 		if ( $ohita_otsikkorivi ) {
 			$ohita_otsikkorivi = false;
 			continue;
 		}
 
 		$num = count($data); // rivin sarakkeiden lkm
+        // Tarkistetaan sarakkeiden lukumäärän oikeellisuus
 		if (($num != 7 && ($_POST["tilauskoodin_tyyppi"] == "liite_eri")) || ($num != 6 && ($_POST["tilauskoodin_tyyppi"]) != "liite_eri") ) {
 			$failed_inserts[] = $row;
 			continue;
@@ -82,8 +82,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
             continue;
         }
 
-        //Rakennetaan multi insert kyselyä
-		$insert_query .=  "( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?),";
+        //Placeholderit
 		$placeholders[] = $articleNo;
         $placeholders[] = $ostohinta;
         $placeholders[] = $myyntihinta;
@@ -97,26 +96,27 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
         $placeholders[] = $brandName;
 
         $successful_inserts++;
-
 	}
 
 	if ( $successful_inserts ) {
-        //SQL-kyselyn loppuosa
-        $insert_query = substr($insert_query, 0, -1);
-        $insert_query .= "ON DUPLICATE KEY
-                            UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
-                                ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
-                                varastosaldo = varastosaldo + VALUES(varastosaldo),
-                                keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
-                                    VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
-                                yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
-                                aktiivinen = 1";
-        //Ajetaan tuotteet kantaan
+	    // Ajetaan tuotteet kantaan
+		$questionmarks = implode( ',', array_fill( 0, $successful_inserts, '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)' ) );
+		$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
+					    minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
+					    VALUES {$questionmarks}
+					    ON DUPLICATE KEY
+                        UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
+                            ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
+                            varastosaldo = varastosaldo + VALUES(varastosaldo),
+                            keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
+                                VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
+                            yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
+                            aktiivinen = 1";
         $response = $db->query($insert_query, $placeholders);
     }
 	fclose($handle);
 
-	return array($successful_inserts, $failed_inserts); //kaikki rivit , array epäonnistuneet syötöt
+	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
 }
 
 $brandId = isset($_GET['brandId']) ? $_GET['brandId'] : '';
@@ -270,7 +270,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	$(document).ready(function(){
 		//Submit -napin toiminta
 		let tiedosto = $('#tuote_tiedosto');
-		if (tiedosto.get(0).files.length == 0) { $('#submit_tuote').prop('disabled', 'disabled'); }
+		if (tiedosto.get(0).files.length === 0) { $('#submit_tuote').prop('disabled', 'disabled'); }
 		tiedosto.on("change", function() {
 			$('#submit_tuote').prop('disabled', !$(this).val());
 		});
@@ -296,7 +296,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 			$('.tilauskoodi_action').hide();
 			let tyyppi = $(this).val();
 			$('#' + tyyppi).show();
-            if (tyyppi == "liite_eri") $('#tilauskoodi_sarake').show();
+            if (tyyppi === "liite_eri") $('#tilauskoodi_sarake').show();
 		});
 
 
