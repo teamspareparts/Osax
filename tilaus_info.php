@@ -103,6 +103,8 @@ $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:red;"> Odottaa maksua. Lasku ei saatavilla. </span>
+            <?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
+                <span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
 			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
 				<span class="inline-block" style="color:red;"> Odottaa käsittelyä. </span>
 			<?php else: ?>

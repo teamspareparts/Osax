@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` mediumint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `kayttaja_id` mediumint UNSIGNED NOT NULL, -- Foreign KEY
   `kasitelty` boolean NOT NULL DEFAULT 0,
-  `maksettu` boolean NOT NULL DEFAULT 0,
+  `maksettu` boolean DEFAULT 0,
   `maksutapa` tinyint DEFAULT NULL,
   `laskunro` int DEFAULT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,8 +256,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_lahetyspaiva` timestamp NULL DEFAULT NULL,
   `oletettu_saapumispaiva` timestamp NULL DEFAULT NULL,
-  `toimitusjakso` int(3) DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
-  PRIMARY KEY (`id`, `hankintapaikka_id`),
+  `toimitusjakso` tinyint UNSIGNED DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
+  PRIMARY KEY (`id`),
   UNIQUE KEY (`hankintapaikka_id`, `tunniste`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka
 	  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
@@ -286,7 +286,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `saapumispaiva` timestamp NULL,
   `hyvaksytty` boolean NOT NULL DEFAULT 0, -- Odottavassa tilassa vai vastaanotettu ja hyväksytty
   `vastaanottaja` int(11), -- Tilauskirjan vastaanottajan käyttäjä ID
-  `ostotilauskirja_id` smallint UNSIGNED NOT NULL, -- FK, ei pakollinen
+  `ostotilauskirja_id` smallint UNSIGNED DEFAULT NULL, -- FK, ei pakollinen
   PRIMARY KEY (`id`),
   CONSTRAINT fk_ostotilauskirjaArkisto_hankintapaikka
     FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)

@@ -1,6 +1,7 @@
 <?php
 /**
  * Palautetaan varastosaldot niistä tilauksista, jotka on keskeytetty
+ * (maksettu = 0 yli 2 päivää, poislukien viikonloppu)
  */
 
 
@@ -10,23 +11,26 @@ set_time_limit(300);
 require "./luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
+// Montako päivää tilauksen pitää olla keskeytynyt, jottasaldot palautetaan
+$paivat_keskyetyneena = 2;
+
 //Haetaan keskeneräisten tilausten tuotteet, jotka olleet kesken yli 4 päivää
 $sql = "	SELECT *
   			FROM tilaus_tuote
   		  	LEFT JOIN tilaus
   		  		ON tilaus.id = tilaus_tuote.tilaus_id
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL 4 DAY)
- 		   		AND tilaus.maksettu = 0 ";
-$tuotteet = $db->query($sql, [], FETCH_ALL);
+  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
+ 		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
+$tuotteet = $db->query($sql, [$paivat_keskyetyneena], FETCH_ALL);
 
 //Haetaan tilausten id:t
 $sql = "	SELECT id
   			FROM tilaus
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL 4 DAY)
- 		   		AND tilaus.maksettu = 0 ";
-$tilaukset = $db->query($sql, [], FETCH_ALL);
+  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
+ 		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
+$tilaukset = $db->query($sql, [$paivat_keskyetyneena], FETCH_ALL);
 
-if ( !$tilaukset ) {
+if ( !$tilaukset || !$tuotteet ) {
 	return;
 }
 

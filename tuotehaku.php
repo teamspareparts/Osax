@@ -23,10 +23,18 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
      * @return array|bool|stdClass
      */
     function get_product_from_database(DByhteys $db, stdClass $product){
-		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-				FROM 	tuote 
-				JOIN 	ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				WHERE 	tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 ";
+		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                            LEAST( 
+                            COALESCE(ostotilauskirja.oletettu_saapumispaiva, ostotilauskirja_arkisto.oletettu_saapumispaiva), 
+                            COALESCE(ostotilauskirja_arkisto.oletettu_saapumispaiva, ostotilauskirja.oletettu_saapumispaiva) 
+                            ) AS saapumispaiva
+				FROM 	    tuote 
+				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id
+				WHERE 	    tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 AND ostotilauskirja_arkisto.hyvaksytty = 0";
 
         return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL);
     }
@@ -233,7 +241,7 @@ require 'tuotemodal.php';
 		<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 			<thead>
-			<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Saatavilla: (<?=count($catalog_products)?>)</th></tr>
+			<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Saatavilla: (<?=count($catalog_products)?>)</th></tr>
 			<tr><th>Kuva</th>
 				<th>Tuotenumero</th>
 				<th>Tuote</th>
@@ -242,6 +250,7 @@ require 'tuotemodal.php';
 				<th class="number">Hinta (sis. ALV)</th>
 				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>
+                    <th class="number">Kate %</th>
 				<?php endif; ?>
 				<th>Kpl</th>
 				<th></th>
@@ -265,6 +274,7 @@ require 'tuotemodal.php';
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+                        <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
 						<input id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
@@ -289,13 +299,15 @@ require 'tuotemodal.php';
 		if ( $not_available) : // Tulokset (ei saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
-			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
+			<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
 			<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th> <th class="number">Saldo</th>
 				<th class="number">Hinta (sis. ALV)</th>
 				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>
+                    <th class="number">Kate%</th>
 				<?php endif; ?>
-				<th></th>
+				<th>Tulossa</th>
+                <th></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -316,7 +328,9 @@ require 'tuotemodal.php';
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+                        <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 					<?php endif; ?>
+                    <td><?=date("j.n.Y", strtotime($product->saapumispaiva))?></td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons">info</i></button>
