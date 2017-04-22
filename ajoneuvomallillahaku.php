@@ -30,7 +30,7 @@ $manufs = getManufacturers();
 ?>
 
 <div class="ajoneuvomallihaku">
-    Ajoneuvomallilla haku:<br>
+    <label for="manufacturer">Ajoneuvomallilla haku:</label><br>
     <form action="" method="get" id="ajoneuvomallihaku">
         <select id="manufacturer" name="manuf" title="Valmistaja">
             <option value="">-- Valmistaja --</option>

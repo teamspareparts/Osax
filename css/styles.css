@@ -399,7 +399,7 @@ th {
 	font-size: 150%;
 }
 
-.tuotekoodihaku, .ajoneuvomallihaku, .hyllypaikkahaku {
+.tuotekoodihaku, .ajoneuvomallihaku {
 	display: inline-block;
 	white-space: nowrap;
 	padding: 0 30px 10px;

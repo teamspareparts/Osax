@@ -411,15 +411,14 @@ require 'tuotemodal.php';
 				<br>
 				<input class="nappi" type="submit" value="Hae">
 			</form>
-		</div>
-		<?php require 'ajoneuvomallillahaku.php'; ?>
-        <div class="hyllypaikkahaku" style="padding-right: 0">
+            <br>
             <form action="" method="get" class="haku">
                 <label for="hyllypaikka">Hae hyllypaikalla:</label><br>
-                <input type="text" id="hyllypaikka" name="hyllypaikka" placeholder="Hyllypaikka"><br>
+                <input type="text" id="hyllypaikka" name="hyllypaikka" placeholder="Hyllypaikka">
                 <input class="nappi" type="submit" value="Hae">
             </form>
-        </div>
+		</div>
+		<?php require 'ajoneuvomallillahaku.php'; ?>
 	</section>
 
     <?= $feedback ?>
