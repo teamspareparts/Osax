@@ -25,16 +25,18 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
     function get_product_from_database(DByhteys $db, stdClass $product){
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
-                            COALESCE(ostotilauskirja.oletettu_saapumispaiva, ostotilauskirja_arkisto.oletettu_saapumispaiva), 
-                            COALESCE(ostotilauskirja_arkisto.oletettu_saapumispaiva, ostotilauskirja.oletettu_saapumispaiva) 
+                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
                             ) AS saapumispaiva
-				FROM 	    tuote 
+				FROM 	    tuote
 				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
 				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+				            AND ostotilauskirja_arkisto.hyvaksytty = 0
+				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
 				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
-				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id
-				WHERE 	    tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 AND ostotilauskirja_arkisto.hyvaksytty = 0";
+				WHERE 	    tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1
+				GROUP BY    tuote.id";
 
         return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL);
     }
@@ -330,7 +332,11 @@ require 'tuotemodal.php';
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
                         <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 					<?php endif; ?>
-                    <td><?=date("j.n.Y", strtotime($product->saapumispaiva))?></td>
+                    <td>
+                        <?php if ( date('Ymd') <= date('Ymd', strtotime($product->saapumispaiva)) ) : ?>
+                            <?=date("j.n.Y", strtotime($product->saapumispaiva))?>
+                        <?php endif;?>
+                    </td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons">info</i></button>
