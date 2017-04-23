@@ -106,7 +106,7 @@ if ( $config[ 'update' ] ) : ?>
 	</fieldset>
 <?php endif;
 if ( $config[ 'indev' ] ) : ?>
-	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Localhost testaussivusto</legend>
+	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Osax testaussivusto</legend>
 		<?= $config[ 'indev_txt' ] ?>
 	</fieldset>
 <?php endif; ?>
@@ -127,7 +127,7 @@ if ( $config[ 'indev' ] ) : ?>
 			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
 			<br><br>
 			<input type="hidden" name="mode" value="login">
-			<input type="submit" value="Kirjaudu sisään" id="login_submit" disabled>
+			<input type="submit" value="Kirjaudu sisään" id="login_submit">
 		</form>
 	</fieldset>
 
