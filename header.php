@@ -14,7 +14,7 @@
         </div>
 
         <div id="head_info">
-            Tervetuloa takaisin, <?= $user->kokoNimi() ?><br>
+            <?= $_SESSION['header_tervehdys'] . ' ' . $user->kokoNimi() ?><br>
             Kirjautuneena: <?= $user->sahkoposti ?>
         </div>
 

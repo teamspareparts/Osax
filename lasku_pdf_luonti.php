@@ -5,7 +5,9 @@ require './luokat/laskutiedot.class.php';
 $mpdf = new mPDF();
 $lasku = new Laskutiedot( $db, $tilaus_id, $user );
 
-$config = parse_ini_file( "./config/config.ini.php" );
+$lasku_header = ( $_SESSION['indev'] )
+	? "<h2 style='color: red;'>InDev testilasku</h2>"
+	: "<img src='img/osax_logo.jpg' alt='Osax.fi'>";
 
 $maksutapa = ($lasku->maksutapa) ? "Lasku 14 pv." : "e-korttimaksu";
 $maksutapa_loppuhuomautus = ($lasku->maksutapa)
@@ -22,7 +24,7 @@ $html = "
 <!-- Laskun logo, pvm, ja numero -->
 <table style='width:100%;'>
 	<tbody>
-	<tr><td>{$config['lasku_header']}</td>
+	<tr><td>{$lasku_header}</td>
 		<td colspan='2'>
 			<table style='width:70%;padding:15px;'>
 				<thead>

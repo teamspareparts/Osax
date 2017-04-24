@@ -3,6 +3,10 @@ require_once './mpdf/mpdf.php';
 
 $mpdf = new mPDF();
 
+$lasku_header = ( $_SESSION['indev'] )
+	? "<h2 style='color: red;'>InDev testinoutolista</h2>"
+	: "<img src='img/osax_logo.jpg' alt='Osax.fi'>";
+
 /** ////////////////////////////////////////////////////////////////////// */
 /** PDF:n HTML:n kirjoitus */
 /** ////////////////////////////////////////////////////////////////////// */
@@ -10,7 +14,7 @@ $mpdf = new mPDF();
  * Noutolistan alkuosa. Logo ja laskun tiedot. Sen jälkeen tuotetaulukon header row.
  */
 $html = "
-<div style='width:100%;'><img src='img/osax_logo.jpg' alt='Osax.fi'></div>
+<div style='width:100%;'>$lasku_header</div>
 
 <table style='width:100%;'>
 	<tbody>

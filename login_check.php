@@ -153,7 +153,10 @@ if ( $mode === "login" ) {
 			$_SESSION[ 'id' ] = $login_user->id;
 			$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
 			$_SESSION[ 'email' ] = $login_user->sahkoposti;
-			$_SESSION[] = parse_ini_file( "./config/config.ini.php", true );
+
+			$config = parse_ini_file( "./config/config.ini.php" );
+			$_SESSION['indev'] = $config['indev'];
+			$_SESSION['header_tervehdys'] = $config['header_tervehdys'];
 
 			addDynamicAddress();
 
