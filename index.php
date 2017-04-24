@@ -127,7 +127,7 @@ if ( $config[ 'indev' ] ) : ?>
 			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
 			<br><br>
 			<input type="hidden" name="mode" value="login">
-			<input type="submit" value="Kirjaudu sisään" id="login_submit">
+			<input type="submit" value="Kirjaudu sisään" id="login_submit" disabled>
 		</form>
 	</fieldset>
 

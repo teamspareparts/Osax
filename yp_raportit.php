@@ -9,8 +9,8 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Raportit</title>
     <style>
@@ -28,10 +28,14 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 <main class="main_body_container">
     <h1>Raportit</h1>
 
-    <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php"><span>Varastolistausraportti</span></div>
+    <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php">
+	    <span>Varastolistausraportti</span></div>
     <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
-    <div class="floating-box clickable line" data-href="yp_myyntitapahtumalistaus.php"><span>Myyntitapahtumalistaus</span></div>
-    <div onclick="document.getElementById('download_hinnasto_yp').submit()" class="floating-box clickable line"><span>Lataa hinnasto</span></div>
+    <div class="floating-box clickable line" data-href="yp_myyntitapahtumalistaus.php">
+	    <span>Myyntitapahtumalistaus</span></div>
+    <div onclick="document.getElementById('download_hinnasto_yp').submit()" class="floating-box clickable line">
+	    <span>Lataa hinnasto <i class="material-icons">file_download</i></span>
+    </div>
 </main>
 <script>
 	$(document).ready(function(){

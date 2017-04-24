@@ -49,6 +49,7 @@ else {
 				<th>Käsittely:</th>
 			</thead>
 			<tbody>
+			<?php //TODO väritys pielessä randomisti ekassa kentässä. Välillä valkoinen ?>
 			<?php $i = 0; foreach ( $ostopyynnot as $op ) : ?>
 				<tr><td rowspan="2" style="border-bottom:solid black 1px;"><?= ++$i ?></td>
 					<td><?= $op->tuote_id ?></td>
