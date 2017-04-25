@@ -5,7 +5,7 @@
  */
 require 'luokat/dbyhteys.class.php';
 require 'luokat/email.class.php';
-require 'luokat/IP.class.php';
+require 'luokat/remoteaddress.class.php';
 require 'tecdoc.php';
 
 /**
@@ -42,8 +42,7 @@ function beginning_user_checks( stdClass $user, /*string*/ $user_password, /*boo
  * @param stdClass $user <p> Käyttää viime_sijainti-muuttujaa.
  */
 function check_IP_address( DByhteys $db, stdClass $user ) {
-	$remoteaddr = new RemoteAddress();
-	$ip = $remoteaddr->getIpAddress(); //Haetaan asiakkaan IP-osoite
+	$ip = RemoteAddress::getIpAddress(); //Haetaan asiakkaan IP-osoite
 	$details = json_decode( file_get_contents( "http://ipinfo.io/{$ip}" ) );
 	//Haetaan kaupunki lähettämällä asiakkaan ip ipinfo.io serverille
 	$nykyinen_sijainti = $details->city;

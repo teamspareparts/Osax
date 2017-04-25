@@ -1,11 +1,10 @@
 <?php
 /**
  * Class RemoteAddress
- * //TODO: Onko tämä mistä lainattu? Saisiko linkin/lähteen lisättyä tänne? --JJ/17-02-06
- *
  * @version 2017-02-06 <p> Versionumero lisätty
  */
 class RemoteAddress {
+
 	/**
 	 * Whether to use proxy addresses or not.
 	 *
@@ -16,35 +15,35 @@ class RemoteAddress {
 	 *
 	 * @var bool
 	 */
-	protected $useProxy = false;
+	protected static $useProxy = false;
 
 	/**
 	 * List of trusted proxy IP addresses
 	 *
 	 * @var array
 	 */
-	protected $trustedProxies = array();
+	protected static $trustedProxies = array();
 
 	/**
 	 * HTTP header to introspect for proxies
 	 *
 	 * @var string
 	 */
-	protected $proxyHeader = 'HTTP_X_FORWARDED_FOR';
+	protected static $proxyHeader = 'HTTP_X_FORWARDED_FOR';
 
 	/**
 	 * Returns client IP address.
 	 * @return string IP address.
 	 */
-	public function getIpAddress () {
-		$ip = $this->getIpAddressFromProxy();
+	public static function getIpAddress() {
+		$ip = RemoteAddress::getIpAddressFromProxy();
 		if ( $ip ) {
 			return $ip;
 		}
 
 		// direct IP address
-		if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
-			return $_SERVER['REMOTE_ADDR'];
+		if ( isset( $_SERVER[ 'REMOTE_ADDR' ] ) ) {
+			return $_SERVER[ 'REMOTE_ADDR' ];
 		}
 
 		return '';
@@ -56,24 +55,25 @@ class RemoteAddress {
 	 * @see http://tools.ietf.org/html/draft-ietf-appsawg-http-forwarded-10#section-5.2
 	 * @return false|string
 	 */
-	protected function getIpAddressFromProxy () {
-		if ( !$this->useProxy
-			|| (isset( $_SERVER['REMOTE_ADDR'] ) && !in_array( $_SERVER['REMOTE_ADDR'], $this->trustedProxies ))
+	protected static function getIpAddressFromProxy() {
+		if ( !RemoteAddress::$useProxy
+			|| (isset( $_SERVER[ 'REMOTE_ADDR' ] )
+				&& !in_array( $_SERVER[ 'REMOTE_ADDR' ], RemoteAddress::$trustedProxies ))
 		) {
 			return false;
 		}
 
-		$header = $this->proxyHeader;
-		if ( !isset( $_SERVER[$header] ) || empty( $_SERVER[$header] ) ) {
+		$header = RemoteAddress::$proxyHeader;
+		if ( !isset( $_SERVER[ $header ] ) || empty( $_SERVER[ $header ] ) ) {
 			return false;
 		}
 
 		// Extract IPs
-		$ips = explode( ',', $_SERVER[$header] );
+		$ips = explode( ',', $_SERVER[ $header ] );
 		// trim, so we can compare against trusted proxies properly
 		$ips = array_map( 'trim', $ips );
 		// remove trusted proxy IPs
-		$ips = array_diff( $ips, $this->trustedProxies );
+		$ips = array_diff( $ips, RemoteAddress::$trustedProxies );
 
 		// Any left?
 		if ( empty( $ips ) ) {
@@ -86,6 +86,7 @@ class RemoteAddress {
 		// as the originating IP.
 		// @see http://en.wikipedia.org/wiki/X-Forwarded-For
 		$ip = array_pop( $ips );
+
 		return $ip;
 	}
 }
