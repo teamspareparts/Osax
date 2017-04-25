@@ -104,14 +104,16 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 
 	<h2>Maksu Paytrailin kautta:</h2>
 	<form action='https://payment.paytrail.com/' method='post' id='payment'>
-		<input name='MERCHANT_ID' type='hidden' value='<?= PaymentAPI::$merchant_id ?>'>
-		<input name='AMOUNT' type='hidden' value='<?= PaymentAPI::$amount ?>'>
-		<input name='ORDER_NUMBER' type='hidden' value='<?= PaymentAPI::$order_id ?>'>
-		<input name='REFERENCE_NUMBER' type='hidden' value='<?= PaymentAPI::$reference_number ?>'>
-		<input name='ORDER_DESCRIPTION' type='hidden' value='<?= PaymentAPI::$order_descr ?>'>
-		<input name='CURRENCY' type='hidden' value='<?= PaymentAPI::$currency ?>'>
-		<input name='RETURN_ADDRESS' type='hidden' value='<?= PaymentAPI::$return_addr ?>'>
-		<input name='CANCEL_ADDRESS' type='hidden' value='<?= PaymentAPI::$cancel_addr ?>'>
+
+		<input type='hidden' name='MERCHANT_ID' value='<?= PaymentAPI::$merchant_id ?>'>
+		<input type='hidden' name='AMOUNT' value='<?= PaymentAPI::$amount ?>'>
+		<input type='hidden' name='ORDER_NUMBER' value='<?= PaymentAPI::$order_id ?>'>
+		<input type='hidden' name='REFERENCE_NUMBER' value='<?= PaymentAPI::$reference_number ?>'>
+		<input type='hidden' name='ORDER_DESCRIPTION' value='<?= PaymentAPI::$order_descr ?>'>
+		<input type='hidden' name='CURRENCY' value='<?= PaymentAPI::$currency ?>'>
+		<input type='hidden' name='RETURN_ADDRESS' value='<?= PaymentAPI::$return_addr ?>'>
+		<input type='hidden' name='CANCEL_ADDRESS' value='<?= PaymentAPI::$cancel_addr ?>'>
+
 		<input name='PENDING_ADDRESS' type='hidden' value='<?= PaymentAPI::$pending_addr ?>'>
 		<input name='NOTIFY_ADDRESS' type='hidden' value='<?= PaymentAPI::$notify_addr ?>'>
 		<input name='TYPE' type='hidden' value='<?= PaymentAPI::$type ?>'>
@@ -122,6 +124,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		<input name='GROUP' type='hidden' value='<?= PaymentAPI::$group ?>'>
 		<input name='AUTHCODE' type='hidden' value='<?= PaymentAPI::$auth_code ?>'>
 		<input type='submit' value='Siirry maksamaan'>
+
 	</form>
 </main>
 
