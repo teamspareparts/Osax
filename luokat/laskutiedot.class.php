@@ -33,6 +33,8 @@ class Laskutiedot {
 	);
 	public $maksutapa = null;
 
+	public $laskuHeader = null;
+
 	/**
 	 * @param DByhteys $db
 	 * @param int      $tilaus_id
@@ -46,6 +48,11 @@ class Laskutiedot {
 		$this->db = $db;
 		$this->asiakas = $user;
 		$this->osax = new Yritys( $db, 1 );
+
+		$this->laskuHeader = ( $_SESSION['indev'] )
+			? "<h2 style='color: red;'>InDev testilasku</h2>"
+			: "<img src='img/osax_logo.jpg' alt='Osax.fi'>";
+
 		/*
 		 * Haetaan tilauksen tiedot, toimitusosoite, tuotteet, ja lopuksi laskun numero tietokannasta.
 		 */
@@ -125,8 +132,8 @@ class Laskutiedot {
 			 *   perus, eli summa josta ALV lasketaan; ja
 			 *   määrä, eli lasketun ALV:n määrä.
 			 */
-			// Tarkistetaan, että tuotteen ALV-kanta on listalla (arrayssa).
-			if ( !array_key_exists( $row->alv_toString(), $this->hintatiedot[ 'alv_kannat' ] ) ) {
+			// Tarkistetaan, että tuotteen ALV-kanta on listalla.
+			if ( !array_key_exists( $row->alv_toString(true), $this->hintatiedot[ 'alv_kannat' ] ) ) {
 				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'kanta' ] = $row->alv_toString();
 				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'perus' ] = 0;
 				$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'maara' ] = 0;
@@ -140,6 +147,7 @@ class Laskutiedot {
 			// ALV-määrä. ALV:n määrä * Kpl-määrä
 			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'maara' ]
 				+= ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
+
 			// ... ja sitten ALV-kannat yhteensä.
 			$this->hintatiedot[ 'alv_perus' ] += $row->a_hinta_ilman_alv * $row->kpl_maara;
 			$this->hintatiedot[ 'alv_maara' ] += ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
@@ -210,5 +218,17 @@ class Laskutiedot {
 			return round( (float)$this->hintatiedot[ 'rahtimaksu_alv' ] * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
 		} else
 			return number_format( (double)$this->hintatiedot[ 'rahtimaksu_alv' ], 2, ',' );
+	}
+
+	/**
+	 * @param bool $alku <p> Onko tulostus laskun alkuun vai loppuun? Lopussa pidempi teksti.
+	 * @return string
+	 */
+	function maksutapa_toString ( /*bool*/ $alku = true ) {
+		if ( $this->maksutapa ) {
+			return ( $alku ? "Lasku 14 pv." : "! Maksetaan laskulla &mdash; maksuaika 14 päivää !" );
+		} else {
+			return ( $alku ? "e-korttimaksu" : "! Maksettu korttiveloituksena tilausta tehdessä !" );
+		}
 	}
 }
