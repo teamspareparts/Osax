@@ -29,7 +29,11 @@ main { display: block; } /* F*** IE */
 
 .hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
 .material-icons { vertical-align: middle !important; } /* Ikonit eivät näytä hirveän keskittyneiltä. Tämä korjaa asiaa hieman. */
-.center { text-align: center; justify-content: center; margin: auto; } /* Sisällön keskittämiseen joka suunnassa */
+.center {  /* Sisällön keskittämiseen joka suunnassa */
+	text-align: center;
+	justify-content: center;
+	margin: auto;
+}
 .end { text-align: end; } /* Self-explanatory */
 
 /***********************************************

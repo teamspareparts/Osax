@@ -19,6 +19,4 @@ $mpdf->SetHTMLFooter( $pdf_html_footer );
 
 $mpdf->WriteHTML( $pdf_html_body );
 
-//$mpdf->Output();
-
-echo $pdf_html_body;
+$mpdf->Output();

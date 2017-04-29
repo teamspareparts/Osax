@@ -164,6 +164,10 @@ if ( $mode === "login" ) {
 				exit;
 			}
 			else {
+				if ( !empty( $_SESSION[ 'redirect_url' ] ) ) {
+					header( "Location:{$_SESSION['redirect_url']}" );
+					exit;
+				}
 				header( "Location:etusivu.php" );
 				exit;
 			}

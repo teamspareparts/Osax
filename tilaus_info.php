@@ -75,6 +75,10 @@ elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin()
 
 /** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
 $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
+
+$laskun_file_nimi = "lasku-". sprintf('%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
+$noutolista_file_nimi =
+	"noutolista-". sprintf('%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
 ?>
 <!DOCTYPE html>
 <html lang="fi">

@@ -118,13 +118,16 @@ if ( $config[ 'indev' ] ) : ?>
 			<a href="http://www.enable-javascript.com/" target="_blank">
 			instructions how to enable JavaScript in your web browser</a>.</p>
 		</noscript>
+
 		<form action="login_check.php" method="post" accept-charset="utf-8">
-			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{8,255}$"
-				   required autofocus><br>
-			<br>
-			<label>Salasana:</label><br>
-			<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
+			<label>Sähköposti:
+				<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{8,255}$" id="login_email"
+				       required autofocus disabled>
+			</label>
+			<br><br>
+			<label>Salasana:
+				<input type="password" name="password" placeholder="Salasana" pattern=".{5,255}$" required>
+			</label>
 			<br><br>
 			<input type="hidden" name="mode" value="login">
 			<input type="submit" value="Kirjaudu sisään" id="login_submit" disabled>
@@ -133,10 +136,11 @@ if ( $config[ 'indev' ] ) : ?>
 
 	<fieldset><legend>Unohditko salasanasi?</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
-			<label>Sähköposti:</label><br>
-			<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{3,255}$"
-				   required autofocus ><br>
-			<br>
+			<label>Sähköposti:
+				<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{3,255}$"
+					   required autofocus>
+			</label>
+			<br><br>
 			<input type="hidden" name="mode" value="password_reset">
 			<input type="submit" value="Uusi salasana">
 		</form>
@@ -149,10 +153,12 @@ if ( $config[ 'indev' ] ) : ?>
 </main>
 
 <script>
-    //Enable "Kirjaudu sisään" -painike
-    document.getElementById('login_submit').removeAttribute('disabled');
+	let update = <?= $config['update'] ?>;
+	if ( !update ) {
+		document.getElementById('login_email').removeAttribute('disabled');
+		document.getElementById('login_submit').removeAttribute('disabled');
+	}
 	window.history.pushState('login', 'Title', 'index.php'); //Poistetaan GET URL:sta
-	//TODO: Evästeet
 </script>
 
 </body>

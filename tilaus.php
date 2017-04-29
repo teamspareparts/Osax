@@ -206,7 +206,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			+ "Postinumero ja -toimipaikka: " + osoite_array['postinumero'] + " " + osoite_array['postitoimipaikka'] + "<br>"
 			+ "Puhelinnumero: " + osoite_array['puhelin'];
 
-		document.getElementById('toimitusosoite_form_input').value = osoite_id+1; //Tallenetaan toimitusosoite talteen piilotettuun formiin
+		document.getElementById('toimitusosoite_form_input').value = osoite_id+1;
+
+		Modal.close();
 	}
 
 	function laheta_Tilaus () {

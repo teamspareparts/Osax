@@ -69,7 +69,7 @@ function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
 		}
 		$s .= '
 			<br> \
-			<input class="nappi" type="button" value="Valitse" onClick="valitse_toimitusosoite(' . $index . ');"> \
+			<input type="button" value="Valitse" class="nappi" onClick="valitse_toimitusosoite(' . $index . ');"> \
 		</div>\
 		<hr> \
 		';
