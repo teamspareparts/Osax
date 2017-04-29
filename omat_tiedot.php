@@ -3,6 +3,37 @@ require '_start.php'; global $db, $user, $cart;
 
 /**
  * @param DByhteys $db
+ * @param array    $variables
+ * @return string <p> for _SESSION['feedback']
+ */
+function vaihda_salasana( DByhteys $db, array $variables ) {
+	$row = $db->query( "SELECT salasana_hajautus FROM kayttaja WHERE id = ?" );
+	if ( !password_verify( $variables[ 'vanha_salasana' ], $row->salasana_hajautus ) ) {
+		return "<p class='error'>Vanha salasana ei ole oikein.</p>";
+	}
+	if ( strlen( $variables[ 'uusi_salasana' ] ) < 8 ) {
+		return "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>";
+	}
+	if ( $variables[ 'uusi_salasana' ] !== $variables[ 'vahv_uusi_salasana' ] ) {
+		return "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
+	}
+	if ( $variables[ 'uusi_salasana' ] !== $variables[ 'vahv_uusi_salasana' ] ) {
+		return "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
+	}
+
+	$hajautettu_uusi_salasana = password_hash( $variables[ 'uusi_salasana' ], PASSWORD_DEFAULT );
+	if ( $db->query( "UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
+					 [ $hajautettu_uusi_salasana, $variables[ 'user_id' ] ] )
+	) {
+		return "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
+	}
+	else {
+		return "<p class='error'>Salasanan vaihtaminen epäonnistui.</p>";
+	}
+}
+
+/**
+ * @param DByhteys $db
  * @param User     $user
  * @param array    $variables
  * @return bool
@@ -81,34 +112,27 @@ function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
 $yritys = new Yritys( $db, $user->yritys_id );
 $user->haeToimitusosoitteet( $db, -1, true );
 
-if ( isset($_POST['uudet_tiedot']) ){
+if ( !empty( $_POST[ 'uudet_tiedot' ] ) ) {
 	$sql = "UPDATE kayttaja SET etunimi = ? , sukunimi = ? , puhelin = ?
-  		    WHERE sahkoposti = ? LIMIT 1";
-	if ( $db->query($sql, [$_POST['etunimi'], $_POST['sukunimi'], $_POST['puh'], $user->sahkoposti])){
-		$_SESSION['feedback'] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
-	} else {
-		$_SESSION['feedback'] = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
+  		    WHERE id = ? LIMIT 1";
+	if ( $db->query( $sql, array_values( $_POST ) ) ) {
+		$_SESSION[ 'feedback' ] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
+	}
+	else {
+		$_SESSION[ 'feedback' ] = "<p class='error'>Tietojen päivittäminen epäonnistui.</p>";
 	}
 }
-elseif ( !empty($_POST['new_password']) ) {
-	if ( strlen($_POST['new_password']) >= 8 ) {
-		if ( $_POST['new_password'] === $_POST['confirm_new_password'] ) {
-			if ( $user->vaihdaSalasana( $db, $_POST['new_password'] ) ) {
-				$_SESSION['feedback'] = "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
-
-			} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vaihtaminen epäonnistui tuntemattomasta syystä.</p>"; }
-		} else { $_SESSION['feedback'] = "<p class='error'>Salasanan vahvistus ei täsmää.</p>"; }
-	} else { $_SESSION['feedback'] = "<p class='error'>Salasanan pitää olla vähintään kahdeksan merkkiä pitkä.</p>"; }
+elseif ( !empty( $_POST[ 'uusi_salasana' ] ) ) {
+	$_SESSION['feedback'] = vaihda_salasana( $db, $_POST );
 }
-elseif ( !empty($_POST["muokkaa_vanha_osoite"]) ) {
+elseif ( !empty( $_POST[ "muokkaa_vanha_osoite" ] ) ) {
 	muokkaa_uudet_tiedot( $db, $user, $_POST );
 }
-elseif ( !empty($_POST["tallenna_uusi_osoite"]) ) {
+elseif ( !empty( $_POST[ "tallenna_uusi_osoite" ] ) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
-
 }
-elseif ( !empty($_POST["poista_osoite"]) ) {
-	poista_osoite( $db, $user, $_POST["poista_osoite"] );
+elseif ( !empty( $_POST[ "poista_osoite" ] ) ) {
+	poista_osoite( $db, $user, $_POST[ "poista_osoite" ] );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -124,9 +148,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <head>
 	<meta charset="UTF-8">
 	<title>Omat Tiedot</title>
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/jsmodal-light.css">
+	<link rel="stylesheet" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<style>
@@ -144,52 +168,58 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <main class="main_body_container lomake">
 	<?= $feedback ?>
 
-	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
+	<form method="post" accept-charset="utf-8">
 		<fieldset><legend>Nykyiset tiedot</legend>
-			<label>Sähköposti</label>
-			<p style="display: inline; font-size: 16px;"><?= $user->sahkoposti ?></p>
+			<label class="required">Sähköposti</label> <span><?= $user->sahkoposti ?></span>
 			<?php if ( $user->demo ) : ?>
-				<br><br><label>Voimassa</label>
+				<br><br>
+				<label>Voimassa</label>
 				<p style="display: inline; font-size: 16px;">
 					<?= (new DateTime($user->voimassaolopvm))->format("d.m.Y H:i:s") ?>
 				</p>
 			<?php endif; ?>
 			<br><br>
-			<label>Etunimi</label>
-			<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?= $user->etunimi ?>"
-				   title="Vain aakkosia.">
+			<label for="enimi">Etunimi</label>
+			<input type="text" name="etunimi" value="<?= $user->etunimi ?>" id="enimi" pattern="[a-öA-Ö]{3,20}" >
 			<br><br>
-			<label>Sukunimi</label>
-			<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" value="<?= $user->sukunimi ?>"
-				   title="Vain aakkosia">
+			<label for="snimi">Sukunimi</label>
+			<input type="text" name="sukunimi" value="<?= $user->sukunimi ?>" id="snimi" pattern="[a-öA-Ö]{3,20}">
 			<br><br>
-			<label>Puhelin</label>
-			<input name="puh" type="tel" value="<?= $user->puhelin ?>" title="Vain numeroita"
-				   pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
+			<label for="puh">Puhelin</label>
+			<input type="tel" name="puh" value="<?= $user->puhelin ?>" id="puh"
+			       pattern="((\+|00)?\d{3,5}|)((\s|-)?\d){3,10}">
 			<br><br>
+			<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
 
 			<div class="center">
-				<input type="hidden" name="uudet_tiedot">
-				<input class="nappi" name="submit" value="Päivitä tiedot" type="submit">
+				<input type="hidden" name="uudet_tiedot" value="<?= $user->id ?>">
+				<input type="submit" value="Päivitä tiedot" class="nappi" >
 			</div>
 		</fieldset>
 	</form>
 
 	<br><br>
 
-	<form action="#" name="uusi_salasana" method="post" accept-charset="utf-8">
+	<form method="post" accept-charset="utf-8">
 		<fieldset><legend>Vaihda salasana</legend>
-			<label>Uusi salasana</label>
-			<input name="new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
-				   id="uusi_salasana">
+			<label for="old_ss" class="required">Vanha salasana</label>
+			<input type="password" name="vanha_salasana" pattern=".{8,}" placeholder="Edellinen salasana"
+			       id="old_ss" required>
 			<br><br>
-			<label>Vahvista salasana</label>
-			<input name="confirm_new_password" type="password" pattern=".{8,}" title="Pituus min 8 merkkiä."
-				   id="vahv_uusi_salasana"><br>
-			<span id="check"></span>
+			<label for="uusi_salasana" class="required">Uusi salasana</label>
+			<input type="password" name="uusi_salasana" pattern=".{8,}" placeholder="Pituus min 8 merkkiä"
+				   id="uusi_salasana" required>
 			<br><br>
+			<label for="vahv_uusi_salasana" class="required">Vahvista uusi salasana</label>
+			<input type="password" name="vahv_uusi_salasana" pattern=".{8,}" placeholder="Pituus min 8 merkkiä"
+				   id="vahv_uusi_salasana" required>
+			<br>
+			<span id="check"></span> <!-- Js tarkistaa ovatko ss:t samat reaaliajassa -->
+			<br>
+			<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
 			<div class="center">
-				<input class="nappi" name="submit" value="Vaihda salasana" type="submit" id="pw_submit">
+				<input type="hidden" name="user_id" value="<?= $user->id ?>">
+				<input type="submit" value="Vaihda salasana" class="nappi" id="pw_submit">
 			</div>
 		</fieldset>
 	</form>
@@ -232,7 +262,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
         <label>Katuosoite</label><?=$yritys->katuosoite?><br>
         <label>Postinumero</label><?=$yritys->postinumero?><br>
         <label>Postitoimipaikka</label><?=$yritys->postitoimipaikka?><br>
-        <label>Maa</label><?=$yritys->maa?><br>
+        <label>Maa</label><?=$yritys->maa?><br><br>
+	    <span class="small_note">Vain ylläpitäjä voi muuttaa yritystietoja.</span>
     </fieldset>
 </main>
 
@@ -283,25 +314,26 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<div>Lisää uuden toimitusosoitteen tiedot</div>\
 			<br>\
 			<form action="#" method=post>\
-				<label>Etunimi</label>\
+				<label class="required">Etunimi</label>\
 					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi" required><br>\
-				<label>Sukunimi</label>\
+				<label class="required">Sukunimi</label>\
 					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi" required><br>\
-				<label>Sähköposti</label>\
+				<label class="required">Sähköposti</label>\
 					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
-				<label>Puhelin</label>\
+				<label class="required">Puhelin</label>\
 					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="000 1234 789" required><br>\
 				<label>Yritys</label>\
 					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Yritys Oy"><br>\
-				<label>Katuosoite</label>\
+				<label class="required">Katuosoite</label>\
 					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Katu 42" required><br>\
-				<label>Postinumero</label>\
+				<label class="required">Postinumero</label>\
 					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>\
-				<label>Postitoimipaikka</label>\
+				<label class="required">Postitoimipaikka</label>\
 					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required><br>\
 				<label>Maa</label>\
 					<input name="maa" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Maa">\
 				<br><br>\
+				<span class="small_note"><span class="required"></span> = pakollinen kenttä</span><br>\
 				<input class="nappi" type="submit" name="tallenna_uusi_osoite" value="Tallenna uusi osoite">\
 				<br>\
 			</form>\
@@ -326,7 +358,6 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			return false;
 		}
 	}
-
 
 	$(document).ready(function() {
 		let pwSubmit = $('#pw_submit'); // Salasanan pituuden ja vahvistuksen tarkistusta varten
