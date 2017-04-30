@@ -99,9 +99,6 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 	}
 
 	if ( $successful_inserts ) {
-	    // Ajetaan tuotteet kantaan
-		$questionmarks = implode( ',', array_fill( 0, $successful_inserts, '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)' ) );
-		$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 					    minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
 					    VALUES {$questionmarks}
 					    ON DUPLICATE KEY
@@ -112,8 +109,6 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
                                 VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
                             yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
                             aktiivinen = 1";
-        $response = $db->query($insert_query, $placeholders);
-    }
 	fclose($handle);
 
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
