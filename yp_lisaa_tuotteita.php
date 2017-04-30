@@ -97,8 +97,21 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 
         $successful_inserts++;
 	}
-
+    
 	if ( $successful_inserts ) {
+	    $inserted_items_count = 0;
+	    $inserts_per_query = 4000; // Kantaan kerralla ajettavien tuotteiden määrä
+
+		// Ajetaan tuotteet kantaan
+		while ( $inserted_items_count < $successful_inserts ) {
+		    // Viimeisellä lisäyskerralla lasketaan uudelleen sisään ajettavien tuotteiden määrä
+		    if ( $inserts_per_query + $inserted_items_count > $successful_inserts ) {
+		        $inserts_per_query = $successful_inserts - $inserted_items_count;
+            }
+
+            $temp_placeholders = array_slice($placeholders, $inserted_items_count*11, $inserts_per_query*11);
+            $questionmarks = implode(',', array_fill( 0, $inserts_per_query, '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)'));
+			$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 					    minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
 					    VALUES {$questionmarks}
 					    ON DUPLICATE KEY
@@ -109,6 +122,11 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
                                 VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
                             yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
                             aktiivinen = 1";
+			$response = $db->query($insert_query, $temp_placeholders);
+
+			$inserted_items_count += $inserts_per_query;
+		}
+	}
 	fclose($handle);
 
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
