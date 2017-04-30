@@ -55,10 +55,17 @@ else {
 					<td><?= $op->tuote_id ?></td>
 					<td><?= $op->kayttaja_id ?></td>
 					<td><?= $op->pvm ?></td>
-					<td>Käsittely tähän (js?)</td>
+					<td><form>
+							<select name="toiminto" title="Valitse toiminto">
+								<option value="0">0: Tarkistettu, ei toimenpiteitä</option>
+								<option value="1">1: Lisätty valikoimaan, tiedotetaan asiakasta</option>
+								<option value="2">2: Tarkistettu, säädetty parametreja</option>
+							</select>
+							<input type="submit" value="OK" class="nappi">
+						</form>
+					</td>
 				</tr>
-				<tr><td colspan="5">Selitys mikä tuote on kyseessä ehkä?
-						Tuotekoodi ja -nimi. Onko tarpeellista? Voisi myös tehdä yhdelle riville.</td></tr>
+				<tr><td colspan="5"></td></tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>
@@ -69,14 +76,16 @@ else {
 	<?php if ( $hankintapyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;"> Hankintapyynnöt </th></tr>
+			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;"> Hankintapyynnöt </th></tr>
 			<tr><th></th>
 				<th>Tuote</th>
 				<th>Valmistaja</th>
 				<th>Tuotteen nimi</th>
 				<th>Käyttäjä</th>
 				<th>Pvm.</th>
-				<th>Korvaava okey?</th></tr>
+				<th>Korvaava okey?</th>
+				<th>Käsittely:</th>
+			</tr>
 			</thead>
 			<tbody>
 			<?php $i = 0; foreach ( $hankintapyynnot as $hkp ) : ?>
@@ -87,6 +96,15 @@ else {
 					<td><?= $hkp->kayttaja_id ?></td>
 					<td><?= $hkp->pvm ?></td>
 					<td><?= $hkp->korvaava_okey ?></td>
+					<td><form>
+							<select name="toiminto" title="Valitse toiminto">
+								<option value="0">0: Tarkistettu, ei toimenpiteitä</option>
+								<option value="1">1: Lisätty valikoimaan, tiedotetaan asiakasta</option>
+								<option value="2">2: Tarkistettu, säädetty parametreja</option>
+							</select>
+							<input type="submit" value="OK" class="nappi">
+						</form>
+					</td>
 				</tr>
 				<tr><td colspan="6"><b>Selitys:</b> <?= !empty($hkp->selitys) ? $hkp->selitys : '[Tyhjä]' ?></td></tr>
 			<?php endforeach; ?>

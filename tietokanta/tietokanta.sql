@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS `tuote_ostopyynto` (
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `kayttaja_id` mediumint UNSIGNED NOT NULL, -- PK, FK
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP, -- PK
+  `kasitelty` tinyint UNSIGNED DEFAULT NULL, -- Mitä ostopyynnölle on tehty, ylläpidon toimi.
   PRIMARY KEY (`tuote_id`, `kayttaja_id`, `pvm`),
   CONSTRAINT fk_tuoteOstopyynto_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`),
   CONSTRAINT fk_tuoteOstopyynto_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
@@ -158,6 +159,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `tuotteen_nimi` varchar(30) NOT NULL,
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,
+  `kasitelty` tinyint UNSIGNED DEFAULT NULL, -- Mitä ostopyynnölle on tehty, ylläpidon toimi.
   PRIMARY KEY (`articleNo`, `kayttaja_id`, `pvm`),
   CONSTRAINT fk_tuoteHankintapyynto_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
