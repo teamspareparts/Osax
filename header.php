@@ -51,6 +51,7 @@
                         <li><a href="yp_hankintapyynnot.php">Hankintapyynnöt</a></li>
                         <li><a href="yp_muokkaa_alv.php">ALV-muokkaus</a></li>
                         <li><a href='toimittajat.php'>Toimittajat</a></li>
+                        <li><a href='yp_hankintapaikat.php'>Hankintapaikat</a></li>
                         <li><a href='yp_raportit.php'>Raportit</a></li>
                         <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                     </ul>
