@@ -139,7 +139,8 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar ul li a:HOVER {
-	background-color: #02358E;
+	background-color: #02285c;
+	border-radius: 10px;
 }
 
 .navigationbar .dropdown-content {
@@ -166,7 +167,9 @@ main { display: block; } /* F*** IE */
 
 .navigationbar .active{
 	text-decoration: none;
-	background-color: black;
+	background-color: rgb(0, 0, 0); /* The Fallback, jos selain ei tue RGBa-arvoja */
+	background-color: rgba(0, 0, 0, 0.60);  /* Hieman sinistä läpi, ei pistä silmään */
+	border-radius: 5px;
 }
 
 

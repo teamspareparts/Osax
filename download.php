@@ -19,5 +19,3 @@ if ($filepath) {
     header("Content-Type: binary/octet-stream");
     readfile($filepath);
 }
-
-?>
