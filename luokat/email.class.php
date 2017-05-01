@@ -121,6 +121,30 @@ class Email {
 	}
 
 	/**
+	 * Lähettää eilisen päivän tapahtumalistauksen kirjanpitoon.
+	 * @param string $fileName <p>
+	 * @param $file <p> Tiedoston sisältö
+	 */
+	static function lahetaTapahtumalistausraportti( /*string*/$fileName, /*file*/ $file ) {
+		$config = parse_ini_file( "./config/config.ini.php" );
+		$date = date('d.m.Y');
+		Email::$target_email = $config['kirjanpito_email'];
+		Email::$subject = "Tapahtumalistausraportti {$date}";
+		Email::$message = "<p>Hei,</p>
+				<p>Ohessa Osax Oy:n vimeisimmät tilaukset.</p>
+				<p>Yhteystiedot:<br>
+					Osax Oy<br>
+					Jukolankatu 19 80100 Joensuu<br>		
+					puh. 010 5485200<br>
+					janne@osax.fi';</p>";
+
+		Email::$fileName = $fileName;
+		Email::$file = $file;
+
+		Email::sendMail();
+	}
+
+	/**
 	 * Lähettää ilmoituksen käyttäjälle annettuun osoitteeseen.
 	 * //TODO: Lisää linkki tilausinfoon? --JJ/2016
 	 * //TODO: Vaatii systeemin sisäänkirjautumiselle ja uudellenohjaukselle. --JJ/2017-02-06
@@ -143,7 +167,8 @@ class Email {
 	 * @param string $uusi_sijainti
 	 */
 	static function lahetaIlmoitus_EpailyttavaIP( stdClass $user, /*string*/ $vanha_sijainti, /*string*/ $uusi_sijainti ) {
-		Email::$target_email = Email::admin_email;
+		$config = parse_ini_file( "./config/config.ini.php" );
+		Email::$target_email = $config['admin_email'];
 		Email::$subject = "Epäilyttävää käytöstä";
 		Email::$message = "<p>Asiakas ...tiedot tähän..... </p>>
 			<p>Vanha sijainti: {$vanha_sijainti}</p>>

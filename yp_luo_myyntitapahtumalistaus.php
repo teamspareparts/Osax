@@ -1,15 +1,15 @@
 <?php
-require "_start.php";
-global $db, $user;
+/**
+ * Tiedosto luo myyntitapahtumalistauksen.
+ * Raportti lähetetään sähköpostilla kirjanpitoon, jos tiedosto ajetaan cmd:llä.
+ * Raportti ladataan selaimeen, jos tiedosto avattu selaimessa.
+ */
+chdir(dirname(__FILE__)); //Määritellään työskentelykansio
 
-if (!$user->isAdmin()) { // Sivu tarkoitettu vain ylläpitäjille
-	header("Location:etusivu.php");
-	exit();
-}
-if (!isset($_POST["luo_raportti"])) {
-	header("Location:etusivu.php");
-	exit();
-}
+require './luokat/email.class.php';
+require './luokat/dbyhteys.class.php';
+require './luokat/user.class.php';
+$db = new DByhteys();
 
 /**
  * Luo tapahtumalistausraportin sisällön
@@ -18,10 +18,9 @@ if (!isset($_POST["luo_raportti"])) {
  * @param $pvm_to <p>
  * @return string <p> Raportin sisältö.
  */
-function luo_tapahtumalistaus(DByhteys $db, /*string*/
-                              $pvm_from, /*string*/
-                              $pvm_to)
+function luo_tapahtumalistaus(DByhteys $db, /*string*/ $pvm_from, /*string*/ $pvm_to)
 {
+	//Alustetaan summat
 	$sum_alviton_lasku = 0;
 	$sum_alviton_paytrail = 0;
 	$sum_alviton_maarittelematon = 0;
@@ -55,8 +54,8 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 
 	//Luodaan raportti
 	$raportti = chr(0xEF) . chr(0xBB) . chr(0xBF); //BOM
-	$raportti .= "Myyntitapahtumat " . date('d.m.Y', strtotime($_POST["pvm_from"])) .
-		" - " . date('d.m.Y', strtotime($_POST["pvm_to"])) . "\r\n\r\n" .
+	$raportti .= "Myyntitapahtumat " . date('d.m.Y', strtotime($pvm_from)) .
+		" - " . date('d.m.Y', strtotime($pvm_to)) . "\r\n\r\n" .
 		"Tapahtumamäärä " . count($tilaukset) . " kpl\r\n" .
 		"\r\n" .
 		"Myyntipvm, Lasku nro, Asiakas, Summa ALV, Summa ALV 0, maksutapa\r\n";
@@ -133,21 +132,41 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 	return $raportti;
 }
 
-$raportti = luo_tapahtumalistaus($db, $_POST["pvm_from"], $_POST["pvm_to"]);
+// Jos aikaväliä ei ole määritelty, haetaan tilaukset edelliseltä päivältä
+$pvm_from = isset($_POST["pvm_from"]) ? $_POST["pvm_from"] : date("Y-m-d", strtotime('-1 day'));
+$pvm_to = isset($_POST["pvm_to"]) ? $_POST["pvm_to"] : date("Y-m-d", strtotime('-1 day'));
 
+$raportti = luo_tapahtumalistaus($db, $pvm_from, $pvm_to);
 
-/** Ladataan tiedosto suoraan selaimeen */
+// Tarkastetaan ajetaanko tiedostoa cmd:ltä
+if ( php_sapi_name() == 'cli' ) {
+	// Jos ajetaan yöajossa lähetetään kirjanpitoon
+	$date_from = date('d.m.Y', strtotime($pvm_from));
+	$date_to = date('d.m.Y', strtotime($pvm_to));
+	$fileName = ($date_from == $date_to) ? "Myyntiraportti-{$date_from}.txt" : "Myyntiraportti-{$date_from}-{$date_to}.txt";
+	Email::lahetaTapahtumalistausraportti($fileName, $raportti);
 
-$datetime = date("d-m-Y H-i-s");
-$name = "Myyntitapahtumalistaus-{$datetime}.txt";
-header('Content-Type: text');
-header('Content-Disposition: attachment; filename=' . $name);
-header('Pragma: no-cache');
-header("Expires: 0");
+} else {
+	// Ladataan tiedosto suoraan selaimeen
+	session_start();
+	$user = new User( $db, $_SESSION['id'] );
 
-$outstream = fopen("php://output", "w");
+	if (!$user->isAdmin()) { // Sivu tarkoitettu vain ylläpitäjille
+		header("Location:etusivu.php");
+		exit();
+	}
 
-fwrite($outstream, $raportti);
+	$datetime = date("d-m-Y H-i-s");
+	$name = "Myyntitapahtumalistaus-{$datetime}.txt";
+	header('Content-Type: text');
+	header('Content-Disposition: attachment; filename=' . $name);
+	header('Pragma: no-cache');
+	header("Expires: 0");
 
-fclose($outstream);
-exit();
+	$outstream = fopen("php://output", "w");
+
+	fwrite($outstream, $raportti);
+
+	fclose($outstream);
+	exit();
+}
