@@ -34,7 +34,7 @@
 
     <section class="navigationbar">
         <ul>
-            <li><a href='etusivu.php' style="padding-left:16px; padding-right: 0;">
+            <li><a href='etusivu.php' style="padding-left:16px; padding-right: 10px;">
                 <i class="material-icons" style="margin-top: -3px;">home</i></a></li>
             <li><a href='tuotehaku.php'>Tuotehaku</a></li>
             <?php if ( $user->isAdmin() ) : ?>

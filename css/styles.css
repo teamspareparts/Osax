@@ -138,9 +138,8 @@ main { display: block; } /* F*** IE */
     padding: 14px 16px;
 }
 
-.navigationbar ul li :HOVER {
-	background-color: darkblue;
-	border-radius: 5px;
+.navigationbar ul li a:HOVER {
+	background-color: #02358E;
 }
 
 .navigationbar .dropdown-content {
