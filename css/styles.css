@@ -139,7 +139,8 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar ul li :HOVER {
-	color: black;
+	background-color: darkblue;
+	border-radius: 5px;
 }
 
 .navigationbar .dropdown-content {
@@ -165,8 +166,8 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar .active{
-    color: black;
-    text-decoration: underline;
+	text-decoration: none;
+	background-color: black;
 }
 
 
