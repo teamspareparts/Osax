@@ -330,7 +330,7 @@ require 'tuotemodal.php';
 					<td class="number"><?=format_euros($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-                        <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
+                        <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>
 					<?php endif; ?>
                     <td>
                         <?php if ( date('Ymd') <= date('Ymd', strtotime($product->saapumispaiva)) ) : ?>

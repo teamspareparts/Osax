@@ -50,7 +50,7 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 				ON kayttaja.yritys_id = yritys.id
 			WHERE tilaus.paivamaara > ? AND tilaus.paivamaara < ? + INTERVAL 1 DAY AND maksettu = 1
 			GROUP BY tilaus.id
-			ORDER BY tilaus.maksutapa";
+			ORDER BY tilaus.paivamaara";
 	$tilaukset = $db->query($sql, [$pvm_from, $pvm_to], FETCH_ALL);
 
 	//Luodaan raportti
@@ -70,18 +70,18 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 		switch ($tilaus->maksutapa) {
 			case -1:
 				$tilaus->maksutapa_string = "Määrittelemätön";
-				$sum_alviton_maarittelematon = round($sum_alviton_maarittelematon + $tilaus->summa_alviton, 2 );
-				$sum_alvillinen_maarittelematon = round( $sum_alvillinen_maarittelematon + $tilaus->summa_alvillinen, 2 );
+				$sum_alviton_maarittelematon = round($sum_alviton_maarittelematon + $tilaus->summa_alviton, 2);
+				$sum_alvillinen_maarittelematon = round($sum_alvillinen_maarittelematon + $tilaus->summa_alvillinen, 2);
 				break;
 			case 0:
 				$tilaus->maksutapa_string = "Paytrail";
-				$sum_alviton_paytrail = round( $sum_alviton_paytrail + $tilaus->summa_alviton, 2 );
-				$sum_alvillinen_paytrail = round( $sum_alvillinen_paytrail + $tilaus->summa_alvillinen, 2 );
+				$sum_alviton_paytrail = round($sum_alviton_paytrail + $tilaus->summa_alviton, 2);
+				$sum_alvillinen_paytrail = round($sum_alvillinen_paytrail + $tilaus->summa_alvillinen, 2);
 				break;
 			case 1:
 				$tilaus->maksutapa_string = "Lasku";
-				$sum_alviton_lasku = round( $sum_alviton_lasku + $tilaus->summa_alviton, 2 );
-				$sum_alvillinen_lasku = round( $sum_alvillinen_lasku + $tilaus->summa_alvillinen, 2 );
+				$sum_alviton_lasku = round($sum_alviton_lasku + $tilaus->summa_alviton, 2);
+				$sum_alvillinen_lasku = round($sum_alvillinen_lasku + $tilaus->summa_alvillinen, 2);
 				break;
 		}
 
@@ -92,9 +92,9 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 	//Yhteensä
 	$yhteensa_alvillinen_string = number_format($sum_alvillinen_maarittelematon + $sum_alvillinen_paytrail + $sum_alvillinen_lasku, 2, ".", "");
 	$yhteensa_alviton_string = number_format($sum_alviton_maarittelematon + $sum_alviton_paytrail + $sum_alviton_lasku, 2, ".", "");
-	$raportti .=    "\r\nYHTEENSÄ\r\n".
-					"{$yhteensa_alviton_string}€ ALV 0%\r\n".
-					"{$yhteensa_alvillinen_string}€ sis. ALV\r\n";
+	$raportti .= "\r\nYHTEENSÄ\r\n" .
+		"{$yhteensa_alviton_string}€ ALV 0%\r\n" .
+		"{$yhteensa_alvillinen_string}€ sis. ALV\r\n";
 
 	//Tilausket eroteltuna maksutavan mukaan
 	$raportti .= "\r\n\r\nTILAUKSET EROTELTUNA MAKSUTAVAN MUKAAN\r\n";
@@ -114,22 +114,21 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/
 	$raportti .= str_repeat("-", 80) . "\r\n\r\n";
 
 	//Yhteensä, järjestettynä maksutavan mukaan
-	//TODO: number format
-	$sum_alviton_lasku = number_format( $sum_alviton_lasku, 2, ".", "" );
-	$sum_alviton_paytrail = number_format( $sum_alviton_paytrail, 2, ".", "" );
-	$sum_alviton_maarittelematon = number_format( $sum_alviton_maarittelematon, 2, ".", "" );
-	$sum_alvillinen_lasku = number_format( $sum_alvillinen_lasku, 2, ".", "" );
-	$sum_alvillinen_paytrail = number_format( $sum_alvillinen_paytrail, 2, ".", "" );
-	$sum_alvillinen_maarittelematon = number_format( $sum_alvillinen_maarittelematon, 2, ".", "" );
-	$raportti  .=   "YHTEENSÄ - MÄÄRITTELEMÄTÖN\r\n".
-					"{$sum_alviton_maarittelematon}€ ALV 0%\r\n".
-					"{$sum_alvillinen_maarittelematon}€ sis. ALV\r\n\r\n".
-					"YHTEENSÄ - PAYTRAIL\r\n".
-					"{$sum_alviton_paytrail}€ ALV 0%\r\n".
-					"{$sum_alvillinen_paytrail}€ sis. ALV\r\n\r\n".
-					"YHTEENSÄ - LASKU\r\n".
-					"{$sum_alviton_lasku}€ ALV 0%\r\n".
-					"{$sum_alvillinen_lasku}€ sis. ALV\r\n\r\n";
+	$sum_alviton_lasku_string = number_format($sum_alviton_lasku, 2, ".", "");
+	$sum_alviton_paytrail_string = number_format($sum_alviton_paytrail, 2, ".", "");
+	$sum_alviton_maarittelematon_string = number_format($sum_alviton_maarittelematon, 2, ".", "");
+	$sum_alvillinen_lasku_string = number_format($sum_alvillinen_lasku, 2, ".", "");
+	$sum_alvillinen_paytrail_string = number_format($sum_alvillinen_paytrail, 2, ".", "");
+	$sum_alvillinen_maarittelematon_string = number_format($sum_alvillinen_maarittelematon, 2, ".", "");
+	$raportti .= "YHTEENSÄ - MÄÄRITTELEMÄTÖN\r\n" .
+		"{$sum_alviton_maarittelematon_string}€ ALV 0%\r\n" .
+		"{$sum_alvillinen_maarittelematon_string}€ sis. ALV\r\n\r\n" .
+		"YHTEENSÄ - PAYTRAIL\r\n" .
+		"{$sum_alviton_paytrail_string}€ ALV 0%\r\n" .
+		"{$sum_alvillinen_paytrail_string}€ sis. ALV\r\n\r\n" .
+		"YHTEENSÄ - LASKU\r\n" .
+		"{$sum_alviton_lasku_string}€ ALV 0%\r\n" .
+		"{$sum_alvillinen_lasku_string}€ sis. ALV\r\n\r\n";
 
 	return $raportti;
 }
