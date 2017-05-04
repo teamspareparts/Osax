@@ -263,8 +263,8 @@ unset($_SESSION["feedback"]);
                                                maa, puhelin, fax, www_url, yhteyshenkilo_nimi, yhteyshenkilo_puhelin, yhteyshenkilo_email, tilaustapa){
         Modal.open( {
             content:  `
-				<div>
-				<h4>Muokkaaminen muuttaa hankintapaikan tietoja <br> myös muilta brändeiltä!</h4>
+				<div style="width: 320px">
+				<h4>Muokkaa hankintapaikan tietoja.</h4>
 				<hr><br>
 				<form action="" method="post" name="muokkaa_hankintapaikka">
 					<label>ID</label>

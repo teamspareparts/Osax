@@ -240,6 +240,15 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `brandi` (
+  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
+  `tecdoc_id` smallint UNSIGNED DEFAULT NULL, -- Unique
+  `nimi` varchar(50) NOT NULL, -- UK
+  `url` VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`), UNIQUE (`tecdoc_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+-- Voi olla turha! Poistan heti kun olen varma, että ei tarvita
 CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   `brandId` int(11) NOT NULL, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- PK, FK
@@ -248,6 +257,18 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   PRIMARY KEY (`brandId`, `hankintapaikka_id`),
   CONSTRAINT fk_valmistajanHankintapaikka_hankintapaikka
     FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `brandin_linkitys` (
+  `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- PK, FK
+  `brandi_id` smallint UNSIGNED NOT NULL, -- PK, FK
+  `brandi_kaytetty_id` int(11) NOT NULL, -- Se brandin id, mitä hankintapaikka käyttää (voi erota tecdoc_id:stä)
+  `hinnaston_sisaanajo_pvm` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`hankintapaikka_id`, `brandi_id`),
+  CONSTRAINT fk_brandinLinkitys_hankintapaikka
+  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`),
+  CONSTRAINT fk_brandinLinkitys_brandi
+  FOREIGN KEY (`brandi_id`) REFERENCES `brandi`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja` (

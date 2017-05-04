@@ -2,10 +2,6 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting( E_ALL );
-
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php");
 	exit();
@@ -97,7 +93,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 
         $successful_inserts++;
 	}
-    
+
 	if ( $successful_inserts ) {
 	    $inserted_items_count = 0;
 	    $inserts_per_query = 4000; // Kantaan kerralla ajettavien tuotteiden määrä
@@ -132,26 +128,25 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
 }
 
-$brandId = isset($_GET['brandId']) ? $_GET['brandId'] : '';
-$hankintapaikkaId = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '';
+$brand_id = isset($_GET['brandId']) ? $_GET['brandId'] : '';
+$hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '';
 
 // Varmistetaan, että GET-parametrit ovat oikeita
 if ( !$valmistajanHankintapaikka = $db->query(
-		"SELECT brandName FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? AND brandId = ? LIMIT 1",
-		[$hankintapaikkaId, $brandId]) ) {
+		"SELECT * FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? LIMIT 1",
+		[$hankintapaikka_id, $brand_id]) ) {
 	header("Location:toimittajat.php");
 	exit();
 }
 
-// Alustetaan valmistajan nimi ja hankintapaikka
-$brandName = $valmistajanHankintapaikka->brandName;
-$hankintapaikka = $db->query("SELECT LPAD(`id`,3,'0') AS id, nimi FROM hankintapaikka WHERE id = ? LIMIT 1",
-                                [$hankintapaikkaId]);
+$brand = $db->query("SELECT * FROM brandi WHERE id = ?", [$brand_id]);
+$hankintapaikka = $db->query("SELECT *, LPAD(`id`,3,'0') AS id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
+
 
 if ( isset($_FILES['tuotteet']['name']) ) {
 	//Jos ei virheitä...
 	if ( !$_FILES['tuotteet']['error'] ) {
-        $result = lue_hinnasto_tietokantaan( $db, $brandId, $brandName, $hankintapaikka->id );
+        $result = lue_hinnasto_tietokantaan( $db, $brand->tecdoc_id, $brand->nimi, $hankintapaikka->id );
         $onnistuneet = $result[0];
         $epaonnistuneet = $result[1];
         $kaikki = $onnistuneet + count($epaonnistuneet);
@@ -159,7 +154,7 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 		// Päivitetään hinnaston sisäänluku päivämäärä.
 		$db->query("UPDATE valmistajan_hankintapaikka SET hinnaston_sisaanajo_pvm = NOW() 
 					WHERE brandId = ? AND hankintapaikka_id = ?",
-			[$brandId, $hankintapaikkaId] );
+			[$brand->id, $hankintapaikka->d] );
 
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
 		if ($epaonnistuneet) {
@@ -176,10 +171,10 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']);
 	exit();
-} else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
-	unset($_SESSION["feedback"]);
 }
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
+unset($_SESSION["feedback"]);
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -197,9 +192,9 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 
 <main class="main_body_container">
     <section>
-        <h1 class="otsikko"><?= $brandName?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+        <h1 class="otsikko"><?= $brand->nimi?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
         <div id="painikkeet">
-            <a class="nappi grey" href="toimittajan_hallinta.php?brandId=<?=$brandId?>">Takaisin</a>
+            <a class="nappi grey" href="toimittajan_hallinta.php?brandId=<?=$brand->id?>">Takaisin</a>
         </div>
     </section>
 	<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<span class="question" id="info_tiedostomuoto">?</span></p>
@@ -305,7 +300,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 		});
 
 		//Tilauskoodin tyyppi -valikko
-		$('#tilauskoodin_tyyppi').change(function(e) {
+		$('#tilauskoodin_tyyppi').change(function() {
 			$('.tilauskoodi_action').hide();
 			let tyyppi = $(this).val();
 			$('#' + tyyppi).show();

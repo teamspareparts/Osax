@@ -104,8 +104,11 @@ function getAmBrandAddress( $brandNo ) {
 	if ($response->status !== 200) {
 		return [];
 	}
-
-	return $response->data->array;
+	// Brändiä ei löytynyt
+	if (!isset($response->data->array)) {
+		return [];
+	}
+	return $response->data->array[0];
 }
 
 /**
