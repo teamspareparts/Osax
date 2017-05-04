@@ -206,7 +206,6 @@ function cmpPrice($a, $b) {
 	return ($a->hinta > $b->hinta);
 }
 
-
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
  * @param $number
@@ -471,7 +470,7 @@ require 'tuotemodal.php';
                                     OTK</button>
                             </td>
 						</tr>
-					<?php endforeach; //TODO: Poista ostoskorista -nappi(?) ?>
+					<?php endforeach; ?>
 					</tbody>
 				</table>
 			<?php endif; //if $catalog_products

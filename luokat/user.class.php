@@ -82,10 +82,10 @@ class User {
 	 */
 	public function kokoNimi() {
 		// Tarkistetaan etunimen pituus (jos liian pitkä, lyhennetään E.), ja lisätään sukunimi perään.
-		$str = ((strlen( $this->etunimi ) > 15) ? (substr( $this->etunimi, 0,
-														   1 ) . ".") : $this->etunimi) . " {$this->sukunimi}";
+		$str = ((strlen( $this->etunimi ) > 15)
+					? (substr( $this->etunimi, 0, 1 ) . ".")
+					: $this->etunimi) . " {$this->sukunimi}";
 
-		// Tarkistetaan koko nimen pituus. Jos pituus >30, katkaistaan 26. merkin kohdalla ja lisätään "..."
 		if ( strlen( $str ) > 30 ) {
 			$str = substr( $str, 0, 26 ) . "...";
 		}

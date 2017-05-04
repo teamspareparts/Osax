@@ -164,6 +164,10 @@ main { display: block; } /* F*** IE */
 .navigationbar .last {
     float: right; /* Kirjaudu ulos -nappi. Asettaa viimeiseksi, oikeaan laitaan kiinni. */
 }
+.navigationbar .last a:hover {
+	background-color: rgb(92, 0, 28);
+	background-color: rgba(145, 0, 13, 0.8);
+}
 
 .navigationbar .active{
 	text-decoration: none;
@@ -292,7 +296,7 @@ tr:nth-child(odd) {
 }
 
 tr:nth-child(even) {
-	background: #ffffff;
+	background: #fff;
 }
 
 tr .rivi {

@@ -34,8 +34,8 @@ elseif ( !empty( $_SESSION[ 'tilaus' ] ) ) {
 	PaymentAPI::preparePaymentFormInfo( $_SESSION[ 'tilaus' ][ 0 ], $_SESSION[ 'tilaus' ][ 1 ] );
 }
 else {
-	header( "location:ostoskori.php" );
-	exit;
+	//header( "location:ostoskori.php" );
+	//exit;
 }
 
 /*
@@ -83,6 +83,10 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 <body>
 
 <?php require 'header.php'; ?>
+<script>
+	document.getElementById("navbar").style.display = "none";
+	document.getElementById("headertop").style.border = '2px solid #2f5cad';
+</script>
 
 <main class="main_body_container">
 	<div style="width: 503px;">

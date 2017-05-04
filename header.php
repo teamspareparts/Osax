@@ -8,7 +8,7 @@
 </form>
 
 <header class="header_container">
-    <section class="header_top">
+    <section class="header_top" id="headertop">
         <div id="head_logo">
             <img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
         </div>
@@ -32,9 +32,9 @@
         </div>
     </section>
 
-    <section class="navigationbar">
+    <section class="navigationbar" id="navbar">
         <ul>
-            <li><a href='etusivu.php' style="padding-left:16px; padding-right: 10px;">
+            <li><a href='etusivu.php' style="padding-left:15px; padding-right: 15px;">
                 <i class="material-icons" style="margin-top: -3px;">home</i></a></li>
             <li><a href='tuotehaku.php'>Tuotehaku</a></li>
             <?php if ( $user->isAdmin() ) : ?>
@@ -43,7 +43,8 @@
                 <li><a href='yp_tilaukset.php'>Tilaukset</a></li>
 
                 <li><a id="dropdown_link" href="javascript:void(0)">Muut
-                        <i id="dropdown_icon" class="material-icons" style="font-size: 18px;">arrow_drop_down</i></a>
+                        <i id="dropdown_icon" class="material-icons" style="font-size: 18px;">arrow_drop_down</i>
+	                </a>
                     <ul class="dropdown-content" id="navbar_dropdown-content">
                         <li><a href="yp_ostotilauskirja_odottavat.php">Varastoon saapuminen</a></li>
                         <li><a href="yp_ostotilauskirja_hankintapaikka.php">Tilauskirjat</a></li>
@@ -63,7 +64,9 @@
 		                Lataa hinnasto<i class="material-icons">file_download</i></a>
                 </li>
 			<?php endif; ?>
-            <li class="last"><a href="logout.php?redir=5">Kirjaudu ulos</a></li>
+            <li class="last">
+	            <a href="logout.php?redir=5"><i class="material-icons">exit_to_app</i> Kirjaudu ulos</a>
+            </li>
         </ul>
     </section>
 </header>
