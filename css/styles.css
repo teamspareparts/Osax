@@ -122,12 +122,12 @@ main { display: block; } /* F*** IE */
 	clear: both;
 }
 
-.navigationbar ul li {
+.navigationbar ul > li {
 	float: left;
 	position: relative;
 }
 
-.navigationbar ul li a {
+.navigationbar a {
 	line-height: 26px;
     color: white;
     font-family: 'Open Sans', sans-serif;
@@ -138,7 +138,7 @@ main { display: block; } /* F*** IE */
     padding: 14px 16px;
 }
 
-.navigationbar ul li a:HOVER {
+.navigationbar a:HOVER {
 	background-color: #02285c;
 	border-radius: 10px;
 }
@@ -157,7 +157,7 @@ main { display: block; } /* F*** IE */
 	width: 100%;
 }
 
-.navigationbar .dropdown-content li a {
+.navigationbar .dropdown-content a {
 	padding: 5px 10px;
 }
 
@@ -170,10 +170,10 @@ main { display: block; } /* F*** IE */
 }
 
 .navigationbar .active{
-	text-decoration: none;
-	background-color: rgb(0, 0, 0); /* The Fallback, jos selain ei tue RGBa-arvoja */
-	background-color: rgba(0, 0, 0, 0.60);  /* Hieman sinistä läpi, ei pistä silmään */
-	border-radius: 5px;
+	text-decoration: none !important;
+	background-color: rgb(0, 0, 0) !important; /* The Fallback, jos selain ei tue RGBa-arvoja */
+	background-color: rgba(0, 0, 0, 0.60) !important;  /* Hieman sinistä läpi, ei pistä silmään */
+	border-radius: 5px !important;
 }
 
 
