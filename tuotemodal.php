@@ -299,21 +299,21 @@ require_once 'tecdoc_asetukset.php';?>
         }
 
         //Lisätään modaliin sisältö
-        $("#menu1").append('\
-			<div class="flex_row">\
-			    <div style="display: inline-block;">\
-			        ' + img + '\
-			    </div> \
-			    <div>\
-			        <div style="font-size: 20px;">\
-			            <span style="font-weight:bold;">' + name + '</span><br>' + articleNo + '<br>' + brand + '<br> \
-			        </div>\
-			        <div style="font-size: 18px;">\
-			            <br>' + infos + '<br><br>' + documents + ' \
-			        </div>\
-			    </div>\
-			</div>\
-		');
+        $("#menu1").append(`
+			<div class="flex_row">
+			    <div style="display: inline-block;">
+			        `+ img +`
+			    </div>
+			    <div>
+			        <div style="font-size: 20px;">
+			            <span style="font-weight:bold;">`+ name +`</span><br>`+ articleNo +`<br>`+ brand +`<br>
+			        </div>
+			        <div style="font-size: 18px;">
+			            <br>`+ infos + `<br><br>`+ documents +`
+			        </div>
+			    </div>
+			</div>
+		`);
         $("#menu2").append(imgs);
 
         $("#menu3").append(OEtable);

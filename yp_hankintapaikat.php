@@ -166,20 +166,26 @@ unset($_SESSION["feedback"]);
 			<?php foreach( $hankintapaikat as $hankintapaikka ) :
 					$hankintapaikka->brandit = explode(',', $hankintapaikka->brandit)?>
 				<tr>
-					<td data-href=""><?= $hankintapaikka->id?></td>
-					<td data-href=""><?= $hankintapaikka->nimi?></td>
-					<td data-href="" class="nowrap"><?php foreach ($hankintapaikka->brandit as $brand) : ?>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
+						<?= $hankintapaikka->id?></td>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
+						<?= $hankintapaikka->nimi?></td>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nowrap">
+						<?php foreach ($hankintapaikka->brandit as $brand) : ?>
 							<?=$brand?><br>
-						<?php endforeach;?>
-					</td>
-					<td data-href="" class="nowrap"><?= $hankintapaikka->katuosoite?><br>
+						<?php endforeach;?></td>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nowrap">
+						<?= $hankintapaikka->katuosoite?><br>
 						<?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?><br>
 						<?= $hankintapaikka->maa?></td>
-					<td data-href="">p. <?= $hankintapaikka->puhelin?><br>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
+						p. <?= $hankintapaikka->puhelin?><br>
 						fax. <?= $hankintapaikka->fax?><br>
 						<?= $hankintapaikka->www_url?></td>
-					<td data-href=""><?= $hankintapaikka->tilaustapa?></td>
-					<td data-href=""><?= $hankintapaikka->yhteyshenkilo_nimi?><br>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
+						<?= $hankintapaikka->tilaustapa?></td>
+					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
+						<?= $hankintapaikka->yhteyshenkilo_nimi?><br>
 						<?= $hankintapaikka->yhteyshenkilo_puhelin?><br>
 						<?= $hankintapaikka->yhteyshenkilo_email?></td>
 					<td>
@@ -188,8 +194,7 @@ unset($_SESSION["feedback"]);
 						<button onclick="avaa_modal_muokkaa_hankintapaikka('<?=$hankintapaikka->id?>', '<?=$hankintapaikka->nimi?>','<?=$hankintapaikka->katuosoite?>','<?=$hankintapaikka->postinumero?>','<?=$hankintapaikka->kaupunki?>',
 							'<?=$hankintapaikka->maa?>','<?=$hankintapaikka->puhelin?>','<?=$hankintapaikka->fax?>',
 							'<?=$hankintapaikka->www_url?>', '<?=$hankintapaikka->yhteyshenkilo_nimi?>', '<?=$hankintapaikka->yhteyshenkilo_puhelin?>',
-							'<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</button>
-					</td>
+							'<?=$hankintapaikka->yhteyshenkilo_email?>', '<?=$hankintapaikka->tilaustapa?>')" class="nappi">Muokkaa</button></td>
 				</tr>
 			<?php endforeach; else:?>
 				<h4>Ei hankintapaikkoja</h4>

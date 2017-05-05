@@ -15,28 +15,6 @@ function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
 }
 
 /**
- * Tulostaa valmistajat HTML-muodossa
- * @param DByhteys $db
- * @param array $brands
- * @return string
- */
-function tulosta_brandit(DByhteys $db, array $brands){
-    $taulukko = "";
-	//Tulostetaan "laatikot", jotka sisältävät kuvan, nimen ja hinnaston sisäänajopäivämäärän
-	foreach ($brands as $brand) {
-		$pvm = hae_hinnaston_sisaanajo_pvm( $db, $brand->brandId );
-		$logo_src = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
-		$taulukko .= "<div class=\"floating-box clickable\"  data-brandId=\"{$brand->brandId}\"><div class=\"line\"><img src=\"{$logo_src}\" style=\"vertical-align:middle; padding-right:10px;\"><span>{$brand->brandName}</span></div>";
-		if ($pvm->suurin_pvm) {
-			$date = new DateTime($pvm->suurin_pvm);
-			$taulukko .= "Päivitetty: {$date->format('d.m.Y')}";
-		}
-		$taulukko .= "</div>";
-	}
-	return $taulukko;
-}
-
-/**
  * @param DByhteys $db
  * @return array|int|stdClass
  */
@@ -132,7 +110,7 @@ unset($_SESSION["feedback"]);
         <div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
             <div class="line">
                 <img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
-                <span><?=strtoupper($brand->nimi)?></span>
+                <span><?=mb_strtoupper($brand->nimi)?></span>
             </div>
             <?php if ( !empty($brand->hinnaston_pvm) ) : ?>
                 <?=date('d.m.Y',strtotime($brand->hinnaston_pvm))?>

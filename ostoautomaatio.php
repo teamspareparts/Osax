@@ -51,7 +51,10 @@ function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
 //TODO: Fetch limit, että ei kaadu...
 $sql = "  SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo , articleNo
   		  FROM tuote
-  		  WHERE aktiivinen = 1 AND paivitettava = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL";
+  		  WHERE aktiivinen = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL AND (hyllypaikka IS NOT NULL AND hyllypaikka <> '')";
+  		  		/*AND paivitettava = 1
+  		  		AND ensimmaisen_kerran_varastossa IS NOT NULL
+  		  		AND (hyllypaikka IS NOT NULL AND hyllypaikka <> '')";*/
 $tuotteet = $db->query($sql, [], FETCH_ALL);
 
 $date = date("Y-m-d", strtotime("-1 year", time())); //Vuoden takainen pvm
