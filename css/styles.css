@@ -6,7 +6,8 @@ html{ position:relative; min-height: 100%; width:100%; } /*Varmuuden varalle...*
 html,body{ background-color: Floralwhite; }
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
-input { padding: 3pt; } /* Näyttää siistimmältä */
+input,
+select { padding: 3pt; } /* Näyttää siistimmältä */
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 main { display: block; } /* F*** IE */
 
@@ -260,6 +261,7 @@ main { display: block; } /* F*** IE */
 	width: 220px;
 	font-weight: bold;
 	white-space: nowrap;
+	padding: 3pt; /* Keskitetty samalla linjalla inputin kanssa. */
 }
 
 .required:after { /* Lisää punaisen asteriskin vaadittujen kenttien kohdalle */

@@ -11,30 +11,46 @@ if ( !empty($_POST['email'])) {
 	$sql = "UPDATE yritys 
 			SET sahkoposti = ?, puhelin = ?, katuosoite = ?, postinumero = ?, postitoimipaikka = ?, maa = ?
 			WHERE id = ? LIMIT 1";
-	$db->query( $sql, array_values( $_POST ) );
-    $_SESSION["feedback"] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
+	$result = $db->query( $sql, array_values($_POST) );
+	if ($result) {
+		$_SESSION["feedback"] = "<p class='success'>Tietojen päivittäminen onnistui.</p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='error'>Tietojen päivittäminen epäonnistui</p>";
+	}
 }
 
 /** Yrityksen rahtimaksun muokkaus */
 elseif ( !empty($_POST['rahtimaksu'])) {
 	$sql = "UPDATE yritys SET rahtimaksu = ?, ilmainen_toimitus_summa_raja = ? WHERE id = ? LIMIT 1";
-	$db->query( $sql, array_values($_POST) );
-    $_SESSION['feedback'] = "<p class='success'>Rahtimaksu ja ilmaisen toimituksen raja päivitetty.</p>";
+	$result = $db->query( $sql, array_values($_POST) );
+	if ($result) {
+		$_SESSION['feedback'] = "<p class='success'>Rahtimaksu ja ilmaisen toimituksen raja päivitetty.</p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='error'>Rahtimaksun parametrien muuttaminen epäonnistui</p>";
+	}
 }
 
 /** Yrityksen alennuksen lisääminen/muokkaaminen */
 elseif ( !empty($_POST['muokkaa_alennus']) ) {
 	$_POST['yleinen_alennus'] = (int)$_POST['yleinen_alennus'] / 100; // 10 % --> 0.10;
 	$sql = "UPDATE yritys SET alennus_prosentti = ? WHERE id = ? LIMIT 1";
-	$db->query( $sql, array_values($_POST) );
-	$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
+	$result = $db->query( $sql, array_values($_POST) );
+	if ($result) {
+		$_SESSION['feedback'] = "<p class='success'>Yleinen alennus ". $_POST['yleinen_alennus']*100 ." % asetettu </p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='error'>Alennuksen muuttaminen epäonnistui</p>";
+	}
 }
 
 /** Yrityksen maksutavan */
-elseif ( !empty($_POST['maksutapa']) ) {
+elseif ( isset($_POST['maksutapa']) ) {
 	$sql = "UPDATE yritys SET maksutapa = ? WHERE id = ? LIMIT 1";
-	$db->query( $sql, array_values($_POST) );
-	$_SESSION['feedback'] = "<p class='success'>Yrityksen maksutapoja päivitetty </p>";
+	$result = $db->query( $sql, array_values($_POST) );
+	if ($result) {
+		$_SESSION['feedback'] = "<p class='success'>Yrityksen maksutapaa päivitetty</p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='error'>Maksutavan muuttaminen epäonnistui</p>";
+	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -50,10 +66,18 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <html lang="fi">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" href="css/styles.css">
+	<title>Yritykset</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <title>Yritykset</title>
+	<link rel="stylesheet" href="css/styles.css">
+	<style>
+		label.special_snowflake {
+			width: 120px;
+			float: left;
+			font-weight: bold;
+			white-space: nowrap;
+			padding: 3pt;
+		}
+	</style>
 </head>
 <body>
 <?php require 'header.php'?>
@@ -130,17 +154,17 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<form name="muuta_maksutapa" method="post">
 		<fieldset><legend>Maksutavan valinta</legend>
 			<span>Käyttäjä voi silti valita maksaa Paytraililla.<br>
-			Nykyinen arvo: <?= $yritys->maksutapa ?></span>
-			<br><br>
-			<label for="mt"> Maksutapa: </label>
-			<select id="mt" name="maksutapa">
+			<br>
+			<label for="mt" class="special_snowflake"> Maksutapa: </label>
+			<select name="maksutapa" id="mt">
+				<option selected disabled>Valitse maksutapa (nykyinen arvo: <?= $yritys->maksutapa ?>)</option>
 				<option value="0">0: Vain Paytrail</option>
 				<option value="1">1: Paytrail + Lasku</option>
 			</select>
 			<br><br>
 			<div class="center">
 				<input name="id" value="<?=$yritys->id?>" type="hidden">
-				<input value="Muokkaa rahtimaksua" type="submit" class="nappi">
+				<input type="submit" value="Muokkaa maksutapaa" class="nappi">
 			</div>
 		</fieldset>
 	</form>

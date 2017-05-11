@@ -117,16 +117,15 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		<input type='hidden' name='CURRENCY' value='<?= PaymentAPI::$currency ?>'>
 		<input type='hidden' name='RETURN_ADDRESS' value='<?= PaymentAPI::$return_addr ?>'>
 		<input type='hidden' name='CANCEL_ADDRESS' value='<?= PaymentAPI::$cancel_addr ?>'>
-
-		<input name='PENDING_ADDRESS' type='hidden' value='<?= PaymentAPI::$pending_addr ?>'>
-		<input name='NOTIFY_ADDRESS' type='hidden' value='<?= PaymentAPI::$notify_addr ?>'>
-		<input name='TYPE' type='hidden' value='<?= PaymentAPI::$type ?>'>
-		<input name='CULTURE' type='hidden' value='<?= PaymentAPI::$culture ?>'>
-		<input name='PRESELECTED_METHOD' type='hidden' value='<?= PaymentAPI::$preselected_method ?>'>
-		<input name='MODE' type='hidden' value='<?= PaymentAPI::$mode ?>'>
-		<input name='VISIBLE_METHODS' type='hidden' value='<?= PaymentAPI::$visible_method ?>'>
-		<input name='GROUP' type='hidden' value='<?= PaymentAPI::$group ?>'>
-		<input name='AUTHCODE' type='hidden' value='<?= PaymentAPI::$auth_code ?>'>
+		<input type='hidden' name='PENDING_ADDRESS' value='<?= PaymentAPI::$pending_addr ?>'>
+		<input type='hidden' name='NOTIFY_ADDRESS' value='<?= PaymentAPI::$notify_addr ?>'>
+		<input type='hidden' name='TYPE' value='<?= PaymentAPI::$type ?>'>
+		<input type='hidden' name='CULTURE' value='<?= PaymentAPI::$culture ?>'>
+		<input type='hidden' name='PRESELECTED_METHOD' value='<?= PaymentAPI::$preselected_method ?>'>
+		<input type='hidden' name='MODE' value='<?= PaymentAPI::$mode ?>'>
+		<input type='hidden' name='VISIBLE_METHODS' value='<?= PaymentAPI::$visible_method ?>'>
+		<input type='hidden' name='GROUP' value='<?= PaymentAPI::$group ?>'>
+		<input type='hidden' name='AUTHCODE' value='<?= PaymentAPI::$auth_code ?>'>
 		<input type='submit' value='Siirry maksamaan'>
 
 	</form>
