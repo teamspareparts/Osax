@@ -7,7 +7,7 @@ if ( !$user->isAdmin() || !$yritys->isValid() ) {
 }
 
 /** Yrityksen tietojen muokkaus */
-if ( !empty($_POST['email'])) {
+if ( !empty($_POST['muokkaa_tietoja'])) {
 	$sql = "UPDATE yritys 
 			SET sahkoposti = ?, puhelin = ?, katuosoite = ?, postinumero = ?, postitoimipaikka = ?, maa = ?
 			WHERE id = ? LIMIT 1";
@@ -111,7 +111,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
             <input id="maa" name="maa" type="text" value="<?= $yritys->maa?>">
             <br><br>
             <div class="center">
-	            <input name="id" type="hidden" value="<?= $yritys->id?>">
+	            <input type="hidden" name="muokkaa_tietoja" value="<?= $yritys->id?>">
                 <input class="nappi" value="Muokkaa yritystä" type="submit">
             </div>
         </fieldset>
