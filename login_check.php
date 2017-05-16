@@ -149,6 +149,10 @@ if ( $mode === "login" ) {
 		}
 
 		else { //JOS KAIKKI OK->
+			// Kirjataan ylös viimeisin kirjautumisaika ylläpitoa varten.
+			$db->query( "UPDATE kayttaja SET viime_kirjautuminen = current_timestamp WHERE id = ? LIMIT 1",
+						[ $login_user->id ] );
+
 			$_SESSION[ 'id' ] = $login_user->id;
 			$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
 			$_SESSION[ 'email' ] = $login_user->sahkoposti;

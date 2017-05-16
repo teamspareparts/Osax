@@ -1,22 +1,6 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 
-/**
- * Hakee yrityksen asiakkaat
- * @param DByhteys $db
- * @param int $yritys_id
- * @return User[]
- */
-function hae_yrityksen_asiakkaat ( DByhteys $db, /*int*/ $yritys_id ) {
-	$asiakkaat = array();
-	$rows = $db->query( "SELECT id FROM kayttaja WHERE yritys_id = ? AND aktiivinen = 1",
-		[$yritys_id], FETCH_ALL );
-	foreach ( $rows as $row ) {
-		$asiakkaat[] = new User( $db, $row->id );
-	}
-	return $asiakkaat;
-}
-
 $yritys = new Yritys( $db, (!empty($_GET['yritys_id']) ? $_GET['yritys_id'] : null) );
 if ( !$user->isAdmin() || !$yritys->isValid() ) {
 	header("Location:etusivu.php");	exit();
@@ -42,7 +26,12 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
-$asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
+/** @var User[] $asiakkaat */
+$asiakkaat = $rows = $db->query(
+		"SELECT id, sahkoposti, etunimi, sukunimi, puhelin, 
+		ifnull(date_format(viime_kirjautuminen, '%Y-%m-%d %H:%i'), 'Never') viime_kirjautuminen 
+		FROM kayttaja WHERE yritys_id = ? AND aktiivinen = 1",
+		[$yritys->id], FETCH_ALL, null, "User" );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -73,8 +62,8 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 	</section>
 	<table style="width: 100%;">
 		<thead>
-			<tr><th>Nimi</th><th>Puhelin</th><th>Sähköposti</th>
-				<th class=smaller_cell>Poista</th><th class=smaller_cell></th>
+			<tr> <th>Nimi</th> <th>Puhelin</th> <th>Sähköposti</th> <th>Viim. kirj.</th>
+				<th class=smaller_cell>Poista</th> <th class=smaller_cell></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -83,6 +72,7 @@ $asiakkaat = hae_yrityksen_asiakkaat( $db, $yritys->id );
 				<td class="cell"><?=$asiakas->kokoNimi()?></td>
 				<td class="cell"><?=$asiakas->puhelin?></td>
 				<td class="cell"><?=$asiakas->sahkoposti?></td>
+				<td class="cell"><?=$asiakas->viime_kirjautuminen?></td>
 				<td><label>Valitse<input form="poista_asiakas" type="checkbox" name="ids[]" value="<?=$asiakas->id?>">
 					</label></td>
 				<td><a href="yp_muokkaa_asiakasta.php?id=<?=$asiakas->id?>" class="nappi">Muokkaa</a></td>
