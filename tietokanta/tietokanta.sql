@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   `demo` boolean NOT NULL DEFAULT 0, -- Välikaikainen tunnus sivuston demoamista varten
   `viime_sijainti` varchar(100) DEFAULT NULL,
-  `viime_kirjautuminen` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `viime_kirjautuminen` timestamp NULL DEFAULT NULL,
   `luotu` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `voimassaolopvm` timestamp DEFAULT 0, -- Miten pitkään tunnus on voimassa, jos demo == 1
   `salasana_uusittava` boolean NOT NULL DEFAULT 0,
