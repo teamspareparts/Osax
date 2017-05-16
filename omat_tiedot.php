@@ -296,7 +296,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<label>Postitoimipaikka</label>
 					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Edellinen postitoimipaikka">
 				<br><br>
-				<input type="hidden" name="osoite_id" value= ' + osoite_id + '>
+				<input type="hidden" name="osoite_id" value="${osoite_id}">
 				<input class="nappi" type="submit" name="muokkaa_vanha_osoite" value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">
 				<br>
 			</form>

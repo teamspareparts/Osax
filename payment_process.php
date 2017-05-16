@@ -7,7 +7,7 @@ require 'luokat/email.class.php';
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
 		$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
-		$maksutapa = 0;
+		$maksutapa = 0; // Maksutapaa ei voi ottaa user:sta, koska siellä on määritelty ylin mahdollinen mt.
 	}
 }
 // _POST-muuttuja, jos käyttäjä valinnut laskulla maksun
@@ -95,7 +95,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 			<input type='submit' value='Peruuta tilaus' class="nappi grey" style="width:40%;">
 		</form>
 
-		<?php if ( $user->maksutapa ) : ?>
+		<?php if ( $user->maksutapa > 0 ) : ?>
 			<form method='post' style="width:50%; display:inline;">
 				<input name='tilaus_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
 				<input name='maksutapa' type='hidden' value='<?= $user->maksutapa ?>'>

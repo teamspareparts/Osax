@@ -65,7 +65,7 @@
                 </li>
 			<?php endif; ?>
             <li class="last">
-	            <a href="logout.php?redir=5"><i class="material-icons">exit_to_app</i> Kirjaudu ulos</a>
+	            <a href="logout.php?redir=5">Kirjaudu ulos <i class="material-icons">exit_to_app</i></a>
             </li>
         </ul>
     </section>
