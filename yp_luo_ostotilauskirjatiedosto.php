@@ -9,7 +9,8 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 //tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
 if (!$otk = $db->query("SELECT * FROM ostotilauskirja_arkisto WHERE id = ? LIMIT 1", [$ostotilauskirja_id])) {
-	header("Location: etusivu.php"); exit();
+	header("Location: etusivu.php");
+	exit();
 }
 
 
