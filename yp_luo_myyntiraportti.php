@@ -10,7 +10,7 @@ if ( !isset($_POST["luo_raportti"]) ) {
 
 //TODO: Hae myös myynti maksutavan mukaan kortti/verkkomaksu --SL 21.5
 
-//TODO: Laske uusiksi alv-erottelu --SL 21.5
+//TODO: Varmista että rahtimaksun alvin pyöristys on tehty samalla tavalla kuin tilausta tehdessä -- SL 21.5
 
 /** Haetaan kokonaismyynti annetulla aikavälillä */
 $sql = "	SELECT maksutapa,
@@ -37,6 +37,13 @@ $sql = "	SELECT 	pysyva_alv, SUM( pysyva_hinta * kpl * pysyva_alv ) AS myynti_al
 			GROUP BY tilaus_tuote.pysyva_alv";
 $myynti_by_alv = $db->query($sql, [$_POST["pvm_from"], $_POST["pvm_to"]], FETCH_ALL);
 
+/** Lasketaan rahtimaksujen alv (24%) */
+$sql = "    SELECT IFNULL( SUM( (0.24 * tilaus.pysyva_rahtimaksu) / (1 + 0.24)), 0 ) AS alv
+    		FROM tilaus
+    		WHERE tilaus.paivamaara > ? AND tilaus.paivamaara < ? + INTERVAL 1 DAY AND maksettu = 1";
+$rahtimaksu_alv = $db->query($sql, [$_POST["pvm_from"], $_POST["pvm_to"]])->alv;
+
+
 $myynti_alvillinen = 0;
 $myynti_alviton = 0;
 foreach ( $tilaukset as $tilaus ) {
@@ -62,9 +69,13 @@ $raportti = "Myyntiraportti aikaväliltä ".date('d.m.Y', strtotime($_POST["pvm_
 			"\r\n" .
 			"ALV erottelu myynnistä\r\n";
 foreach ($myynti_by_alv as $alv) {
-    $myynti_alviton = round($alv->myynti_alviton, 2);
+    $myynnin_alv = round($alv->myynti_alviton, 2);
+    // Lasketaan rahtimaksujen alvit mukaan, jos ALV-kanta 24%
+    if ( $alv->pysyva_alv == 0.24 ) {
+    	$myynnin_alv += $rahtimaksu_alv;
+    }
 	$raportti .= "ALV ".($alv->pysyva_alv*100)."%\t ".
-					number_format( $myynti_alviton, 2, ",", " " ) ." €\r\n";
+					number_format( $myynnin_alv, 2, ",", " " ) ." €\r\n";
 
 }
 fwrite($outstream, $raportti);
