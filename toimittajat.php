@@ -4,17 +4,9 @@ require 'tecdoc.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
-/**
- * Hakee kaikkien tietokannasta löytyvien valmistajien valmistajien id:t
- * ja hinnastojen sisäänajopäivämäärät.
- * @return array|bool|stdClass
- */
-function hae_hinnaston_sisaanajo_pvm( DByhteys $db, /*int*/ $brandId){
-	$query = "SELECT MAX(hinnaston_sisaanajo_pvm) as suurin_pvm FROM valmistajan_hankintapaikka WHERE brandId = ?";
-	return $db->query($query, [$brandId])->suurin_pvm;
-}
 
 /**
+ * Päivitetään tecdocista löytyvät brändit omaan tietokantaan.
  * @param DByhteys $db
  * @return array|int|stdClass
  */
@@ -27,46 +19,48 @@ function paivita_tecdocin_brandit_kantaan( DByhteys $db ){
 		$placeholders[] = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
     }
 	$questionmarks = implode(',', array_fill( 0, count($brands), '( ?, ?, ? )'));
-	//TODO: Autoincrement kasvattaa id:n aika suureksi...
-	$sql = "INSERT INTO brandi (tecdoc_id, nimi, url)
+	$sql = "INSERT INTO brandi (id, nimi, url)
             VALUES {$questionmarks}
             ON DUPLICATE KEY
-            UPDATE tecdoc_id = VALUES(tecdoc_id), nimi = VALUES(nimi), 
+            UPDATE id = VALUES(id), nimi = VALUES(nimi), 
               url = VALUES(url)";
 	return $db->query($sql, $placeholders);
 }
 
 
 /**
+ * Lisätään oma brändi.
  * @param DByhteys $db
  * @param $values
  * @return array|int|stdClass
  */
-function lisaa_brandi( DByhteys $db, $values) {
-    $sql = "INSERT INTO brandi (tecdoc_id, nimi, url)
-            VALUES( ?, ?, ? )
+function lisaa_brandi( DByhteys $db, /*string*/$nimi, /*string*/$kuva_url ) {
+	// Lasketaan oma (tecdoc) id. Omien brändien id:t lähtee 100 000:sta.
+	$sql = "SELECT COUNT(id) AS count FROM brandi WHERE oma_brandi IS TRUE";
+	$kpl = $db->query($sql, [])->count;
+	$vapaa_id = 100000 + $kpl;
+
+    $sql = "INSERT INTO brandi (id, nimi, url, oma_brandi)
+            VALUES( ?, ?, ?, 1 )
             ON DUPLICATE KEY
-            UPDATE nimi = VALUES(nimi), url = VALUES(url)";
-	return $db->query($sql, $values);
+            UPDATE nimi = VALUES(nimi), url = VALUES(url), aktiivinen = 1";
+	return $db->query($sql, [$vapaa_id, $nimi, $kuva_url]);
 }
 
-//Haetaan kaikki valmistajat
-$brands = $db->query("SELECT * FROM brandi ORDER BY nimi ASC", [], FETCH_ALL);
-//TODO: Yhdistä samaan sql-kyselyyn --SL 1.5.2017
-foreach ( $brands as $brand ) {
-    $brand->hinnaston_pvm = hae_hinnaston_sisaanajo_pvm( $db, $brand->tecdoc_id);
-}
+//Haetaan kaikki brändit
+$sql = "SELECT brandi.*, MAX(hinnaston_sisaanajo_pvm) AS hinnaston_pvm FROM brandi 
+		LEFT JOIN brandin_linkitys
+			ON brandi.id = brandin_linkitys.brandi_id
+		WHERE aktiivinen = 1
+		GROUP BY brandi.id
+		ORDER BY nimi ASC";
+$brands = $db->query($sql, [], FETCH_ALL);
 
 if ( isset($_POST['paivita']) ) {
     paivita_tecdocin_brandit_kantaan( $db );
 }
 elseif ( isset($_POST['lisaa']) ) {
-	$arr = [
-        $_POST['tecdoc_id'],
-        $_POST['nimi'],
-        $_POST['kuva_url'],
-    ];
-	lisaa_brandi( $db, $arr );
+	lisaa_brandi( $db, $_POST['nimi'], $_POST['kuva_url'] );
 }
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']);
@@ -96,6 +90,7 @@ unset($_SESSION["feedback"]);
 </form>
 
 <?php require 'header.php'; ?>
+<!-- Otsikko ja napit -->
 <section>
     <h1 class="otsikko">Brändit</h1>
     <div id="painikkeet">
@@ -107,13 +102,16 @@ unset($_SESSION["feedback"]);
 <!-- Brändien listaus -->
 <div class="container">
     <?php foreach ($brands as $brand) : ?>
+	    <!-- Brändille oma box -->
         <div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
+	        <!-- Brändin nimi ja kuva -->
             <div class="line">
                 <img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
                 <span><?=mb_strtoupper($brand->nimi)?></span>
             </div>
+	        <!-- Viimeisin hinnastonpäivitys -->
             <?php if ( !empty($brand->hinnaston_pvm) ) : ?>
-                <?=date('d.m.Y',strtotime($brand->hinnaston_pvm))?>
+                <span>Päivitetty: <?=date('d.m.Y',strtotime($brand->hinnaston_pvm))?></span>
             <?php endif;?>
         </div>
     <?php endforeach;?>

@@ -242,11 +242,12 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `brandi` (
-  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `tecdoc_id` smallint UNSIGNED DEFAULT NULL, -- Unique
+  `id` int UNSIGNED NOT NULL, -- PK -- TecDocin id tai oma. Omat id:t alkaa 100 000 ->
   `nimi` varchar(50) NOT NULL, -- UK
-  `url` VARCHAR(100) DEFAULT NULL,
-  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`), UNIQUE (`tecdoc_id`)
+  `url` varchar(100) DEFAULT NULL,
+  `oma_brandi` boolean NOT NULL DEFAULT FALSE,
+  `aktiivinen` boolean NOT NULL DEFAULT TRUE,
+  PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 -- Voi olla turha! Poistan heti kun olen varma, että ei tarvita
@@ -262,8 +263,8 @@ CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
 
 CREATE TABLE IF NOT EXISTS `brandin_linkitys` (
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- PK, FK
-  `brandi_id` smallint UNSIGNED NOT NULL, -- PK, FK
-  `brandi_kaytetty_id` int(11) NOT NULL, -- Se brandin id, mitä hankintapaikka käyttää (voi erota tecdoc_id:stä)
+  `brandi_id` int UNSIGNED NOT NULL, -- PK, FK
+  `brandi_kaytetty_id` varchar(50) NOT NULL, -- Se brandin id, mitä hankintapaikka käyttää (voi erota tecdoc_id:stä)
   `hinnaston_sisaanajo_pvm` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`hankintapaikka_id`, `brandi_id`),
   CONSTRAINT fk_brandinLinkitys_hankintapaikka

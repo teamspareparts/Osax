@@ -5,14 +5,6 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-//tarkastetaan onko tultu toimittajat sivulta
-$brand_id = isset($_GET['brandId']) ? $_GET['brandId'] : null;
-$brand = $db->query("SELECT * FROM brandi WHERE id = ? LIMIT 1", [$brand_id]);
-if ( !($brand) ) {
-	header("Location:toimittajat.php");
-	exit();
-}
-
 /**
  * Hakee kaikki hankintapaikat.
  * @param DByhteys $db
@@ -55,7 +47,7 @@ function poista_brandi( DByhteys $db, /*int*/ $brandi_id ) {
     //TODO: Tarkista että ei linkitettyjä tuotteita
     $sql = "DELETE FROM brandin_linkitys WHERE brandi_id = ?";
     $db->query($sql, [$brandi_id]);
-    $sql = "DELETE FROM brandi WHERE id = ?";
+    $sql = "UPDATE brandi SET aktiivinen = 0 WHERE id = ?";
     return $db->query($sql, [$brandi_id]);
 
 }
@@ -80,6 +72,23 @@ function hae_hankintapaikat( DByhteys $db, /* int */ $brand_id) {
 	return $db->query($sql, [$brand_id], FETCH_ALL);
 }
 
+// GET-parametri
+$brand_id = isset($_GET['brandId']) ? $_GET['brandId'] : null;
+
+// Tarkastetaan GET-parametrin oikeellisuus
+$brand = $db->query("SELECT * FROM brandi WHERE id = ? AND aktiivinen = 1 LIMIT 1", [$brand_id]);
+if ( !($brand) ) {
+	header("Location:toimittajat.php");
+	exit();
+}
+
+// Haetaan brändin yhteystiedot ja logon URL
+$brandAddress = getAmBrandAddress($brand->id);
+$hankintapaikat = hae_hankintapaikat($db, $brand->id);
+$brand->logo_src = !empty($brandAddress) ? TECDOC_THUMB_URL . $brandAddress->logoDocId . "/" : "";
+
+// Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
+$kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
 
 if ( isset($_POST['poista_linkitys']) ) {
 	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_id']);
@@ -102,15 +111,6 @@ if (!empty($_POST)) {
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 unset($_SESSION["feedback"]);
 
-
-
-// Haetaan brändin yhteystiedot ja logon URL
-$brandAddress = getAmBrandAddress($brand->tecdoc_id);
-$hankintapaikat = hae_hankintapaikat($db, $brand->id);
-$brand->logo_src = !empty($brandAddress) ? TECDOC_THUMB_URL . $brandAddress->logoDocId . "/" : "";
-
-// Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
-$kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -133,7 +133,7 @@ $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
         <h2 style="display:inline-block; vertical-align:middle;"><?= $brand->nimi?></h2>
         <div id="painikkeet">
             <a class="nappi grey" href="toimittajat.php">Takaisin</a>
-            <?php if (!isset($brand->tecdoc_id)) : ?>
+            <?php if ( $brand->oma_brandi ) : ?>
                 <button class="nappi" onClick="avaa_modal_muokkaa_brandi(<?=$brand->id?>, '<?=$brand->nimi?>','<?=$brand->url?>')">
                     Muokkaa brändiä</button>
                 <button class="nappi red" onClick="poista_brandi(<?=$brand->id?>)">
@@ -163,7 +163,7 @@ $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
             <?php endif; ?>
             <tr><td>URL</td><td><?=$brandAddress->wwwURL?></td></tr>
             <tr><td colspan="2">&nbsp;</td></tr>
-            <tr><td>TecDoc ID</td><td><?=$brand->tecdoc_id?></td></tr>
+            <tr><td>TecDoc ID</td><td><?=$brand->id?></td></tr>
             </tbody>
         </table>
     <?php endif; ?>
@@ -191,7 +191,9 @@ $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
             </tr>
             <tr>
                 <td colspan="2">
+	                <!--
                     <a href="yp_lisaa_tuotteita.php?brandId=<?=$brand->id?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a>
+                    -->
                     <a href="yp_valikoima.php?brand=<?=$brand->id?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Valikoima</a></td>
             </tr>
         </table>

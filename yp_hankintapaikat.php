@@ -60,10 +60,13 @@ function poista_hankintapaikka( DByhteys $db, /*int*/ $hankintapaikka_id){
 
 //Haetaan kaikki hankintapaikat, joihin linkitetty valmistaja
 
-$sql = "SELECT *, LPAD(hankintapaikka.id,3,'0') AS id, GROUP_CONCAT(valmistajan_hankintapaikka.brandName) AS brandit
+$sql = "SELECT hankintapaikka.*, LPAD(hankintapaikka.id,3,'0') AS hankintapaikka_id,
+			brandin_linkitys.brandi_id, GROUP_CONCAT(brandi.nimi) AS brandit
         FROM hankintapaikka
-        LEFT JOIN valmistajan_hankintapaikka
-          ON hankintapaikka.id = valmistajan_hankintapaikka.hankintapaikka_id
+        LEFT JOIN brandin_linkitys
+          ON hankintapaikka.id = brandin_linkitys.hankintapaikka_id
+        LEFT JOIN brandi
+          ON brandin_linkitys.brandi_id = brandi.id
         GROUP BY hankintapaikka.id";
 $hankintapaikat = $db->query($sql, [], FETCH_ALL);
 
@@ -167,7 +170,7 @@ unset($_SESSION["feedback"]);
 					$hankintapaikka->brandit = explode(',', $hankintapaikka->brandit)?>
 				<tr>
 					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
-						<?= $hankintapaikka->id?></td>
+						<?= $hankintapaikka->hankintapaikka_id?></td>
 					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
 						<?= $hankintapaikka->nimi?></td>
 					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nowrap">

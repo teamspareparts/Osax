@@ -2,6 +2,8 @@
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
+// Huom. upload_max_filesize = 5M
+
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php");
 	exit();
@@ -14,19 +16,37 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * @param int $hankintapaikka_id
  * @return array
  */
-function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $brandName, /*int*/ $hankintapaikka_id) {
-	// Tiedostokahva
-    $handle = fopen($_FILES['tuotteet']['tmp_name'], 'r');
+function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
+	// Asetukset
+	$inserts_per_query = 5000; // Kantaan kerralla ajettavien tuotteiden määrä
 
+	// Alustukset
 	$ohita_otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
-    $row = 0;
-    $successful_inserts = 0;
-    $failed_inserts = []; //Otetaan talteen epäonnistuneiden lisäysten rivinumerot
+	$row = 0;
+	$successful_inserts = 0;
+	$failed_inserts = []; // Otetaan talteen epäonnistuneiden lisäysten rivinumerot
+	$placeholders = []; // Placeholderit sql-kyselyyn
+	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r'); // Tiedostokahva
 
-    //Placeholderit sql-kyselyyn
-	$placeholders = [];
+	$questionmarks = implode(',', array_fill( 0, $inserts_per_query, '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)'));
+	$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
+					    minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
+					    VALUES {$questionmarks}
+					  ON DUPLICATE KEY
+                      	UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
+                            ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
+                            varastosaldo = varastosaldo + VALUES(varastosaldo),
+                            keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
+                                VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
+                            yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
+                            aktiivinen = 1";
 
-	//Käydään läpi csv tiedosto rivi kerrallaan
+	// Haetaan hankintapaikkaan linkitettyjen brändien käyttämät id:t
+	$sql = "SELECT brandi_kaytetty_id, brandi_id FROM brandin_linkitys
+			WHERE hankintapaikka_id = ?";
+	$brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL, PDO::FETCH_ASSOC);
+
+	// Käydään läpi csv tiedosto rivi kerrallaan
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
         $row++;
         // Jos tiedostossa otsikkorivi, hypätään sen yli
@@ -37,18 +57,20 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 
 		$num = count($data); // rivin sarakkeiden lkm
         // Tarkistetaan sarakkeiden lukumäärän oikeellisuus
-		if (($num != 7 && ($_POST["tilauskoodin_tyyppi"] == "liite_eri")) || ($num != 6 && ($_POST["tilauskoodin_tyyppi"]) != "liite_eri") ) {
+		if (($num != 9 && ($_POST["tilauskoodin_tyyppi"] == "liite_eri")) || ($num != 8 && ($_POST["tilauskoodin_tyyppi"]) != "liite_eri") ) {
 			$failed_inserts[] = $row;
 			continue;
 		}
 
         $hankintapaikka_id = (int)$hankintapaikka_id;
-		$articleNo = str_replace(" ", "", $data[$_POST["s0"]]);
-		$ostohinta = (double)str_replace(",", ".", $data[$_POST["s1"]]);
-		$myyntihinta = (double)str_replace(",", ".", $data[$_POST["s2"]]);
-		$vero_id = (int)$data[$_POST["s3"]];
-		$minimimyyntiera = (int)$data[$_POST["s4"]];
-		$kappaleet = (int)$data[$_POST["s5"]];
+		$brandId = $data[$_POST["s0"]];;
+		$brandName = $data[$_POST["s1"]];
+		$articleNo = str_replace(" ", "", $data[$_POST["s2"]]);
+		$ostohinta = (double)str_replace(",", ".", $data[$_POST["s3"]]);
+		$myyntihinta = (double)str_replace(",", ".", $data[$_POST["s4"]]);
+		$vero_id = (int)$data[$_POST["s5"]];
+		$minimimyyntiera = (int)$data[$_POST["s6"]];
+		$kappaleet = (int)$data[$_POST["s7"]];
 		$tilauskoodi = "";
 		switch ($_POST["tilauskoodin_tyyppi"]) {
 			case "liite_sama":
@@ -67,15 +89,24 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
 				}
 				break;
 			case "liite_eri":
-				$tilauskoodi = $data[6];
+				$tilauskoodi = $data[8];
 				break;
 		}
 		$tuotekoodi = $hankintapaikka_id . "-" . $articleNo; //esim: 100-QTB249
 
-        //Tarkastetaan csv:n solujen oikeellisuus
-        if ( !($hankintapaikka_id && $ostohinta && $myyntihinta && $minimimyyntiera && $articleNo) ) {
+        // Tarkastetaan csv:n solujen oikeellisuus
+        if ( !($brandId && $brandName && $hankintapaikka_id && $ostohinta &&
+	            $myyntihinta && $minimimyyntiera && $articleNo) ) {
             $failed_inserts[] = $row;
             continue;
+        }
+
+        // Tarkastetaan brändi id:n oikeellisuus
+        if ( ($key = array_search($brandId, array_column($brands, 'brandi_kaytetty_id'))) === false ) {
+	        $failed_inserts[] = $row;
+	        continue;
+        } else {
+        	$brandId = $brands[$key]['brandi_id'];
         }
 
         //Placeholderit
@@ -92,22 +123,16 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
         $placeholders[] = $brandName;
 
         $successful_inserts++;
+
+        // Tuotteiden lisäys
+		if ( $successful_inserts % $inserts_per_query == 0 ) {
+			$response = $db->query($insert_query, $placeholders);
+			$placeholders = [];
+		}
 	}
-
-	if ( $successful_inserts ) {
-	    $inserted_items_count = 0;
-	    $inserts_per_query = 4000; // Kantaan kerralla ajettavien tuotteiden määrä
-
-		// Ajetaan tuotteet kantaan
-		while ( $inserted_items_count < $successful_inserts ) {
-		    // Viimeisellä lisäyskerralla lasketaan uudelleen sisään ajettavien tuotteiden määrä
-		    if ( $inserts_per_query + $inserted_items_count > $successful_inserts ) {
-		        $inserts_per_query = $successful_inserts - $inserted_items_count;
-            }
-
-            $temp_placeholders = array_slice($placeholders, $inserted_items_count*11, $inserts_per_query*11);
-            $questionmarks = implode(',', array_fill( 0, $inserts_per_query, '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)'));
-			$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
+	// Jäljellä olevat tuotteet kantaan
+	$questionmarks = implode(',', array_fill( 0, ($successful_inserts % $inserts_per_query), '( ?, ?, sisaanostohinta, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?)'));
+	$insert_query = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 					    minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi, valmistaja) 
 					    VALUES {$questionmarks}
 					    ON DUPLICATE KEY
@@ -118,43 +143,38 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $brandId, /*String*/ $
                                 VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
                             yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
                             aktiivinen = 1";
-			$response = $db->query($insert_query, $temp_placeholders);
+	$db->query($insert_query, $placeholders);
 
-			$inserted_items_count += $inserts_per_query;
-		}
-	}
 	fclose($handle);
-
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
 }
 
-$brand_id = isset($_GET['brandId']) ? $_GET['brandId'] : '';
+// GET-parametri
 $hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '';
 
-// Varmistetaan, että GET-parametrit ovat oikeita
-if ( !$valmistajanHankintapaikka = $db->query(
-		"SELECT * FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? LIMIT 1",
-		[$hankintapaikka_id, $brand_id]) ) {
+// Varmistetaan GET-parametrien oikeellisuus
+$sql = "SELECT * FROM brandin_linkitys WHERE hankintapaikka_id = ? LIMIT 1";
+if ( !$db->query($sql, [$hankintapaikka_id]) ) {
 	header("Location:toimittajat.php");
 	exit();
 }
 
-$brand = $db->query("SELECT * FROM brandi WHERE id = ?", [$brand_id]);
 $hankintapaikka = $db->query("SELECT *, LPAD(`id`,3,'0') AS id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
 
 
 if ( isset($_FILES['tuotteet']['name']) ) {
 	//Jos ei virheitä...
 	if ( !$_FILES['tuotteet']['error'] ) {
-        $result = lue_hinnasto_tietokantaan( $db, $brand->tecdoc_id, $brand->nimi, $hankintapaikka->id );
+        $result = lue_hinnasto_tietokantaan( $db, $hankintapaikka->id );
         $onnistuneet = $result[0];
         $epaonnistuneet = $result[1];
         $kaikki = $onnistuneet + count($epaonnistuneet);
 
+        //TODO: Sisäänajopvm
 		// Päivitetään hinnaston sisäänluku päivämäärä.
-		$db->query("UPDATE valmistajan_hankintapaikka SET hinnaston_sisaanajo_pvm = NOW() 
-					WHERE brandId = ? AND hankintapaikka_id = ?",
-			[$brand->id, $hankintapaikka->d] );
+		//$db->query("UPDATE brandin_linkitys SET hinnaston_sisaanajo_pvm = NOW()
+		//			WHERE hankintapaikka_id = ?",
+		//	[$brand->id, $hankintapaikka->d] );
 
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
 		if ($epaonnistuneet) {
@@ -169,8 +189,8 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-	header("Location: " . $_SERVER['REQUEST_URI']);
-	exit();
+	//header("Location: " . $_SERVER['REQUEST_URI']);
+	//exit();
 }
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
 unset($_SESSION["feedback"]);
@@ -191,14 +211,30 @@ unset($_SESSION["feedback"]);
 <?php require 'header.php'; ?>
 
 <main class="main_body_container">
+
+	<!-- Otsikko ja painikkeet  -->
     <section>
-        <h1 class="otsikko"><?= $brand->nimi?><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+        <h1 class="otsikko"><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
         <div id="painikkeet">
-            <a class="nappi grey" href="toimittajan_hallinta.php?brandId=<?=$brand->id?>">Takaisin</a>
+            <a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
+	        <button class="nappi" id="info_button">Info</button>
         </div>
     </section>
-	<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<span class="question" id="info_tiedostomuoto">?</span></p>
 
+	<!-- Info -->
+	<fieldset id="info_box" hidden><legend>INFO</legend>
+		<p>Tällä sivulla voit sisäänlukea valmistajan hinnaston.<p>
+		<ul>
+			<li>Tiedostomuodon oltava .csv</li>
+			<li>Tiedostossa on oltava 8 saraketta.</li>
+			<li>Erottimena käytettävä merkkiä ;</li>
+			<li>Jos jotakin brändiä ei ole linkitetty hankintapaikkaan, kaikki brändin tuotteet hylätään.</li>
+			<li>Tarvittaessa luo uusia brändejä, jotta voit lisätä niille tuotteita.</li>
+		</ul>
+	</fieldset>
+	<br><br>
+
+	<!-- Lisäysvalikko -->
 	<fieldset><legend>Lisää tuotteita</legend>
 		<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
             <label for="tuote_tiedosto">Luettava tiedosto:</label>
@@ -207,14 +243,16 @@ unset($_SESSION["feedback"]);
 			<br>
 			<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
 			<label for="select0">1:</label><select name="s0" id="select0"></select><br>
-            <label for="select1">2:</label><select name="s1" id="select1"></select><br>
+			<label for="select1">2:</label><select name="s1" id="select1"></select><br>
             <label for="select2">3:</label><select name="s2" id="select2"></select><br>
             <label for="select3">4:</label><select name="s3" id="select3"></select><br>
             <label for="select4">5:</label><select name="s4" id="select4"></select><br>
             <label for="select5">6:</label><select name="s5" id="select5"></select><br>
+            <label for="select6">7:</label><select name="s6" id="select6"></select><br>
+			<label for="select7">8:</label><select name="s7" id="select7"></select><br>
             <div id="tilauskoodi_sarake" class="tilauskoodi_action" hidden>
-                <label for="select6">7:</label>
-                <select name="tilauskoodi" id="select6">
+                <label for="select8">9:</label>
+                <select name="tilauskoodi" id="select8">
                     <option>Tilauskoodi</option>
                 </select>
             </div>
@@ -264,26 +302,28 @@ unset($_SESSION["feedback"]);
 <script type="text/javascript">
     //Täytetään dynaamisesti select-option valinnat.
 	let sarake;
-	for (let i = 0; i < 6; i++) {
+	for (let i = 0; i < 8; i++) {
 		sarake = document.getElementById("select" + i);
-		sarake.options.add(new Option("Tuotenumero", 0));
-		sarake.options.add(new Option("Ostohinta", 1));
-		sarake.options.add(new Option("Myyntihinta", 2));
-		sarake.options.add(new Option("Verokanta", 3));
-		sarake.options.add(new Option("Minimimyyntierä", 4));
-		sarake.options.add(new Option("Kpl", 5));
+        sarake.options.add(new Option("Brändin id", 0));
+        sarake.options.add(new Option("Brändin nimi", 1));
+		sarake.options.add(new Option("Tuotenumero", 2));
+		sarake.options.add(new Option("Ostohinta", 3));
+		sarake.options.add(new Option("Myyntihinta", 4));
+		sarake.options.add(new Option("Verokanta", 5));
+		sarake.options.add(new Option("Minimimyyntierä", 6));
+		sarake.options.add(new Option("Kpl", 7));
 		$("#select" + i + " option[value=" + i + "]").attr('selected', 'selected');
 	}
 
 	$(document).ready(function(){
-		//Submit -napin toiminta
+		// Submit -napin toiminta
 		let tiedosto = $('#tuote_tiedosto');
 		if (tiedosto.get(0).files.length === 0) { $('#submit_tuote').prop('disabled', 'disabled'); }
 		tiedosto.on("change", function() {
 			$('#submit_tuote').prop('disabled', !$(this).val());
 		});
 
-		//Tarkastetaan ettei sarakkeissa dublikaatteja
+		// Tarkastetaan ettei sarakkeissa dublikaatteja
 		$('#lisaa_tuotteet').submit(function(e) {
 			let i, valinta;
 			let valinnat = [];
@@ -299,7 +339,7 @@ unset($_SESSION["feedback"]);
 			return true;
 		});
 
-		//Tilauskoodin tyyppi -valikko
+		// Tilauskoodin tyyppi -valikko
 		$('#tilauskoodin_tyyppi').change(function() {
 			$('.tilauskoodi_action').hide();
 			let tyyppi = $(this).val();
@@ -307,16 +347,15 @@ unset($_SESSION["feedback"]);
             if (tyyppi === "liite_eri") $('#tilauskoodi_sarake').show();
 		});
 
-
-		//Näytetään ohjeet kun hiiri viedään kysymysmerkin päälle.
-		$("#info_tiedostomuoto").hover(function () {
-			$(this).append('<div class="tooltip">' +
-				'<p>Tiedostossa oltava 6 saraketta & erottimena oltava ";".</p>' +
-				'<p>Jos tiedostossa on otsikkorivi merkkaa valintaruutu.</p>' +
-				'</div>');
-		}, function () {
-			$("div.tooltip").remove();
-		});
+		// Info-napin toiminta
+		$('#info_button').click(function () {
+			info_box = $('#info_box');
+			if ( info_box.is(":visible") ) {
+			    info_box.hide();
+			} else {
+			    info_box.show();
+			}
+        });
 	});
 </script>
 </body>

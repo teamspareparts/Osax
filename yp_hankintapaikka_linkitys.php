@@ -30,7 +30,6 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brand_
 			  VALUES {$questionmarks}
 			  ON DUPLICATE KEY
 			  UPDATE brandi_kaytetty_id = VALUES(brandi_kaytetty_id)";
-	var_dump($sql);
 	return $db->query($sql, $placeholders);
 }
 
@@ -46,13 +45,18 @@ if ( !$hankintapaikka ) {
 // Haetaan kaikki brändit
 $sql = "SELECT brandi.*, brandin_linkitys.brandi_kaytetty_id FROM brandi
  		LEFT JOIN brandin_linkitys
- 			ON brandi.id = brandin_linkitys.brandi_id
+ 			ON brandi.id = brandin_linkitys.brandi_id 
+ 				AND brandin_linkitys.hankintapaikka_id = ?
  		GROUP BY brandi.id
  		ORDER BY nimi ASC";
-$brands = $db->query($sql, [], FETCH_ALL);
+$brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+
+// Haetaan linkitetyt brändit
 
 if ( isset($_POST['lisaa_linkitys']) ) {
 	lisaa_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_ids'], $_POST['optional_ids']);
+	header("Location: yp_hankintapaikka.php?hankintapaikka_id={$_POST['hankintapaikka_id']}");
+	exit();
 }
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if (!empty($_POST)) {
@@ -77,6 +81,7 @@ unset($_SESSION["feedback"]);
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+	<!-- Otsikko ja napit -->
 	<section>
 		<h1 class="otsikko"><?=$hankintapaikka->nimi?> - <?=$hankintapaikka->id?></h1>
 		<div id="painikkeet">
@@ -101,10 +106,10 @@ unset($_SESSION["feedback"]);
 					</div>
 					<div id="brand_box-<?=$brand->id?>" hidden>
 						<label for="id=<?=$brand->id?>">Hinnastossa käytetty id:</label>
-						<input type="number" name="optional_ids[]"
-						       value="<?= !empty($brand->brandi_kaytetty_id) ? $brand->brandi_kaytetty_id : $brand->tecdoc_id ?>"
+						<input type="text" name="optional_ids[]"
+						       value="<?= !empty($brand->brandi_kaytetty_id) ? $brand->brandi_kaytetty_id : $brand->id ?>"
 						       id="brand_input-<?=$brand->id?>"
-						       placeholder="ID" min="1" max="10000000" required disabled>
+						       placeholder="ID" required disabled>
 					</div>
 				</div>
 			<?php endforeach;?>

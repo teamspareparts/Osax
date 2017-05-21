@@ -20,10 +20,13 @@ function poista_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $bra
 	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
 }
 
-// Haetaan hankintapaikan tiedot
+// GET-parametri
 $hankintapaikka_id = isset($_GET['hankintapaikka_id']) ? $_GET['hankintapaikka_id'] : null;
-$hankintapaikka = $db->query("SELECT *, LPAD(id, 3, '0') AS id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
-// Poistutaan, jos hankintapaikkaa ei löydy
+
+// Hankintapaikan tiedot
+$hankintapaikka = $db->query("SELECT *, LPAD(id, 3, '0') AS hankintapaikka_id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
+
+// Tarkistetaan GET-parametrien oikeellisuus
 if ( !$hankintapaikka ) {
 	header("Location:yp_hankintapaikat.php");
 	exit();
@@ -35,6 +38,7 @@ $sql = "SELECT * FROM brandin_linkitys
 			ON brandin_linkitys.brandi_id = brandi.id
 		WHERE brandin_linkitys.hankintapaikka_id = ?";
 $linkitetyt_brandit = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+
 
 if ( isset($_POST['poista_linkitys']) ) {
 	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_id']);
@@ -72,7 +76,7 @@ unset($_SESSION["feedback"]);
 			<div id="painikkeet">
 				<a href="yp_hankintapaikka.php" class="nappi grey">Takaisin</a>
 				<a href="yp_hankintapaikka_linkitys.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi">Linkitä brändi</a>
-				<button class="nappi" onClick="">Lisää tuotteita</button>
+				<a href="yp_lisaa_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Lisää tuotteita</a>
 			</div>
 		</section>
 
@@ -82,7 +86,7 @@ unset($_SESSION["feedback"]);
 				<tr><th colspan='2' class='text-center'>Yhteystiedot</th></tr>
 			</thead>
 			<tbody>
-				<tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
+				<tr><td>ID</td><td><?= $hankintapaikka->hankintapaikka_id?></td></tr>
 				<tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
 				<tr><td>Osoite</td><td><?= $hankintapaikka->katuosoite?><br><?= $hankintapaikka->postinumero, " ", $hankintapaikka->kaupunki?></td></tr>
 				<tr><td>Maa</td><td><?= $hankintapaikka->maa?></td></tr>
