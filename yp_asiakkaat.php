@@ -37,10 +37,10 @@ $asiakkaat = $rows = $db->query(
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Asiakkaat</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/styles.css">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
 <?php require 'header.php'; ?>

@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
   `tuotteen_nimi` varchar(30) NOT NULL,
   `korvaava_okey` boolean NOT NULL DEFAULT 1,
   `selitys` varchar(1000) DEFAULT NULL,
-  `kasitelty` tinyint UNSIGNED DEFAULT NULL, -- Mitä ostopyynnölle on tehty, ylläpidon toimi.
+  `kasitelty` tinyint UNSIGNED DEFAULT NULL, -- Mitä hankintapyynnölle on tehty, ylläpidon toimi.
   PRIMARY KEY (`articleNo`, `kayttaja_id`, `pvm`),
   CONSTRAINT fk_tuoteHankintapyynto_kayttaja FOREIGN KEY (`kayttaja_id`) REFERENCES `kayttaja`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

@@ -22,7 +22,7 @@ $sql = "SELECT tuote_id, kayttaja_id, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm,
 		JOIN yritys ON yritys.id = yritys_id
 		JOIN tuote ON tuote.id = tuote_id
 		ORDER BY pvm ASC";
-$ostopyynnot = $db->query( $sql, null, true );
+$ostopyynnot = $db->query( $sql, null, FETCH_ALL );
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
@@ -75,7 +75,11 @@ else {
 								<option value="1">1: Tarkistettu, säädetty parametreja</option>
 								<option value="2">2: Lisätty valikoimaan, tiedotetaan asiakasta</option>
 							</select>
-							<input type="submit" value="OK" class="nappi" id="op_submit">
+							<input type="hidden" name="tuote_id" value="<?= $op->tuote_id ?>">
+							<input type="hidden" name="user_id" value="<?= $op->kayttaja_id ?>">
+							<input type="hidden" name="pvm" value="<?= $op->pvm ?>">
+							<input type="hidden" name="form_type" value="hkp">
+							<input type="submit" value="OK" class="nappi">
 						</form>
 					</td>
 				</tr>
@@ -114,7 +118,11 @@ else {
 								<option value="1">1: Tarkistettu, säädetty parametreja</option>
 								<option value="2">2: Lisätty valikoimaan, tiedotetaan asiakasta</option>
 							</select>
-							<input type="submit" value="OK" class="nappi" id="hkp_submit">
+							<input type="hidden" name="tuote_id" value="<?= $hkp->articleNo ?>">
+							<input type="hidden" name="user_id" value="<?= $hkp->kayttaja_id ?>">
+							<input type="hidden" name="pvm" value="<?= $hkp->pvm ?>">
+							<input type="hidden" name="form_type" value="hkp">
+							<input type="submit" value="OK" class="nappi">
 						</form>
 					</td>
 				</tr>
@@ -127,30 +135,19 @@ else {
 
 <script>
 
-	document.addEventListener('submit',function(e){
-		console.log(e);
-		console.log(e.id);
-		console.log(this.id);
-		if(e.target) {
-			e.preventDefault();
-			if (e.target.id === 'op_submit') {
-				console.log(e);
-				console.debug(e);
-				console.log('asdas');
-				console.debug('asdas');
-				return false;
-			} else if (e.target.id === 'hkp_submit') {
-				console.log(e);
-				console.debug(e);
-				return false;
-			}
-			}
-		});
+	document.addEventListener('submit', function(e) {
+		let ajax =  new XMLHttpRequest();
+		let foo = e.target || e.srcElement;
+		let formData = new FormData(foo);
 
-	/*let ajax = new XMLHttpRequest();
-	ajax.open('POST', 'ajax_requests.php', true);
-	ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-	ajax.send(data);*/
+		if ( foo ) {
+			ajax.open('POST', 'ajax_requests.php', true);
+			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			ajax.send(formData);
+		}
+
+		e.preventDefault();
+	});
 
 </script>
 
