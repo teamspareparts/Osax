@@ -153,6 +153,10 @@ if ( $mode === "login" ) {
 			$db->query( "UPDATE kayttaja SET viime_kirjautuminen = current_timestamp WHERE id = ? LIMIT 1",
 						[ $login_user->id ] );
 
+			// Kirjataan ylös käyttäjän selain ja OS
+			// Näin voimme seurata mitä selaimia sivustolla käytetään.
+			file_put_contents("./config/log.txt", $login_user->id . '::' . $_SERVER['HTTP_USER_AGENT'] . "<br>\r\n", FILE_APPEND | LOCK_EX);
+
 			$_SESSION[ 'id' ] = $login_user->id;
 			$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
 			$_SESSION[ 'email' ] = $login_user->sahkoposti;
