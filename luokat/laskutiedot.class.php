@@ -159,7 +159,11 @@ class Laskutiedot {
 			// Lasketaan veroton rahtimaksu
 			$rahti_ilman_alv = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
 			// Lisätään ALV:n määrä muiden joukkoon.
-			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'kanta' ] = '24 &#37;'; // &#37; == %
+			if ( !array_key_exists( 24, $this->hintatiedot[ 'alv_kannat' ] ) ) {
+				$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'kanta' ] = '24 &#37;'; // &#37; == %
+				$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'perus' ] = 0;
+				$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'maara' ] = 0;
+			}
 			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'perus' ] += $rahti_ilman_alv;
 			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'maara' ]
 				+= $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
