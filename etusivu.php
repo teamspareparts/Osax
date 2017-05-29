@@ -4,7 +4,7 @@
  * Sillä välin kun tätä sivua rakennetaan, niin ole hyvä ja pistä kaikki
  * ns. 'etusivulle' menevät redirectit tälle sivulle.
  */
-if ( !isset( $_GET['test'] ) ) {
+if ( isset( $_GET['ohita'] ) ) {
 	header( "Location:tuotehaku.php" );
 	exit();
 }
@@ -57,10 +57,6 @@ $css_version = filemtime( 'css/styles.css' );
 		div, section, ul, li {
 			border: 1px solid;
 		}
-		.ostoskori_header {
-			height: 30px;
-			text-align: end;
-		}
 		.etusivu_content {
 			display: flex;
 			flex-direction: row;
@@ -77,7 +73,37 @@ $css_version = filemtime( 'css/styles.css' );
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<div class="ostoskori_header">Ostoskori</div>
+	<section>
+		<div class="tuotekoodihaku">
+			<form action="tuotehaku.php" method="get" class="haku">
+				<div class="inline-block">
+					<label for="search">Hakunumero:</label>
+					<br>
+					<input id="search" type="text" name="haku" placeholder="Tuotenumero">
+				</div>
+				<div class="inline-block">
+					<label for="numerotyyppi">Numerotyyppi:</label>
+					<br>
+					<select id="numerotyyppi" name="numerotyyppi">
+						<option value="all">Kaikki numerot</option>
+						<option value="articleNo">Tuotenumero</option>
+						<option value="comparable">Tuotenumero + vertailut</option>
+						<option value="oe">OE-numerot</option>
+					</select>
+				</div>
+				<div class="inline-block">
+					<label for="hakutyyppi">Hakutyyppi:</label>
+					<br>
+					<select id="hakutyyppi" name="exact">
+						<option value="true">Tarkka</option>
+						<option value="false">Samankaltainen</option>
+					</select>
+				</div>
+				<br>
+				<input class="nappi" type="submit" value="Hae">
+			</form>
+		</div>
+	</section>
 	<?php if ( $user->isAdmin() ) : ?>
 	<div class="admin_hallinta">
 		<span>Admin:</span>
@@ -85,7 +111,7 @@ $css_version = filemtime( 'css/styles.css' );
 			Lisää uusi uutinen/mainos (ohjaa uudelle sivulle)</a>
 	</div>
 	<?php endif; ?>
-	<div class="etusivu_content">
+	<section class="etusivu_content">
 		<section class="left_section">
 			<?php if ( $fp_content[0] ) : ?>
 			<ul><?php foreach ( $fp_content[0] as $uutinen ) : ?>
@@ -142,8 +168,10 @@ $css_version = filemtime( 'css/styles.css' );
 				<div> Ei sisältöä </div>
 			<?php endif; ?>
 		</section>
-	</div>
+	</section>
 </main>
+
+<?php require 'footer.php'; ?>
 
 </body>
 </html>

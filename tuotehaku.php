@@ -389,6 +389,8 @@ require 'tuotemodal.php';
 	</section>
 </main>
 
+<?php require 'footer.php'; ?>
+
 <script type="text/javascript">
 	/**
 	 * Tallentaa ostospyynnön tietokantaan

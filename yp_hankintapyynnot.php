@@ -136,6 +136,8 @@ else {
 	<?php endif; ?>
 </main>
 
+<?php require 'footer.php'; ?>
+
 <script>
 
 	/**

@@ -25,7 +25,7 @@ main { display: block; } /* F*** IE */
 }
 
 .main_body_container {  /* Self-explanatory */
-	margin: 20px 5vw 3vw; /* <top> <right and left> <bottom> -- Ylhäältä enenmmän jotta ei kiinni headerissa */
+	margin: 20px 5vw 3rem; /* <top> <right and left> <bottom> -- Ylhäältä enenmmän jotta ei kiinni headerissa */
 }
 
 .hidden { display: none; } /* Self-explanatory. Tarkoitettu asioiden piilottamiseen käyttäjältä. */
@@ -61,7 +61,7 @@ main { display: block; } /* F*** IE */
 .header_top {
 	width: auto;
 	height: 6.5em;
-	background-color: #fff; /* Jannen pyynnöstä asetettu täysin valkoinen tausta. Koska logon tausta on valkoinen */
+	background-color: #fff; /* Logon tausta on valkoinen, ei transparent. */
 	display: flex; /* Ei toimi ilman. Asettaa elementit siististi. */
 	align-items: center; /* IE */
 }
@@ -84,7 +84,7 @@ main { display: block; } /* F*** IE */
 }
 
 .header_top #head_cart { /* Ostoskori-linkki */
-	flex-grow: 1;    /* Täyttää lopun tilan headerissa. Sisältö ei liiku automaattisen keskityksen takia. */
+	flex-grow: 1; /* Täyttää lopun tilan headerissa. Sisältö ei liiku automaattisen keskityksen takia. */
 	font-size: 18px; /* Defaultia isompi fontti */
 	color: #2f5cad;
 	margin: auto auto auto 0.5em; /* Keskittää. Hieman erillään head_infosta (saattaa olla hieman turha). */
@@ -177,6 +177,18 @@ main { display: block; } /* F*** IE */
 	border-radius: 5px !important;
 }
 
+/********************************************
+	Footer
+********************************************/
+.footer {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: .5rem;
+	background-color: rgba(48, 93, 171, 0.5);
+	text-align: center;
+}
 
 /********************************************
 	Otsikon tyylittely

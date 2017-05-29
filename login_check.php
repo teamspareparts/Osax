@@ -176,7 +176,7 @@ if ( $mode === "login" ) {
 					header( "Location:{$_SESSION['redirect_url']}" );
 					exit;
 				}
-				header( "Location:etusivu.php" );
+				header( "Location:etusivu.php?ohita" );
 				exit;
 			}
 		}
