@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -27,7 +27,9 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
                             LEAST( 
                             COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
                             COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
-                            ) AS saapumispaiva
+                            ) AS saapumispaiva,
+                            MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
 				FROM 	    tuote
 				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
@@ -334,8 +336,12 @@ require 'tuotemodal.php';
 					<?php endif; ?>
                     <td>
                         <?php if ( date('Ymd') <= date('Ymd', strtotime($product->saapumispaiva)) ) : ?>
-                            <?=date("j.n.Y", strtotime($product->saapumispaiva))?>
-                        <?php endif;?>
+				<?=date("j.n.Y", strtotime($product->saapumispaiva))?>
+			<?php elseif (isset($product->tilauskirja_arkisto_saapumispaiva)) : ?>
+				<span>Odottaa varastoon purkua.</span>
+			<?php elseif (isset($product->tilauskirja->saapumispaiva)) : ?>
+				<span>Odottaa tilauskirjan lähetystä...</span>
+			<?php endif; ?>
                     </td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
