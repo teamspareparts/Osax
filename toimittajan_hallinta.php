@@ -24,6 +24,8 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
  */
 function poista_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brand_id){
 	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
+	$sql = "UPDATE tuote SET aktiivinen WHERE hankintapaikka_id = ? AND brandNo = ?";
+	$db->query($sql, [$hankintapaikka_id, $brand_id]);
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? ";
 	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
 }
@@ -139,7 +141,6 @@ unset($_SESSION["feedback"]);
                 <button class="nappi red" onClick="poista_brandi(<?=$brand->id?>)">
                     Poista brändi</button>
             <?php endif;?>
-            <button class="nappi" onClick="avaa_modal_linkitys(<?=$brand->id?>)">Linkitys</button>
         </div>
     </section>
     <br>
@@ -191,9 +192,6 @@ unset($_SESSION["feedback"]);
             </tr>
             <tr>
                 <td colspan="2">
-	                <!--
-                    <a href="yp_lisaa_tuotteita.php?brandId=<?=$brand->id?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Lisää tuotteita</a>
-                    -->
                     <a href="yp_valikoima.php?brand=<?=$brand->id?>&hankintapaikka=<?=intval($hankintapaikka->id)?>" class="nappi">Valikoima</a></td>
             </tr>
         </table>
@@ -265,7 +263,8 @@ unset($_SESSION["feedback"]);
      * Luo piilotetun formin, jota tarvitaan linkityksen poistamiseen
      */
 	function poista_linkitys (hankintapaikka_id, brand_id) {
-        let c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?");
+        let c = confirm("Haluatko varmasti poistaa hankintapaikan kyseiseltä brändiltä?\r\n" +
+	                    "Tämä toiminto deaktivoi kaikki tämän brändin tuotteet kyseiseltä hankintapaikalta.");
         if (c === false) {
             e.preventDefault();
             return false;

@@ -48,7 +48,7 @@ function poista_hankintapaikka( DByhteys $db, /*int*/ $hankintapaikka_id){
 		return false;
 	}
 	//Poistetaan brändien linkitykset hankintapaikkaan
-	$query = "DELETE FROM valmistajan_hankintapaikka WHERE hankintapaikka_id = ? ";
+	$query = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? ";
 	$db->query($query, [$hankintapaikka_id]);
 
 	//Poistetaan hankintapaikka

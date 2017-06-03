@@ -91,7 +91,6 @@
 			pgurl = "yp_tilaukset.php";
 			break;
 		case "toimittajan_hallinta.php":
-		case "yp_lisaa_tuotteita.php":
 		case "yp_valikoima.php":
 			pgurl = "toimittajat.php";
 			break;
@@ -106,6 +105,12 @@
         case "yp_myyntiraportti.php":
 			pgurl = "yp_raportit.php";
 			break;
+        case "yp_hankintapaikka.php":
+		case "yp_hankintapaikka_linkitys.php":
+        case "yp_lisaa_tuotteita.php":
+        case "yp_lisaa_omia_tuotteita.php":
+            pgurl = "yp_hankintapaikat.php";
+            break;
 	}
 
     let links = document.getElementsByClassName("navigationbar")[0].getElementsByTagName("a");

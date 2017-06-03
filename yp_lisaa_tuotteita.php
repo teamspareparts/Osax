@@ -25,6 +25,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 	$row = 0;
 	$successful_inserts = 0;
 	$failed_inserts = []; // Otetaan talteen epäonnistuneiden lisäysten rivinumerot
+	$inserted_brands = []; // Brandit, joiden tuotteita lisättiin
 	$placeholders = []; // Placeholderit sql-kyselyyn
 	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r'); // Tiedostokahva
 
@@ -124,6 +125,8 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 
         $successful_inserts++;
 
+        $inserted_brands[] = $brandId;
+
         // Tuotteiden lisäys
 		if ( $successful_inserts % $inserts_per_query == 0 ) {
 			$response = $db->query($insert_query, $placeholders);
@@ -146,6 +149,15 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 	$db->query($insert_query, $placeholders);
 
 	fclose($handle);
+
+	$inserted_brands = array_unique($inserted_brands);
+	foreach ($inserted_brands as $brand_id) {
+		// Päivitetään hinnaston sisäänluku päivämäärä.
+		$db->query("UPDATE brandin_linkitys SET hinnaston_sisaanajo_pvm = NOW()
+					WHERE hankintapaikka_id = ? AND brandi_id = ?",
+			[$hankintapaikka_id, $brand_id]);
+	}
+
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
 }
 
@@ -170,12 +182,6 @@ if ( isset($_FILES['tuotteet']['name']) ) {
         $epaonnistuneet = $result[1];
         $kaikki = $onnistuneet + count($epaonnistuneet);
 
-        //TODO: Sisäänajopvm
-		// Päivitetään hinnaston sisäänluku päivämäärä.
-		//$db->query("UPDATE brandin_linkitys SET hinnaston_sisaanajo_pvm = NOW()
-		//			WHERE hankintapaikka_id = ?",
-		//	[$brand->id, $hankintapaikka->d] );
-
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
 		if ($epaonnistuneet) {
             $_SESSION['feedback'] .= "<br>Hylättyjen rivien numerot: " .rtrim(implode(', ',$epaonnistuneet), ',') ."</p>";
@@ -189,8 +195,8 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-	//header("Location: " . $_SERVER['REQUEST_URI']);
-	//exit();
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
 }
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
 unset($_SESSION["feedback"]);
@@ -214,7 +220,8 @@ unset($_SESSION["feedback"]);
 
 	<!-- Otsikko ja painikkeet  -->
     <section>
-        <h1 class="otsikko"><br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+        <h1 class="otsikko">Lisää TecDoc-tuotteita tietokantaan
+	        <br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
         <div id="painikkeet">
             <a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
 	        <button class="nappi" id="info_button">Info</button>

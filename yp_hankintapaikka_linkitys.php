@@ -47,6 +47,7 @@ $sql = "SELECT brandi.*, brandin_linkitys.brandi_kaytetty_id FROM brandi
  		LEFT JOIN brandin_linkitys
  			ON brandi.id = brandin_linkitys.brandi_id 
  				AND brandin_linkitys.hankintapaikka_id = ?
+ 		WHERE brandi.aktiivinen = 1
  		GROUP BY brandi.id
  		ORDER BY nimi ASC";
 $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);

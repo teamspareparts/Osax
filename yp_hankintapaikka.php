@@ -15,7 +15,8 @@ if ( !$user->isAdmin() ) {
 function poista_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brand_id){
 	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
 	//TODO: deactivate products
-	//$sql = "UPDATE tuote SET tuote.aktiivinen = 0 WHERE hankintapaikka_id = $hankintapaikka_id";
+	$sql = "UPDATE tuote SET tuote.aktiivinen = 0 WHERE hankintapaikka_id = ? AND brandNo = ?";
+	$db->query($sql, [$hankintapaikka_id, $brand_id]);
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? ";
 	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
 }
@@ -76,7 +77,8 @@ unset($_SESSION["feedback"]);
 			<div id="painikkeet">
 				<a href="yp_hankintapaikka.php" class="nappi grey">Takaisin</a>
 				<a href="yp_hankintapaikka_linkitys.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi">Linkitä brändi</a>
-				<a href="yp_lisaa_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Lisää tuotteita</a>
+				<a href="yp_lisaa_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Lisää TecDoc tuotteita</a>
+				<a href="yp_lisaa_omia_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Perusta omia tuotteita</a>
 			</div>
 		</section>
 
@@ -104,15 +106,19 @@ unset($_SESSION["feedback"]);
 		<!-- Listaus linkitetyistä brändeistä -->
 		<table>
 			<thead>
-				<tr><th colspan="4" class="center">Linkitetyt brändit</th></tr>
+				<tr><th colspan="5" class="center">Linkitetyt brändit</th></tr>
 			</thead>
 			<tbody>
 			<?php foreach ($linkitetyt_brandit as $brand) : ?>
 				<tr><td><img src="<?=$brand->url?>"></td>
 					<td><?=mb_strtoupper($brand->nimi)?></td>
 					<td><?=$brand->brandi_kaytetty_id?></td>
+					<td><?=isset($brand->hinnaston_sisaanajo_pvm) ? date('j.n.Y', strtotime($brand->hinnaston_sisaanajo_pvm)) : ''?></td>
 					<td><button class="nappi red" onclick="poista_linkitys(<?=$hankintapaikka->id?>, <?=$brand->id?>)">
-							Poista linkitys</button></td></tr>
+							Poista linkitys</button>
+						<a href="yp_valikoima.php?brand=<?=$brand->id?>&hankintapaikka=<?=$hankintapaikka->id?>" class="nappi">
+							Valikoima</a>
+					</td></tr>
 			<?php endforeach;?>
 			</tbody>
 		</table>
@@ -128,8 +134,8 @@ unset($_SESSION["feedback"]);
      * Luo piilotetun formin, jota tarvitaan linkityksen poistamiseen
      */
     function poista_linkitys (hankintapaikka_id, brand_id) {
-        let c = confirm("Haluatko varmasti poistaa linkityksen brändiin?\n" +
-	                    "Toiminto deaktivoi kyseisen hankintapaikan brändin tuotteet");
+        let c = confirm("Haluatko varmasti poistaa linkityksen brändiin?\r\n" +
+	                    "Toiminto deaktivoi kyseisen hankintapaikan brändin tuotteet.");
         if (c === false) {
             e.preventDefault();
             return false;
