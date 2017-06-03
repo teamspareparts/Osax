@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -14,7 +14,7 @@ require 'apufunktiot.php';
  *      [1]: ei saatavilla olevat tuotteet;
  * 		[2]: tuotteet, jotka eivät löydy catalogista
  */
-function filter_catalog_products ( DByhteys $db, array $products ) {
+function filter_catalog_products ( DByhteys $db, array $products, /*string*/$search_number = null) {
 
     /**
      * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
@@ -22,7 +22,11 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
      * @param stdClass $product
      * @return array|bool|stdClass
      */
-    function get_product_from_database(DByhteys $db, stdClass $product){
+    function get_product_from_database(DByhteys $db, /*string*/$articleNo, /*int*/$brandNo = null){
+	    $articleNo = preg_replace("/[^ \w]+/", "", $articleNo); // Poistetaan kaikki erikoismerkit
+	    $regexpr = '^[^a-zA-Z0-9]?'.implode('[^a-zA-Z0-9]?', str_split($articleNo, 1)).'[^a-zA-Z0-9]?$';
+	    // [^a-zA-Z0-9] tarkoittaa erikoismerkkiä
+	    // regexp muotoa [^a-zA-Z0-9]?CHAR[^a-zA-Z0-9]?CHAR[^a-zA-Z0-9]?
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
                             COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
@@ -37,26 +41,27 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 				            AND ostotilauskirja_arkisto.hyvaksytty = 0
 				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
 				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
-				WHERE 	    tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1
+				WHERE 	    tuote.articleNo REGEXP ? AND tuote.aktiivinen = 1
+						  	AND ((tuote.brandNo = ? AND tuote.tecdocissa = 1) OR tuote.tecdocissa = 0)
 				GROUP BY    tuote.id";
 
-        return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL);
+        return $db->query($sql, [$regexpr, $brandNo], FETCH_ALL);
     }
 
 
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
 	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
 
-    //Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
+    // Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
-        $row = get_product_from_database($db, $product);
+        $row = get_product_from_database($db, $product->articleNo, $product->brandNo);
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$not_in_catalog[] = $product;
 		}
 		if ( $row ) {
-		    //Kaikki löytyneet tuotteet (eri hankintapaikat)
+		    // Kaikki löytyneet tuotteet (eri hankintapaikat)
             foreach ($row as $tuote) {
                 if (!in_array($tuote->id, $ids)){
                     $ids[] = $tuote->id;
@@ -74,6 +79,33 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	}
 	merge_products_with_optional_data( $catalog_products );
 	merge_products_with_optional_data( $not_available_catalog_products );
+
+	//TODO: Etsi omia tuotteita omasta tuotekoodilinkityslistasta
+
+	// Etsitään vielä omia tuotteita suoraan hakunumerolla
+	$row = get_product_from_database($db, $search_number);
+	foreach ($row as $tuote) {
+		if (!in_array($tuote->id, $ids)){
+			$ids[] = $tuote->id;
+			$tuote->articleId = 0;
+			$tuote->articleName = $tuote->nimi;
+			$tuote->brandName = $tuote->valmistaja;
+			$infot = explode('|', $tuote->infot);
+			foreach ($infot as $index=>$info) {
+				$tuote->infos[$index] = new stdClass();
+				$tuote->infos[$index]->attrName = $info;
+			}
+			$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
+			if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
+				$catalog_products[] = $tuote;
+			} else {
+				$not_available_catalog_products[] = $tuote;
+			}
+		}
+	}
+
+
+	// Haetaan omat tuotteet
 
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
@@ -156,7 +188,7 @@ if ( !empty($_GET['haku']) ) {
 	}
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
-	$filtered_product_arrays = filter_catalog_products( $db, $products );
+	$filtered_product_arrays = filter_catalog_products( $db, $products, $number );
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
@@ -336,12 +368,12 @@ require 'tuotemodal.php';
 					<?php endif; ?>
                     <td>
                         <?php if ( date('Ymd') <= date('Ymd', strtotime($product->saapumispaiva)) ) : ?>
-				<?=date("j.n.Y", strtotime($product->saapumispaiva))?>
-			<?php elseif (isset($product->tilauskirja_arkisto_saapumispaiva)) : ?>
-				<span>Odottaa varastoon purkua.</span>
-			<?php elseif (isset($product->tilauskirja->saapumispaiva)) : ?>
-				<span>Odottaa tilauskirjan lähetystä...</span>
-			<?php endif; ?>
+                            <?=date("j.n.Y", strtotime($product->saapumispaiva))?>
+                        <?php elseif (isset($product->tilauskirja_arkisto_saapumispaiva)) : ?>
+	                        <span>Odottaa varastoon purkua.</span>
+	                    <?php elseif (isset($product->tilauskirja->saapumispaiva)) : ?>
+		                    <span>Odottaa tilauskirjan lähetystä...</span>
+		                 <?php endif; ?>
                     </td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
@@ -570,7 +602,10 @@ require 'tuotemodal.php';
 			.css('cursor', 'pointer')
 			.click(function(){
 				let articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
-				productModal(articleId); //haetaan tuotteen tiedot tecdocista
+				// Avataan vain, jos TecDocin articleId on määritelty
+				if ( articleId !== '0') {
+                    productModal(articleId); //haetaan tuotteen tiedot tecdocista
+                }
 			});
 
 	});//doc.ready
