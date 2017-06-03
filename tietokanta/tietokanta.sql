@@ -43,12 +43,14 @@ CREATE TABLE IF NOT EXISTS `yritys` (
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `articleNo` varchar(30) NOT NULL, -- UNIQUE KEY
-  `brandNo` int(11) NOT NULL, -- UNIQUE KEY
+  `brandNo` varchar(20) NOT NULL, -- UNIQUE KEY
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK, UK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
   `valmistaja` varchar(40) DEFAULT NULL,
+  `kuva_url` varchar(100) DEFAULT NULL,
+  `infot` varchar(300) DEFAULT NULL, -- Erottimena |
   `hinta_ilman_ALV` decimal(11,4) NOT NULL,
   `ALV_kanta` tinyint(1) UNSIGNED NOT NULL DEFAULT 0, -- Foreign KEY
   `varastosaldo` mediumint NOT NULL DEFAULT 0,
@@ -61,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `vuosimyynti` int(11) NOT NULL DEFAULT 0,
   `ensimmaisen_kerran_varastossa` timestamp NULL DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
   `paivitettava` boolean DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
+  `tecdocissa` boolean DEFAULT TRUE, -- Onko tuote tecdocissa vai itse lisätty
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
