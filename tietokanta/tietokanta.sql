@@ -62,9 +62,9 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
   `vuosimyynti` int(11) NOT NULL DEFAULT 0,
   `ensimmaisen_kerran_varastossa` timestamp NULL DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
-  `paivitettava` boolean DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
-  `tecdocissa` boolean DEFAULT TRUE, -- Onko tuote tecdocissa vai itse lisätty
-  `aktiivinen` boolean NOT NULL DEFAULT 1,
+  `paivitettava` boolean NOT NULL DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
+  `tecdocissa` boolean NOT NULL DEFAULT TRUE, -- Onko tuote tecdocissa vai itse lisätty
+  `aktiivinen` boolean NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
   CONSTRAINT fk_tuote_alvKanta FOREIGN KEY (`ALV_kanta`) REFERENCES `ALV_kanta`(`kanta`)
@@ -245,7 +245,7 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `brandi` (
-  `id` int UNSIGNED NOT NULL, -- PK -- TecDocin id tai oma. Omat id:t alkaa 100 000 ->
+  `id` int(11) UNSIGNED NOT NULL, -- PK -- TecDocin id tai oma. Omat id:t alkaa 100 000 ->
   `nimi` varchar(50) NOT NULL, -- UK
   `url` varchar(100) DEFAULT NULL,
   `oma_brandi` boolean NOT NULL DEFAULT FALSE,
@@ -283,7 +283,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja` (
   `rahti` decimal(11,2), -- Rahtimaksu
   `oletettu_lahetyspaiva` timestamp NULL DEFAULT NULL,
   `oletettu_saapumispaiva` timestamp NULL DEFAULT NULL,
-  `toimitusjakso` tinyint UNSIGNED DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
+  `toimitusjakso` tinyint UNSIGNED NOT NULL DEFAULT 6, -- Tilauksen toimitusväli viikkoina, 0: erikoistilaus
   PRIMARY KEY (`id`),
   UNIQUE KEY (`hankintapaikka_id`, `tunniste`),
   CONSTRAINT fk_ostotilauskirja_hankintapaikka

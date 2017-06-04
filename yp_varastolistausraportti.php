@@ -2,7 +2,10 @@
 require '_start.php'; global $db, $user, $cart;
 
 //Vain ylläpitäjälle
-if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
+if ( !$user->isAdmin() ) {
+	header("Location:etusivu.php");
+	exit();
+}
 $feedback = "";
 
 /**
@@ -10,8 +13,8 @@ $feedback = "";
  * @param DByhteys $db
  * @return array|int|stdClass
  */
-function hae_brandit(DByhteys $db) {
-	$sql = "SELECT DISTINCT brandName, brandId FROM valmistajan_hankintapaikka ORDER BY brandName";
+function hae_brandit( DByhteys $db ) {
+	$sql = "SELECT DISTINCT id, nimi FROM brandi ORDER BY nimi";
 	return $db->query($sql, [], FETCH_ALL);
 }
 
@@ -20,7 +23,7 @@ function hae_brandit(DByhteys $db) {
  * @param DByhteys $db
  * @return array|int|stdClass
  */
-function hae_hankintapaikat(DByhteys $db) {
+function hae_hankintapaikat( DByhteys $db ) {
 	$sql = "SELECT DISTINCT nimi, id FROM hankintapaikka ORDER BY id";
 	return $db->query($sql, [], FETCH_ALL);
 }
@@ -59,8 +62,8 @@ $hankintapaikat = hae_hankintapaikat($db);
 			<label for="varastolistausraportti_brand">Brändi</label>
 			<select name="brand" id="varastolistausraportti_brand">
 				<option value="0" selected>-- Kaikki --</option>
-				<?php foreach((array)$brands as $brand) : ?>
-					<option value="<?=$brand->brandId?>"><?=$brand->brandName?></option>
+				<?php foreach( (array)$brands as $brand ) : ?>
+					<option value="<?=$brand->id?>"><?=$brand->nimi?></option>
 				<?php endforeach;?>
 			</select><br><br>
 

@@ -234,8 +234,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
     }
 
     function avaa_modal_muokkaa_ostotilauskirja(tunniste, lahetyspvm, saapumispvm, rahti, tilausjakso, ostotilauskirja_id){
-        let date = new Date().toISOString().slice(0,10);
-        if (tilausjakso != 0) {
+        if (tilausjakso !== 0) {
             tilausjakso = '<input name="toimitusjakso" type="number" step="1" value="'+tilausjakso+'" min="1" placeholder="6" title="Tilausväli viikkoina" required>';
         } else {
         	tilausjakso = "ERIKOISTILAUS";
@@ -280,7 +279,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
             let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "poista");
-            field.setAttribute("value", true);
+            field.setAttribute("value", "true");
             form.appendChild(field);
 
             field = document.createElement("input");
@@ -308,14 +307,14 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
         /** Ostotilauskirjan lisäys -modalin toiminta */
 
-		$(document.body).on('change', 'input[name="tyyppi"]:radio', function(e) {
+		$(document.body).on('change', 'input[name="tyyppi"]:radio', function() {
 			let toimitusjakso_div = $("#toimitusjakso_div");
 			let toimitusjakso_input = $("#toimitusjakso");
-			if (this.value == 'vakiotilaus') {
+			if (this.value === 'vakiotilaus') {
 				toimitusjakso_input.prop('required', true);
 				toimitusjakso_div.show();
 			}
-			else if (this.value == 'erikoistilaus') {
+			else if (this.value === 'erikoistilaus') {
 				toimitusjakso_input.prop('required', false);
 				toimitusjakso_div.hide();
 			}

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -205,6 +205,7 @@ function sortProductsByPrice( &$catalog_products ) {
 function cmpPrice($a, $b) {
 	return ($a->hinta > $b->hinta);
 }
+
 
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
@@ -520,8 +521,7 @@ require 'tuotemodal.php';
 			function( data ) {
 				hankintapaikat = JSON.parse(toJSON(data));
 				if(hankintapaikat.length === 0){
-					alert("Luo ensin kyseiselle toimittajalle hankintapaikka!" +
-						"\rMUUT -> TOIMITTAJAT -> VALITSE TOIMITTAJA -> UUSI HANKINTAPAIKKA");
+					alert("Linkitä ensin tuotteen brändi johonkin hankintapaikkaan!");
 					return;
 				}
 				//Luodaan alasvetovalikko

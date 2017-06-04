@@ -73,9 +73,9 @@ elseif ( !empty( $_POST[ 'hankintapaikan_ostotilauskirjat' ] ) ) {
  * Haetaan tuotteen hankintapaikat
  */
 elseif ( !empty( $_POST[ 'valmistajan_hankintapaikat' ] ) ) {
-	$sql = "SELECT hankintapaikka.id, hankintapaikka.nimi FROM valmistajan_hankintapaikka
-			LEFT JOIN hankintapaikka ON valmistajan_hankintapaikka.hankintapaikka_id = hankintapaikka.id
-			WHERE brandId = ?";
+	$sql = "SELECT hankintapaikka.id, hankintapaikka.nimi FROM brandin_linkitys
+			LEFT JOIN hankintapaikka ON brandin_linkitys.hankintapaikka_id = hankintapaikka.id
+			WHERE brandin_linkitys.brandi_id = ?";
 	$result = $db->query( $sql, [ $_POST[ 'brand_id' ] ], FETCH_ALL );
 }
 

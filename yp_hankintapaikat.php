@@ -345,7 +345,7 @@ unset($_SESSION["feedback"]);
         let field = document.createElement("input");
         field.setAttribute("type", "hidden");
         field.setAttribute("name", "poista");
-        field.setAttribute("value", true);
+        field.setAttribute("value", "true");
         form.appendChild(field);
 
         //POST["hankintapaikka_id"]
@@ -371,20 +371,19 @@ unset($_SESSION["feedback"]);
 	    $(document.body)
         //Estetään valitsemasta jo olemassa olevaa hankintapikka ID:tä ja nimeä
             .on('submit', '#uusi_hankintapaikka', function(e) {
-                let id, nimi, i;
-                let hankintapaikat = [];
+                let id, nimi, i, hankintapaikat;
                 hankintapaikat = <?php echo json_encode($hankintapaikat); ?>
                 //Tarkastetaan onko ID tai nimi varattu
-                id = document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
+                id = +document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
                 nimi = document.getElementById("uusi_hankintapaikka").elements["nimi"].value;
                 if (hankintapaikat.length > 0) {
                     for (i = 0; i < hankintapaikat.length; i++) {
-                        if (hankintapaikat[i].id === id) {
+                        if ( hankintapaikat[i].id === id ) {
                             alert("ID on varattu.");
                             e.preventDefault();
                             return false;
                         }
-                        if (hankintapaikat[i].nimi === nimi) {
+                        if ( hankintapaikat[i].nimi.toUpperCase() === nimi.toUpperCase()) {
                             alert("Nimi on varattu.");
                             e.preventDefault();
                             return false;

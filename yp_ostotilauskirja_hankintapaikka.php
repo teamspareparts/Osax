@@ -12,10 +12,12 @@ if ( !$user->isAdmin() ) {
  * @return array|int|stdClass
  */
 function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
-	$sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(valmistajan_hankintapaikka.brandName) AS brandit
+	$sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(brandi.nimi) AS brandit
             FROM hankintapaikka
-            RIGHT JOIN valmistajan_hankintapaikka
-              ON hankintapaikka.id = valmistajan_hankintapaikka.hankintapaikka_id
+            INNER JOIN brandin_linkitys
+              ON hankintapaikka.id = brandin_linkitys.hankintapaikka_id
+            INNER JOIN brandi
+            	ON brandin_linkitys.brandi_id = brandi.id
             GROUP BY hankintapaikka.id";
 	return $db->query($sql, [], FETCH_ALL);
 }
