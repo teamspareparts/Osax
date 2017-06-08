@@ -14,7 +14,7 @@ require 'apufunktiot.php';
  *      [1]: ei saatavilla olevat tuotteet;
  * 		[2]: tuotteet, jotka eivät löydy catalogista
  */
-function filter_catalog_products ( DByhteys $db, array $products, /*string*/$search_number = null) {
+function filter_catalog_products ( DByhteys $db, array $products ) {
 
     /**
      * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
@@ -22,11 +22,7 @@ function filter_catalog_products ( DByhteys $db, array $products, /*string*/$sea
      * @param stdClass $product
      * @return array|bool|stdClass
      */
-    function get_product_from_database(DByhteys $db, /*string*/$articleNo, /*int*/$brandNo = null){
-	    $articleNo = preg_replace("/[^ \w]+/", "", $articleNo); // Poistetaan kaikki erikoismerkit
-	    $regexpr = '^[^a-zA-Z0-9]?'.implode('[^a-zA-Z0-9]?', str_split($articleNo, 1)).'[^a-zA-Z0-9]?$';
-	    // [^a-zA-Z0-9] tarkoittaa erikoismerkkiä
-	    // regexp muotoa [^a-zA-Z0-9]?CHAR[^a-zA-Z0-9]?CHAR[^a-zA-Z0-9]?
+    function get_tecdoc_product_from_database( DByhteys $db, /*string*/$articleNo, /*int*/$brandNo ){
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
                             COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
@@ -41,20 +37,18 @@ function filter_catalog_products ( DByhteys $db, array $products, /*string*/$sea
 				            AND ostotilauskirja_arkisto.hyvaksytty = 0
 				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
 				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
-				WHERE 	    tuote.articleNo REGEXP ? AND tuote.aktiivinen = 1
-						  	AND ((tuote.brandNo = ? AND tuote.tecdocissa = 1) OR tuote.tecdocissa = 0)
+				WHERE 	    tuote.articleNo = ? AND tuote.aktiivinen = 1 AND tuote.brandNo = ? AND tuote.tecdocissa = 1
 				GROUP BY    tuote.id";
 
-        return $db->query($sql, [$regexpr, $brandNo], FETCH_ALL);
+        return $db->query($sql, [$articleNo, $brandNo], FETCH_ALL);
     }
-
 
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
 	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
 
     // Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
-        $row = get_product_from_database($db, $product->articleNo, $product->brandNo);
+        $row = get_tecdoc_product_from_database($db, $product->articleNo, $product->brandNo);
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
@@ -80,34 +74,55 @@ function filter_catalog_products ( DByhteys $db, array $products, /*string*/$sea
 	merge_products_with_optional_data( $catalog_products );
 	merge_products_with_optional_data( $not_available_catalog_products );
 
-	//TODO: Etsi omia tuotteita omasta tuotekoodilinkityslistasta
+	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
+}
 
-	// Etsitään vielä omia tuotteita suoraan hakunumerolla
-	$row = get_product_from_database($db, $search_number);
-	foreach ($row as $tuote) {
-		if (!in_array($tuote->id, $ids)){
-			$ids[] = $tuote->id;
-			$tuote->articleId = 0;
-			$tuote->articleName = $tuote->nimi;
-			$tuote->brandName = $tuote->valmistaja;
-			$infot = explode('|', $tuote->infot);
-			foreach ($infot as $index=>$info) {
-				$tuote->infos[$index] = new stdClass();
-				$tuote->infos[$index]->attrName = $info;
-			}
-			$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-			if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
-				$catalog_products[] = $tuote;
-			} else {
-				$not_available_catalog_products[] = $tuote;
-			}
+
+function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
+	$catalog_products = $not_available_catalog_products = [];
+	if ( $tarkka_haku ) {
+		$search_pattern = $search_number;
+	} else {
+		$simple_search_number = preg_replace("/[^ \w]+/", "", $search_number); // Poistetaan kaikki erikoismerkit
+		$search_pattern = implode('%', str_split($simple_search_number, 1)) . "%";
+		// Hakunumero muotoa q%t%b%2%4%9%, joten lyhyillä hakunumeroilla se voi löytää liikaa tuloksia
+	}
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                            LEAST( 
+                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+                            ) AS saapumispaiva,
+                            MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
+				FROM 	    tuote
+				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+				            AND ostotilauskirja_arkisto.hyvaksytty = 0
+				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+				WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
+				GROUP BY    tuote.id
+				LIMIT 10";
+	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
+
+	foreach ($own_products as $tuote) {
+		$tuote->articleId = 0;
+		$tuote->articleName = $tuote->nimi;
+		$tuote->brandName = $tuote->valmistaja;
+		$infot = explode('|', $tuote->infot);
+		foreach ($infot as $index=>$info) {
+			$tuote->infos[$index] = new stdClass();
+			$tuote->infos[$index]->attrName = $info;
+		}
+		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
+		if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
+			$catalog_products[] = $tuote;
+		} else {
+			$not_available_catalog_products[] = $tuote;
 		}
 	}
-
-
-	// Haetaan omat tuotteet
-
-	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
+	return [$catalog_products, $not_available_catalog_products];
 }
 
 /**
@@ -188,10 +203,13 @@ if ( !empty($_GET['haku']) ) {
 	}
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
-	$filtered_product_arrays = filter_catalog_products( $db, $products, $number );
+	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
 	$not_available = $filtered_product_arrays[1];
 	$not_in_catalog = $filtered_product_arrays[2];
+	$own_products = search_own_products_from_database( $db, $number, $exact );
+	$catalog_products = array_merge($catalog_products, $own_products[0]);
+	$not_available = array_merge($not_available, $own_products[1]);
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
@@ -420,7 +438,7 @@ require 'tuotemodal.php';
 		<?php endif; //if $not_in_catalog products
 
 		if ( !$catalog_products && !$not_available && !$not_in_catalog ) : ?>
-		<h2>Ei tuloksia.</h2>
+			<h2>Ei tuloksia.</h2>
     	<?php endif; //if ei tuloksia?>
 
 	<?php endif; //if $haku?>
@@ -538,7 +556,7 @@ require 'tuotemodal.php';
 			function( data ) {
 				ostotilauskirjat = JSON.parse(toJSON(data));
 				if(ostotilauskirjat.length === 0){
-					alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
+					alert("Luo ensin tuotteen hankintapaikalle ostotilauskirja!" +
 						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
 					return;
 				}

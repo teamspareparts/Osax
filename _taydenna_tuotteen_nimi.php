@@ -23,7 +23,8 @@ error_reporting( E_ALL );
  * Haetaan 60 tuotteelle nimi tecdocista
  */
 $sql = "SELECT id, articleNo, brandNo FROM tuote 
-		WHERE nimi IS NULL LIMIT 60";
+		WHERE nimi IS NULL AND tecdocissa = 1
+		LIMIT 60";
 $products = $db->query($sql, [], FETCH_ALL);
 
 if($products) {
