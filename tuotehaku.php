@@ -130,17 +130,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
  * @param $catalog_products
  */
 function sortProductsByPrice( &$catalog_products ){
-	usort($catalog_products, "cmpPrice");
-}
-
-/**
- * Vertailufunktio usortille.
- * @param $a
- * @param $b
- * @return bool
- */
-function cmpPrice($a, $b) {
-	return ($a->hinta > $b->hinta);
+	usort($catalog_products, function ($a, $b){return ($a->hinta > $b->hinta);});
 }
 
 /**

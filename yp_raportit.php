@@ -33,6 +33,8 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
     <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
     <div class="floating-box clickable line" data-href="yp_myyntitapahtumalistaus.php">
 	    <span>Myyntitapahtumalistaus</span></div>
+	<div class="floating-box clickable line" data-href="yp_tuotekohtainen_myyntiraportti.php">
+		<span>Tuotekohtainen myyntiraportti</span></div>
     <div onclick="document.getElementById('download_hinnasto_yp').submit()" class="floating-box clickable line">
 	    <span>Lataa hinnasto <i class="material-icons">file_download</i></span>
     </div>
