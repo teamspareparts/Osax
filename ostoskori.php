@@ -35,14 +35,13 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 <!DOCTYPE html>
 <html lang="fi">
 <head>
-	<link rel="stylesheet" href="css/styles.css">
 	<meta charset="UTF-8">
+	<title>Ostoskori</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="css/styles.css">
 	<style type="text/css">
 		#rahtimaksu_listaus { background-color:#cecece; height: 1em; }
 	</style>
-	<title>Ostoskori</title>
 </head>
 <body>
 
@@ -92,7 +91,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user ) ?>
-	<p><a class="nappi red" onclick="window.history.back();">Palaa takaisin</a></p>
+	<p><a class="nappi grey" id="takaisin_nappi">Palaa takaisin</a></p>
 </main>
 
 <form name="ostoskorilomake" method="post" class="hidden">
@@ -103,6 +102,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 	/**
 	 * Muokkaa annetun tuotteen kpl-määrää ostoskorissa.
 	 * Jos kpl-määrä nolla (0), tuote poistetaan ostoskorista.
+	 * //TODO: Ajaxilla saisi toimimaan hieman siistimmin, mutta vaikeampi toteuttaa. --JJ170609
 	 * @param id
 	 */
 	function cartAction(id) {
@@ -111,6 +111,16 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		document.getElementById('ostoskori_maara').value = count;
 		document.ostoskorilomake.submit();
 	}
+
+	document.getElementById('takaisin_nappi').addEventListener('click', function() {
+		if ( window.location.search === "?cancel_maksu" ) {
+			window.history.go(-4);
+		} else if ( window.location.search === "?cancel" ) {
+			window.history.go(-3);
+		} else {
+			window.history.back();
+		}
+	});
 </script>
 
 </body>

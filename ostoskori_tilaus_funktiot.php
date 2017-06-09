@@ -138,17 +138,12 @@ function laske_era_alennus_palauta_huomautus ( stdClass $product, /*bool*/ $osto
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		Ostoskori $cart, User $user, /* bool */ $ostoskori = TRUE ) {
+		Ostoskori $cart, User $user, /*bool*/ $ostoskori = TRUE ) {
 	$enough_in_stock = TRUE;
 	$enough_ordered = TRUE;
 	$tuotteita_ostoskorissa = TRUE;
 	$tmo_valittu = TRUE;
 	$huomautus = '';
-	$linkki = 'href="tilaus.php"';
-
-	if ( !$ostoskori ) { //Tilauksen lähetys toimii hieman eri tavalla
-		$linkki = 'onClick="laheta_Tilaus();"';
-	}
 
 	if ( count($user->toimitusosoitteet) < 1 ) {
 		$tmo_valittu = false;
@@ -172,7 +167,18 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 	}
 
 	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered && $tmo_valittu ) {
-		return "<p><a class='nappi' {$linkki}>Tilaa tuotteet</a></p>";
+		if ( !$ostoskori ) {
+			return "
+				<form action='#' method=post>
+					<input type=hidden name='toimitusosoite_id' value='' id='toimitusosoite_form_input'>
+					<input type=hidden name='rahtimaksu' value='{$user->rahtimaksu}'>
+					<input type=hidden name='vahvista_tilaus' value='true'>
+					<input type='submit' value='Siirry maksamaan' class='nappi'>
+				</form>";
+		}
+		else {
+			return "<p><a class='nappi' href='tilaus.php'>Tilaa tuotteet</a></p>";
+		}
 	} else {
 		return "<p><a class='nappi disabled'>Tilaa tuotteet</a> {$huomautus} </p>";
 	}

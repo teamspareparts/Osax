@@ -6,15 +6,18 @@ require 'luokat/email.class.php';
 ignore_user_abort( true ); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
 set_time_limit( 100 );
 
-$user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteen valinta tilausta varten.
+$user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteen valintaa varten haetaan kaikki toimitusosoitteet.
+
 $cart->hae_ostoskorin_sisalto( $db, true, true );
 if ( $cart->montako_tuotetta == 0 ) {
 	header( "location:ostoskori.php" );
 	exit;
 }
 check_products_in_shopping_cart( $cart, $user );
+
 /*
- * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen
+ * Varsinaisen tilauksen teko käyttääjn vahvistuksen jälkeen.
+ * Tässä vaiheessa merkitään tilaus maksamattomaksi. Maksu tapahtuu seuraavalla sivulla.
  */
 if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 
@@ -46,7 +49,7 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 
 		// Päivitetään tuotteiden varastosaldot
 		$questionmarks2 = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?)' ) );
-		$values2 = [];
+		$values_varastosaldot = [];
 
 		$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks2}
 		        ON DUPLICATE KEY 
@@ -58,13 +61,13 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 						$tuote->a_hinta_ilman_alv, $tuote->alv_prosentti, $tuote->alennus_prosentti,
 						$tuote->kpl_maara );
 
-			array_push( $values2, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
+			array_push( $values_varastosaldot, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
 		}
 
 		// Lisätään tilauksen tuotteet
 		$stmt->execute( $values );
 		// Päivitetään varastosaldot
-		$stmt_varastosaldot->execute( $values2 );
+		$stmt_varastosaldot->execute( $values_varastosaldot );
 
 		// Toimitusosoitteen lisäys tilaustietoihin pysyvästi.
 		$stmt = $conn->prepare(
@@ -82,9 +85,13 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		$cart->tyhjenna_kori( $db );
 
 		// Tallenetaan seuraavaa sivua varten tilauksen perustiedot.
-		$_SESSION['tilaus'] = [	$tilaus_id, ($cart->summa_yhteensa + $user->rahtimaksu),
-			$cart->montako_tuotetta, $cart->montako_tuotetta_kpl_maara_yhteensa ];
-		//TODO: toimitusosoite/tilaaja myös? Seuraavan sivun HTML-tulostusta varten, siis. --JJ/170314
+		// [ Tilaus-ID, Koko summa yhteensä, Eri tuotteiden määrä, Tuotteiden kpl-määrä yhteensä]
+		$_SESSION['tilaus'] = [
+			$tilaus_id,
+			($cart->summa_yhteensa + $user->rahtimaksu),
+			$cart->montako_tuotetta,
+			$cart->montako_tuotetta_kpl_maara_yhteensa ];
+
 		header( "location:payment_process.php" );
 		exit;
 
@@ -111,9 +118,9 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <head>
 	<meta charset="UTF-8">
 	<title>Vahvista tilaus</title>
-	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
 	<style type="text/css">
@@ -143,13 +150,13 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			</tr><?php
 		} ?>
 		<tr id="rahtimaksu_listaus">
-			<td>---</td><!-- Tuotenumero -->
-			<td>Rahtimaksu</td><!-- Tuotteen nimi -->
-			<td>---</td><!-- Tuotteen valmistaja -->
-			<td class="number"><?= $user->rahtimaksu_toString() ?></td><!-- Hinta yhteensä -->
-			<td class="number">---</td><!-- Kpl-hinta (sis. ALV) -->
-			<td class="number">1</td><!-- Kpl-määrä -->
-			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus' : "---" ?></td><!-- Info -->
+			<td>---</td>
+			<td>Rahtimaksu</td> <!-- Tuotteen nimi -->
+			<td>---</td>
+			<td class="number"><?= $user->rahtimaksu_toString() ?></td> <!-- Hinta yhteensä -->
+			<td class="number">---</td>
+			<td class="number">1</td> <!-- Kpl-määrä -->
+			<td><?= ($user->rahtimaksu == 0) ? 'Ilmainen toimitus' : "---" ?></td> <!-- Info -->
 		</tr>
 		</tbody>
 	</table>
@@ -169,17 +176,10 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	</div>
 
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user, FALSE ) ?>
-	<p><a class="nappi red" href="ostoskori.php">Palaa takaisin</a></p>
+	<p><a class="nappi red" href="ostoskori.php?cancel_tilaus">Palaa takaisin</a></p>
 </main>
-<form class="hidden" id="laheta_tilaus_form" action="#" method=post>
-	<input type=hidden id="toimitusosoite_form_input" name="toimitusosoite_id" value="">
-	<input type=hidden id="rahtimaksu_form_input" name="rahtimaksu" value="<?=$user->rahtimaksu?>">
-	<input type=hidden name="vahvista_tilaus" value="true">
-</form>
 
 <script>
-	let osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
-
 	/**
 	 * Avaa Modalin toimitusosoitteen valintaa varten
 	 */
@@ -211,14 +211,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		Modal.close();
 	}
 
-	function laheta_Tilaus () {
-		//TODO: Remove this javascript. Change to form. --JJ 20170416
-		document.getElementById("laheta_tilaus_form").submit();
-	}
-
-	$(document).ready(function() {
-		valitse_toimitusosoite(0);
-	});//doc.ready
+	let osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
+	valitse_toimitusosoite(0);
 </script>
 
 </body>

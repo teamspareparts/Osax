@@ -12,7 +12,7 @@ require "./luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
 // Montako päivää tilauksen pitää olla keskeytynyt, jottasaldot palautetaan
-$paivat_keskyetyneena = 2;
+$paivat_keskeytyneena = 2;
 
 //Haetaan keskeneräisten tilausten tuotteet, jotka olleet kesken yli 4 päivää
 $sql = "	SELECT *
@@ -21,14 +21,14 @@ $sql = "	SELECT *
   		  		ON tilaus.id = tilaus_tuote.tilaus_id
   		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
  		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
-$tuotteet = $db->query($sql, [$paivat_keskyetyneena], FETCH_ALL);
+$tuotteet = $db->query( $sql, [$paivat_keskeytyneena], FETCH_ALL);
 
 //Haetaan tilausten id:t
 $sql = "	SELECT id
   			FROM tilaus
   		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
  		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
-$tilaukset = $db->query($sql, [$paivat_keskyetyneena], FETCH_ALL);
+$tilaukset = $db->query( $sql, [$paivat_keskeytyneena], FETCH_ALL);
 
 if ( !$tilaukset || !$tuotteet ) {
 	return;

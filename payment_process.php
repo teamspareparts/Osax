@@ -25,7 +25,7 @@ elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
 		$_SESSION[ "feedback" ] = "<p class='error'>Tilauksen peruutus ei onnistunut. 
 			Ole hyvä, ja ota yhteys ylläpitäjiin.<br>Virhe: " . print_r( $ex->errorInfo, 1 ) . "</p>";
 	}
-	header( "location:ostoskori.php" );
+	header( "location:ostoskori.php?cancel_maksu" );
 	exit;
 }
 
