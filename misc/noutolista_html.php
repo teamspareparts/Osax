@@ -1,20 +1,19 @@
 <?php
-require_once './mpdf/mpdf.php';
+$pdf_noutolista_html_header = '<div style="font-weight:bold;text-align:center;">Osax Oy :: Tilauksen noutolista</div>';
+$pdf_noutolista_html_footer = '
+	<table width="100%" style="font-size:9pt;">
+		<tr>
+			<td width="33%">{DATE j-m-Y}</td>
+			<td width="33%" align="center" style="font-weight:bold; font-size:10pt;">{PAGENO}/{nbpg}</td>
+			<td width="33%" align="right">Noutolista</td>
+		</tr>
+	</table>';
 
-$mpdf = new mPDF();
-
-$lasku_header = ( $_SESSION['indev'] )
-	? "<h2 style='color: red;'>InDev testinoutolista</h2>"
-	: "<img src='img/osax_logo.jpg' alt='Osax.fi'>";
-
-/** ////////////////////////////////////////////////////////////////////// */
-/** PDF:n HTML:n kirjoitus */
-/** ////////////////////////////////////////////////////////////////////// */
 /**
  * Noutolistan alkuosa. Logo ja laskun tiedot. Sen jälkeen tuotetaulukon header row.
  */
-$html = "
-<div style='width:100%;'>$lasku_header</div>
+$pdf_noutolista_html_body = "
+<div style='width:100%;'>{$lasku->laskuHeader}</div>
 
 <table style='width:100%;'>
 	<tbody>
@@ -28,7 +27,8 @@ $html = "
 			</tr>
 			</thead>
 			<tbody>
-			<tr><td>".date('d.m.Y')."</td><td style='text-align: center'>$lasku->tilaus_pvm</td>
+			<tr><td>".date('d.m.Y')."</td>
+				<td style='text-align: center;'>$lasku->tilaus_pvm</td>
 				<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
 				<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
 			</tr>
@@ -64,7 +64,7 @@ $html = "
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
-	$html .= "
+	$pdf_html_body .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
 			<td style='text-align:center;'>{$tuote->nimi}</td>
@@ -74,36 +74,8 @@ foreach ( $lasku->tuotteet as $tuote ) {
 		</tr>";
 }
 
-$html .= "
+$pdf_html_body .= "
 	</tbody>
 </table>
 <hr>
 ";
-
-/** //////////////////////////////////////// */
-/** PDF:n luonti */
-/** //////////////////////////////////////// */
-/*
- * PDF-header ja footer
- * Header: "Osax Oy :: Noutotilaus" keskitettynä
- * Footer: "[Päivämäärä] - [sivunumero] - Noutotilaus"
- */
-$mpdf->SetHTMLHeader('<div style="font-weight:bold;text-align:center;">Osax Oy :: Noutotilaus</div>');
-$mpdf->SetHTMLFooter('
-<table width="100%" style="vertical-align:bottom; font-family:serif; font-size:8pt; color:#000000; font-weight:bold; font-style:italic;"><tr>
-	<td width="33%"><span style="font-weight:bold; font-style:italic;">{DATE j-m-Y}</span></td>
-	<td width="33%" align="center" style="font-weight:bold; font-style:italic;">{PAGENO}/{nbpg}</td>
-	<td width="33%" style="text-align:right; ">Noutolista</td>
-</tr></table>
-');
-
-$mpdf->WriteHTML( $html ); // Kirjoittaa HTML:n tiedostoon.
-
-
-
-if ( !file_exists('./noutolistat') ) { // Tarkistetaan, että kansio on olemassa.
-	mkdir( './noutolistat' ); // Jos ei, luodaan se ja jatketaan eteenpäin.
-}
-
-$tiedoston_nimi = "noutolista-{$lasku->laskunro}-{$lasku->asiakas->id}.pdf";
-$mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );

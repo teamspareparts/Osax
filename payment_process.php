@@ -3,21 +3,28 @@ require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 require 'luokat/email.class.php';
 
-// Tarkistetaan onko maksusuoritus Paytrailin sivulta _GET-muuttujaan
+/**
+ * Maskusuoritus Paytraililta
+ */
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
 		$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
 		$maksutapa = 0; // Maksutapaa ei voi ottaa user:sta, koska siellä on määritelty ylin mahdollinen mt.
 	}
 }
-// _POST-muuttuja, jos käyttäjä valinnut laskulla maksun
+
+/**
+ * Käyttäjä valinnut laskulla maksamisen
+ */
 elseif ( !empty( $_POST[ 'tilaus_id' ] ) ) {
 	$tilaus_id = $_POST[ 'tilaus_id' ];
 	$maksutapa = $_POST[ 'maksutapa' ];
 }
-// Tilauksen peruutus ("Peruuta"-nappi)
-elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
 
+/**
+ * Käyttäjä peruuttanut maksamisen
+ */
+elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
 	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_POST[ 'peruuta_id' ], $cart->ostoskori_id ) ) {
 		$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
 	}
@@ -29,34 +36,32 @@ elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
 	exit;
 }
 
-// Ei maksunsuoritus; käyttäjä vasta tullut tilaus.php-sivulta
+/**
+ * Ensimmäinen kerta sivulla; käyttäjä vasta vahvistanut tilauksen
+ */
 elseif ( !empty( $_SESSION[ 'tilaus' ] ) ) {
 	PaymentAPI::preparePaymentFormInfo( $_SESSION[ 'tilaus' ][ 0 ], $_SESSION[ 'tilaus' ][ 1 ] );
+	// Älä tyhjennä _SESSION-dataa tässä, sitä tarvitaan HTML:n puolella.
 }
 else {
-	//header( "location:ostoskori.php" );
-	//exit;
+	header( "location:ostoskori.php" );
+	exit;
 }
 
-/*
+/**
  * Onnistuneen maksun suoritus. Ylhäällä tarkistetaan onko _GET tai _POST, tässä viimeistellään varsinainen maksu.
  */
 if ( !empty( $tilaus_id ) ) {
+	unset( $_SESSION[ 'tilaus' ] );
+
 	$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = ? 
 			WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
 	$result = $db->query( $sql, [ $maksutapa, $tilaus_id, $user->id ] );
-	// Jos maksu on jo hyväksytty (maksettu == 1), niin kyselyn pitäisi palauttaa 0 (muutettua riviä).
+
 	if ( $result ) {
+		$args = escapeshellarg($tilaus_id) . " " . escapeshellarg($user->id);
+		exec( "php tilaus_tiedostot_email.php {$args} > /dev/null &" );
 
-		// Luodaan lasku, ja lähetetään tilausvahvistus.
-		require 'lasku_pdf_luonti.php'; // Laskun luonti tässä tiedostossa
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
-
-		// Luodaan noutolista, ja lähetetään ylläpidolle ilmoitus
-		require 'noutolista_pdf_luonti.php';
-		Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
-
-		unset( $_SESSION[ 'tilaus' ] );
 		header( "location:tilaus_info.php?id={$tilaus_id}" );
 		exit();
 	}
@@ -76,15 +81,17 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 <html lang="fi">
 <head>
 	<meta charset="utf-8">
-	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
 
 <?php require 'header.php'; ?>
 <script>
+	// Piilotetaan kaikki linkit headerista, jotta käyttäjä ei vahingossa poistu sivulta.
 	document.getElementById("navbar").style.display = "none";
+	document.getElementById("head_cart").style.display = "none";
 	document.getElementById("headertop").style.border = '2px solid #2f5cad';
 </script>
 

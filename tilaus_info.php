@@ -84,10 +84,9 @@ $noutolista_file_nimi =
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<title>Tilaus-info</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -107,6 +106,7 @@ $noutolista_file_nimi =
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:red;"> Odottaa maksua. Lasku ei saatavilla. </span>
+				<!-- //TODO: Tilauksen peruutus ylläpitäjän toimesta tähän? -->
             <?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
                 <span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
 			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
@@ -117,6 +117,7 @@ $noutolista_file_nimi =
 		</div>
 		<div id="painikkeet">
             <?php if ( $tilaus_tiedot->maksettu ) : ?>
+	            <!-- //TODO: Miksei se form ole suoraan tässä? -->
 	            <a href="#" onclick="document.getElementById('download_lasku').submit()"
                    class="nappi">Lasku</a>
                 <?php if ( $user->isAdmin() ) : ?>

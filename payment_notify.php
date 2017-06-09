@@ -6,6 +6,11 @@ require "luokat/user.class.php";
 require "luokat/ostoskori.class.php"; // Tuotteiden palauttamista ostoskoriin varten.
 require 'luokat/paymentAPI.class.php';
 
+if ( empty( $_GET[ 'ORDER_NUMBER' ] ) ) {
+	header( 'Location: etusivu.php' );
+	exit;
+}
+
 $db = new DByhteys();
 
 // Haetaan kayttajan ID tilauksesta.
@@ -49,18 +54,13 @@ switch ( $get_count ) {
 			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
 			if ( $result ) {
 
-				// Luodaan lasku, ja lähetetään tilausvahvistus.
-				require 'lasku_pdf_luonti.php'; // Laskun luonti tässä tiedostossa
-				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $tiedoston_nimi );
+				$args = escapeshellarg($_GET[ 'ORDER_NUMBER' ]) . " " . escapeshellarg($user->id);
+				exec( "php tilaus_tiedostot_email.php {$args} > /dev/null &" );
 
-				// Luodaan noutolista, ja lähetetään ylläpidolle ilmoitus
-				require 'noutolista_pdf_luonti.php';
-				Email::lahetaNoutolista( $tilaus_id, $tiedoston_nimi );
 			}
 		}
 		break;
-	default :
-		// Hei, mitä sinä tällä sivulla teet?!
-		// Get lost!
-		break;
 }
+
+header( 'Location: etusivu.php' );
+exit;

@@ -1,6 +1,6 @@
 <?php
-$pdf_html_header = '<div style="font-weight:bold;text-align:center;">Osax Oy :: Kuitti</div>';
-$pdf_html_footer = '
+$pdf_lasku_html_header = '<div style="font-weight:bold;text-align:center;">Osax Oy :: Kuitti</div>';
+$pdf_lasku_html_footer = '
 	<table width="100%" style="font-size:9pt;">
 		<tr>
 			<td width="33%">{DATE j-m-Y}</td>
@@ -12,7 +12,7 @@ $pdf_html_footer = '
 /**
  * Laskun alkuosa. Logo, laskun tiedot ja osoitetiedot. Sen jälkeen tuotetaulukon header row.
  */
-$pdf_html_body = "
+$pdf_lasku_html_body = "
 <!-- Laskun logo, pvm, ja numero -->
 <table style='width:100%;'>
 	<tbody>

@@ -70,7 +70,7 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 				<td><?= $tilaus->id ?></td>
 				<td><?= $tilaus->paivamaara ?></td>
 				<td><?= $tilaus->kpl ?></td>
-				<td><?= format_euros($tilaus->summa) ?></td>
+				<td><?= format_number($tilaus->summa) ?></td>
 				<td><?=	$tilaus->kasitelty == 1
 					? "<span style='color:green;'>OK</span>"
 					: "<span style='color:red;'>EI</span>" ?></td>
@@ -86,6 +86,7 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 
 <script>
 	$(function(){
+		//TODO: Miten alla olevan rivin tekisi ilman jQuerya?
 		$('*[data-href]')
 			.css('cursor', 'pointer')
 			.click(function(){

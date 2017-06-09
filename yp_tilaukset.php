@@ -66,9 +66,9 @@ $tilaukset = hae_tilaukset( $db );
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
+						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_number($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
 						<td><label>Valitse<input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
-							</label></td>
+							</label></td> <!-- //TODO: vain jos tilaus on maksettu? -->
 					</tr>
 				<?php endforeach; ?>
 				</tbody>
