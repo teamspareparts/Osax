@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS `brandi` (
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
--- Voi olla turha! Poistan heti kun olen varma, että ei tarvita
+/* Voi olla turha! Poistan heti kun olen varma, että ei tarvita */
 CREATE TABLE IF NOT EXISTS `valmistajan_hankintapaikka` (
   `brandId` int(11) NOT NULL, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- PK, FK

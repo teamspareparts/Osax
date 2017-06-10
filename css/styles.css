@@ -97,8 +97,6 @@ main { display: block; } /* F*** IE */
 .header_top a:hover {
 	color: #000; /* Darker text color for contrast */
 	background-color: rgba(135, 205, 255, 0.4); /* Slightly darker bg-color from white for contrast */
-	/*color: #ffffff;*/
-	/*background-color: #2f5cad;*/
 }
 
 

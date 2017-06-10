@@ -16,9 +16,8 @@ if ( isset($_POST['new_news']) ) {
 <head>
 	<meta charset="UTF-8">
 	<title>Lisää uutinen</title>
-	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="css/styles.css">
 	<style>
 		.fp_content_form input[type=text], select, textarea {
 			padding: 5px;
@@ -36,7 +35,7 @@ if ( isset($_POST['new_news']) ) {
 				   maxlength="50" name="text_headline" required>
 
 			<select title="Tekstin sisällön sijainti" name="text_type" required>
-				<option value="" disabled selected>--- Valitse tekstin sijainti ---</option>
+				<option disabled selected>--- Valitse tekstin sijainti ---</option>
 				<option value="0">Vasen kolumni</option>
 				<option value="1">Keskimmäinen kolumni</option>
 				<option value="2">Oikea kolumni</option>

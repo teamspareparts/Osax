@@ -35,12 +35,12 @@ function jaottele_uutiset ( &$news ) {
 
 $sql_query = "SELECT tyyppi, otsikko, teksti, pvm 
 			  FROM etusivu_uutinen
-			  WHERE aktiivinen = TRUE
-				AND pvm > ?";
-$date = new DateTime('today -10 days');
-$news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL, PDO::FETCH_OBJ );
+			  WHERE aktiivinen = TRUE AND pvm > ?
+			  ORDER BY pvm DESC";
+$date = new DateTime('today -14 days');
+$news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL );
 
-$fp_content = jaottele_uutiset($news);
+$news = jaottele_uutiset( $news);
 
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
 $css_version = filemtime( 'css/styles.css' );
@@ -55,18 +55,35 @@ $css_version = filemtime( 'css/styles.css' );
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style>
 		div, section, ul, li {
-			border: 1px solid;
+			/*border: 1px solid;*/
 		}
 		.etusivu_content {
 			display: flex;
 			flex-direction: row;
 			white-space: normal;
 		}
-		.left_section, .right_section {
+		.left_section, .right_section, .center_section {
 			flex-grow: 1;
+			width: 30%;
+			border: 1px solid;
+			padding: 5px;
+			margin: 5px;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
-		.center_section {
-			flex-grow: 3;
+
+		.etusivu_content ul {
+			list-style-type: none;
+		}
+		.etusivu_content li {
+			border-bottom: 1px dashed;
+			margin-bottom: 10px;
+		}
+		.news_content {
+			/*white-space: nowrap;*/
+			max-height: 6rem;
+			overflow: hidden;
+			text-overflow: ellipsis;
 		}
 	</style>
 </head>
@@ -113,53 +130,60 @@ $css_version = filemtime( 'css/styles.css' );
 	<?php endif; ?>
 	<section class="etusivu_content">
 		<section class="left_section">
-			<?php if ( $fp_content[0] ) : ?>
-			<ul><?php foreach ( $fp_content[0] as $uutinen ) : ?>
-				<li>
-					<div class="news_headline">
-						<?= $uutinen->otsikko ?>
-					</div>
-					<div class="news_content">
-						<?= $uutinen->teksti ?>
-						<?= $uutinen->pvm ?>
-					</div>
-				</li>
-				<?php endforeach; ?>
-			</ul>
+			<?php if ( $news[0] ) : ?>
+				<ul>
+					<?php foreach ( $news[0] as $uutinen ) : ?>
+						<li>
+							<div class="news_headline">
+								<?= $uutinen->otsikko ?>
+							</div>
+							<div class="news_content">
+								<p><?= $uutinen->teksti ?></p>
+							</div>
+							<div class="news_date">
+								<p><?= $uutinen->pvm ?></p>
+							</div>
+						</li>
+					<?php endforeach; ?>
+				</ul>
 			<?php else : ?>
 				<div> Ei sisältöä </div>
 			<?php endif; ?>
 		</section>
 
 		<section class="center_section">
-			<?php if ( $fp_content[1] ) : ?>
-			<ul><?php foreach ( $fp_content[1] as $uutinen ) : ?>
-					<li>
-						<div class="news_headline">
-							<?= $uutinen->otsikko ?>
-						</div>
-						<div class="news_content">
-							<?= $uutinen->teksti ?>
-							<?= $uutinen->pvm ?>
-						</div>
-					</li>
-				<?php endforeach; ?>
-			</ul>
+			<?php if ( $news[1] ) : ?>
+				<ul><?php foreach ( $news[1] as $uutinen ) : ?>
+						<li>
+							<div class="news_headline">
+								<?= $uutinen->otsikko ?>
+							</div>
+							<div class="news_content">
+								<p><?= $uutinen->teksti ?></p>
+							</div>
+							<div class="news_date">
+								<p><?= $uutinen->pvm ?></p>
+							</div>
+						</li>
+					<?php endforeach; ?>
+				</ul>
 			<?php else : ?>
-			<div> Ei sisältöä </div>
+				<div> Ei sisältöä </div>
 			<?php endif; ?>
 		</section>
 
 		<section class="right_section">
-			<?php if ( $fp_content[2] ) : ?>
-				<ul><?php foreach ( $fp_content[2] as $uutinen ) : ?>
+			<?php if ( $news[2] ) : ?>
+				<ul><?php foreach ( $news[2] as $uutinen ) : ?>
 					<li>
 						<div class="news_headline">
 							<?= $uutinen->otsikko ?>
 						</div>
 						<div class="news_content">
-							<?= $uutinen->teksti ?>
-							<?= $uutinen->pvm ?>
+							<p><?= $uutinen->teksti ?></p>
+						</div>
+						<div class="news_date">
+							<p><?= $uutinen->pvm ?></p>
 						</div>
 					</li>
 				<?php endforeach; ?>
