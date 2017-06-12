@@ -349,7 +349,6 @@ CREATE TABLE IF NOT EXISTS `laskunumero` (
   PRIMARY KEY (`laskunro`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
-
 /* TEMP-taulu varastosaldon päivitystä varten tilausta tehdessä. */
 CREATE TABLE IF NOT EXISTS `temp_tuote`(
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK

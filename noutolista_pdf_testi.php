@@ -12,11 +12,11 @@ $_SESSION['indev'] = 1;
 $mpdf = new mPDF();
 $lasku = new Laskutiedot( $db, 3, $user, $yritys );
 
-require 'noutolista_html.php';
+require 'misc/noutolista_html.php';
 
-$mpdf->SetHTMLHeader( $pdf_html_header );
-$mpdf->SetHTMLFooter( $pdf_html_footer );
+$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
+$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 
-$mpdf->WriteHTML( $pdf_html_body );
+$mpdf->WriteHTML( $pdf_noutolista_html_body );
 
 $mpdf->Output();

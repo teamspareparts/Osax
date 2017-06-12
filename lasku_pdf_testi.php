@@ -17,11 +17,11 @@ $_SESSION['indev'] = 1;
 $mpdf = new mPDF();
 $lasku = new Laskutiedot( $db, 3, $user, $yritys );
 
-require 'lasku_html.php';
+require 'misc/lasku_html.php';
 
-$mpdf->SetHTMLHeader( $pdf_html_header );
-$mpdf->SetHTMLFooter( $pdf_html_footer );
+$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
+$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
 
-$mpdf->WriteHTML( $pdf_html_body );
+$mpdf->WriteHTML( $pdf_lasku_html_body );
 
 $mpdf->Output();

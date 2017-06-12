@@ -16,14 +16,14 @@ if ( !file_exists('./noutolistat') ) {
 require 'lasku_html.php';
 $mpdf->SetHTMLHeader( $pdf_html_header );
 $mpdf->SetHTMLFooter( $pdf_html_footer );
-$mpdf->WriteHTML( $pdf_html_body );
+$mpdf->WriteHTML( $pdf_lasku_html_body );
 $tiedoston_nimi = "lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$lasku->asiakas->id}.pdf";
 $mpdf->Output( "./laskut/{$tiedoston_nimi}", 'F' );
 
 require 'noutolista_html.php';
 $mpdf->SetHTMLHeader( $pdf_html_header );
 $mpdf->SetHTMLFooter( $pdf_html_footer );
-$mpdf->WriteHTML( $pdf_html_body );
+$mpdf->WriteHTML( $pdf_lasku_html_body );
 $tiedoston_nimi = "noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$lasku->asiakas->id}.pdf";
 $mpdf->Output( "./noutolistat/{$tiedoston_nimi}", 'F' );
 

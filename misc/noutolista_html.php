@@ -1,5 +1,6 @@
 <?php
-$pdf_noutolista_html_header = '<div style="font-weight:bold;text-align:center;">Osax Oy :: Tilauksen noutolista</div>';
+$pdf_noutolista_html_header = "
+	<div style='font-weight:bold;text-align:center;'> Osax Oy :: Tilauksen noutolista </div>";
 $pdf_noutolista_html_footer = '
 	<table width="100%" style="font-size:9pt;">
 		<tr>
@@ -13,8 +14,6 @@ $pdf_noutolista_html_footer = '
  * Noutolistan alkuosa. Logo ja laskun tiedot. Sen jälkeen tuotetaulukon header row.
  */
 $pdf_noutolista_html_body = "
-<div style='width:100%;'>{$lasku->laskuHeader}</div>
-
 <table style='width:100%;'>
 	<tbody>
 	<tr><td colspan='2'>
@@ -44,7 +43,9 @@ $pdf_noutolista_html_body = "
 			{$lasku->asiakas->yrityksen_nimi}</td></tr>
 	</tbody>
 </table>
-<hr>
+<hr>"
+. ($_SESSION['indev'] ? "<span style='color:red;'>dev.osax: tämä noutolista tarkoitettu vain testaukseen.</span><hr>" : "")
+. "
 <table style='width:100%;font-size:80%;'>
 	<thead>
 	<tr><th colspan='6'><h2>Noutolista &mdash; tilatut tuotteet</h2></th></tr>
@@ -64,7 +65,7 @@ $pdf_noutolista_html_body = "
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
-	$pdf_html_body .= "
+	$pdf_noutolista_html_body .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
 			<td style='text-align:center;'>{$tuote->nimi}</td>
@@ -74,7 +75,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 		</tr>";
 }
 
-$pdf_html_body .= "
+$pdf_noutolista_html_body .= "
 	</tbody>
 </table>
 <hr>

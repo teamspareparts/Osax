@@ -1,11 +1,12 @@
 <?php
-$pdf_lasku_html_header = '<div style="font-weight:bold;text-align:center;">Osax Oy :: Kuitti</div>';
+$pdf_lasku_html_header = '<div style="font-weight:bold;text-align:center;">	Osax Oy :: Kuitti </div>';
+
 $pdf_lasku_html_footer = '
 	<table width="100%" style="font-size:9pt;">
 		<tr>
 			<td width="33%">{DATE j-m-Y}</td>
 			<td width="33%" align="center" style="font-weight:bold; font-size:10pt;">{PAGENO}/{nbpg}</td>
-			<td width="33%" align="right">Lasku</td>
+			<td width="33%" align="right">Kuitti</td>
 		</tr>
 	</table>';
 
@@ -24,7 +25,7 @@ $pdf_lasku_html_body = "
 					<th>Päivämäärä</th></tr>
 				</thead>
 				<tbody>
-				<tr><td style='text-align:center;'>".sprintf('%04d', $lasku->laskunro)."</td>
+				<tr><td style='text-align:center;'>".sprintf('%06d', $lasku->laskunro)."</td>
 					<td style='text-align:center;'>".date('d.m.Y')."</td>
 				</tr>
 				</tbody>
@@ -48,7 +49,9 @@ $pdf_lasku_html_body = "
 		</tr>
 	</tbody>
 </table>
-<hr>
+<hr>"
+. ($_SESSION['indev'] ? "<span style='color:red;'>dev.osax: tämä lasku tarkoitettu vain testaukseen.</span><hr>" : "")
+. "
 <!-- Tilauksen numero ja tilausaika -->
 <div>
 	<span style='padding-right:20px;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</span>
@@ -77,7 +80,7 @@ $pdf_lasku_html_body = "
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
-	$pdf_html_body .= "
+	$pdf_lasku_html_body .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 			<td>{$tuote->tuotekoodi}</td>
 			<td>{$tuote->nimi}</td>
@@ -93,7 +96,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 /**
  * Lisätään rahti tuote-listaukseen
  */
-$pdf_html_body .= "
+$pdf_lasku_html_body .= "
 	<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
 		<td></td>
 		<td>Rahtimaksu</td>
@@ -108,7 +111,7 @@ $pdf_html_body .= "
 /**
  * ALV-kantojen listauksen header-row
  */
-$pdf_html_body .= "
+$pdf_lasku_html_body .= "
 	</tbody>
 </table>
 <hr>
@@ -126,7 +129,7 @@ $pdf_html_body .= "
  * Lisätään kaikkien ALV-kantojen tiedot laskun loppuun.
  */
 foreach ( $lasku->hintatiedot['alv_kannat'] as $kanta ) {
-	$pdf_html_body .= "
+	$pdf_lasku_html_body .= "
 		<tr><td style='text-align:right;'>{$kanta['kanta']}</td>
 			<td style='text-align:right;'>{$lasku->float_toString($kanta['perus'])} €</td>
 			<td style='text-align:right;'>{$lasku->float_toString($kanta['maara'])} €</td></tr>";
@@ -135,7 +138,7 @@ foreach ( $lasku->hintatiedot['alv_kannat'] as $kanta ) {
 /**
  * Laskun loppuosa. Tilauksen summa jne.
  */
-$pdf_html_body .= "
+$pdf_lasku_html_body .= "
 		<tr><th style='text-align:center;'>Yht.</th>
 			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_perus'])} €</td>
 			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['alv_maara'])} €</td></tr>
