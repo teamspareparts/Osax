@@ -159,11 +159,12 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			width: 220px;
 			font-weight: bold;
 			white-space: nowrap;
+			padding: 0;
 		}
 	</style>
 </head>
 <body>
-<?php require("header.php"); ?>
+<?php require "header.php"; ?>
 
 <main class="main_body_container lomake">
 	<?= $feedback ?>
@@ -226,7 +227,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 	<br><br>
 
-	<fieldset class="muut_tiedot" style="display:inline-block; text-align:left;"><Legend>Osoitekirja</legend>
+	<fieldset class="muut_tiedot"><Legend>Osoitekirja</legend>
 		<?php foreach ( $user->toimitusosoitteet as $key => $row ) : ?>
 			<div> Osoite <?= $row->osoite_id ?><br>
 				<br>
@@ -255,7 +256,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	</fieldset>
 
     <br><br>
-    <fieldset class="muut_tiedot" style="display:inline-block; text-align:left;"><legend>Yritys</legend>
+    <fieldset class="muut_tiedot"><legend>Yritys</legend>
         <label>Nimi</label><?=$yritys->nimi?><br>
         <label>Sähköposti</label><?=$yritys->sahkoposti?><br>
         <label>Puhelin</label><?=$yritys->puhelin?><br>
@@ -266,6 +267,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	    <span class="small_note">Vain ylläpitäjä voi muuttaa yritystietoja.</span>
     </fieldset>
 </main>
+
+<?php require "footer.php"; ?>
 
 <script>
 	/**

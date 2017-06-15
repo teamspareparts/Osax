@@ -120,6 +120,7 @@ $css_version = filemtime( 'css/styles.css' );
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
+		<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
 	</section>
 	<?php if ( $user->isAdmin() ) : ?>
 	<div class="admin_hallinta">
