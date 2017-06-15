@@ -76,7 +76,7 @@ elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin()
 /** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
 $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 
-$laskun_file_nimi = "lasku-". sprintf('%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
+$lasku_file_nimi = "lasku-". sprintf( '%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
 $noutolista_file_nimi =
 	"noutolista-". sprintf('%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
 ?>
@@ -92,10 +92,10 @@ $noutolista_file_nimi =
 
 <!-- Tiedoston latausta varten -->
 <form id="download_lasku" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="laskut/lasku-<?= $tilaus_tiedot->laskunro ?>-<?= $tilaus_tiedot->kayttaja_id ?>.pdf">
+    <input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
 </form>
 <form id="download_noutolista" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="noutolistat/noutolista-<?=$tilaus_tiedot->laskunro ?>-<?=$tilaus_tiedot->kayttaja_id ?>.pdf">
+    <input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
 </form>
 
 <?php include 'header.php'; ?>
@@ -186,6 +186,8 @@ $noutolista_file_nimi =
 		</tbody>
 	</table>
 </main>
+
+<?php require 'footer.php'; ?>
 
 </body>
 </html>

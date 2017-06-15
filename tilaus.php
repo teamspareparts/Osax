@@ -179,6 +179,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<p><a class="nappi red" href="ostoskori.php?cancel_tilaus">Palaa takaisin</a></p>
 </main>
 
+<?php require 'footer.php'; ?>
+
 <script>
 	/**
 	 * Avaa Modalin toimitusosoitteen valintaa varten

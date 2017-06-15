@@ -55,6 +55,7 @@ $pdf_lasku_html_body = "
 <!-- Tilauksen numero ja tilausaika -->
 <div>
 	<span style='padding-right:20px;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</span>
+	<span>---</span>
 	<span>Tilausaika: {$lasku->tilaus_pvm}</span>
 </div>
 <hr>
@@ -148,7 +149,7 @@ $pdf_lasku_html_body .= "
 		<thead><tr><th colspan='2' style='text-align: center;'>LOPPUSUMMA</th></tr></thead>
 		<tbody>
 		<tr><td>Summa yhteensä:</td>
-			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'], 2)} €</td></tr>
+			<td style='text-align:right;'>{$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €</td></tr>
 		</tbody>
 	</table></td></tr>
 </table>

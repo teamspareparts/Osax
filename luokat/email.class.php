@@ -1,7 +1,6 @@
 ﻿<?php
 /**
  * Staattinen luokka sähköpostin käyttöön.
- * @version 2017-02-13 <p> Tilausvahvistus muutettu käyttämään laskua.
  */
 class Email {
 	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
@@ -16,9 +15,12 @@ class Email {
 	/**
 	 * Lähettää sähköpostin. Luokan sisäiseen käyttöön, muut metodit asettavat arvot,
 	 * ja sitten kutsuvat tämän metodin.
+	 * @param array|null $config
 	 */
-	private static function sendMail() {
-		$config = parse_ini_file( "./config/config.ini.php" );
+	private static function sendMail( array $config = null ) {
+		if ( $config === null ) {
+			$config = parse_ini_file( "./config/config.ini.php" );
+		}
 		$apiParametres = array(
 			'api_user' => $config['email_user'],
 			'api_key' => $config['email_pass'],
@@ -92,11 +94,11 @@ class Email {
 					puh. 010 5485200<br>
 					janne@osax.fi';
 		Email::$message = "Tilaaja: {$email}<br>Tilausnumero:{$tilausnro}
-			<br>Summa: " . format_number( $lasku->hintatiedot[ 'summa_yhteensa' ] ) . "<br>
+			<br>Summa: {$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €<br>
 			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 
 		Email::$fileName = $fileName;
-		Email::$file = file_get_contents( "./laskut/{$fileName}" );
+		Email::$file = file_get_contents( $fileName );
 
 		Email::sendMail();
 	}
@@ -115,9 +117,9 @@ class Email {
 				<p>Käy merkkaamassa tilaus hoidetuksi, kun tilaus on lähetetty!</p>";
 
 		Email::$fileName = $fileName;
-		Email::$file = file_get_contents( "./noutolistat/{$fileName}" );
+		Email::$file = file_get_contents( $fileName );
 
-		Email::sendMail();
+		Email::sendMail( $config );
 	}
 
 	/**

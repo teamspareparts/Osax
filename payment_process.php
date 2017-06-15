@@ -1,7 +1,9 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
-require 'luokat/email.class.php';
+
+ignore_user_abort( true ); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
+set_time_limit( 300 ); // 5 minutes
 
 /**
  * Maskusuoritus Paytraililta
@@ -43,6 +45,7 @@ elseif ( !empty( $_SESSION[ 'tilaus' ] ) ) {
 	PaymentAPI::preparePaymentFormInfo( $_SESSION[ 'tilaus' ][ 0 ], $_SESSION[ 'tilaus' ][ 1 ] );
 	// Älä tyhjennä _SESSION-dataa tässä, sitä tarvitaan HTML:n puolella.
 }
+
 else {
 	header( "location:ostoskori.php" );
 	exit;
@@ -59,9 +62,48 @@ if ( !empty( $tilaus_id ) ) {
 	$result = $db->query( $sql, [ $maksutapa, $tilaus_id, $user->id ] );
 
 	if ( $result ) {
-		$args = escapeshellarg($tilaus_id) . " " . escapeshellarg($user->id);
-		exec( "php tilaus_tiedostot_email.php {$args} > /dev/null &" );
+		require './luokat/laskutiedot.class.php';
+		require './luokat/email.class.php';
+		require './mpdf/mpdf.php';
 
+		$mpdf = new mPDF();
+		$lasku = new Laskutiedot( $db, $tilaus_id, $user );
+
+		// Alemmat tiedostot vaativat $lasku-objektia.
+		require './misc/lasku_html.php';
+		require './misc/noutolista_html.php';
+
+		if ( !file_exists('./tilaukset') ) {
+			mkdir( './tilaukset' );
+		}
+
+		/********************
+		 * Laskun luonti
+		 ********************/
+		$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
+		$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
+		$mpdf->WriteHTML( $pdf_lasku_html_body );
+		$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$mpdf->Output( $lasku_nimi, 'F' );
+
+		/********************
+		 * Noutolistan luonti
+		 ********************/
+		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
+		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
+		$mpdf->WriteHTML( $pdf_noutolista_html_body );
+		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$mpdf->Output( $noutolista_nimi, 'F' );
+
+		/********************
+		 * Sähköpostit
+		 ********************/
+		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $lasku_nimi );
+		Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
+
+		/**
+		 * Tilaus valmis, tiedostot luotu, lähetetään pois.
+		 */
 		header( "location:tilaus_info.php?id={$tilaus_id}" );
 		exit();
 	}
@@ -138,6 +180,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	</form>
 </main>
 
+<?php require 'footer.php'; ?>
 
 <script src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>
 <script>

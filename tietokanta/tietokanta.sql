@@ -270,10 +270,8 @@ CREATE TABLE IF NOT EXISTS `brandin_linkitys` (
   `brandi_kaytetty_id` varchar(50) NOT NULL, -- Se brandin id, mitä hankintapaikka käyttää (voi erota tecdoc_id:stä)
   `hinnaston_sisaanajo_pvm` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`hankintapaikka_id`, `brandi_id`),
-  CONSTRAINT fk_brandinLinkitys_hankintapaikka
-  FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`),
-  CONSTRAINT fk_brandinLinkitys_brandi
-  FOREIGN KEY (`brandi_id`) REFERENCES `brandi`(`id`)
+  CONSTRAINT fk_brandinLinkitys_hankintapaikka FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`),
+  CONSTRAINT fk_brandinLinkitys_brandi FOREIGN KEY (`brandi_id`) REFERENCES `brandi`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja` (

@@ -4,8 +4,6 @@
  *
  * Link for more info on PDO: {@link https://phpdelusions.net/pdo}<br>
  * Link to PHP-manual on PDO: {@link https://secure.php.net/manual/en/book.pdo.php}
- *
- * @version 2017-03-09 <p> Tiedoston nimi muutettu
  */
 class DByhteys {
 
@@ -49,10 +47,10 @@ class DByhteys {
 	 * Lukee tarvittavat tiedot suoraan config.ini -tiedostosta.
 	 * @param string[] $config [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
 	 */
-	public function __construct( array $config = null ) {
+	public function __construct( array $config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
 		define( 'FETCH_ALL', true );
 		if ( $config === null ) {
-			$config = parse_ini_file( "./config/config.ini.php" );
+			$config = parse_ini_file( $iniFileName );
 		}
 		else {
 			$config = [ 'user' => $config[ 0 ], 'pass' => $config[ 1 ], 'name' => $config[ 2 ], 'host' => $config[ 3 ] ];
