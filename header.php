@@ -2,12 +2,13 @@
     <meta http-equiv="refresh" content="0; url=index.php">
 </noscript>
 
-<!-- Tiedoston latausta varten -->
-<form id="download_hinnasto" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
-</form>
 
 <header class="header_container">
+	<!-- Tiedoston latausta varten -->
+	<form id="download_hinnasto" method="post" action="download.php">
+		<input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
+	</form>
+
     <section class="header_top" id="headertop">
         <div id="head_logo">
             <img src="img/osax_logo.jpg" align="left" alt="No pics, plz">
@@ -69,73 +70,69 @@
             </li>
         </ul>
     </section>
+
+	<script async>
+		//navbar active link
+		let pgurl = window.location.href.substr(window.location.href
+				.lastIndexOf("/")+1).split('?')[0];
+		//Tarkastetaan alasivut
+		switch(pgurl) {
+			case "yp_muokkaa_yritysta.php":
+			case "yp_lisaa_yritys.php":
+			case "yp_asiakkaat.php":
+			case "yp_muokkaa_asiakasta.php":
+			case "yp_lisaa_asiakas.php":
+				pgurl = "yp_yritykset.php";
+				break;
+			case "yp_tilaushistoria.php":
+			case "tilaus_info.php":
+				pgurl = "yp_tilaukset.php";
+				break;
+			case "toimittajan_hallinta.php":
+			case "yp_valikoima.php":
+				pgurl = "toimittajat.php";
+				break;
+			case "yp_ostotilauskirja.php":
+			case "yp_ostotilauskirja_tuote.php":
+				pgurl = "yp_ostotilauskirja_hankintapaikka.php";
+				break;
+			case "yp_ostotilauskirja_tuote_odottavat.php":
+				pgurl = "yp_ostotilauskirja_odottavat.php";
+				break;
+			case "yp_varastolistausraportti.php":
+			case "yp_myyntiraportti.php":
+				pgurl = "yp_raportit.php";
+				break;
+			case "yp_hankintapaikka.php":
+			case "yp_hankintapaikka_linkitys.php":
+			case "yp_lisaa_tuotteita.php":
+			case "yp_lisaa_omia_tuotteita.php":
+				pgurl = "yp_hankintapaikat.php";
+				break;
+		}
+
+		let links = document.getElementsByClassName("navigationbar")[0].getElementsByTagName("a");
+		for ( let i = 0; i < links.length; i++ ) {
+			if ( links[i].getAttribute("href") === pgurl ) {
+				links[i].className += "active";
+				//Jos dropdpdown valikko, myös "MUUT"-painike active
+				if ( links[i].parentElement.parentElement.className === "dropdown-content") {
+					document.getElementById("dropdown_link").className += "active";
+				}
+			}
+		}
+
+		//dropdown icon toiminnallisuus
+		document.getElementById("dropdown_link").onclick = function () {
+			const dropdown_icon = document.getElementById("dropdown_icon");
+			const dropdown_content = document.getElementById("navbar_dropdown-content");
+			if ( dropdown_icon.innerHTML === "arrow_drop_down" ){
+				dropdown_icon.innerHTML = "arrow_drop_up";
+				dropdown_content.style.display = 'block';
+			} else {
+				dropdown_icon.innerHTML = "arrow_drop_down";
+				dropdown_content.style.display = 'none';
+			}
+		};
+	</script>
 </header>
-
-
-<script type="text/javascript">
-
-    //navbar active link
-    let pgurl = window.location.href.substr(window.location.href
-            .lastIndexOf("/")+1).split('?')[0];
-	//Tarkastetaan alasivut
-	switch(pgurl) {
-		case "yp_muokkaa_yritysta.php":
-		case "yp_lisaa_yritys.php":
-		case "yp_asiakkaat.php":
-		case "yp_muokkaa_asiakasta.php":
-		case "yp_lisaa_asiakas.php":
-			pgurl = "yp_yritykset.php";
-			break;
-		case "yp_tilaushistoria.php":
-		case "tilaus_info.php":
-			pgurl = "yp_tilaukset.php";
-			break;
-		case "toimittajan_hallinta.php":
-		case "yp_valikoima.php":
-			pgurl = "toimittajat.php";
-			break;
-		case "yp_ostotilauskirja.php":
-		case "yp_ostotilauskirja_tuote.php":
-			pgurl = "yp_ostotilauskirja_hankintapaikka.php";
-			break;
-		case "yp_ostotilauskirja_tuote_odottavat.php":
-			pgurl = "yp_ostotilauskirja_odottavat.php";
-			break;
-		case "yp_varastolistausraportti.php":
-        case "yp_myyntiraportti.php":
-			pgurl = "yp_raportit.php";
-			break;
-        case "yp_hankintapaikka.php":
-		case "yp_hankintapaikka_linkitys.php":
-        case "yp_lisaa_tuotteita.php":
-        case "yp_lisaa_omia_tuotteita.php":
-            pgurl = "yp_hankintapaikat.php";
-            break;
-	}
-
-    let links = document.getElementsByClassName("navigationbar")[0].getElementsByTagName("a");
-    for ( i = 0; i < links.length; i++ ) {
-        if ( links[i].getAttribute("href") === pgurl ) {
-            links[i].className += "active";
-            //Jos dropdpdown valikko, myös "MUUT"-painike active
-            if ( links[i].parentElement.parentElement.className === "dropdown-content") {
-                document.getElementById("dropdown_link").className += "active";
-            }
-        }
-    }
-
-    //dropdown icon toiminnallisuus
-    document.getElementById("dropdown_link").onclick = function () {
-        const dropdown_icon = document.getElementById("dropdown_icon");
-        const dropdown_content = document.getElementById("navbar_dropdown-content");
-        if ( dropdown_icon.innerHTML === "arrow_drop_down" ){
-            dropdown_icon.innerHTML = "arrow_drop_up";
-            dropdown_content.style.display = 'block';
-        } else {
-            dropdown_icon.innerHTML = "arrow_drop_down";
-            dropdown_content.style.display = 'none';
-        }
-    };
-
-
-</script>

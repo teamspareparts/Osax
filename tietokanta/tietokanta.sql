@@ -335,7 +335,8 @@ CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `tyyppi` tinyint(1) UNSIGNED NOT NULL DEFAULT 1,
   `otsikko` varchar(50) NOT NULL,
-  `teksti` varchar(10000) NOT NULL, -- Max. pituus noin 16k.
+  `summary` varchar(500) NOT NULL,
+  `details` varchar(10000) NOT NULL, -- Max. pituus noin 16k.
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

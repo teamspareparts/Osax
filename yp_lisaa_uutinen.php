@@ -5,9 +5,9 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 
-if ( isset($_POST['new_news']) ) {
-	$db->query( "INSERT INTO etusivu_uutinen (otsikko, tyyppi, teksti) VALUES (?,?,?)",
-		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_content']] );
+if ( isset($_POST['text_headline']) ) {
+	$db->query( "INSERT INTO etusivu_uutinen (otsikko, tyyppi, summary, details) VALUES (?,?,?,?)",
+		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_summary'], $_POST['text_details']] );
 	header("location:etusivu.php?test"); exit;
 }
 ?>
@@ -31,8 +31,8 @@ if ( isset($_POST['new_news']) ) {
 	<fieldset><legend>Lisää uusi uutinen/mainos etusivulle</legend>
 		<form class="flex_column fp_content_form" method="post">
 
-			<input type="text" id="otsikko" title="Tekstin otsikko" placeholder="TEKSTIN OTSIKKO"
-				   maxlength="50" name="text_headline" required>
+			<input type="text" name="text_headline" id="otsikko" title="Tekstin otsikko" placeholder="TEKSTIN OTSIKKO"
+				   maxlength="50" required>
 
 			<select title="Tekstin sisällön sijainti" name="text_type" required>
 				<option disabled selected>--- Valitse tekstin sijainti ---</option>
@@ -41,14 +41,20 @@ if ( isset($_POST['new_news']) ) {
 				<option value="2">Oikea kolumni</option>
 			</select>
 
-			<textarea maxlength="10000" placeholder="TEKSTIN SISÄLTÖ" rows="10" name="text_content"
+			<textarea name="text_summary" maxlength="200" placeholder="SUMMARY. Tekstin tiivistelmä."
+			          rows="3" title="Tekstin sisältö. Hyväksyy HTML:ää." required></textarea>
+
+			<textarea name="text_details" maxlength="10000" placeholder="DETAILS. Tarkempaa lisätietoa." rows="10"
 					  title="Tekstin sisältö. Hyväksyy HTML:ää." required></textarea>
 
-			<input type="hidden" name="new_news">
-			<input type="submit" class="nappi" value="Lisää uusi teksti etusivulle">
+			<input type="submit" value="Lisää uusi teksti etusivulle" class="nappi">
 
 		</form>
 	</fieldset>
+
+	<div>
+		<p>Tekstin summary näytetään käyttäjälle. Details on piilotettu kunnes käyttäjä klikkaa uutista.</p>
+	</div>
 </main>
 
 </body>

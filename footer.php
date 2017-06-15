@@ -1,5 +1,5 @@
-<div class="footer">
+<footer class="footer">
 	<span>
 		Osax Oy
 	</span>
-</div>
+</footer>

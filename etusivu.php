@@ -13,34 +13,34 @@ require '_start.php'; global $db, $user, $cart;
 
 //TODO: PhpDoc
 function jaottele_uutiset ( &$news ) {
-	$foos = $things = $some_more_stuff = array();
+	$arr = array([],[],[]);
 	foreach ( $news as $item ) {
 		switch ( $item->tyyppi ) {
 			case 0:
-				$foos[] = $item;
+				$arr[0][] = $item;
 				break;
 			case 1:
-				$things[] = $item;
+				$arr[1][] = $item;
 				break;
 			case 2:
-				$some_more_stuff[] = $item;
+				$arr[2][] = $item;
 				break;
 			default:
 				echo "Something went wrong. Uutisen tyyppiä ei löytynyt.";
 		}
 	}
 
-	return [$foos, $things, $some_more_stuff];
+	$news = $arr;
 }
 
-$sql_query = "SELECT tyyppi, otsikko, teksti, pvm 
+$sql_query = "SELECT id, tyyppi, otsikko, summary, details, pvm 
 			  FROM etusivu_uutinen
 			  WHERE aktiivinen = TRUE AND pvm > ?
 			  ORDER BY pvm DESC";
-$date = new DateTime('today -14 days');
+$date = new DateTime('today -300 days');
 $news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL );
 
-$news = jaottele_uutiset( $news);
+jaottele_uutiset( $news );
 
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
 $css_version = filemtime( 'css/styles.css' );
@@ -50,9 +50,8 @@ $css_version = filemtime( 'css/styles.css' );
 <head>
 	<meta charset="UTF-8">
 	<title>Osax - Etusivu</title>
-	<link rel="stylesheet" href="css/styles.css?v=<?=$css_version?>">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="css/styles.css?v=<?=$css_version?>">
 	<style>
 		div, section, ul, li {
 			/*border: 1px solid;*/
@@ -62,10 +61,14 @@ $css_version = filemtime( 'css/styles.css' );
 			flex-direction: row;
 			white-space: normal;
 		}
+		.etusivu_content ul{
+			padding: 0 20px;
+		}
 		.left_section, .right_section, .center_section {
 			flex-grow: 1;
 			width: 30%;
 			border: 1px solid;
+			border-radius: 3px;
 			padding: 5px;
 			margin: 5px;
 			overflow: hidden;
@@ -80,10 +83,15 @@ $css_version = filemtime( 'css/styles.css' );
 			margin-bottom: 10px;
 		}
 		.news_content {
-			/*white-space: nowrap;*/
-			max-height: 6rem;
+			max-height: 10rem;
 			overflow: hidden;
 			text-overflow: ellipsis;
+		}
+		.news_date {
+			font-style: oblique;
+		}
+		.news_date a {
+			text-decoration: underline;
 		}
 	</style>
 </head>
@@ -122,6 +130,7 @@ $css_version = filemtime( 'css/styles.css' );
 		</div>
 		<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
 	</section>
+
 	<?php if ( $user->isAdmin() ) : ?>
 	<div class="admin_hallinta">
 		<span>Admin:</span>
@@ -129,69 +138,72 @@ $css_version = filemtime( 'css/styles.css' );
 			Lisää uusi uutinen/mainos (ohjaa uudelle sivulle)</a>
 	</div>
 	<?php endif; ?>
+
 	<section class="etusivu_content">
-		<section class="left_section">
-			<?php if ( $news[0] ) : ?>
-				<ul>
-					<?php foreach ( $news[0] as $uutinen ) : ?>
-						<li>
-							<div class="news_headline">
-								<?= $uutinen->otsikko ?>
-							</div>
-							<div class="news_content">
-								<p><?= $uutinen->teksti ?></p>
-							</div>
-							<div class="news_date">
-								<p><?= $uutinen->pvm ?></p>
-							</div>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			<?php else : ?>
-				<div> Ei sisältöä </div>
-			<?php endif; ?>
-		</section>
+		<section class="left_section" <?= (empty($news[0])) ? 'hidden' : '' ?>>
+			<ul>
+				<?php foreach ( $news[0] as $uutinen ) : ?>
+				<li>
+					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
 
-		<section class="center_section">
-			<?php if ( $news[1] ) : ?>
-				<ul><?php foreach ( $news[1] as $uutinen ) : ?>
-						<li>
-							<div class="news_headline">
-								<?= $uutinen->otsikko ?>
-							</div>
-							<div class="news_content">
-								<p><?= $uutinen->teksti ?></p>
-							</div>
-							<div class="news_date">
-								<p><?= $uutinen->pvm ?></p>
-							</div>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			<?php else : ?>
-				<div> Ei sisältöä </div>
-			<?php endif; ?>
-		</section>
+					<div class="news_content">
+						<details>
+							<summary> <?=$uutinen->summary?> </summary>
+							<p> <?=$uutinen->details?> </p>
+						</details>
+					</div>
 
-		<section class="right_section">
-			<?php if ( $news[2] ) : ?>
-				<ul><?php foreach ( $news[2] as $uutinen ) : ?>
-					<li>
-						<div class="news_headline">
-							<?= $uutinen->otsikko ?>
-						</div>
-						<div class="news_content">
-							<p><?= $uutinen->teksti ?></p>
-						</div>
-						<div class="news_date">
-							<p><?= $uutinen->pvm ?></p>
-						</div>
-					</li>
+					<p class="news_date">
+						<?=$uutinen->pvm?>
+						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
+					</p>
+				</li>
 				<?php endforeach; ?>
-				</ul>
-			<?php else : ?>
-				<div> Ei sisältöä </div>
-			<?php endif; ?>
+			</ul>
+		</section>
+
+		<section class="center_section" <?= (empty($news[1])) ? 'hidden' : '' ?>>
+			<ul>
+				<?php foreach ( $news[1] as $uutinen ) : ?>
+				<li>
+					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
+
+					<div class="news_content">
+						<details>
+							<summary> <?=$uutinen->summary?> </summary>
+							<p> <?=$uutinen->details?> </p>
+						</details>
+					</div>
+
+					<p class="news_date">
+						<?=$uutinen->pvm?>
+						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
+					</p>
+				</li>
+				<?php endforeach; ?>
+			</ul>
+		</section>
+
+		<section class="right_section" <?= (empty($news[2])) ? 'hidden' : '' ?>>
+			<ul>
+				<?php foreach ( $news[2] as $uutinen ) : ?>
+				<li>
+					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
+
+					<div class="news_content">
+						<details>
+							<summary> <?=$uutinen->summary?> </summary>
+							<p> <?=$uutinen->details?> </p>
+						</details>
+					</div>
+
+					<p class="news_date">
+						<?=$uutinen->pvm?>
+						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
+					</p>
+				</li>
+				<?php endforeach; ?>
+			</ul>
 		</section>
 	</section>
 </main>
