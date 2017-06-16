@@ -45,7 +45,7 @@ if ( isset($_POST['text_headline']) ) {
 			          rows="3" title="Tekstin sisältö. Hyväksyy HTML:ää." required></textarea>
 
 			<textarea name="text_details" maxlength="10000" placeholder="DETAILS. Tarkempaa lisätietoa." rows="10"
-					  title="Tekstin sisältö. Hyväksyy HTML:ää." required></textarea>
+					  title="Tekstin sisältö. Hyväksyy HTML:ää."></textarea>
 
 			<input type="submit" value="Lisää uusi teksti etusivulle" class="nappi">
 

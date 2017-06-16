@@ -42,6 +42,8 @@ $news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL );
 
 jaottele_uutiset( $news );
 
+$cmp_dt = new DateTime('3 days ago');
+
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
 $css_version = filemtime( 'css/styles.css' );
 ?>
@@ -144,14 +146,22 @@ $css_version = filemtime( 'css/styles.css' );
 			<ul>
 				<?php foreach ( $news[0] as $uutinen ) : ?>
 				<li>
-					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
+					<h4 class="news_headline">
+						<?=$uutinen->otsikko?>
+						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
+					</h4>
 
-					<div class="news_content">
-						<details>
+					<?php if ( !empty($uutinen->details) ) : ?>
+						<details class="news_content">
 							<summary> <?=$uutinen->summary?> </summary>
 							<p> <?=$uutinen->details?> </p>
 						</details>
-					</div>
+						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
+					<?php else : ?>
+						<div class="news_content">
+							<?=$uutinen->summary?>
+						</div>
+					<?php endif; ?>
 
 					<p class="news_date">
 						<?=$uutinen->pvm?>
@@ -166,14 +176,22 @@ $css_version = filemtime( 'css/styles.css' );
 			<ul>
 				<?php foreach ( $news[1] as $uutinen ) : ?>
 				<li>
-					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
+					<h4 class="news_headline">
+						<?=$uutinen->otsikko?>
+						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
+					</h4>
 
-					<div class="news_content">
-						<details>
+					<?php if ( !empty($uutinen->details) ) : ?>
+						<details class="news_content">
 							<summary> <?=$uutinen->summary?> </summary>
 							<p> <?=$uutinen->details?> </p>
 						</details>
-					</div>
+						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
+					<?php else : ?>
+						<div class="news_content">
+							<?=$uutinen->summary?>
+						</div>
+					<?php endif; ?>
 
 					<p class="news_date">
 						<?=$uutinen->pvm?>
@@ -188,14 +206,22 @@ $css_version = filemtime( 'css/styles.css' );
 			<ul>
 				<?php foreach ( $news[2] as $uutinen ) : ?>
 				<li>
-					<h4 class="news_headline"> <?=$uutinen->otsikko?> </h4>
+					<h4 class="news_headline">
+						<?=$uutinen->otsikko?>
+						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
+					</h4>
 
-					<div class="news_content">
-						<details>
+					<?php if ( !empty($uutinen->details) ) : ?>
+						<details class="news_content">
 							<summary> <?=$uutinen->summary?> </summary>
 							<p> <?=$uutinen->details?> </p>
 						</details>
-					</div>
+						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
+					<?php else : ?>
+						<div class="news_content">
+							<?=$uutinen->summary?>
+						</div>
+					<?php endif; ?>
 
 					<p class="news_date">
 						<?=$uutinen->pvm?>
