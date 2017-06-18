@@ -55,6 +55,7 @@
                         <li><a href='toimittajat.php'>Toimittajat</a></li>
                         <li><a href='yp_hankintapaikat.php'>Hankintapaikat</a></li>
                         <li><a href='yp_raportit.php'>Raportit</a></li>
+	                    <li><a href='yp_tuoteryhmat.php'>Tuoteryhmät</a></li>
                         <li><a href='omat_tiedot.php'>Omat tiedot</a></li>
                     </ul>
                 </li>

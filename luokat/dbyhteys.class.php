@@ -46,6 +46,7 @@ class DByhteys {
 	 * Konstruktori.
 	 * Lukee tarvittavat tiedot suoraan config.ini -tiedostosta.
 	 * @param string[] $config [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
+	 * @param string   $iniFileName [optional], default = "./config/config.ini.php"
 	 */
 	public function __construct( array $config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
 		define( 'FETCH_ALL', true );
@@ -70,7 +71,7 @@ class DByhteys {
 	 * @param array  $values         [optional], default = null <p>
 	 *                               Muuttujien tyypilla ei ole väliä. PDO muuttaa ne stringiksi, jotka sitten
 	 *                               lähetetään tietokannalle.
-	 * @param bool   $fetch_All_Rows [optional], default = false <p>
+	 * @param bool   $fetchAllRows   [optional], default = false <p>
 	 *                               Haetaanko kaikki rivit, vai vain yksi.
 	 * @param int    $returnType     [optional], default = null <p>
 	 *                               Missä muodossa haluat tiedot palautettavan. Käyttää PDO-luokan
@@ -78,12 +79,13 @@ class DByhteys {
 	 * @param string $className      [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
 	 *                               Huom: $returnType ei tarvitse olla määritelty.<p>
 	 *                               Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
+	 *
 	 * @return array|int|stdClass <p> Palauttaa stdClass[], jos SELECT ja FETCH_ALL==true.
 	 *                               Palauttaa stdClass-objektin, jos haetaan vain yksi.<br>
 	 *                               Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim.
 	 *                               INSERT tai DELETE.<br>
 	 */
-	public function query( /*string*/ $query, array $values = null, /*bool*/ $fetch_All_Rows = false,
+	public function query( /*string*/ $query, array $values = null, /*bool*/ $fetchAllRows = false,
 						   /*int*/ $returnType = null, /*string*/ $className = null ) {
 		// Katsotaan mikä hakutyyppi kyseessä, jotta voidaan palauttaa hyödyllinen vastaus tyypin mukaan.
 		$q_type = substr( ltrim( $query ), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
@@ -92,7 +94,7 @@ class DByhteys {
 		$stmt->execute( $values ); //Toteutetaan query varsinaisilla arvoilla
 
 		if ( $q_type === "SELECT" ) {
-			if ( $fetch_All_Rows ) {
+			if ( $fetchAllRows ) {
 				if ( empty( $className ) ) {
 					return $stmt->fetchAll( $returnType );
 				}

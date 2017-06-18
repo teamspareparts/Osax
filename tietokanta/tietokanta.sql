@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `articleNo` varchar(30) NOT NULL, -- UNIQUE KEY
   `brandNo` varchar(20) NOT NULL, -- UNIQUE KEY
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK, UK
+  `tuoteryhma_id` smallint UNSIGNED NOT NULL, -- FK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
@@ -59,7 +60,6 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `yhteensa_kpl` mediumint NOT NULL DEFAULT 0, -- Tämän avulla lasketaan keskiostohinta.
   `keskiostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
   `hyllypaikka` varchar(10) DEFAULT NULL,
-  `tuoteryhma` varchar(255), -- TODO: WIP - default-arvo ja järkevä pituus-limit.
   `vuosimyynti` int(11) NOT NULL DEFAULT 0,
   `ensimmaisen_kerran_varastossa` timestamp NULL DEFAULT NULL, -- Tuotetta tilataan ensimmäisen kerran
   `paivitettava` boolean NOT NULL DEFAULT FALSE, -- Tarkastettava pitääkö tuotetta ostaa lisää
@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `aktiivinen` boolean NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
+  CONSTRAINT fk_tuote_tuoteryhma FOREIGN KEY (`tuoteryhma_id`) REFERENCES `tuoteryhma`(`id`),
   CONSTRAINT fk_tuote_alvKanta FOREIGN KEY (`ALV_kanta`) REFERENCES `ALV_kanta`(`kanta`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
@@ -197,16 +198,18 @@ CREATE TABLE IF NOT EXISTS `tuoteyritys_erikoishinta` (
 CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
-  `tuoteryhma` varchar(255) NOT NULL,
-  `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- (FK)
+  `tuoteryhma_id` smallint UNSIGNED NOT NULL, -- FK
+  `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- FK
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
   `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
   `loppuPvm` timestamp NULL DEFAULT NULL, -- Tarjouksen loppumis pvm
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`hankintapaikka_id`,`tuoteryhma`,`maaraalennus_kpl`,`alennus_prosentti`),
+  UNIQUE KEY (`hankintapaikka_id`,`tuoteryhma_id`,`maaraalennus_kpl`,`alennus_prosentti`),
   CONSTRAINT fk_tuoteryhmaErikoishinta_hankintapaikka
-    FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`)
+    FOREIGN KEY (`hankintapaikka_id`) REFERENCES `hankintapaikka`(`id`),
+  CONSTRAINT fk_tuoteryhmaErikoishinta_tuoteryhma
+    FOREIGN KEY (`tuoteryhma_id`) REFERENCES `tuoteryhma`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
 CREATE TABLE IF NOT EXISTS `ostoskori` ( -- Teknisesti ottaen täysin turha taulu.
@@ -354,4 +357,13 @@ CREATE TABLE IF NOT EXISTS `temp_tuote`(
   `varastosaldo` int(11) NOT NULL,
   PRIMARY KEY (`tuote_id`),
   CONSTRAINT fk_tempTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `tuoteryhma`(
+  `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
+  `parent_id` smallint UNSIGNED NULL, -- FK, osoittaa saman taulun ID-kolumniin (Puu-rakenne)
+  `oma_taso` tinyint NOT NULL,
+  `nimi` varchar(120) NOT NULL,
+  `hinnoittelukerroin` decimal(3,2) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
