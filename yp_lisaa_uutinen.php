@@ -10,6 +10,14 @@ if ( isset($_POST['text_headline']) ) {
 		[$_POST['text_headline'], $_POST['text_type'], $_POST['text_summary'], $_POST['text_details']] );
 	header("location:etusivu.php?test"); exit;
 }
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -28,6 +36,7 @@ if ( isset($_POST['text_headline']) ) {
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+	<?= $feedback ?>
 	<fieldset><legend>Lisää uusi uutinen/mainos etusivulle</legend>
 		<form class="flex_column fp_content_form" method="post">
 

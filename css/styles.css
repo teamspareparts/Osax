@@ -3,7 +3,7 @@
 	General application.
 *********************************************/
 html{ position:relative; min-height: 100%; width:100%; } /*Varmuuden varalle...*/
-html,body{ background-color: Floralwhite; }
+html, body{ background-color: Floralwhite; }
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
 input,

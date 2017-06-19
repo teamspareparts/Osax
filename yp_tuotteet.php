@@ -206,7 +206,6 @@ function cmpPrice($a, $b) {
 	return ($a->hinta > $b->hinta);
 }
 
-
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
  * @param $number
@@ -228,6 +227,10 @@ function tarkasta_etuliite( /*String*/ $number ) {
 function halkaise_hakunumero( &$number, &$etuliite ) {
 	$etuliite = substr($number, 0, 3);
 	$number = substr($number, 4);
+}
+
+if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
+	header("Location:etusivu.php"); exit();
 }
 
 if ( !empty($_POST['lisaa']) ) {
