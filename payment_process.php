@@ -100,6 +100,10 @@ if ( !empty( $tilaus_id ) ) {
 		 ********************/
 		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $lasku_nimi );
 		Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
+		
+		if ( !$_SESSION['indev'] ) {
+			//TODO: Jannen sähköposti
+		}
 
 		/**
 		 * Tilaus valmis, tiedostot luotu, lähetetään pois.

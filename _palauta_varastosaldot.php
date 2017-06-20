@@ -4,7 +4,6 @@
  * (maksettu = 0 yli 2 päivää, poislukien viikonloppu)
  */
 
-
 chdir(dirname(__FILE__)); //Määritellään työskentelykansio
 set_time_limit(300);
 

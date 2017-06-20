@@ -106,7 +106,7 @@ if ( $config[ 'update' ] ) : ?>
 	</fieldset>
 <?php endif;
 if ( $config[ 'indev' ] ) : ?>
-	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Osax testaussivusto</legend>
+	<fieldset style="color:#0a3c93; border-color:red;"><legend>Osax testaussivusto</legend>
 		<?= $config[ 'indev_txt' ] ?>
 	</fieldset>
 <?php endif; ?>

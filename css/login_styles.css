@@ -3,6 +3,7 @@
 	Kirjautumissivu
 *********************************************/
 body {
+	position:relative;
 	background-color:#fff; /* Jannen pyynnöstä valkoinen bg. Logo surkeasti tehty, hardcoded valkoinen bg. */
 	font-family: 'Open Sans', Helvetica, sans-serif;
 }
@@ -15,7 +16,7 @@ body {
 fieldset {
 	background-color: lightgrey;
 	padding: 20px;
-	margin: 20px 0 20px 0;
+	margin: 20px 0; /* <top and bottom> <right and left> */
     border-radius: 5px; /* Pyöristää kulmat */
 }
 

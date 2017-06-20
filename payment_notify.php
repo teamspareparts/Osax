@@ -54,6 +54,7 @@ switch ( $get_count ) {
 			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
 			if ( $result ) {
 
+				//TODO Korjaa
 				$args = escapeshellarg($_GET[ 'ORDER_NUMBER' ]) . " " . escapeshellarg($user->id);
 				exec( "php tilaus_tiedostot_email.php {$args} > /dev/null &" );
 
