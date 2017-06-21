@@ -217,9 +217,6 @@ if ( !empty($_GET["manuf"]) ) {
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
-
-// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
-$css_version = filemtime( 'css/styles.css' );
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -227,7 +224,7 @@ $css_version = filemtime( 'css/styles.css' );
     <meta charset="utf-8">
 
     <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" href="css/styles.css?v=<?=$css_version?>">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
     <link rel="stylesheet" type="text/css" href="css/jsmodal-light.css">
     <link rel="stylesheet" type="text/css" href="css/image_modal.css">
 

@@ -140,7 +140,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 				<input type="number" name="parent_id" id="form_par_id">
 				<br>
 				<label for="form_name" class="required">Nimi:</label>
-				<input type="text" name="name" value="" id="form_name" required>
+				<input type="text" name="nimi" value="" id="form_name" required>
 				<br>
 				<label for="form_hkerroin" class="required">Hinnoittelukerroin:</label>
 				<input type="number" name="hkerroin" value="1" step="0.01" placeholder="1,00" id="form_hkerroin" required>

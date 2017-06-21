@@ -666,7 +666,6 @@ Toimittajien listaukseen
 	left: 5%;
 }
 
-
 /*******************************
 Sivustus (pagination) (requires bootstrap)
 *******************************/
@@ -681,10 +680,77 @@ Sivustus (pagination) (requires bootstrap)
 	margin: auto 40px auto;
 }
 
-.pageNumberForm, .pageNumber, .productsPerPageForm {
+.pageNumberForm,
+.pageNumber,
+.productsPerPageForm {
 	display: inline-flex;
 	padding: 0;
 	margin: 0;
 	border: 0;
 	width: 2.7rem;
+}
+
+/*******************************
+	Etusivu
+*******************************/
+.etusivu_content {
+	display: flex;
+	flex-direction: row;
+	white-space: normal;
+}
+.etusivu_content ul {
+	padding: 0 20px;
+}
+.left_section,
+.right_section,
+.center_section {
+	flex-grow: 1;
+	width: 30%;
+	max-width: 600px;
+	border: 1px solid;
+	border-radius: 3px;
+	padding: 5px;
+	margin: 5px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.etusivu_content ul {
+	list-style-type: none;
+}
+.etusivu_content li {
+	border-bottom: 1px dashed;
+	margin-bottom: 10px;
+}
+.news_content {
+	max-height: 10rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.news_date {
+	font-style: oblique;
+}
+.news_date a {
+	text-decoration: underline;
+}
+
+/*******************************
+	Ylläpitäjän uutisen lisäys/muokkaus
+*******************************/
+.fp_content_form {
+	padding: 5px 15px;
+}
+.fp_content_form label {
+	font-weight: bold;
+	padding: 3px 10px 0;
+	margin: 5px 10px 0;
+}
+.fp_content_form input[type=text],
+.fp_content_form input[type=date],
+.fp_content_form select,
+.fp_content_form textarea {
+	padding: 5px;
+	margin: 5px;
+}
+.fp_content_form input[type=date] {
+	width: 15rem;
 }

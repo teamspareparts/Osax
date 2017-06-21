@@ -1,20 +1,12 @@
 <?php
-/**
- * Väliaikainen ratkaisu.
- * Sillä välin kun tätä sivua rakennetaan, niin ole hyvä ja pistä kaikki
- * ns. 'etusivulle' menevät redirectit tälle sivulle.
- */
-if ( isset( $_GET['ohita'] ) ) {
-	header( "Location:tuotehaku.php" );
-	exit();
-}
-
 require '_start.php'; global $db, $user, $cart;
 
 //TODO: PhpDoc
 function jaottele_uutiset ( &$news ) {
+	$cmp_dt = new DateTime('3 days ago');
 	$arr = array([],[],[]);
 	foreach ( $news as $item ) {
+		$item->uusi = (new DateTime($item->pvm) > $cmp_dt);
 		switch ( $item->tyyppi ) {
 			case 0:
 				$arr[0][] = $item;
@@ -30,21 +22,28 @@ function jaottele_uutiset ( &$news ) {
 		}
 	}
 
+	if ( $arr[0] ) {
+		$arr[0][0]->col_loc = "left_section";
+	}
+	if ( $arr[1] ) {
+		$arr[1][0]->col_loc = "center_section";
+	}
+	if ( $arr[2] ) {
+		$arr[2][0]->col_loc = "right_section";
+	}
+
 	$news = $arr;
 }
 
-$sql_query = "SELECT id, tyyppi, otsikko, summary, details, pvm 
-			  FROM etusivu_uutinen
-			  WHERE aktiivinen = TRUE AND pvm > ?
-			  ORDER BY pvm DESC";
-$date = new DateTime('today -300 days');
-$news = $db->query( $sql_query, [$date->format("Y-m-d")], FETCH_ALL );
+$sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%Y-%m-%d %H:00') AS simple_pvm, loppu_pvm
+		FROM etusivu_uutinen
+		WHERE aktiivinen = 1 AND loppu_pvm > CURDATE()
+		ORDER BY pvm DESC";
+$news = $db->query( $sql, null, FETCH_ALL );
 
 jaottele_uutiset( $news );
 
-$cmp_dt = new DateTime('3 days ago');
-
-// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
+// Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: CSS cache-busting)
 $css_version = filemtime( 'css/styles.css' );
 ?>
 <!DOCTYPE html>
@@ -53,49 +52,9 @@ $css_version = filemtime( 'css/styles.css' );
 	<meta charset="UTF-8">
 	<title>Osax - Etusivu</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="css/styles.css?v=<?=$css_version?>">
-	<style>
-		div, section, ul, li {
-			/*border: 1px solid;*/
-		}
-		.etusivu_content {
-			display: flex;
-			flex-direction: row;
-			white-space: normal;
-		}
-		.etusivu_content ul{
-			padding: 0 20px;
-		}
-		.left_section, .right_section, .center_section {
-			flex-grow: 1;
-			width: 30%;
-			border: 1px solid;
-			border-radius: 3px;
-			padding: 5px;
-			margin: 5px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
-		.etusivu_content ul {
-			list-style-type: none;
-		}
-		.etusivu_content li {
-			border-bottom: 1px dashed;
-			margin-bottom: 10px;
-		}
-		.news_content {
-			max-height: 10rem;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-		.news_date {
-			font-style: oblique;
-		}
-		.news_date a {
-			text-decoration: underline;
-		}
-	</style>
+	<link rel="stylesheet" href="./css/styles.css?v=<?=$css_version?>">
+	<link rel="stylesheet" href="./css/details-shim.min.css">
+	<script src="./js/details-shim.min.js" async></script>
 </head>
 <body>
 <?php require 'header.php'; ?>
@@ -142,95 +101,43 @@ $css_version = filemtime( 'css/styles.css' );
 	<?php endif; ?>
 
 	<section class="etusivu_content">
-		<section class="left_section" <?= (empty($news[0])) ? 'hidden' : '' ?>>
-			<ul>
-				<?php foreach ( $news[0] as $uutinen ) : ?>
-				<li>
-					<h4 class="news_headline">
-						<?=$uutinen->otsikko?>
-						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
-					</h4>
+		<?php foreach ( $news as $column ) : ?>
+			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?>"
+				<?=(!$column) ? "hidden" : ''?> >
+				<ul>
+					<?php foreach ( $column as $uutinen ) : ?>
+						<li>
+							<h4 class="news_headline">
+								<?=$uutinen->otsikko?>
+								<?=($uutinen->uusi) ? "<span style='color: red;'>NEW!</span>" : ''?>
+							</h4>
 
-					<?php if ( !empty($uutinen->details) ) : ?>
-						<details class="news_content">
-							<summary> <?=$uutinen->summary?> </summary>
-							<p> <?=$uutinen->details?> </p>
-						</details>
-						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
-					<?php else : ?>
-						<div class="news_content">
-							<?=$uutinen->summary?>
-						</div>
-					<?php endif; ?>
+							<?php if ( !empty($uutinen->details) ) : ?>
+								<details class="news_content">
+									<summary> <?=$uutinen->summary?> </summary>
+									<p> <?=$uutinen->details?> </p>
+								</details>
+								<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
+							<?php else : ?>
+								<div class="news_content">
+									<?=$uutinen->summary?>
+								</div>
+							<?php endif; ?>
 
-					<p class="news_date">
-						<?=$uutinen->pvm?>
-						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
-					</p>
-				</li>
-				<?php endforeach; ?>
-			</ul>
-		</section>
+							<p class="news_date">
+								<?=$uutinen->simple_pvm?><br>
+								<?=($user->isAdmin())
+									? "<a href='./yp_lisaa_uutinen.php?id={$uutinen->id}'>Admin: 
+										<i class='material-icons'>edit</i></a> End date: $uutinen->loppu_pvm"
+									: ''?>
+							</p>
+						</li>
+					<?php endforeach; ?>
+				</ul>
 
-		<section class="center_section" <?= (empty($news[1])) ? 'hidden' : '' ?>>
-			<ul>
-				<?php foreach ( $news[1] as $uutinen ) : ?>
-				<li>
-					<h4 class="news_headline">
-						<?=$uutinen->otsikko?>
-						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
-					</h4>
+			</section>
 
-					<?php if ( !empty($uutinen->details) ) : ?>
-						<details class="news_content">
-							<summary> <?=$uutinen->summary?> </summary>
-							<p> <?=$uutinen->details?> </p>
-						</details>
-						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
-					<?php else : ?>
-						<div class="news_content">
-							<?=$uutinen->summary?>
-						</div>
-					<?php endif; ?>
-
-					<p class="news_date">
-						<?=$uutinen->pvm?>
-						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
-					</p>
-				</li>
-				<?php endforeach; ?>
-			</ul>
-		</section>
-
-		<section class="right_section" <?= (empty($news[2])) ? 'hidden' : '' ?>>
-			<ul>
-				<?php foreach ( $news[2] as $uutinen ) : ?>
-				<li>
-					<h4 class="news_headline">
-						<?=$uutinen->otsikko?>
-						<?=($uutinen->pvm < $cmp_dt) ? "<span style='color: red;'>NEW!</span>" : ''?>
-					</h4>
-
-					<?php if ( !empty($uutinen->details) ) : ?>
-						<details class="news_content">
-							<summary> <?=$uutinen->summary?> </summary>
-							<p> <?=$uutinen->details?> </p>
-						</details>
-						<p class="small_note">Klikkaa nuolta nähdäkseksi enemmän.</p>
-					<?php else : ?>
-						<div class="news_content">
-							<?=$uutinen->summary?>
-						</div>
-					<?php endif; ?>
-
-					<p class="news_date">
-						<?=$uutinen->pvm?>
-						<?=($user->isAdmin()) ? "--- Admin: <button value='{$uutinen->id}' class='nappi red'>Poista uutinen</button>" : ''?>
-					</p>
-				</li>
-				<?php endforeach; ?>
-			</ul>
-		</section>
+		<?php endforeach; ?>
 	</section>
 </main>
 

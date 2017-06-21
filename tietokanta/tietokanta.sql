@@ -342,6 +342,7 @@ CREATE TABLE IF NOT EXISTS `etusivu_uutinen` (
   `details` varchar(10000) NOT NULL, -- Max. pituus noin 16k.
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   `pvm` timestamp DEFAULT CURRENT_TIMESTAMP,
+  `loppu_pvm` timestamp NOT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
