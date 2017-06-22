@@ -3,13 +3,17 @@
 	General application.
 *********************************************/
 html{ position:relative; min-height: 100%; width:100%; } /*Varmuuden varalle...*/
-html, body{ background-color: Floralwhite; }
+html, body{ background-color: #dddddd; }
 body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; }
 
 input,
 select { padding: 3pt; } /* Näyttää siistimmältä */
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 main { display: block; } /* F*** IE */
+
+fieldset {
+	background-color: whitesmoke !important;
+}
 
 /********************************************
 	Yleisesti pikku asioita koko sivulla
@@ -35,7 +39,7 @@ main { display: block; } /* F*** IE */
 	justify-content: center;
 	margin: auto;
 }
-.end { text-align: end; } /* Self-explanatory */
+.white-bg { background-color: whitesmoke; }
 
 /***********************************************
 	Yleisesti sisällön asetteluun koko sivulla
@@ -49,9 +53,15 @@ main { display: block; } /* F*** IE */
 
 /* For making fake tables. <table>-tagia ei pitäisi käyttää sisällön asetteluun. */
 .table { display: table; }
+
 .tr { display: table-row; }
-.td, .td_pad { display: table-cell; }
-.td_pad { padding: 10px; }
+.tr:nth-child(odd) { background: #eee; }
+.tr:nth-child(even) { background: #fff; }
+.fill { column-fill: auto; }
+
+.td { display: table-cell; }
+.pad { padding: 10px; }
+
 
 
 /********************************************
@@ -421,7 +431,8 @@ th {
 	font-size: 150%;
 }
 
-.tuotekoodihaku, .ajoneuvomallihaku {
+.tuotekoodihaku,
+.ajoneuvomallihaku {
 	display: inline-block;
 	white-space: nowrap;
 	padding: 0 30px 10px;
@@ -435,7 +446,7 @@ th {
 	font-size: 90%;
 }
 
-.tilaus_info td{
+.tilaus_info.td {
 	background-color:#ffffff;
 	padding-left: 0;
 	padding-right: 30px;
@@ -654,6 +665,7 @@ Toimittajien listaukseen
 	margin: 1px;
 	border: 1px solid #294fad;
 	padding: 10px;
+	background-color: whitesmoke;
 }
 
 .line {

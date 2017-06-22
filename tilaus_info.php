@@ -86,7 +86,9 @@ $noutolista_file_nimi =
 	<meta charset="UTF-8">
 	<title>Tilaus-info</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="./css/jsmodal-light.css">
+	<link rel="stylesheet" href="./css/styles.css">
+	<script src="./js/jsmodal-1.0d.min.js" async></script>
 </head>
 <body>
 
@@ -105,12 +107,14 @@ $noutolista_file_nimi =
 		<div class="otsikko">
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
-				<span class="inline-block" style="color:red;"> Odottaa maksua. Lasku ei saatavilla. </span>
-				<!-- //TODO: Tilauksen peruutus ylläpitäjän toimesta tähän? -->
+				<span class="inline-block" style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
+				<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
+					<button class="nappi red" id="peruuta_tilaus">Peruuta tilaus?</button>
+				<?php endif; ?>
             <?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
                 <span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
 			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
-				<span class="inline-block" style="color:red;"> Odottaa käsittelyä. </span>
+				<span class="inline-block" style="color:steelblue;"> Odottaa käsittelyä. </span>
 			<?php else: ?>
 				<span class="inline-block" style="color:green;"> Käsitelty ja toimitettu. </span>
 			<?php endif; ?>
@@ -130,26 +134,33 @@ $noutolista_file_nimi =
 
 	<div class="flex_row">
 
-		<table class='tilaus_info'>
-			<tr><td>Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></td>
-				<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></td></tr>
-			<tr><td>Tilaaja: <?= "{$tilaus_tiedot->etunimi} {$tilaus_tiedot->sukunimi}" ?></td>
-				<td>Yritys: <?= $tilaus_tiedot->yritys?></td></tr>
-			<tr><td>Tuotteet: <?= $tilaus_tiedot->kpl?></td>
-				<td>Summa:
+		<div class="table white-bg">
+			<div class="tr">
+				<div class="td pad">Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></div>
+				<div class="td pad">Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></div>
+			</div>
+			<div class="tr">
+				<div class="td pad">Tilaaja: <?= "{$tilaus_tiedot->etunimi} {$tilaus_tiedot->sukunimi}" ?></div>
+				<div class="td pad">Yritys: <?= $tilaus_tiedot->yritys?></div>
+			</div>
+			<div class="tr">
+				<div class="td pad">Tuotteet: <?= $tilaus_tiedot->kpl?></div>
+				<div class="td pad">Summa:
 					<?= format_number( $tilaus_tiedot->summa+$tilaus_tiedot->pysyva_rahtimaksu ) ?>
 					( ml. rahtimaksu )
-				</td></tr>
-			<tr><td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td></tr>
-		</table>
+				</div>
+			</div>
+			<div class="tr fill">
+				<p class="small_note" style="width:100%;">Kaikki hinnat sisältävät ALV:n</p>
+			</div>
+		</div>
 
-
-		<table class="tilaus_info">
-			<tr><td>Toimitusosoite</td></tr>
-			<tr><td>Nimi: <?= $tilaus_tiedot->tmo_koko_nimi?></td></tr>
-			<tr><td><?= $tilaus_tiedot->tmo_osoite?></td></tr>
-			<tr><td><?= "{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></td></tr>
-		</table>
+		<div class="white-bg" style="padding-left: 10px;">
+			<p style="font-weight: bold;">Toimitusosoite</p>
+			<p style="margin:10px;"><?=$tilaus_tiedot->tmo_koko_nimi . ', ' . $tilaus_tiedot->yritys?></p>
+			<p style="margin:10px;"><?=$tilaus_tiedot->tmo_osoite?></p>
+			<p style="margin:10px;"><?="{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></p>
+		</div>
 	</div>
 	<br>
 	<table>
@@ -189,5 +200,27 @@ $noutolista_file_nimi =
 
 <?php require 'footer.php'; ?>
 
+<script async>
+	document.getElementById('peruuta_tilaus').addEventListener('click', function() {
+		Modal.open({
+			content: `
+<div>
+	<h2>Oletko varma, että haluat peruuttaa tilauksen?</h2>
+	<h3>Tämä palauttaa tuotteet asiakkaan ostoskoriin,<br>
+		ja merkitsee tilauksen peruutetuksia.</h3>
+	<h3>Huom. Tilaus voi silti olla mahdollisesti maksettu!</h3>
+	<button class="nappi grey" onclick="Modal.close()">Palaa takaisin. Älä peruuta tilausta.</button>
+	<br><br>
+	<form>
+		<input type="hidden" name="" value="">
+		<input type="Submit" value="Poista ttilaus." class="nappi red">
+	</form>
+</div>
+			`,
+			draggable: true
+		});
+
+	});
+</script>
 </body>
 </html>

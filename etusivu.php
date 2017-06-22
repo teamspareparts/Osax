@@ -102,7 +102,7 @@ $css_version = filemtime( 'css/styles.css' );
 
 	<section class="etusivu_content">
 		<?php foreach ( $news as $column ) : ?>
-			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?>"
+			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?> white-bg"
 				<?=(!$column) ? "hidden" : ''?> >
 				<ul>
 					<?php foreach ( $column as $uutinen ) : ?>

@@ -33,6 +33,12 @@ if ( !empty($_GET['id']) ) {
 	$row = $db->query( $sql, [ $_GET['id'] ] );
 }
 
+// Loppu pvm:n valmistelu, niin ei tarvitse sekoittaa HTML:ää.
+$today = date('Y-m-d');
+$future = date('Y-m-d',strtotime('+6 months'));
+$current = (!empty($row)) ? date( 'Y-m-d', strtotime( $row->loppu_pvm ) )
+	: date('Y-m-d',strtotime('+14 days')) ;
+
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']);
@@ -87,8 +93,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 
 			<label> Loppu pvm. Milloin uutinen poistuu etusivulta. </label>
 			<input type="date" name="loppu" title="Valitse pvm, jolloin uutinen loppuu (häviää etusivulta)."
-			       min="<?=date('Y-m-d')?>" max="<?=date('Y-m-d',strtotime('+6 months'))?>"
-			       value="<?= date( 'Y-m-d', strtotime( $row->loppu_pvm ) )?>" required>
+			       min="<?=$today?>" max="<?=$future?>" value="<?=$current?>" required>
 
 			<?php if (empty($row)) : ?>
 				<input type="submit" name="lisaa_uusi" value="Lisää uusi teksti etusivulle" class="nappi">

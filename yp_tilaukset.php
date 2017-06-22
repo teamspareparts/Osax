@@ -3,7 +3,8 @@ require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
 if ( !$user->isAdmin() ) {
-	header("Location:etusivu.php");exit();
+	header("Location:etusivu.php");
+	exit();
 }
 
 /**
@@ -12,15 +13,13 @@ if ( !$user->isAdmin() ) {
  * @return stdClass[]
  */
 function hae_tilaukset( DByhteys $db ) {
-	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.pysyva_rahtimaksu, kayttaja.etunimi, kayttaja.sukunimi,
+	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.pysyva_rahtimaksu, tilaus.maksettu, kayttaja.etunimi, kayttaja.sukunimi,
 				SUM( tilaus_tuote.kpl * 
 			        (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv) * (1-tilaus_tuote.pysyva_alennus)) )
 			        AS summa
 			FROM tilaus
-			LEFT JOIN kayttaja
-				ON kayttaja.id = tilaus.kayttaja_id
-			LEFT JOIN tilaus_tuote
-				ON tilaus_tuote.tilaus_id = tilaus.id
+			LEFT JOIN kayttaja ON kayttaja.id = tilaus.kayttaja_id
+			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id = tilaus.id
 			WHERE tilaus.kasitelty = 0
 			GROUP BY tilaus.id";
 	return $db->query($sql, NULL, FETCH_ALL);
@@ -67,8 +66,15 @@ $tilaukset = hae_tilaukset( $db );
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
 						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_number($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
-						<td><label>Valitse<input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
-							</label></td> <!-- //TODO: vain jos tilaus on maksettu? -->
+						<td <?=(!$tilaus->maksettu) ? "data-href='tilaus_info.php?id={$tilaus->id}'" : ''?>>
+							<?php if ( $tilaus->maksettu ) : ?>
+							<label>
+								Valitse <input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
+							</label>
+							<?php else : ?>
+							<span class="small_note" style="color: darkred;">Odottaa maksua.</span>
+							<?php endif; ?>
+						</td>
 					</tr>
 				<?php endforeach; ?>
 				</tbody>

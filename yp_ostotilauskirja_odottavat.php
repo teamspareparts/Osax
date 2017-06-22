@@ -47,7 +47,7 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="js/jsmodal-1.0d.min.js"></script>
+    <script src="js/jsmodal-1.0d.min.js"></script> <!-- TODO: Mitä tämä tekee -->
 	<title>Ostotilauskirjat</title>
 </head>
 <body>
