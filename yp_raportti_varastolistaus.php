@@ -6,10 +6,9 @@ if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php");
 	exit();
 }
-$feedback = "";
 
 /**
- * Haetaan kaikki aktiiviset brändit
+ * Haetaan kaikki brändit
  * @param DByhteys $db
  * @return array|int|stdClass
  */
@@ -28,11 +27,8 @@ function hae_hankintapaikat( DByhteys $db ) {
 	return $db->query($sql, [], FETCH_ALL);
 }
 
-
 $brands = hae_brandit($db);
 $hankintapaikat = hae_hankintapaikat($db);
-
-
 
 ?>
 <!DOCTYPE html>
@@ -47,14 +43,15 @@ $hankintapaikat = hae_hankintapaikat($db);
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
-    <section>
-        <h1 class="otsikko">Varastolistausraportti</h1>
-        <div id="painikkeet">
-            <a class="nappi grey" href="yp_raportit.php">Takaisin</a>
-        </div>
-    </section>
+	<!-- Otiskko ja painikkeet -->
+	<section>
+		<h1 class="otsikko">Varastolistausraportti</h1>
+		<div id="painikkeet">
+			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+		</div>
+	</section>
 
-    <div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
+	<div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
 	<fieldset><legend>Raportin rajaukset</legend>
 		<form action="yp_luo_varastolistausraportti.php" method="post" id="varastolistausraportti">
 
@@ -87,16 +84,13 @@ $hankintapaikat = hae_hankintapaikat($db);
 
 		</form>
 	</fieldset>
-
-
 </main>
 <script>
-	$(document).ready(function(){
+    $(document).ready(function(){
         $("#varastolistausraportti").on("submit", function(e) {
-			$(".feedback").show().fadeOut(6000);
-
-		});
-	});
+            $(".feedback").show().fadeOut(5000);
+        });
+    });
 </script>
 </body>
 </html>

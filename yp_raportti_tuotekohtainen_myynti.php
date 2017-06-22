@@ -1,25 +1,25 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
+//require 'tecdoc.php';
 
 //Vain ylläpitäjälle
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php");
 	exit();
 }
-$feedback = "";
 
 /**
- * Haetaan kaikki aktiiviset brändit
+ * Haetaan kaikki brändit
  * @param DByhteys $db
  * @return array|int|stdClass
  */
-/**function hae_brandit( DByhteys $db ) {
+function hae_brandit( DByhteys $db ) {
 	$sql = "SELECT DISTINCT id, nimi FROM brandi ORDER BY nimi";
 	return $db->query($sql, [], FETCH_ALL);
-}*/
+}
 
 //Vaihtoehtoinen funktio, joka toimii ilman brandit-taulua
+/*
 function hae_brandit() {
 	$brands = getAmBrands();
 	foreach ($brands as $brand) {
@@ -28,7 +28,7 @@ function hae_brandit() {
 	}
 	usort($brands, function ($a, $b){return ($a->nimi > $b->nimi);});
 	return $brands;
-}
+}*/
 
 /**
  * Haetaan kaikki hankintapaikat
@@ -41,21 +41,21 @@ function hae_hankintapaikat( DByhteys $db ) {
 }
 
 /**
- * Haetaan asiakkaat
+ * Haetaan asiakasyritykset
  * @param DByhteys $db
  * @return array|int|stdClass
  */
-function hae_asiakkaat( DByhteys $db ) {
-	$sql = "SELECT DISTINCT id, CONCAT(etunimi, ' ', sukunimi) AS nimi
-			FROM kayttaja
+function hae_yritykset( DByhteys $db ) {
+	$sql = "SELECT DISTINCT id, nimi
+			FROM yritys
 			WHERE aktiivinen = 1
 			ORDER BY id";
 	return $db->query($sql, [], FETCH_ALL);
 }
 
-$brands = hae_brandit();
+$brands = hae_brandit($db);
 $hankintapaikat = hae_hankintapaikat($db);
-$asiakkaat = hae_asiakkaat($db);
+$yritykset = hae_yritykset($db);
 
 ?>
 <!DOCTYPE html>
@@ -66,12 +66,12 @@ $asiakkaat = hae_asiakkaat($db);
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
 	<title>Raportit</title>
 </head>
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
+	<!-- Otsikko ja painikkeet -->
 	<section>
 		<h1 class="otsikko">Tuotekohtainen myyntiraportti</h1>
 		<div id="painikkeet">
@@ -85,10 +85,10 @@ $asiakkaat = hae_asiakkaat($db);
 
 			<!-- Päivämäärän valinta -->
 			<label for="pvm_from">From: </label>
-			<input type="text" name="pvm_from" id="pvm_from" class="datepicker" required>
+			<input type="date" name="pvm_from" id="pvm_from" max="<?=date("Y-m-d")?>" required>
 			<br><br>
 			<label for="pvm_to">To: </label>
-			<input type="text" name="pvm_to" id="pvm_to" class="datepicker" value="<?=date("Y-m-d")?>" required>
+			<input type="date" name="pvm_to" value="<?=date("Y-m-d")?>" id="pvm_to" max="<?=date("Y-m-d")?>" required>
 			<br><br>
 
 			<!-- Brändin valinta -->
@@ -110,13 +110,17 @@ $asiakkaat = hae_asiakkaat($db);
 			</select><br><br>
 
 			<!-- Asiakkaan valinta -->
-			<label for="myyntiraportti_tuote_asiakas">Asiakas</label>
-			<select name="asiakas" id="myyntiraportti_tuote_asiakas">
+			<label for="myyntiraportti_tuote_yritys">Yritykset</label>
+			<select name="yritys" id="myyntiraportti_tuote_yritys">
 				<option value="0" selected>-- Kaikki --</option>
-				<?php foreach((array)$asiakkaat as $asiakas) : ?>
-					<option value="<?=$asiakas->id?>"><?=$asiakas->id."-".$asiakas->nimi?></option>
+				<?php foreach((array)$yritykset as $yritys) : ?>
+					<option value="<?=$yritys->id?>"><?=$yritys->id."-".$yritys->nimi?></option>
 				<?php endforeach;?>
 			</select><br><br>
+
+			<!-- Kaikki vai pelkästään myydyt tuotteet -->
+			<label for="myyntiraportti_tuote_vain_myydyt">Vain myydyt tuotteet</label>
+			<input type="checkbox" name="vain_myydyt" id="myyntiraportti_tuote_vain_myydyt" checked><br><br>
 
 			<!-- Raportin järjestys -->
 			<label for="myyntiraportti_tuote_sort">Raportin järjestys</label>
@@ -137,16 +141,8 @@ $asiakkaat = hae_asiakkaat($db);
 <script>
     $(document).ready(function(){
         $("#tuotekohtainen_myyntiraportti").on("submit", function(e) {
-            $(".feedback").show().fadeOut(6000);
+            $(".feedback").show().fadeOut(5000);
 
-        });
-
-	    $('.datepicker').datepicker({
-            dateFormat: 'yy-mm-dd',
-            maxDate: '+0d',
-        })
-		.keydown(function(e){
-            e.preventDefault();
         });
     });
 </script>

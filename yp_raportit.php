@@ -2,7 +2,10 @@
 require '_start.php'; global $db, $user, $cart;
 
 //Vain ylläpitäjälle
-if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
+if ( !$user->isAdmin() ) {
+	header("Location:etusivu.php");
+	exit();
+}
 
 ?>
 <!DOCTYPE html>
@@ -28,12 +31,12 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 <main class="main_body_container">
     <h1>Raportit</h1>
 
-    <div class="floating-box clickable line" data-href="yp_varastolistausraportti.php">
+    <div class="floating-box clickable line" data-href="yp_raportti_varastolistaus.php">
 	    <span>Varastolistausraportti</span></div>
-    <div class="floating-box clickable line" data-href="yp_myyntiraportti.php"><span>Myyntiraportti</span></div>
-    <div class="floating-box clickable line" data-href="yp_myyntitapahtumalistaus.php">
+    <div class="floating-box clickable line" data-href="yp_raportti_myyntiraportti.php"><span>Myyntiraportti</span></div>
+    <div class="floating-box clickable line" data-href="yp_raportti_myyntitapahtumalistaus.php">
 	    <span>Myyntitapahtumalistaus</span></div>
-	<div class="floating-box clickable line" data-href="yp_tuotekohtainen_myyntiraportti.php">
+	<div class="floating-box clickable line" data-href="yp_raportti_tuotekohtainen_myynti.php">
 		<span>Tuotekohtainen myyntiraportti</span></div>
     <div onclick="document.getElementById('download_hinnasto_yp').submit()" class="floating-box clickable line">
 	    <span>Lataa hinnasto <i class="material-icons">file_download</i></span>
@@ -41,13 +44,11 @@ if ( !$user->isAdmin() ) { header("Location:etusivu.php"); exit(); }
 </main>
 <script>
 	$(document).ready(function(){
-
         $('.clickable').click(function(){
             if ( $(this).data('href') ) {
                 window.document.location = $(this).data('href');
             }
         }).css('cursor', 'pointer');
-
 	});
 </script>
 </body>
