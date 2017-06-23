@@ -8,12 +8,13 @@ if ( !isset($_POST["luo_raportti"]) ) {
 	header("Location:etusivu.php"); exit();
 }
 
-// Alustetaan muuttujat
+// Alustetaan GET ja POST muuttujat
 $brand = isset($_POST["brand"]) ? $_POST["brand"] : 0;
 $hankintapaikka = isset($_POST["hankintapaikka"]) ? $_POST["hankintapaikka"] : 0;
-$asiakas = isset($_POST["asiakas"]) ? $_POST["asiakas"] : 0;
+$yritys = isset($_POST["yritys"]) ? $_POST["yritys"] : 0;
 $pvm_from = isset($_POST["pvm_from"]) ? $_POST["pvm_from"] : '1970-01-01';
 $pvm_to = isset($_POST["pvm_to"]) ? $_POST["pvm_to"] : date('Y-m-d');
+$vain_myydyt = isset($_POST["vain_myydyt"]) ? 1 : 0;
 $sort = null;
 switch ($_POST["sort"]) {
 	case "sort_tuotekoodi":
@@ -33,8 +34,13 @@ switch ($_POST["sort"]) {
 		break;
 }
 
+//Alustetaan muuttujat
 $tuotteet = [];
+$yhteensa_myynti = 0;
+$yhteensa_kpl = 0;
+$raportti = "";
 
+//TODO: Laske hinnoittelukatteen sijasta aito myyntikate
 // Haetaan tuotteet annetuilla rajauksilla
 $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekoodi,
  			tuote.nimi, SUM(tilaus_tuote.kpl) AS yhteensa_kpl, 
@@ -43,26 +49,28 @@ $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekood
  			ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ) AS keskimyyntihinta,
  			ROUND( 100*((tuote.hinta_ilman_ALV - tuote.sisaanostohinta) / tuote.hinta_ilman_ALV), 0 ) AS kate
  		FROM tilaus
+ 		LEFT JOIN kayttaja
+ 			ON tilaus.kayttaja_id = kayttaja.id
+ 		LEFT JOIN yritys
+ 			ON kayttaja.yritys_id = yritys.id
 		LEFT JOIN tilaus_tuote
 			ON tilaus.id = tilaus_tuote.tilaus_id
-		LEFT JOIN tuote
+		RIGHT JOIN tuote
 			ON tilaus_tuote.tuote_id = tuote.id
-		WHERE tilaus.paivamaara > ? 
-			AND tilaus.paivamaara < ? + INTERVAL 1 DAY
-			AND tilaus.maksettu = 1
+		WHERE ( (tilaus.paivamaara > ? 
+				AND tilaus.paivamaara < ? + INTERVAL 1 DAY
+				AND tilaus.maksettu = 1
+				AND (yritys.id = ? OR 0 = ?)
+			) OR 0 = ?)
 			AND (tuote.brandNo = ? OR 0 = ?)
 			AND (tuote.hankintapaikka_id = ? OR 0 = ?)
-			AND (tilaus.kayttaja_id = ? OR 0 = ?)
 		GROUP BY tuote.id
-		ORDER BY {$sort} DESC ";
-$tuotteet = $db->query($sql, [$pvm_from, $pvm_to, $brand, $brand, $hankintapaikka, $hankintapaikka, $asiakas, $asiakas], FETCH_ALL);
+		ORDER BY {$sort} DESC";
+$tuotteet = $db->query($sql, [$pvm_from, $pvm_to, $yritys, $yritys, $vain_myydyt, $brand, $brand, $hankintapaikka, $hankintapaikka], FETCH_ALL);
 
 // Luodaan raportin sisältö
 $raportti = "Brändi;Hankintapaikka;Tuotekoodi;Nimi;KPL Ovh ALV0 (€);" .
 			"Myyty KPL;Myyty yht (€);Myyntikeskihinta (€);Kate%\r\n";
-
-$yhteensa_myynti = 0;
-$yhteensa_kpl = 0;
 foreach ($tuotteet as $tuote) {
 	$yhteensa_kpl += $tuote->yhteensa_kpl;
 	$yhteensa_myynti += $tuote->yhteensa_summa;

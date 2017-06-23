@@ -4,29 +4,31 @@ require "./luokat/laskutiedot.class.php";
 global $db, $user;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-	header("Location:etusivu.php"); exit();
+	header("Location:etusivu.php");
+	exit();
 }
 if ( !isset($_POST["luo_raportti"]) ) {
-	header("Location:etusivu.php"); exit();
+	header("Location:etusivu.php");
+	exit();
 }
 
 //TODO: Hae myös myynti maksutavan mukaan kortti/verkkomaksu --SL 21.5
 
 // Haetaan tilausnumerot
-$sql = "SELECT id FROM tilaus 
-		WHERE tilaus.paivamaara > ? 
-			AND tilaus.paivamaara < ? + INTERVAL 1 DAY 
+$sql = "SELECT id FROM tilaus
+		WHERE tilaus.paivamaara > ?
+			AND tilaus.paivamaara < ? + INTERVAL 1 DAY
 			AND maksettu = 1";
 $tilaukset = $db->query($sql, [$_POST["pvm_from"], $_POST["pvm_to"]], FETCH_ALL);
 
-$laskut = array();
-$alv_kannat = array();
+$laskut = [];
+$alv_kannat = [];
 $myynti_alvillinen = 0;
 $myynti_alviton = 0;
 foreach ( $tilaukset as $tilaus ) {
 	// Luodaan Laskutiedot-olio väärällä userilla, koska tarvitaan vain tilausten summia
 	$lasku = new Laskutiedot($db, $tilaus->id, $user);
-	array_push($laskut, $lasku);
+	$laskut[] = $lasku;
 	// Yhteensä
 	$myynti_alvillinen += $lasku->hintatiedot[ 'summa_yhteensa' ];
 	$myynti_alviton += round($lasku->hintatiedot[ 'alv_perus' ], 2);
@@ -50,16 +52,7 @@ foreach ( $tilaukset as $tilaus ) {
 	}
 }
 
-/** Ladataan tiedosto suoraan selaimeen */
-
-$datetime = date("d-m-Y h-i-s");
-$name = "Myyntiraportti-{$datetime}.txt";
-header('Content-Type: text');
-header('Content-Disposition: attachment; filename='. $name);
-header('Pragma: no-cache');
-header("Expires: 0");
-
-$outstream = fopen("php://output", "w");
+// Luodaan raportti
 $raportti = "Myyntiraportti aikaväliltä ".date('d.m.Y', strtotime($_POST["pvm_from"])) .
 				" - " . date('d.m.Y', strtotime($_POST["pvm_to"])) . "\r\n\r\n" .
 			"Myynti yhteensä ". format_number( $myynti_alvillinen , false, true ) ." € sis alv\r\n" .
@@ -71,11 +64,16 @@ foreach ($alv_kannat as $alv_kanta) {
 	$raportti .=    "Kanta\t {$alv_kanta[ 'kanta' ]} \r\n".
 					"Perus\t ". format_number($alv_kanta[ 'perus' ], false, true). " €\r\n".
 					"Maara\t ". format_number($alv_kanta[ 'maara' ], false, true). " €\r\n\r\n";
-
 }
+
+// Ladataan tiedosto suoraan selaimeen
+$datetime = date("d-m-Y h-i-s");
+$name = "Myyntiraportti-{$datetime}.txt";
+header('Content-Type: text');
+header('Content-Disposition: attachment; filename='. $name);
+header('Pragma: no-cache');
+header("Expires: 0");
+$outstream = fopen("php://output", "w");
 fwrite($outstream, $raportti);
-
-
-
 fclose($outstream);
 exit();

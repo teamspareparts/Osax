@@ -4,7 +4,7 @@
  * Raportti lähetetään sähköpostilla kirjanpitoon, jos tiedosto ajetaan cmd:llä.
  * Raportti ladataan selaimeen, jos tiedosto avattu selaimessa.
  */
-chdir(dirname(__FILE__)); //Määritellään työskentelykansio
+chdir(dirname(__FILE__)); // Määritellään työskentelykansio
 
 require './luokat/email.class.php';
 require './luokat/dbyhteys.class.php';
@@ -18,9 +18,9 @@ $db = new DByhteys();
  * @param $pvm_to <p>
  * @return string <p> Raportin sisältö.
  */
-function luo_tapahtumalistaus(DByhteys $db, /*string*/ $pvm_from, /*string*/ $pvm_to)
+function luo_tapahtumalistaus( DByhteys $db, /*string*/$pvm_from, /*string*/$pvm_to )
 {
-	//Alustetaan summat
+	// Alustetaan muuttujat
 	$sum_alviton_lasku = 0;
 	$sum_alviton_paytrail = 0;
 	$sum_alviton_maarittelematon = 0;
@@ -28,7 +28,7 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/ $pvm_from, /*string*/ $pv
 	$sum_alvillinen_paytrail = 0;
 	$sum_alvillinen_maarittelematon = 0;
 
-	//Haetaan tilaukset
+	// Haetaan tilaukset
 	$sql = "SELECT tilaus.laskunro, tilaus.paivamaara, 
 			tilaus.kayttaja_id, yritys.nimi AS yritys,
 			IFNULL(tilaus.maksutapa, -1) AS maksutapa,
@@ -52,21 +52,20 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/ $pvm_from, /*string*/ $pv
 			ORDER BY tilaus.paivamaara";
 	$tilaukset = $db->query($sql, [$pvm_from, $pvm_to], FETCH_ALL);
 
-	//Luodaan raportti
-	$raportti = chr(0xEF) . chr(0xBB) . chr(0xBF); //BOM
+	// Luodaan raportti
+	$raportti = chr(0xEF) . chr(0xBB) . chr(0xBF); //UTF-8 BOM
 	$raportti .= "Myyntitapahtumat " . date('d.m.Y', strtotime($pvm_from)) .
 		" - " . date('d.m.Y', strtotime($pvm_to)) . "\r\n\r\n" .
-		"Tapahtumamäärä " . count($tilaukset) . " kpl\r\n" .
-		"\r\n" .
+		"Tapahtumamäärä " . count($tilaukset) . " kpl\r\n\r\n" .
 		"Myyntipvm, Lasku nro, Asiakas, Summa ALV, Summa ALV 0, maksutapa\r\n";
-	foreach ($tilaukset as $tilaus) {
+	foreach ( $tilaukset as $tilaus ) {
 		$tilaus->tilauspvm = date('d.m.Y', strtotime($tilaus->paivamaara));
 		$tilaus->laskunro = isset($tilaus->laskunro) ? $tilaus->laskunro : "NULL";
 		$tilaus->summa_alvillinen_string = number_format($tilaus->summa_alvillinen, 2, ".", "") . "€";
 		$tilaus->summa_alviton_string = number_format($tilaus->summa_alviton, 2, ".", "") . "€";
 		//Määritellään maksutapa ja lasketaan tilausten yhteisarvoa
 		$tilaus->maksutapa_string = null;
-		switch ($tilaus->maksutapa) {
+		switch ( $tilaus->maksutapa ) {
 			case -1:
 				$tilaus->maksutapa_string = "Määrittelemätön";
 				$sum_alviton_maarittelematon = round($sum_alviton_maarittelematon + $tilaus->summa_alviton, 2);
@@ -83,7 +82,6 @@ function luo_tapahtumalistaus(DByhteys $db, /*string*/ $pvm_from, /*string*/ $pv
 				$sum_alvillinen_lasku = round($sum_alvillinen_lasku + $tilaus->summa_alvillinen, 2);
 				break;
 		}
-
 		$raportti .= "{$tilaus->tilauspvm}, {$tilaus->laskunro}, {$tilaus->yritys}, " .
 			"{$tilaus->summa_alvillinen_string}, {$tilaus->summa_alviton_string}, {$tilaus->maksutapa_string}\r\n";
 	}
@@ -147,7 +145,6 @@ if ( php_sapi_name() == 'cli' ) {
 	Email::lahetaTapahtumalistausraportti($fileName, $raportti);
 
 } else {
-	// Ladataan tiedosto suoraan selaimeen
 	session_start();
 	$user = new User( $db, $_SESSION['id'] );
 
@@ -156,17 +153,15 @@ if ( php_sapi_name() == 'cli' ) {
 		exit();
 	}
 
+	// Ladataan tiedosto suoraan selaimeen
 	$datetime = date("d-m-Y H-i-s");
 	$name = "Myyntitapahtumalistaus-{$datetime}.txt";
 	header('Content-Type: text');
 	header('Content-Disposition: attachment; filename=' . $name);
 	header('Pragma: no-cache');
 	header("Expires: 0");
-
 	$outstream = fopen("php://output", "w");
-
 	fwrite($outstream, $raportti);
-
 	fclose($outstream);
 	exit();
 }
