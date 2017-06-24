@@ -94,7 +94,8 @@ switch ( $get_count ) {
 				Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
 
 				if ( !$_SESSION['indev'] ) {
-					//TODO: Jannen sähköposti
+					// Kopio Jannelle
+					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus_id, $lasku_nimi );
 				}
 			}
 		}
