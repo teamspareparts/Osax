@@ -51,7 +51,16 @@ function hae_tilauksen_tuotteet( DByhteys $db, /*int*/ $tilaus_id ) {
 	return $db->query( $sql, [ $tilaus_id ], FETCH_ALL, PDO::FETCH_CLASS, 'Tuote' );
 }
 
-// Tarkistetaan URL:n ID
+if ( !empty($_POST['peruuta_id']) ) {
+	require './luokat/paymentAPI.class.php';
+
+	// Yes, yes, voisi tehdä tehokkaammin, I know, I'm just lazy.
+	$kayttaja = new User( $db, $_POST['user_id'] );
+	$ostoskori = new Ostoskori( $db, $kayttaja->id, -1 );
+
+	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja->id, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
+}
+
 if ( empty( $_GET[ 'id' ] ) ) {
 	header( "Location:tilaushistoria.php?id={$user->id}" );
 	exit();
@@ -60,7 +69,7 @@ if ( empty( $_GET[ 'id' ] ) ) {
 $tilaus_tiedot = hae_tilauksen_tiedot( $db, $_GET[ 'id' ] );
 
 // Löytyikö tilauksen tiedot ID:llä. Tarkistus NULL:lla, eikä empty():lla,
-//  koska haku palauttaa ei-tyhjää aina jostain syystä.
+//  koska haku palauttaa ei-tyhjää aina jostain syystä (LEFT JOIN).
 if ( $tilaus_tiedot->id === null ) {
 	header( "Location:tilaushistoria.php" );
 	exit();
@@ -200,27 +209,33 @@ $noutolista_file_nimi =
 
 <?php require 'footer.php'; ?>
 
-<script async>
-	document.getElementById('peruuta_tilaus').addEventListener('click', function() {
-		Modal.open({
-			content: `
-<div>
-	<h2>Oletko varma, että haluat peruuttaa tilauksen?</h2>
-	<h3>Tämä palauttaa tuotteet asiakkaan ostoskoriin,<br>
-		ja merkitsee tilauksen peruutetuksia.</h3>
-	<h3>Huom. Tilaus voi silti olla mahdollisesti maksettu!</h3>
-	<button class="nappi grey" onclick="Modal.close()">Palaa takaisin. Älä peruuta tilausta.</button>
-	<br><br>
-	<form>
-		<input type="hidden" name="" value="">
-		<input type="Submit" value="Poista ttilaus." class="nappi red">
-	</form>
-</div>
-			`,
-			draggable: true
-		});
+<?php if ($user->isAdmin()) : ?>
+	<script async>
+		let peruuta_nappi = document.getElementById('peruuta_tilaus');
+		let tilaus_id = <?=$tilaus_tiedot->id?>;
+		let user_id = <?=$tilaus_tiedot->kayttaja_id?>;
 
-	});
-</script>
+		peruuta_nappi.addEventListener('click', function() {
+			Modal.open({
+				content: `
+					<div>
+						<h2>Oletko varma, että haluat peruuttaa tilauksen?</h2>
+						<h3>Tämä palauttaa tuotteet asiakkaan ostoskoriin,<br>
+							ja merkitsee tilauksen peruutetuksia.</h3>
+						<h3>Huom. Tilaus voi silti olla mahdollisesti maksettu!</h3>
+						<button class="nappi grey" onclick="Modal.close();">Palaa takaisin. Älä peruuta tilausta.</button>
+						<br><br>
+						<form method="post">
+							<input type="hidden" name="peruuta_id" value="${tilaus_id}">
+							<input type="hidden" name="user_id" value="${user_id}">
+							<input type="Submit" value="Poista tilaus." class="nappi red">
+						</form>
+					</div>
+				`,
+				draggable: true
+			});
+		});
+	</script>
+<?php endif; ?>
 </body>
 </html>
