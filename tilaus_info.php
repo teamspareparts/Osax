@@ -101,14 +101,6 @@ $noutolista_file_nimi =
 </head>
 <body>
 
-<!-- Tiedoston latausta varten -->
-<form id="download_lasku" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
-</form>
-<form id="download_noutolista" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
-</form>
-
 <?php include 'header.php'; ?>
 
 <main class="main_body_container">
@@ -130,12 +122,17 @@ $noutolista_file_nimi =
 		</div>
 		<div id="painikkeet">
             <?php if ( $tilaus_tiedot->maksettu ) : ?>
-	            <!-- //TODO: Miksei se form ole suoraan tässä? -->
-	            <a href="#" onclick="document.getElementById('download_lasku').submit()"
-                   class="nappi">Lasku</a>
+	            <!-- Laskun lataus -->
+	            <form method="post" action="download.php" class="inline-block">
+		            <input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
+	                <input type="submit" name="submit" value="Lasku" class="nappi">
+	            </form>
                 <?php if ( $user->isAdmin() ) : ?>
-	                <a href="#" onclick="document.getElementById('download_noutolista').submit()"
-	                   class="nappi">Noutolista</a>
+		            <!-- Noutolistan lataus -->
+		            <form method="post" action="download.php" class="inline-block">
+			            <input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
+		                <input type="submit" name="submit" value="Noutolista" class="nappi">
+		            </form>
 				<?php endif; ?>
             <?php endif; ?>
 		</div>
