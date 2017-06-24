@@ -66,6 +66,8 @@ $yritykset = hae_yritykset($db);
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+	<script src="./js/datepicker-fi.js"></script>
 	<title>Raportit</title>
 </head>
 <body>
@@ -85,10 +87,10 @@ $yritykset = hae_yritykset($db);
 
 			<!-- Päivämäärän valinta -->
 			<label for="pvm_from">From: </label>
-			<input type="date" name="pvm_from" id="pvm_from" max="<?=date("Y-m-d")?>" required>
+			<input type="text" name="pvm_from" id="pvm_from" class="datepicker" required>
 			<br><br>
 			<label for="pvm_to">To: </label>
-			<input type="date" name="pvm_to" value="<?=date("Y-m-d")?>" id="pvm_to" max="<?=date("Y-m-d")?>" required>
+			<input type="text" name="pvm_to" id="pvm_to" class="datepicker" value="<?=date("Y-m-d")?>" required>
 			<br><br>
 
 			<!-- Brändin valinta -->
@@ -143,6 +145,12 @@ $yritykset = hae_yritykset($db);
         $("#tuotekohtainen_myyntiraportti").on("submit", function(e) {
             $(".feedback").show().fadeOut(5000);
 
+        });
+        $('.datepicker').datepicker({
+            dateFormat: 'yy-mm-dd',
+            maxDate: '+0d',
+        }).keydown(function(e){
+            e.preventDefault();
         });
     });
 </script>
