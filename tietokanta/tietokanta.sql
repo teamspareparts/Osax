@@ -362,7 +362,7 @@ CREATE TABLE IF NOT EXISTS `temp_tuote`(
 
 CREATE TABLE IF NOT EXISTS `tuoteryhma`(
   `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `parent_id` smallint UNSIGNED NULL DEFAULT NULL, -- FK, osoittaa saman taulun ID-kolumniin (Puu-rakenne)
+  `parent_id` smallint UNSIGNED DEFAULT 0, -- FK, osoittaa saman taulun ID-kolumniin (Puu-rakenne, 0 == root)
   `oma_taso` tinyint NOT NULL,
   `nimi` varchar(120) NOT NULL,
   `hinnoittelukerroin` decimal(3,2) NOT NULL DEFAULT 1,

@@ -12,7 +12,12 @@ a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeis
 main { display: block; } /* F*** IE */
 
 fieldset {
-	background-color: whitesmoke !important;
+	background-color: whitesmoke !important; /* //TODO: korjaa pois tuo "important!" */
+}
+legend {
+	background-color: lightsteelblue;
+	border-radius: 10px;
+	padding: 3px 10px;
 }
 
 /********************************************

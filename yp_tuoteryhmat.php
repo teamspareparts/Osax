@@ -12,7 +12,7 @@ require './luokat/tuoteryhma.class.php';
  * @param int          $maxDepth <p> Max syvyys. To prevent endless loops.
  * @return array <p> Palauttaa k-ary puun. K == lasten määrä.
  */
-function rakenna_puu( array &$elements, $parentId = null, /*int*/$depth = 0, /*int*/$maxDepth = 5 ) {
+function rakenna_puu( array &$elements, $parentId = 0, /*int*/$depth = 0, /*int*/$maxDepth = 5 ) {
 	if ( ++$depth > $maxDepth ) {
 		return array();
 	}
@@ -38,7 +38,7 @@ function rakenna_puu( array &$elements, $parentId = null, /*int*/$depth = 0, /*i
  * @param int          $depth    <p> Syvyys rekursiossa. Pidetään lukua varmuuden vuoksi.
  * @param int          $maxDepth <p> Max syvyys. To prevent endless loops.
  */
-function tulosta_puu( array &$elements, /*int*/$par_ID = null, /*int*/$depth = 0, /*int*/$maxDepth = 3 ) {
+function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /*int*/$maxDepth = 3 ) {
 	if ( ++$depth > $maxDepth ) {
 		return;
 	}
@@ -47,45 +47,47 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = null, /*int*/$depth = 0
 		echo "<li id='li_{$el->id}'>";
 
 		if ( $depth < $maxDepth OR $el->children ) {
-			echo "<details>";
-			echo "<summary>";
-			echo "{$el->parentID}-{$el->id}: {$el->nimi}";
-			echo "<a href='#' class='edit' data-id='{$el->id}'><i class='material-icons'>edit</i></a>";
-			echo '</summary>';
+			echo "<details>
+				<summary> {$el->parentID}-{$el->id}: {$el->nimi}
+					<a href='#' class='edit'
+						data-id='{$el->id}' data-nimi='{$el->nimi}' data-kerroin='{$el->hinnoittelukerroin}'>
+						<i class='material-icons'>edit</i>
+					</a>
+					<a href='#' class='sales' data-id='{$el->id}'> Alennukset </a>
+				</summary>";
 			tulosta_puu( $el->children, $el->id, $depth );
 			echo '</details>';
 		}
 		else {
-			echo "<span>";
-			echo "{$el->parentID}-{$el->id}: {$el->nimi}";
-			echo "<a href='#' class='edit' data-id='{$el->id}'><i class='material-icons'>edit</i></a>";
-			echo '</span>';
+			echo "<span>
+					{$el->parentID}-{$el->id}: {$el->nimi}
+					<a href='#' class='edit' data-id='{$el->id}'><i class='material-icons'>edit</i></a>
+					<a href='#' class='sales'> Alennukset </a>
+				</span>";
 		}
 
 		echo '</li>';
 	}
-	echo "<li>";
-	echo "<a href='#' class='add' data-id='{$par_ID}'><i class='material-icons'>add_box</i></a>";
-	echo '</li>';
-	echo "</ul>";
+	echo "<li> <a href='#' class='add' data-id='{$par_ID}'><i class='material-icons'>add_box</i></a> </li>
+		</ul>";
 }
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 
-if ( !empty($_POST) AND empty($_POST['id']) AND empty($_POST['parent_id']) ) {
-	// Uusi root tuoteryhmä
-	$db->query( "INSERT INTO tuoteryhma (nimi, hinnoittelukerroin) VALUES (?,?)",
-				[ $_POST['nimi'], $_POST['hkerroin'] ] );
+// Uusi root tuoteryhmä
+if ( !empty($_POST) ) {
+	debug($_POST, true);
+	unset( $_POST );
 }
-else if ( empty($_POST['id']) AND !empty($_POST['parent_id']) ) {
-	// Uusi lapsi tuoteryhmä
+// Uusi lapsi tuoteryhmä
+else if ( !empty($_POST['lisaa_parent_id']) ) {
 	$db->query( "INSERT INTO tuoteryhma (parent_id, nimi, hinnoittelukerroin) VALUES (?,?,?)",
 				[ $_POST['parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
 }
-else if ( !empty($_POST['id']) ) {
-	// Tuoteryhmän muokkaus
+// Tuoteryhmän muokkaus
+else if ( !empty($_POST['muokkaa_id']) ) {
 	$db->query( "UPDATE tuoteryhma SET nimi = ?, hinnoittelukerroin = ? WHERE id = ?",
 				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['id'] ] );
 }
@@ -108,6 +110,10 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	<meta charset="utf-8">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="./css/styles.css">
+	<link rel="stylesheet" href="./css/jsmodal-light.css">
+	<link rel="stylesheet" href="./css/details-shim.min.css">
+	<script src="./js/details-shim.min.js" async></script>
+	<script src="./js/jsmodal-1.0d.min.js" async></script>
 	<style>
 		/*form, p, div, section, span, details, summary, ul, li { border: 1px solid; }*/
 		ul {
@@ -125,37 +131,16 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 
 <?php require './header.php'; ?>
 
-<main class="main_body_container">
+<main class="main_body_container flex_row" style="flex-wrap: wrap-reverse;">
 	<?= $feedback ?>
 
-	<section class="lomake">
-		<form method="post">
-			<fieldset> <legend>Tuoteryhmien muokkaus / lisäys</legend>
-				<span>WIP - tämä boxi tulee luultavasti siirtymään jonnekin muualle.</span>
-				<br><br>
-				<label for="form_id"> ID: </label>
-				<input type="number" name="id" value="" id="form_id">
-				<br>
-				<label for="form_par_id"> Parent ID:</label>
-				<input type="number" name="parent_id" id="form_par_id">
-				<br>
-				<label for="form_name" class="required">Nimi:</label>
-				<input type="text" name="nimi" value="" id="form_name" required>
-				<br>
-				<label for="form_hkerroin" class="required">Hinnoittelukerroin:</label>
-				<input type="number" name="hkerroin" value="1" step="0.01" placeholder="1,00" id="form_hkerroin" required>
-				<br><br>
-				<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
-				<p class="center">
-					<input type="submit" value="Lisää / Muokkaa" class="nappi">
-				</p>
-			</fieldset>
-		</form>
-	</section>
-
-	<section class="tuoteryhmat_tree">
+	<section class="tuoteryhmat_tree white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
 		<h3>Tuoteryhmät</h3>
 		<?php tulosta_puu( $tree ); ?>
+	</section>
+
+	<section>
+
 	</section>
 
 </main>
@@ -163,7 +148,80 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 <?php require './footer.php'; ?>
 
 <script>
-	console.log( "Hello World" );
+	let add_napit = document.getElementsByClassName("add");
+	let edit_napit = document.getElementsByClassName("edit");
+	let sales_napit = document.getElementsByClassName("sales");
+
+
+	Array.from(add_napit).forEach(function(element) {
+		element.addEventListener('click', function () {
+			let parent = element.dataset.id;
+
+			Modal.open({
+				content: `
+					<form method="post">
+						<fieldset> <legend>Tuoteryhmien lisäys</legend>
+							<label for="form_par_id" class="required"> Parent ID:</label>
+							<input type="hidden" name="lisaa_parent_id" value="${parent}" id="form_par_id">
+							<span>${parent}</span>
+							<br>
+							<label for="form_name" class="required">Nimi:</label>
+							<input type="text" name="nimi" value="" id="form_name" placeholder="Nimi" required>
+							<br>
+							<label for="form_hkerroin" class="required">Hinnoittelukerroin:</label>
+							<input type="number" name="hkerroin" value="1" step="0.01"
+									placeholder="1,00" id="form_hkerroin" required>
+							<br><br>
+							<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
+							<p class="center">
+								<input type="submit" value="Lisää" class="nappi">
+							</p>
+						</fieldset>
+					</form>
+				`,
+				draggable: true
+			});
+		});
+	});
+
+	Array.from(edit_napit).forEach(function(element) {
+		element.addEventListener('click', function () {
+			let id = element.dataset.id;
+			let nimi = element.dataset.nimi;
+			let hinnoittelukerroin = element.dataset.kerroin;
+
+			Modal.open({
+				content: `
+					<form method="post">
+						<fieldset> <legend>Tuoteryhmien muokkaus</legend>
+							<label for="form_id" class="required"> ID: </label>
+							<input type="hidden" name="muokkaa_id" value="${id}" id="form_id">
+							<span>${id}</span>
+							<br>
+							<label for="form_name" class="required">Nimi:</label>
+							<input type="text" name="nimi" value="${nimi}" id="form_name" required>
+							<br>
+							<label for="form_hkerroin" class="required">Hinnoittelukerroin:</label>
+							<input type="number" name="hkerroin" value="${hinnoittelukerroin}"
+									step="0.01" placeholder="1,00" id="form_hkerroin" required>
+							<br><br>
+							<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
+							<p class="center">
+								<input type="submit" value="Muokkaa" class="nappi">
+							</p>
+						</fieldset>
+					</form>
+				`,
+				draggable: true
+			});
+		});
+	});
+
+	Array.from(sales_napit).forEach(function(element) {
+		element.addEventListener('click', function () {
+			let tuoteryhmaID = element.dataset.id;
+		});
+	});
 </script>
 </body>
 </html>
