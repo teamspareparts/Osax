@@ -168,31 +168,30 @@ class PaymentAPI {
 			$stmt->execute( [ $tilausID ] );
 			$results = $stmt->fetchAll();
 
-			// Tuotteiden varastosaldojen palautus takaisin.
-			$placeholders = implode( ',', array_fill( 0, count( $results ), '(?,?)' ) );
-			$values = array();
-			$stmt = $conn->prepare( "INSERT INTO temp_tuote (tuote_id, varastosaldo) VALUES {$placeholders}" );
+			// Tuotteiden varastosaldojen palautus
+			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?)' ) );
+			$values = [];
+			$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks}
+		        	ON DUPLICATE KEY 
+		        	UPDATE varastosaldo = varastosaldo + VALUES(varastosaldo), paivitettava = 1";
+			$stmt = $conn->prepare( $sql );
 			foreach ( $results as $tuote ) {
 				array_push( $values, $tuote->tuote_id, $tuote->kpl );
 			}
 			$stmt->execute( $values );
 
-			// Yhdistetään temp_taulu tuote-taulun tietoihin, joka päivittää varastosaldot takaisin.
-			$stmt = $conn->prepare( "
-				UPDATE tuote 
-				JOIN temp_tuote ON tuote.id = temp_tuote.tuote_id 
-				SET tuote.varastosaldo = tuote.varastosaldo + temp_tuote.varastosaldo, tuote.paivitettava = 1" );
-			$stmt->execute();
-
-			// Lisätään lopuksi tuotteet takaisin ostoskoriin.
-			$stmt = $conn->prepare( "
-				INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
-				SELECT ?, tuote_id, varastosaldo FROM temp_tuote
- 				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara)" );
-			$stmt->execute( [ $ostoskoriID ] );
-
-			// Tyhjennetään temp_tuote -taulu.
-			$conn->query( "DELETE FROM temp_tuote" );
+			// Lisätään tuotteet takaisin ostoskoriin.
+			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?,?)' ) );
+			$values = [];
+			$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
+						VALUES {$questionmarks}
+ 					ON DUPLICATE KEY
+ 					UPDATE kpl_maara = kpl_maara + VALUES(kpl_maara)";
+			$stmt = $conn->prepare( $sql );
+			foreach ( $results as $tuote ) {
+				array_push( $values, $ostoskoriID, $tuote->tuote_id, $tuote->kpl );
+			}
+			$stmt->execute( $values );
 
 			$conn->commit();
 

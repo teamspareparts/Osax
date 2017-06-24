@@ -1,56 +1,51 @@
-<?php
+﻿<?php
 /**
  * Palautetaan varastosaldot niistä tilauksista, jotka on keskeytetty
- * (maksettu = 0 yli 2 päivää, poislukien viikonloppu)
+ * (maksettu = 0, tarkastetaan vain arkipäivinä)
  */
 
-chdir(dirname(__FILE__)); //Määritellään työskentelykansio
-set_time_limit(300);
+
+chdir(dirname(__FILE__)); // Määritellään työskentelykansio
+set_time_limit(300); // 5min
 
 require "./luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
-// Montako päivää tilauksen pitää olla keskeytynyt, jottasaldot palautetaan
-$paivat_keskeytyneena = 2;
+// Montako tuntia tilauksen pitää olla keskeytynyt, jotta saldot palautetaan
+$tunnit_keskeytyneena = 24;
 
-//Haetaan keskeneräisten tilausten tuotteet, jotka olleet kesken yli 4 päivää
-$sql = "	SELECT *
+// Haetaan keskeneräisten tilausten tuotteet
+$sql = "	SELECT tuote_id, kpl
   			FROM tilaus_tuote
   		  	LEFT JOIN tilaus
   		  		ON tilaus.id = tilaus_tuote.tilaus_id
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
+  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
  		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
-$tuotteet = $db->query( $sql, [$paivat_keskeytyneena], FETCH_ALL);
+$tuotteet = $db->query( $sql, [$tunnit_keskeytyneena], FETCH_ALL);
 
-//Haetaan tilausten id:t
+// Haetaan tilausten id:t
 $sql = "	SELECT id
   			FROM tilaus
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? DAY)
+  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
  		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
-$tilaukset = $db->query( $sql, [$paivat_keskeytyneena], FETCH_ALL);
+$tilaukset = $db->query( $sql, [$tunnit_keskeytyneena], FETCH_ALL);
 
 if ( !$tilaukset || !$tuotteet ) {
 	return;
 }
 
-//Tuotteiden varastosaldot temp-tauluun
+// Päivitetään tuotteiden varastosaldot
 $questionmarks = implode( ',', array_fill( 0, count( $tuotteet ), '(?,?)' ) );
 $values = [];
-$sql = "INSERT INTO temp_tuote (tuote_id, varastosaldo) VALUES {$questionmarks}
-		ON DUPLICATE KEY UPDATE varastosaldo = ( varastosaldo + VALUES(varastosaldo) )";
+$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks}
+		ON DUPLICATE KEY 
+		UPDATE varastosaldo = varastosaldo + VALUES(varastosaldo), paivitettava = 1";
 foreach ( $tuotteet as $tuote ) {
-	array_push( $values, $tuote->tuote_id, ($tuote->kpl) );
+	array_push($values, $tuote->tuote_id, $tuote->kpl);
 }
 $db->query($sql, $values);
 
-//Päivitetään tuotteiden varastosaldot ja merkataan ostoautomaatiota varten
-$db->query("UPDATE tuote JOIN temp_tuote
-            ON tuote.id = temp_tuote.tuote_id 
-            SET tuote.varastosaldo = ( tuote.varastosaldo + temp_tuote.varastosaldo ) ,
-                tuote.paivitettava = 1");
-$db->query( "DELETE FROM temp_tuote" );
-
-//Merkataan tilaukset epäonnistuneiksi
+// Merkataan tilaukset epäonnistuneiksi
 foreach ( $tilaukset as $tilaus ) {
 	$db->query("UPDATE tilaus SET maksettu = -1 WHERE id = ?", [$tilaus->id]);
 }
