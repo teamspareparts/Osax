@@ -6,8 +6,8 @@ require '_start.php'; global $db, $user, $cart;
  * @param array    $variables
  * @return string <p> for _SESSION['feedback']
  */
-function vaihda_salasana( DByhteys $db, array $variables ) {
-	$row = $db->query( "SELECT salasana_hajautus FROM kayttaja WHERE id = ?" );
+function vaihda_salasana( DByhteys $db, User $user, array $variables ) {
+	$row = $db->query( "SELECT salasana_hajautus FROM kayttaja WHERE id = ?", [$user->id] );
 	if ( !password_verify( $variables[ 'vanha_salasana' ], $row->salasana_hajautus ) ) {
 		return "<p class='error'>Vanha salasana ei ole oikein.</p>";
 	}
@@ -123,7 +123,7 @@ if ( !empty( $_POST[ 'uudet_tiedot' ] ) ) {
 	}
 }
 elseif ( !empty( $_POST[ 'uusi_salasana' ] ) ) {
-	$_SESSION['feedback'] = vaihda_salasana( $db, $_POST );
+	$_SESSION['feedback'] = vaihda_salasana( $db, $user, $_POST );
 }
 elseif ( !empty( $_POST[ "muokkaa_vanha_osoite" ] ) ) {
 	muokkaa_uudet_tiedot( $db, $user, $_POST );
