@@ -18,11 +18,11 @@ if ( !$user->isAdmin() ) {
 function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brand_ids, array $optional_brand_ids) {
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ?";
 	$db->query($sql, [$hankintapaikka_id]);
-	$placeholders = [];
+	$values = [];
 	foreach ( $brand_ids as $index=>$brand_id ) {
-		$placeholders[] = $hankintapaikka_id;
-		$placeholders[] = $brand_id;
-		$placeholders[] = $optional_brand_ids[$index];
+		$values[] = $hankintapaikka_id;
+		$values[] = $brand_id;
+		$values[] = $optional_brand_ids[$index];
 	}
 	$questionmarks = implode(',', array_fill( 0, count($brand_ids), '( ?, ?, ? )'));
 	$sql = "  INSERT INTO brandin_linkitys
@@ -30,7 +30,27 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brand_
 			  VALUES {$questionmarks}
 			  ON DUPLICATE KEY
 			  UPDATE brandi_kaytetty_id = VALUES(brandi_kaytetty_id)";
-	return $db->query($sql, $placeholders);
+	return $db->query($sql, $values);
+}
+
+/**
+ * @param DByhteys $db
+ * @param $hankintapaikka_id
+ * @param array $brand_ids
+ * @return array|int|stdClass
+ */
+function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brand_ids ){
+	$values = [];
+	$questionmarks = "(".implode(',', array_fill( 0, count($brand_ids), '?')).")";
+	$sql = "UPDATE tuote
+			SET aktiivinen = 0
+			WHERE hankintapaikka_id = ? 
+				AND brandNo NOT IN {$questionmarks}";
+	$values[] = $hankintapaikka_id;
+	foreach ( $brand_ids as $brand_id ) {
+		$values[] = $brand_id;
+	}
+	return $db->query($sql, $values);
 }
 
 // Haetaan hankintapaikan tiedot
@@ -52,10 +72,10 @@ $sql = "SELECT brandi.*, brandin_linkitys.brandi_kaytetty_id FROM brandi
  		ORDER BY nimi ASC";
 $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
-// Haetaan linkitetyt brändit
 
 if ( isset($_POST['lisaa_linkitys']) ) {
 	lisaa_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_ids'], $_POST['optional_ids']);
+	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_ids']);
 	header("Location: yp_hankintapaikka.php?hankintapaikka_id={$_POST['hankintapaikka_id']}");
 	exit();
 }
@@ -134,6 +154,15 @@ unset($_SESSION["feedback"]);
 		} else {
 		    box.hide();
             input.prop('disabled', true);
+        }
+    });
+
+    $('#linkitys_form').submit(function (e) {
+		let c = confirm('Poistettujen brändien tuotteet deaktivoidaan ' +
+			'kyseiseltä hankintapaikalta.\n\nHaluatko varmasti jatkaa?');
+        if (c === false) {
+            e.preventDefault();
+            return false;
         }
     });
 

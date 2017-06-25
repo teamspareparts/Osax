@@ -95,7 +95,7 @@ unset($_SESSION["feedback"]);
     <h1 class="otsikko">Brändit</h1>
     <div id="painikkeet">
         <button class="nappi" onClick="document.getElementById('paivita_tecdoc').submit();">Päivitä TecDoc</button>
-        <!-- <button class="nappi" onClick="avaa_modal_uusi_brandi();">Lisää oma brändi</button> -->
+        <button class="nappi" onClick="avaa_modal_uusi_brandi();">Lisää oma brändi</button>
     </div>
 </section><br>
 

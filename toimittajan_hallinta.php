@@ -24,7 +24,7 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
  */
 function poista_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brand_id){
 	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
-	$sql = "UPDATE tuote SET aktiivinen WHERE hankintapaikka_id = ? AND brandNo = ?";
+	$sql = "UPDATE tuote SET aktiivinen = 0 WHERE hankintapaikka_id = ? AND brandNo = ?";
 	$db->query($sql, [$hankintapaikka_id, $brand_id]);
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? ";
 	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
@@ -45,21 +45,36 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $bran
 	return $db->query($sql, [$brand_id, $hankintapaikka_id]);
 }
 
+/**
+ * Deaktivoi brändin ja brändin tuotteet sekä poistaa kaikki linkitykset
+ * @param DByhteys $db
+ * @param $brandi_id
+ * @return array|int|stdClass
+ */
 function poista_brandi( DByhteys $db, /*int*/ $brandi_id ) {
-    //TODO: Tarkista että ei linkitettyjä tuotteita
     $sql = "DELETE FROM brandin_linkitys WHERE brandi_id = ?";
+    $db->query($sql, [$brandi_id]);
+    $sql = "UPDATE tuote SET aktiivinen = 0 WHERE brandNo = ?";
     $db->query($sql, [$brandi_id]);
     $sql = "UPDATE brandi SET aktiivinen = 0 WHERE id = ?";
     return $db->query($sql, [$brandi_id]);
 
 }
 
+/**
+ * Brändin tietojen muokkaamiseen
+ * @param DByhteys $db
+ * @param $brand_id
+ * @param $nimi
+ * @param $url
+ */
 function muokkaa_brandi( DByhteys $db, /*int*/ $brand_id, /*string*/ $nimi, /*string*/ $url ) {
 	$sql = "UPDATE brandi SET nimi = ?, url = ? WHERE id = ?";
 	$db->query($sql, [$nimi, $url, $brand_id]);
 }
 
 /**
+ * Hakee hankintapaikat
  * @param DByhteys $db
  * @param $brand_id
  * @return array|int|stdClass
@@ -304,7 +319,8 @@ unset($_SESSION["feedback"]);
      * Luo piilotetun formin, jota tarvitaan brändin poistamiseen
      */
     function poista_brandi (brand_id) {
-        let c = confirm("Haluatko varmasti poistaa brändin?");
+        let c = confirm("Haluatko varmasti poistaa brändin?\n\n" +
+	        "Tämä toiminto deaktivoi kaikki kyseisen brändin tuotteet.");
         if (c === false) {
             e.preventDefault();
             return false;

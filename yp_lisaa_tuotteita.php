@@ -93,7 +93,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 				$tilauskoodi = $data[8];
 				break;
 		}
-		$tuotekoodi = $hankintapaikka_id . "-" . $articleNo; //esim: 100-QTB249
+		$tuotekoodi = str_pad($hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . $articleNo; //esim: 100-QTB249
 
         // Tarkastetaan csv:n solujen oikeellisuus
         if ( !($brandId && $brandName && $hankintapaikka_id && $ostohinta &&
@@ -150,9 +150,9 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 
 	fclose($handle);
 
+	// Päivitetään hinnaston sisäänluku-päivämäärä.
 	$inserted_brands = array_unique($inserted_brands);
 	foreach ($inserted_brands as $brand_id) {
-		// Päivitetään hinnaston sisäänluku päivämäärä.
 		$db->query("UPDATE brandin_linkitys SET hinnaston_sisaanajo_pvm = NOW()
 					WHERE hankintapaikka_id = ? AND brandi_id = ?",
 			[$hankintapaikka_id, $brand_id]);

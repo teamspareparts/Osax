@@ -73,7 +73,7 @@ unset($_SESSION["feedback"]);
 	<main class="main_body_container">
 		<!-- Otsikko ja painikkeet -->
 		<section>
-			<h1 class="otsikko"><?=$hankintapaikka->nimi?> - <?=$hankintapaikka->id?></h1>
+			<h1 class="otsikko"><?=$hankintapaikka->nimi?> - <?=$hankintapaikka->hankintapaikka_id?></h1>
 			<div id="painikkeet">
 				<a href="yp_hankintapaikka.php" class="nappi grey">Takaisin</a>
 				<a href="yp_hankintapaikka_linkitys.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi">Linkitä brändi</a>
