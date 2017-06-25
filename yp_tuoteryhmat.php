@@ -76,13 +76,8 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	header("Location:etusivu.php"); exit();
 }
 
-// Uusi root tuoteryhmä
-if ( !empty($_POST) ) {
-	debug($_POST, true);
-	unset( $_POST );
-}
-// Uusi lapsi tuoteryhmä
-else if ( !empty($_POST['lisaa_parent_id']) ) {
+// Uusi tuoteryhmä
+if ( !empty($_POST['lisaa_parent_id']) ) {
 	$db->query( "INSERT INTO tuoteryhma (parent_id, nimi, hinnoittelukerroin) VALUES (?,?,?)",
 				[ $_POST['parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
 }
@@ -125,6 +120,22 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 		a {     /* Käsittää vain ostoskori-linkin */
 			color: #2f5cad; /* Ostoskori-linkin väri ei muutu randomisti. Näyttää siistimmältä, eikä kiinnitä huomiota. */
 		}
+		.loading {
+			/*background-color: #6f6f6f;*/
+			border: 10px solid #f3f3f3; /* Light grey */
+			border-top: 10px solid #2f5cad; /* Blue */
+			border-bottom: 10px solid #2f5cad; /* Blue */
+			border-radius: 100%;
+			width: 50px;
+			height: 50px;
+			animation: spin 4s linear infinite;
+			margin: auto;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
 	</style>
 </head>
 <body>
@@ -134,13 +145,19 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 <main class="main_body_container flex_row" style="flex-wrap: wrap-reverse;">
 	<?= $feedback ?>
 
-	<section class="tuoteryhmat_tree white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
+	<section class="white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
 		<h3>Tuoteryhmät</h3>
 		<?php tulosta_puu( $tree ); ?>
 	</section>
 
-	<section>
-
+	<section id="alennukset" class="white-bg"
+	         style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
+		<div id="loader">
+			<div class="loading"></div>
+			<p>lataa alennuksia...</p>
+		</div>
+		<div id="alennukset">
+		</div>
 	</section>
 
 </main>
@@ -220,6 +237,23 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	Array.from(sales_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
 			let tuoteryhmaID = element.dataset.id;
+			let ajax =  new XMLHttpRequest();
+
+			ajax.open('POST', 'ajax_requests.php', true);
+			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
+
+			ajax.onreadystatechange = function() {
+				if (ajax.readyState === 2 ) {
+						document.getElementById('loading').insertAdjacentHTML("afterbegin","<p>Loading...</p>", );
+				}
+				if (ajax.readyState === 4 && ajax.status === 200) {
+					if ( ajax.responseText === '1' ) {
+						document.getElementById('alennukset').style.display = "hidden";
+					}
+				}
+			};
+
+			ajax.send( tuoteryhmaID );
 		});
 	});
 </script>

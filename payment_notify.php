@@ -59,7 +59,7 @@ switch ( $get_count ) {
 				require './mpdf/mpdf.php';
 
 				$mpdf = new mPDF();
-				$lasku = new Laskutiedot( $db, $tilaus_id, $user );
+				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $user );
 
 				// Alemmat tiedostot vaativat $lasku-objektia.
 				require './misc/lasku_html.php';
@@ -90,12 +90,12 @@ switch ( $get_count ) {
 				/********************
 				 * Sähköpostit
 				 ********************/
-				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $lasku_nimi );
-				Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
+				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $_GET[ 'ORDER_NUMBER' ], $lasku_nimi );
+				Email::lahetaNoutolista( $_GET[ 'ORDER_NUMBER' ], $noutolista_nimi );
 
 				if ( !$_SESSION['indev'] ) {
 					// Kopio Jannelle
-					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus_id, $lasku_nimi );
+					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $_GET[ 'ORDER_NUMBER' ], $lasku_nimi );
 				}
 			}
 		}
