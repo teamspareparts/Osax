@@ -58,7 +58,7 @@ if ( !empty($_POST['peruuta_id']) ) {
 	$kayttaja = new User( $db, $_POST['user_id'] );
 	$ostoskori = new Ostoskori( $db, $kayttaja->id, -1 );
 
-	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja->id, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
+	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
 
 if ( empty( $_GET[ 'id' ] ) ) {

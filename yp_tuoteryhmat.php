@@ -61,7 +61,8 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /
 		else {
 			echo "<span>
 					{$el->parentID}-{$el->id}: {$el->nimi}
-					<a href='#' class='edit' data-id='{$el->id}'><i class='material-icons'>edit</i></a>
+					<a href='#' class='edit' data-id='{$el->id}' data-nimi='{$el->nimi}'
+						data-kerroin='{$el->hinnoittelukerroin}'><i class='material-icons'>edit</i></a>
 					<a href='#' class='sales'> Alennukset </a>
 				</span>";
 		}
@@ -77,14 +78,14 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 }
 
 // Uusi tuoteryhmä
-if ( !empty($_POST['lisaa_parent_id']) ) {
+if ( isset($_POST['lisaa_parent_id']) ) {
 	$db->query( "INSERT INTO tuoteryhma (parent_id, nimi, hinnoittelukerroin) VALUES (?,?,?)",
-				[ $_POST['parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
+				[ $_POST['lisaa_parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
 }
 // Tuoteryhmän muokkaus
 else if ( !empty($_POST['muokkaa_id']) ) {
 	$db->query( "UPDATE tuoteryhma SET nimi = ?, hinnoittelukerroin = ? WHERE id = ?",
-				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['id'] ] );
+				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['muokkaa_id'] ] );
 }
 
 $sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin
@@ -95,7 +96,8 @@ $tree = rakenna_puu( $rows );
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
-} else {
+}
+else {
 	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
 	unset($_SESSION["feedback"]);
 }
@@ -107,6 +109,10 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	<link rel="stylesheet" href="./css/styles.css">
 	<link rel="stylesheet" href="./css/jsmodal-light.css">
 	<link rel="stylesheet" href="./css/details-shim.min.css">
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+	<script src="./js/datepicker-fi.js"></script>
 	<script src="./js/details-shim.min.js" async></script>
 	<script src="./js/jsmodal-1.0d.min.js" async></script>
 	<style>
@@ -150,12 +156,13 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 		<?php tulosta_puu( $tree ); ?>
 	</section>
 
-	<section id="alennukset" class="white-bg"
-	         style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
-		<div id="loader">
+	<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
+		<h3>Tuoteryhmän alennukset:</h3>
+		<div id="loader" style="display: none;">
 			<div class="loading"></div>
 			<p>lataa alennuksia...</p>
 		</div>
+		<button id="uusi_alennus" class="nappi" data-id='' style="visibility: hidden;">Lisää uusi alennus</button>
 		<div id="alennukset">
 		</div>
 	</section>
@@ -168,7 +175,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	let add_napit = document.getElementsByClassName("add");
 	let edit_napit = document.getElementsByClassName("edit");
 	let sales_napit = document.getElementsByClassName("sales");
-
+	let uusi_alennus = document.getElementById('uusi_alennus');
 
 	Array.from(add_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
@@ -238,23 +245,74 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 		element.addEventListener('click', function () {
 			let tuoteryhmaID = element.dataset.id;
 			let ajax =  new XMLHttpRequest();
+			let loader = document.getElementById('loader');
+			let alennukset, saleHTML, alennusCount, i;
 
+			uusi_alennus.dataset.id = tuoteryhmaID;
+			uusi_alennus.style.visibility = 'visible';
+			loader.style.display = "visible";
 			ajax.open('POST', 'ajax_requests.php', true);
 			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
 
 			ajax.onreadystatechange = function() {
-				if (ajax.readyState === 2 ) {
-						document.getElementById('loading').insertAdjacentHTML("afterbegin","<p>Loading...</p>", );
-				}
 				if (ajax.readyState === 4 && ajax.status === 200) {
-					if ( ajax.responseText === '1' ) {
-						document.getElementById('alennukset').style.display = "hidden";
+					loader.style.visibility = 'none';
+					alennukset = JSON.parse(ajax.responseText);
+					alennusCount = alennukset.length;
+					saleHTML = "";
+					for ( i=0; i<alennusCount; i++ ) {
+						saleHTML += `
+							<form class='lomake'>
+								<fieldset><legend>Alennus ${i}</legend>
+								<label for='id' class='required'>Alennus-ID</label>
+								<span>${alennukset[i].id}</span>
+								<input type='hidden' name='id' value='${alennukset[i].id}' id='id'>
+								<br><br>
+								<label>Hankintapaikka</label>
+								<span>${alennukset[i].hankintapaikka_id}</span>
+								<br><br>
+								<label>Yritys</label>
+								<span>${alennukset[i].yritys_id}</span>
+								<br><br>
+								<label for='maara' class='required'>Määräalennus-kpl</label>
+								<input type='number' name='maara' value='${alennukset[i].maaraalennus_kpl}' id='maara'>
+								<br><br>
+								<label for='pros' class='required'>Prosentti</label>
+								<input type='number' name='pros' value='${alennukset[i].alennus_prosentti}' id='pros'> %
+								<br><br>
+								<label for='alku_pvm' class='required'>Alku-pvm</label>
+								<input type='text' name='alku_pvm' value='${alennukset[i].alkuPvm}'
+										id='alku_pvm' class="datepicker">
+								<br><br>
+								<label for='loppu_pvm' class=''>Loppu-pvm</label>
+								<input type='text' name='loppu_pvm' value='${alennukset[i].loppuPvm}'
+										id='loppu_pvm' class="datepicker">
+								<br><br>
+								<span class='small_note'><span class='required'></span> = pakollinen kenttä</span>
+								<br>
+								<div class="center">
+									<input type='submit' value='Tallenna muokkaukset' class='nappi'>
+								</div>
+								</fieldset>
+							</form>`;
 					}
+
+					document.getElementById('alennukset').innerHTML = saleHTML;
 				}
 			};
 
-			ajax.send( tuoteryhmaID );
+			ajax.send( "tuoteryhma_alennukset=" + tuoteryhmaID );
 		});
+	});
+
+	uusi_alennus.addEventListener('click', function () {
+		console.log( 'Hello world' );
+	});
+
+	$('.datepicker').datepicker({
+		dateFormat: 'yy-mm-dd',
+	}).keydown(function (e) {
+		e.preventDefault();
 	});
 </script>
 </body>

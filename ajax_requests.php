@@ -106,6 +106,14 @@ elseif ( isset( $_POST[ 'hankintapyyntojen_kasittely' ] ) ) {
 	//TODO: Sähköpostin lähetys asiakkaalle
 }
 
+/**
+ *
+ */
+elseif ( isset( $_POST[ 'tuoteryhma_alennukset' ] ) ) {
+	$sql = "SELECT * FROM tuoteryhma_erikoishinta WHERE tuoteryhma_id = ?";
+	$result = $db->query( $sql, array_values( $_POST ), DByhteys::FETCH_ALL );
+}
+
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();
