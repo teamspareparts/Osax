@@ -61,57 +61,14 @@ if ( !empty( $tilaus_id ) ) {
 			WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
 	$result = $db->query( $sql, [ $maksutapa, $tilaus_id, $user->id ] );
 
-	if ( $result ) {
-		require './luokat/laskutiedot.class.php';
-		require './luokat/email.class.php';
-		require './mpdf/mpdf.php';
+	/**
+	 * Laskujen luonti ja sähköpostit tehdään cronjobin välityksellä.
+	 */
 
-		$mpdf = new mPDF();
-		$lasku = new Laskutiedot( $db, $tilaus_id, $user );
-
-		// Alemmat tiedostot vaativat $lasku-objektia.
-		require './misc/lasku_html.php';
-		require './misc/noutolista_html.php';
-
-		if ( !file_exists('./tilaukset') ) {
-			mkdir( './tilaukset' );
-		}
-
-		/********************
-		 * Laskun luonti
-		 ********************/
-		$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
-		$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
-		$mpdf->WriteHTML( $pdf_lasku_html_body );
-		$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
-		$mpdf->Output( $lasku_nimi, 'F' );
-
-		/********************
-		 * Noutolistan luonti
-		 ********************/
-		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
-		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
-		$mpdf->WriteHTML( $pdf_noutolista_html_body );
-		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
-		$mpdf->Output( $noutolista_nimi, 'F' );
-
-		/********************
-		 * Sähköpostit
-		 ********************/
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus_id, $lasku_nimi );
-		Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
-		
-		if ( !$_SESSION['indev'] ) {
-			// Kopio Jannelle
-			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus_id, $lasku_nimi );
-		}
-
-		/**
-		 * Tilaus valmis, tiedostot luotu, lähetetään pois.
-		 */
-		header( "location:tilaus_info.php?id={$tilaus_id}" );
-		exit();
-	}
+	$_SESSION[ "feedback" ] = "<span class='success'>Tilaus on maksettu onnistuneesti.
+		Laskun lähetyksessa saattaa kestää jopa 5 minuuttia.</span>";
+	header( "location:tilaus_info.php?id={$tilaus_id}" );
+	exit();
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */

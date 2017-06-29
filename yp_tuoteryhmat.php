@@ -306,7 +306,39 @@ else {
 	});
 
 	uusi_alennus.addEventListener('click', function () {
-		console.log( 'Hello world' );
+		Modal.open({
+			content: `
+				<form method="post">
+					<fieldset> <legend>Uusi alennus</legend>
+						<label for='hkp' class="required">Hankintapaikka</label>
+						<input type='number' name='hkp' value='' id='hkp' required>
+						<br><br>
+						<label for='yr'>Yritys</label>
+						<input type='number' name='yr' value='' id='yr'>
+						<br><br>
+						<label for='maara' class='required'>Määräalennus-kpl</label>
+						<input type='number' name='maara' value='1' id='maara' required>
+						<br><br>
+						<label for='pros' class='required'>Prosentti (kokonaislukuna)</label>
+						<input type='number' name='pros' value='' id='pros' required> %
+						<br><br>
+						<label for='alku_pvm' class='required'>Alku-pvm</label>
+						<input type='text' name='alku_pvm' value='' id='alku_pvm' class="datepicker" required>
+						<br><br>
+						<label for='loppu_pvm'>Loppu-pvm</label>
+						<input type='text' name='loppu_pvm' value='' id='loppu_pvm' class="datepicker">
+						<br><br>
+						<span class='small_note'><span class='required'></span> = pakollinen kenttä</span>
+						<br>
+						<div class="center">
+							<input type='hidden' name="id" value='${uusi_alennus.dataset.id}'>
+							<input type='submit' value='Tallenna muokkaukset' class='nappi'>
+						</div>
+					</fieldset>
+				</form>
+			`,
+			draggable: true
+		});
 	});
 
 	$('.datepicker').datepicker({

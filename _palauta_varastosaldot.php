@@ -15,19 +15,19 @@ $db = new DByhteys();
 $tunnit_keskeytyneena = 24;
 
 // Haetaan keskeneräisten tilausten tuotteet
-$sql = "	SELECT tuote_id, kpl
-  			FROM tilaus_tuote
-  		  	LEFT JOIN tilaus
-  		  		ON tilaus.id = tilaus_tuote.tilaus_id
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
- 		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
+$sql = "SELECT tuote_id, kpl
+		FROM tilaus_tuote
+		LEFT JOIN tilaus
+			ON tilaus.id = tilaus_tuote.tilaus_id
+		WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
+			AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
 $tuotteet = $db->query( $sql, [$tunnit_keskeytyneena], FETCH_ALL);
 
 // Haetaan tilausten id:t
-$sql = "	SELECT id
-  			FROM tilaus
-  		  	WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
- 		   		AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
+$sql = "SELECT id
+		FROM tilaus
+		WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
+			AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
 $tilaukset = $db->query( $sql, [$tunnit_keskeytyneena], FETCH_ALL);
 
 if ( !$tilaukset || !$tuotteet ) {
