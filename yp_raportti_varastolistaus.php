@@ -73,6 +73,11 @@ $hankintapaikat = hae_hankintapaikat($db);
 				<?php endforeach;?>
 			</select><br><br>
 
+			<!-- Näytetäänkö raportissa myös myyntitiedot -->
+			<label for="varastolistausraportti_myyntitiedot">Myyntitiedot</label>
+			<input type="checkbox" name="myyntitiedot" id="varastolistausraportti_myyntitiedot">
+			<br><br>
+
 			<!-- Raportin järjestys -->
 			<label for="varastolistausraportti_sort">Raportin järjestys</label>
 			<select name="sort" id="varastolistausraportti_sort">
