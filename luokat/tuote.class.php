@@ -11,7 +11,7 @@ class Tuote {
 	/** @var int $hankintapaikka_id <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikka_id = 0;
 	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = '[Tuotekoodi]';
 	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = '[Tilauskoodi]';
-	/** @var string $tuoteryhma <p> */ public $tuoteryhma = '[Tuoteryhmä]';
+	/** @var int $tuoteryhma_id <p> */ public $tuoteryhma_id = 0;
 	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
 	/** @var int $varastosaldo <p> */ public $varastosaldo = 0;
@@ -123,11 +123,11 @@ class Tuote {
 
 		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuoteryhma_erikoishinta
-				WHERE hankintapaikka_id = ? AND tuoteryhma = ?
+				WHERE hankintapaikka_id = ? AND id = ?
 					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
 					AND (yritys_id = 0 OR yritys_id = ?)
 				ORDER BY maaraalennus_kpl";
-		$ryhma_maaraalennukset = $db->query( $sql, [ $this->hankintapaikka_id, $this->tuoteryhma, $yritys_id ],
+		$ryhma_maaraalennukset = $db->query( $sql, [ $this->hankintapaikka_id, $this->tuoteryhma_id, $yritys_id ],
 											 DByhteys::FETCH_ALL );
 
 		$this->maaraalennukset = array_merge( $tuote_maaraalennukset, $yritys_maaraalennukset, $ryhma_maaraalennukset );

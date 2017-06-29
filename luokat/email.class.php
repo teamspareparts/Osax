@@ -3,9 +3,10 @@
  * Staattinen luokka sähköpostin käyttöön.
  */
 class Email {
-	private static $request_url = 'https://api.sendgrid.com/api/mail.send.json';
+	private static $requestURL = 'https://api.sendgrid.com/api/mail.send.json';
+	private static $configPath = './config/config.ini.php';
 
-	private static $target_email = NULL;
+	private static $targetEmail = NULL;
 	private static $subject = NULL;
 	private static $message = NULL;
 
@@ -19,12 +20,12 @@ class Email {
 	 */
 	private static function sendMail( array $config = null ) {
 		if ( $config === null ) {
-			$config = parse_ini_file( "./config/config.ini.php" );
+			$config = parse_ini_file( Email::$configPath );
 		}
 		$apiParametres = array(
 			'api_user' => $config['email_user'],
 			'api_key' => $config['email_pass'],
-			'to' => Email::$target_email,
+			'to' => Email::$targetEmail,
 			'subject' => Email::$subject,
 			'html' => Email::$message,
 			'text' => "",
@@ -33,7 +34,7 @@ class Email {
 		);
 
 		// Luodaan cURL pyyntö.
-		$session = curl_init( Email::$request_url );
+		$session = curl_init( Email::$requestURL );
 		// Käytetään HTTP POSTia.
 		curl_setopt( $session, CURLOPT_POST, true );
 		// Lisätään viestin runko, otsikko, jne.
@@ -55,7 +56,7 @@ class Email {
 	 * @param string $key <p> Salasanan palautus-avain. Avaimen luonti login_check.php-tiedostossa.
 	 */
 	static function lahetaSalasanaLinkki( /*String*/ $email, /*String*/ $key ) {
-		Email::$target_email = $email;
+		Email::$targetEmail = $email;
 		Email::$subject = "Osax.fi - Salasanan resetointi";
 		Email::$message = "<p>Salasanan vaihto onnistuu osoitteessa:</p>
 			<a href='http://osax.fi/pw_reset.php?id={$key}'>Linkki salasanan resetointi-sivulle</a>
@@ -75,7 +76,7 @@ class Email {
 	 */
 	static function lahetaTilausvahvistus(
 			/*String*/ $email, Laskutiedot $lasku, /*int*/ $tilausnro, /*string*/ $fileName ) {
-		Email::$target_email = $email;
+		Email::$targetEmail = $email;
 		Email::$subject = "Tilausvahvistus";
 
 		$productTable = '<table><tr><th>Tuotenumero</th><th>Tuote</th><th style="text-align:right;">Hinta/kpl</th>
@@ -109,8 +110,8 @@ class Email {
 	 * @param string $fileName <p> Noutolistan tiedoston nimi
 	 */
 	static function lahetaNoutolista( /*int*/ $tilausnro, /*String*/ $fileName ) {
-		$config = parse_ini_file( "./config/config.ini.php" );
-		Email::$target_email = $config['admin_email'];
+		$config = parse_ini_file( Email::$configPath );
+		Email::$targetEmail = $config['admin_email'];
 		Email::$subject = "Noutolista tilaukseen {$tilausnro}";
 		Email::$message = "<p>Tilauksen {$tilausnro} noutolista.</p>
 				<p>Liitteenä PDF-tiedosto.</p>
@@ -128,9 +129,9 @@ class Email {
 	 * @param $file <p> Tiedoston sisältö
 	 */
 	static function lahetaTapahtumalistausraportti( /*string*/$fileName, /*file*/ $file ) {
-		$config = parse_ini_file( "./config/config.ini.php" );
+		$config = parse_ini_file( Email::$configPath );
 		$date = date('d.m.Y');
-		Email::$target_email = $config['kirjanpito_email'];
+		Email::$targetEmail = $config['kirjanpito_email'];
 		Email::$subject = "Tapahtumalistausraportti {$date}";
 		Email::$message = "<p>Hei,</p>
 				<p>Ohessa Osax Oy:n vimeisimmät tilaukset.</p>
@@ -143,7 +144,7 @@ class Email {
 		Email::$fileName = $fileName;
 		Email::$file = $file;
 
-		Email::sendMail();
+		Email::sendMail( $config );
 	}
 
 	/**
@@ -154,7 +155,7 @@ class Email {
 	 * @param int $tilausnro <p> Tilauksen numero
 	 */
 	static function lahetaIlmoitus_TilausLahetetty( /*String*/ $email, /*int*/ $tilausnro ) {
-		Email::$target_email = $email;
+		Email::$targetEmail = $email;
 		Email::$subject = "Tilaus {$tilausnro}";
 		Email::$message = "<p>Hei! Tilauksesi {$tilausnro} on nyt lähetetty.</p>";
 
@@ -169,13 +170,17 @@ class Email {
 	 * @param string $uusi_sijainti
 	 */
 	static function lahetaIlmoitus_EpailyttavaIP( stdClass $user, /*string*/ $vanha_sijainti, /*string*/ $uusi_sijainti ) {
-		$config = parse_ini_file( "./config/config.ini.php" );
-		Email::$target_email = $config['admin_email'];
+		$config = parse_ini_file( Email::$configPath );
+		Email::$targetEmail = $config['admin_email'];
 		Email::$subject = "Epäilyttävää käytöstä";
 		Email::$message = "<p>Asiakas ...tiedot tähän..... </p>>
 			<p>Vanha sijainti: {$vanha_sijainti}</p>>
 			<p>Uusi sijainti: {$uusi_sijainti}</p>";
 
-		Email::sendMail();
+		Email::sendMail( $config );
+	}
+
+	static function muutaConfigPath( /*string*/ $string ) {
+		Email::$configPath = $string;
 	}
 }

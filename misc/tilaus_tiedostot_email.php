@@ -1,5 +1,5 @@
 <?php
-chdir(dirname(__FILE__)); // Määritellään työskentelykansio
+chdir(__DIR__); // Määritellään työskentelykansio
 set_time_limit(300); // 5min
 
 require '../luokat/laskutiedot.class.php';
@@ -21,6 +21,8 @@ $rows = $db->query( $sql, null, DByhteys::FETCH_ALL );
 if ( !file_exists('../tilaukset') ) {
 	mkdir( '../tilaukset' );
 }
+
+Email::muutaConfigPath("../config/config.ini.php");
 
 foreach ( $rows as $tilaus ) {
 
