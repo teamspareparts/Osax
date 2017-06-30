@@ -38,7 +38,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
                             ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
                             varastosaldo = varastosaldo + VALUES(varastosaldo),
                             keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
-                                VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )),0),
+                                VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )), sisaanostohinta),
                             yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
                             aktiivinen = 1";
 

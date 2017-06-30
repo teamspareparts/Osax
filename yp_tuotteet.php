@@ -189,21 +189,61 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 }
 
 /**
- * Järjestetään tuotteet hinnan mukaan.
- * @param $catalog_products
+ * Etsii kannasta itse perustetut tuotteet.
+ * @param DByhteys $db
+ * @param $search_number
+ * @param bool $tarkka_haku
+ * @return array
  */
-function sortProductsByPrice( &$catalog_products ) {
-	usort($catalog_products, "cmpPrice");
+function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
+	$catalog_products = $not_available_catalog_products = [];
+	if ( $tarkka_haku ) {
+		$search_pattern = $search_number;
+	} else {
+		$simple_search_number = preg_replace("/[^ \w]+/", "", $search_number); // Poistetaan kaikki erikoismerkit
+		$search_pattern = implode('%', str_split($simple_search_number, 1)) . "%";
+		// Hakunumero muotoa q%t%b%2%4%9%, joten lyhyillä hakunumeroilla se voi löytää liikaa tuloksia
+	}
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                            LEAST( 
+                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+                            ) AS saapumispaiva,
+                            MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
+				FROM 	    tuote
+				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+				            AND ostotilauskirja_arkisto.hyvaksytty = 0
+				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+				WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
+				GROUP BY    tuote.id
+				LIMIT 10";
+	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
+
+	foreach ($own_products as $tuote) {
+		$tuote->articleId = 0;
+		$tuote->articleName = $tuote->nimi;
+		$tuote->brandName = $tuote->valmistaja;
+		$infot = explode('|', $tuote->infot);
+		foreach ($infot as $index=>$info) {
+			$tuote->infos[$index] = new stdClass();
+			$tuote->infos[$index]->attrName = $info;
+		}
+		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
+		$catalog_products[] = $tuote;
+	}
+	return $catalog_products;
 }
 
 /**
- * Vertailufunktio usortille
- * @param $a
- * @param $b
- * @return bool
+ * Järjestetään tuotteet hinnan mukaan.
+ * @param $catalog_products
  */
-function cmpPrice($a, $b) {
-	return ($a->hinta > $b->hinta);
+function sortProductsByPrice( &$catalog_products ){
+	usort($catalog_products, function ($a, $b){return ($a->hinta > $b->hinta);});
 }
 
 /**
@@ -234,10 +274,11 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 }
 
 if ( !empty($_POST['lisaa']) ) {
-    $tuotekoodi = (str_pad($_POST['hankintapaikat'], 3, "0", STR_PAD_LEFT) .
-                    "-" . str_replace(" ", "", strval($_POST['articleNo'])));
+	$articleNo = str_replace(" ", "", strval(mb_strtoupper($_POST['articleNo'])));
+    $tuotekoodi = str_pad($_POST['hankintapaikat'], 3, "0", STR_PAD_LEFT) .
+                    "-" . $articleNo;
     $array = [
-        str_replace(" ", "", strval($_POST['articleNo'])),
+        $articleNo,
         $_POST['brandNo'],
         $_POST['hankintapaikat'],
         $tuotekoodi,
@@ -335,6 +376,9 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$catalog_products = $filtered_product_arrays[0];
 	$all_products = $filtered_product_arrays[1];
+	$own_products = search_own_products_from_database( $db, $number, $exact );
+	$catalog_products = array_merge($catalog_products, $own_products);
+	//$all_products = array_merge($all_products, $own_products);
 	sortProductsByPrice($catalog_products);
 }
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
@@ -509,7 +553,7 @@ require 'tuotemodal.php';
 <script type="text/javascript">
 
 	/**
-	 *
+	 * Modal tuotteen lisäämiseen
 	 * @param articleNo
 	 * @param brandNo
 	 * @param nimi
@@ -584,6 +628,7 @@ require 'tuotemodal.php';
     }
 
 	/**
+	 * Modal tuotteen tietojen muokkamiseen.
 	 * @param id
 	 * @param tuotekoodi
 	 * @param tilauskoodi
@@ -733,24 +778,25 @@ require 'tuotemodal.php';
 
 		//Avataan tuoteikkuna tuotetta painettaessa
 		$('.clickable')
-			.css('cursor', 'pointer')
+            .css('cursor', 'pointer')
 			.click(function(){
 				//haetaan tuotteen id
 				let articleId = $(this).closest('tr').attr('data-val');
-                productModal(articleId);
+                if ( articleId !== '0') {
+                    productModal(articleId); //haetaan tuotteen tiedot tecdocista
+                }
 			});
-
 	});//doc.ready
 
 	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
 	//funktion tapaan tietoa
 	let qs = (function(a) {
 		let p, i, b = {};
-		if (a != "") {
+		if (a !== "") {
 			for ( i = 0; i < a.length; ++i ) {
 				p = a[i].split('=', 2);
 
-				if (p.length == 1) {
+				if (p.length === 1) {
 					b[p[0]] = "";
 				} else {
 					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " ")); }
@@ -791,15 +837,15 @@ require 'tuotemodal.php';
 
 	if( qs["numerotyyppi"] ){
 		let number_type = qs["numerotyyppi"];
-		if (number_type == "all" || number_type == "articleNo" ||
-			number_type == "comparable" || number_type == "oe") {
+		if (number_type === "all" || number_type === "articleNo" ||
+			number_type === "comparable" || number_type === "oe") {
 			$("#numerotyyppi").val(number_type);
 		}
 	}
 
 	if ( qs["exact"] ){
 		let exact = qs["exact"];
-		if (exact == "true" || exact == "false") {
+		if (exact === "true" || exact === "false") {
 			$("#hakutyyppi").val(exact);
 		}
 	}

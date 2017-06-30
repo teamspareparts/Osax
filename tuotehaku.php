@@ -77,7 +77,13 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
 }
 
-
+/**
+ * Etsii kannasta itse perustetut tuotteet.
+ * @param DByhteys $db
+ * @param $search_number
+ * @param bool $tarkka_haku
+ * @return array
+ */
 function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
 	$catalog_products = $not_available_catalog_products = [];
 	if ( $tarkka_haku ) {

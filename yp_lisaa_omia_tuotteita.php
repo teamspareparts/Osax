@@ -176,39 +176,95 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 	return array($successful_inserts, $failed_inserts); // kaikki rivit , array epäonnistuneet syötöt
 }
 
-// GET-parametri
+/**
+ * Perustetaan oma tuote.
+ * @param DByhteys $db
+ * @param $values
+ * @return bool
+ */
+function perusta_oma_tuote( DByhteys $db, array $values ) {
+	$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
+				minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi,
+			  	valmistaja, nimi, kuva_url, infot, tecdocissa) 
+			  	VALUES ( ? , ?, sisaanostohinta, ?, ?, ?, ?, varastosaldo, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+			ON DUPLICATE KEY
+            	UPDATE sisaanostohinta = VALUES(sisaanostohinta), hinta_ilman_ALV = VALUES(hinta_ilman_ALV),
+                	ALV_kanta = VALUES(ALV_kanta), minimimyyntiera = VALUES(minimimyyntiera),
+                    varastosaldo = varastosaldo + VALUES(varastosaldo),
+                    keskiostohinta = IFNULL(((keskiostohinta*yhteensa_kpl + VALUES(sisaanostohinta) *
+                    	VALUES(yhteensa_kpl) )/(yhteensa_kpl + VALUES(yhteensa_kpl) )), sisaanostohinta),
+                    yhteensa_kpl = yhteensa_kpl + VALUES(yhteensa_kpl),
+                    tilauskoodi = VALUES(tilauskoodi),
+                    valmistaja = VALUES(valmistaja), kuva_url = VALUES(kuva_url),
+                    infot = VALUES(infot), nimi = VALUES(nimi),
+                    aktiivinen = 1";
+	$result = $db->query($sql, $values);
+	if ( !$result ) {
+		return false;
+	}
+	return true;
+}
+
+// Alustetaan POST ja GET -parametrit
 $hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '';
 
-// Varmistetaan GET-parametrien oikeellisuus
-$sql = "SELECT * FROM brandin_linkitys WHERE hankintapaikka_id = ? LIMIT 1";
-if ( !$db->query($sql, [$hankintapaikka_id]) ) {
+// Alustetaan muuttujat
+$sql = "SELECT *, LPAD(`id`,3,'0') AS id FROM hankintapaikka WHERE id = ? LIMIT 1";
+$hankintapaikka = $db->query($sql, [$hankintapaikka_id]);
+$alv_kannat = $db->query("SELECT * FROM alv_kanta", [], FETCH_ALL);
+$sql = "SELECT brandin_linkitys.brandi_id, brandin_linkitys.brandi_kaytetty_id,
+			brandi.nimi
+		FROM brandin_linkitys
+		LEFT JOIN brandi
+			ON brandin_linkitys.brandi_id = brandi.id
+ 		WHERE hankintapaikka_id = ? AND aktiivinen = 1 AND oma_brandi = 1";
+$brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+
+if ( !$brands ) {
 	header("Location:toimittajat.php");
 	exit();
 }
-
-$hankintapaikka = $db->query("SELECT *, LPAD(`id`,3,'0') AS id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
-
-
 if ( isset($_FILES['tuotteet']['name']) ) {
-	//Jos ei virheitä...
-	if ( !$_FILES['tuotteet']['error'] ) {
+	if ( !$_FILES['tuotteet']['error'] ) { // Jos ei virheitä
 		$result = lue_hinnasto_tietokantaan( $db, $hankintapaikka->id );
 		$onnistuneet = $result[0];
 		$epaonnistuneet = $result[1];
 		$kaikki = $onnistuneet + count($epaonnistuneet);
 
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
-		if ($epaonnistuneet) {
+		if ( $epaonnistuneet ) {
 			$_SESSION['feedback'] .= "<br>Hylättyjen rivien numerot: " .rtrim(implode(', ',$epaonnistuneet), ',') ."</p>";
 		}
-
 	}
-	else { // Jos virhe...
+	else { // Jos virhe
 		$_SESSION['feedback'] = "Error: " . $_FILES['tuotteet']['error'];
 	}
 }
 elseif ( isset($_POST['lisaa_tuote']) ){
-	//TODO: Tuotteen lisäys yksitellen
+	$articleNo = str_replace(" ", "", $_POST['tuotenumero']);
+	$brand_nimi = $brands[array_search($_POST['brand'], $brands)]->nimi;
+	$tuotekoodi = str_pad($hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . mb_strtoupper($articleNo); //esim: 100-QTB249
+	$values = [];
+	$values[] = $articleNo;
+	$values[] = $_POST['ostohinta'];
+	$values[] = $_POST['myyntihinta'];
+	$values[] = $_POST['alv'];
+	$values[] = $_POST['minimimyyntiera'];
+	$values[] = $_POST['kpl'];
+	$values[] = $_POST['brand'];
+	$values[] = $hankintapaikka_id;
+	$values[] = $tuotekoodi;
+	$values[] = $_POST['tilauskoodi'];
+	$values[] = $brand_nimi;
+	$values[] = $_POST['nimi'];
+	$values[] = $_POST['kuva_url'];
+	$values[] = $_POST['infot'];
+	$result = perusta_oma_tuote($db, $values);
+	if ( $result ) {
+		$_SESSION['feedback'] = "<p class='success'>Tuote perustettu.</p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='success'>Tuotteen perustaminen epäonnistui.</p>";
+	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -260,109 +316,134 @@ unset($_SESSION["feedback"]);
 	</fieldset>
 	<br><br>
 
-	<!-- Lisäysvalikko -->
-	<fieldset style="float: left;height: 100%"><legend>Tiedostosta</legend>
-			<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
-				<label for="tuote_tiedosto">Luettava tiedosto:</label>
-				<input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv">
-				<input id=submit_tuote type="submit" name="submit" value="Submit">
-				<br>
-				<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
-				<label for="select0">1:</label><select name="s0" id="select0"></select><br>
-				<label for="select1">2:</label><select name="s1" id="select1"></select><br>
-				<label for="select2">3:</label><select name="s2" id="select2"></select><br>
-				<label for="select3">4:</label><select name="s3" id="select3"></select><br>
-				<label for="select4">5:</label><select name="s4" id="select4"></select><br>
-				<label for="select5">6:</label><select name="s5" id="select5"></select><br>
-				<label for="select6">7:</label><select name="s6" id="select6"></select><br>
-				<label for="select7">8:</label><select name="s7" id="select7"></select><br>
-				<label for="select8">9:</label><select name="s8" id="select8"></select><br>
-				<label for="select9">10:</label><select name="s9" id="select9"></select><br>
-				<label for="select10">11:</label><select name="s10" id="select10"></select><br>
-				<div id="tilauskoodi_sarake" class="tilauskoodi_action" hidden>
-					<label for="select11">12:</label>
-					<select name="tilauskoodi" id="select11">
-						<option>Tilauskoodi</option>
-					</select>
-				</div>
-				<br><br><br>
-				<div id="tilauskoodin_liitteet">
-					<label for="tilauskoodin_tyyppi">Tuotteen tilauskoodi</label><br>
-					<select name="tilauskoodin_tyyppi" id="tilauskoodin_tyyppi">
-						<option value="liite_sama" selected>Tilauskoodi on sama kuin tuotenumero.</option>
-						<option value="liite_plus">Luo tilauskoodi lisäämällä tuotenumeroon etu- tai takaliite. </option>
-						<option value="liite_miinus">Luo tilauskoodi vähentämällä etu- tai takaliite.</option>
-						<option value="liite_eri">Tilauskoodi ei vastaa tuotenumeroa.</option>
-					</select><br><br>
-				</div>
+	<div class="flex_row">
+		<!-- Tuotteen lisäys tiedostosta. -->
+		<fieldset><legend>Tiedostosta</legend>
+				<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
+					<label for="tuote_tiedosto">Luettava tiedosto:</label>
+					<input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv">
+					<input id=submit_tuote type="submit" name="submit" value="Submit">
+					<br>
+					<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
+					<label for="select0">1:</label><select name="s0" id="select0"></select><br>
+					<label for="select1">2:</label><select name="s1" id="select1"></select><br>
+					<label for="select2">3:</label><select name="s2" id="select2"></select><br>
+					<label for="select3">4:</label><select name="s3" id="select3"></select><br>
+					<label for="select4">5:</label><select name="s4" id="select4"></select><br>
+					<label for="select5">6:</label><select name="s5" id="select5"></select><br>
+					<label for="select6">7:</label><select name="s6" id="select6"></select><br>
+					<label for="select7">8:</label><select name="s7" id="select7"></select><br>
+					<label for="select8">9:</label><select name="s8" id="select8"></select><br>
+					<label for="select9">10:</label><select name="s9" id="select9"></select><br>
+					<label for="select10">11:</label><select name="s10" id="select10"></select><br>
+					<div id="tilauskoodi_sarake" class="tilauskoodi_action" hidden>
+						<label for="select11">12:</label>
+						<select name="tilauskoodi" id="select11">
+							<option>Tilauskoodi</option>
+						</select>
+					</div>
+					<br><br><br>
+					<div id="tilauskoodin_liitteet">
+						<label for="tilauskoodin_tyyppi">Tuotteen tilauskoodi</label><br>
+						<select name="tilauskoodin_tyyppi" id="tilauskoodin_tyyppi">
+							<option value="liite_sama" selected>Tilauskoodi on sama kuin tuotenumero.</option>
+							<option value="liite_plus">Luo tilauskoodi lisäämällä tuotenumeroon etu- tai takaliite. </option>
+							<option value="liite_miinus">Luo tilauskoodi vähentämällä etu- tai takaliite.</option>
+							<option value="liite_eri">Tilauskoodi ei vastaa tuotenumeroa.</option>
+						</select><br><br>
+					</div>
 
 
-				<!-- Tilauskoodin luominen lisäämällä liitteet -->
-				<div id="liite_plus" class="tilauskoodi_action" hidden>
-					<p>Luo tilauskoodi lisäämällä tuotenumeroon etu- ja takaliite.</p>
-					<label for="etuliite_plus">Etuliite:</label>
-					<input type="text" name="etuliite_plus" id="etuliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
-					<label for="takaliite_plus">Takaliite:</label>
-					<input type="text" name="takaliite_plus" id="takaliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
-				</div>
+					<!-- Tilauskoodin luominen lisäämällä liitteet -->
+					<div id="liite_plus" class="tilauskoodi_action" hidden>
+						<p>Luo tilauskoodi lisäämällä tuotenumeroon etu- ja takaliite.</p>
+						<label for="etuliite_plus">Etuliite:</label>
+						<input type="text" name="etuliite_plus" id="etuliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+						<label for="takaliite_plus">Takaliite:</label>
+						<input type="text" name="takaliite_plus" id="takaliite_plus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+					</div>
 
-				<!-- Tilauskoodin luominen poistamalla liitteet -->
-				<div id="liite_miinus" class="tilauskoodi_action" hidden>
-					<p>Tiedostossa oleva tuotenumero on hankintapaikan käyttämä tilauskoodi.<br>
-						Luo tuotenumero poistamalla tilauskoodista etu- tai takaliite.</p>
-					<label for="etuliite_miinus">Etuliite:</label>
-					<input type="text" name="etuliite_miinus" id="etuliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
-					<label for="takaliite_miinus">Takaliite:</label>
-					<input type="text" name="takaliite_miinus" id="takaliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
-				</div>
+					<!-- Tilauskoodin luominen poistamalla liitteet -->
+					<div id="liite_miinus" class="tilauskoodi_action" hidden>
+						<p>Tiedostossa oleva tuotenumero on hankintapaikan käyttämä tilauskoodi.<br>
+							Luo tuotenumero poistamalla tilauskoodista etu- tai takaliite.</p>
+						<label for="etuliite_miinus">Etuliite:</label>
+						<input type="text" name="etuliite_miinus" id="etuliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+						<label for="takaliite_miinus">Takaliite:</label>
+						<input type="text" name="takaliite_miinus" id="takaliite_miinus" pattern="[a-zA-Z0-9-]+" maxlength="6">
+					</div>
 
-				<!-- Tilauskoodin lukeminen tiedostosta -->
-				<div id="liite_eri" class="tilauskoodi_action" hidden>
-					<p>Tuotenumero ei vastaa lainkaan tilauskoodia.<br>
-						Tiedostossa on oltava seitsämäs sarake tilauskoodia varten!</p>
-				</div>
+					<!-- Tilauskoodin lukeminen tiedostosta -->
+					<div id="liite_eri" class="tilauskoodi_action" hidden>
+						<p>Tuotenumero ei vastaa lainkaan tilauskoodia.<br>
+							Tiedostossa on oltava seitsämäs sarake tilauskoodia varten!</p>
+					</div>
 
+				</form>
+		</fieldset>
+
+		<!-- Tuotteen lisäys yksittäin -->
+		<fieldset><legend>Yksittäin</legend>
+			<form action="" method="post">
+				<!-- Brändi -->
+				<label for="brand">Brändi</label>
+				<select name="brand" id="brand">
+					<?php foreach ( $brands as $brand ) : ?>
+						<option value="<?=$brand->brandi_id?>"><?="{$brand->brandi_kaytetty_id} - {$brand->nimi}"?></option>
+					<?php endforeach; ?>
+				</select><br><br>
+				<!-- Tuotenumero -->
+				<label for="tuotenumero">Tuotenumero:</label>
+				<input type="text" name="tuotenumero" id="tuotenumero" required>
+				<br><br>
+				<!-- Ostohinta -->
+				<label for="ostohinta">Ostohinta:</label>
+				<input type="number" name="ostohinta" id="ostohinta" min="0" step="0.01"
+				       placeholder="0,00" required>
+				<br><br>
+				<!-- Myyntihinta -->
+				<label for="myyntihinta">Myyntihinta:</label>
+				<input type="number" name="myyntihinta" id="myyntihinta" min="0" step="0.01"
+				       placeholder="0,00" required>
+				<br><br>
+				<!-- Alv-kanta -->
+				<label for="alv_kanta">Verokanta:</label>
+				<select name="alv" id="alv_kanta">
+					<?php foreach ( $alv_kannat as $i=>$kanta ) : ?>
+						<option value="<?=$kanta->kanta?>"><?="{$i}: {$kanta->prosentti}"?></option>
+					<?php endforeach; ?>
+				</select><br><br>
+				<!-- Minimimyyntierä -->
+				<label for="minimimyyntiera">Minimimyyntierä:</label>
+				<input type="number" name="minimimyyntiera" id="minimimyyntiera" min="1" value="1" required>
+				<br><br>
+				<!-- Kappalemäärä -->
+				<label for="kpl">Kpl:</label>
+				<input type="number" name="kpl" id="kpl" min="0" value="0" required>
+				<br><br>
+				<!-- Tuotteen nimi -->
+				<label for="nimi">Tuotteen nimi:</label>
+				<input type="text" name="nimi" id="nimi" placeholder="Hammashihna" required>
+				<br><br>
+				<!-- Tuotteen kuvan url -->
+				<label for="kuva_url">Kuvan url:</label>
+				<input type="text" name="kuva_url" id="kuva_url" placeholder="http://www.kuva.org/1234">
+				<br><br>
+				<!-- Infot -->
+				<label for="infot">Infot:</label>
+				<input type="text" name="infot" id="infot" placeholder="Hampaita: 100|Leveys: 17mm"
+				       title="Käytä erottimena | -merkkiä">
+				<br><br>
+				<!-- Tilauskoodi -->
+				<label for="tilauskoodi">Tilauskoodi:</label>
+				<input type="text" name="tilauskoodi" id="tilauskoodi"
+				       title="Hankintapaikan käyttämä tuotekoodi." required>
+				<br><br>
+
+				<input type="submit" name="lisaa_tuote" value="Lisää">
 			</form>
-	</fieldset>
-	<fieldset style="float: left"><legend>Yksittäin</legend>
-		<form action="" method="post">
-			<label for="brand_id">Bändin id:</label>
-			<input type="text" name="brand_id" id="brand_id">
-			<br><br>
-			<label for="brand_nimi">Bändin nimi:</label>
-			<input type="text" name="brand_name" id="brand_nimi">
-			<br><br>
-			<label for="tuotenumero">Tuotenumero:</label>
-			<input type="text" name="tuotenumero" id="tuotenumero">
-			<br><br>
-			<label for="ostohinta">Ostohinta:</label>
-			<input type="text" name="ostohinta" id="ostohinta">
-			<br><br>
-			<label for="myyntihinta">Myyntihinta:</label>
-			<input type="text" name="myyntihinta" id="myyntihinta">
-			<br><br>
-			<!-- TODO: Verokanta valikko -->
-			<label for="">Verokanta:</label>
-			<input type="text" name="" id="vero">
-			<br><br>
-			<label for="minimimyyntiera">Minimimyyntierä:</label>
-			<input type="number" name="minimimyyntiera" id="minimimyyntiera" min="1">
-			<br><br>
-			<label for="kpl">Kpl:</label>
-			<input type="number" name="kpl" id="kpl" min="0">
-			<br><br>
-			<label for="nimi">Tuotteen nimi:</label>
-			<input type="text" name="nimi" id="nimi">
-			<br><br>
-			<label for="kuva_url">Kuvan url:</label>
-			<input type="text" name="kuva_url" id="kuva_url">
-			<br><br>
-			<label for="infot">Infot:</label>
-			<input type="text" name="infot" id="infot">
-			<br><br>
-			<input type="submit" name="lisaa_tuote" value="Lisää">
-		</form>
-	</fieldset>
+		</fieldset>
+	</div>
 
 	<?= $feedback ?>
 </main>
