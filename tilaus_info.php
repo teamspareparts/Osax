@@ -56,7 +56,7 @@ if ( !empty($_POST['peruuta_id']) ) {
 
 	// Yes, yes, voisi tehdä tehokkaammin, I know, I'm just lazy.
 	$kayttaja = new User( $db, $_POST['user_id'] );
-	$ostoskori = new Ostoskori( $db, $kayttaja->id, -1 );
+	$ostoskori = new Ostoskori( $db, $kayttaja->yritys_id, -1 );
 
 	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
