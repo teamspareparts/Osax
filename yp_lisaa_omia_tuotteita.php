@@ -211,7 +211,7 @@ $hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : 
 // Alustetaan muuttujat
 $sql = "SELECT *, LPAD(`id`,3,'0') AS id FROM hankintapaikka WHERE id = ? LIMIT 1";
 $hankintapaikka = $db->query($sql, [$hankintapaikka_id]);
-$alv_kannat = $db->query("SELECT * FROM alv_kanta", [], FETCH_ALL);
+$alv_kannat = $db->query("SELECT * FROM ALV_kanta", [], FETCH_ALL);
 $sql = "SELECT brandin_linkitys.brandi_id, brandin_linkitys.brandi_kaytetty_id,
 			brandi.nimi
 		FROM brandin_linkitys
