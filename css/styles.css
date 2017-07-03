@@ -239,11 +239,10 @@ legend {
 	user-select:none;
 	font-weight: 700;
 	font-size: 17px;
-	/*text-transform: uppercase;*/
 	text-decoration: none;
 	font-family: 'Open Sans', sans-serif;
 	display: inline-block;
-	margin-top: 4px;
+	margin: 5px;
 	cursor: pointer;
 }
 .nappi:hover { background: #356094; border: solid 1px #2A4E77; }

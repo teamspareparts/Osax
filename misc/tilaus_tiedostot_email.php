@@ -12,11 +12,19 @@ require '../mpdf/mpdf.php';
 
 $db = new DByhteys( null, "../config/config.ini.php" );
 
-$sql = "SELECT id, kayttaja_id
-		FROM tilaus
-		WHERE maksettu = 1
-			AND laskunro IS NULL";
+// Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
+$sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
 $rows = $db->query( $sql, null, DByhteys::FETCH_ALL );
+
+// Aivan ensimmäiseksi päivitämme kaikkiin tilauksiin laskunumeron, jotta ei tule ongelmia päällekkäisyyden kanssa.
+// Cronjob ajetaan 1 minuutin välein, laskujen luominen saattaa kestää pitempään.
+$laskunro = $db->query("SELECT laskunro FROM laskunumero LIMIT 1" )->laskunro;
+foreach ( $rows as $tilaus ) {
+	$sql = "UPDATE tilaus SET laskunro = ? WHERE id = ?";
+	$rows = $db->query( $sql, [$laskunro++, $tilaus->id], DByhteys::FETCH_ALL );
+}
+$db->query("UPDATE laskunumero SET laskunro = ? LIMIT 1", [$laskunro] );
+
 
 if ( !file_exists('../tilaukset') ) {
 	mkdir( '../tilaukset' );

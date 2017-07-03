@@ -166,10 +166,6 @@ else {
 	<link rel="stylesheet" href="./css/styles.css">
 	<link rel="stylesheet" href="./css/jsmodal-light.css">
 	<link rel="stylesheet" href="./css/details-shim.min.css">
-	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-	<script src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-	<script src="./js/datepicker-fi.js"></script>
 	<script src="./js/details-shim.min.js" async></script>
 	<script src="./js/jsmodal-1.0d.min.js" async></script>
 	<style>
