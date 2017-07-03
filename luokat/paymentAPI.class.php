@@ -168,25 +168,29 @@ class PaymentAPI {
 			$stmt->execute( [ $tilausID ] );
 			$results = $stmt->fetchAll();
 
-			// Tuotteiden varastosaldojen palautus
+			/*
+			 * Tuotteiden varastosaldojen palautus
+			 */
 			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?)' ) );
 			$values = [];
 			$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks}
 		        	ON DUPLICATE KEY 
-		        	UPDATE varastosaldo = varastosaldo + VALUES(varastosaldo), paivitettava = 1";
+		        		UPDATE varastosaldo = varastosaldo + VALUES(varastosaldo), paivitettava = 1";
 			$stmt = $conn->prepare( $sql );
 			foreach ( $results as $tuote ) {
 				array_push( $values, $tuote->tuote_id, $tuote->kpl );
 			}
 			$stmt->execute( $values );
 
-			// Lisätään tuotteet takaisin ostoskoriin.
+			/*
+			 * Lisätään tuotteet takaisin ostoskoriin.
+			 */
 			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?,?)' ) );
 			$values = [];
 			$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
 						VALUES {$questionmarks}
  					ON DUPLICATE KEY
- 					UPDATE kpl_maara = kpl_maara + VALUES(kpl_maara)";
+ 						UPDATE kpl_maara = kpl_maara + VALUES(kpl_maara)";
 			$stmt = $conn->prepare( $sql );
 			foreach ( $results as $tuote ) {
 				array_push( $values, $ostoskoriID, $tuote->tuote_id, $tuote->kpl );

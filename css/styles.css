@@ -451,12 +451,6 @@ th {
 	font-size: 90%;
 }
 
-.tilaus_info.td {
-	background-color:#ffffff;
-	padding-left: 0;
-	padding-right: 30px;
-}
-
 /** Otsikon vasemmalla puolella olevat napit */
 #painikkeet {
 	vertical-align: middle;

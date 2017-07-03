@@ -103,7 +103,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	<div style="width: 503px;">
 		<form method='post' style="width:50%; display:inline;">
 			<input name='peruuta_id' type='hidden' value='<?= $_SESSION[ 'tilaus' ][0] ?>'>
-			<input type='submit' value='Peruuta tilaus' class="nappi grey" style="width:40%;">
+			<input type='submit' value='Peruuta tilaus' class="nappi red" style="width:40%;">
 		</form>
 
 		<?php if ( $user->maksutapa > 0 ) : ?>

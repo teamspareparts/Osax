@@ -85,7 +85,7 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		$cart->tyhjenna_kori( $db );
 
 		// Tallenetaan seuraavaa sivua varten tilauksen perustiedot.
-		// [ Tilaus-ID, Koko summa yhteensä, Eri tuotteiden määrä, Tuotteiden kpl-määrä yhteensä]
+		// [ Tilaus-ID, Koko summa yhteensä, Eri tuotteiden määrä, Tuotteiden kpl-määrä yhteensä ]
 		$_SESSION['tilaus'] = [
 			$tilaus_id,
 			($cart->summa_yhteensa + $user->rahtimaksu),
@@ -138,7 +138,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			 <th class="number">Kpl-hinta</th> <th class="number">Kpl</th> <th>Info</th> </tr>
 		</thead>
 		<tbody>
-		<?php foreach ( $cart->tuotteet as $tuote ) { ?>
+		<?php foreach ( $cart->tuotteet as $tuote ) : ?>
 			<tr>
 				<td><?= $tuote->tuotekoodi ?></td><!-- Tuotenumero -->
 				<td><?= $tuote->nimi ?></td><!-- Tuotteen nimi -->
@@ -147,8 +147,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<td class="number"><?= $tuote->a_hinta_toString() ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td class="number"><?= $tuote->kpl_maara ?></td><!-- Kpl-määrä -->
 				<td style="padding-top: 0; padding-bottom: 0;"><?= $tuote->alennus_huomautus ?></td><!-- Info -->
-			</tr><?php
-		} ?>
+			</tr>
+		<?php endforeach; ?>
 		<tr id="rahtimaksu_listaus">
 			<td>---</td>
 			<td>Rahtimaksu</td> <!-- Tuotteen nimi -->
@@ -176,7 +176,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	</div>
 
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user, FALSE ) ?>
-	<p><a class="nappi red" href="ostoskori.php?cancel_tilaus">Palaa takaisin</a></p>
+	<p><a class="nappi grey" href="ostoskori.php?cancel_tilaus">Palaa takaisin</a></p>
 </main>
 
 <?php require 'footer.php'; ?>

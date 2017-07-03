@@ -73,8 +73,45 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /
 		</ul>";
 }
 
+/**
+ * //TODO: Väliaikainen ratkaisu
+ * @param DByhteys $db
+ * @return String <p> HTML-koodia. Dropdown-valikko.
+ */
+function hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db ) {
+	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
+	$rows = $db->query( $sql, NULL, FETCH_ALL );
+
+	$return_string = '<select name="yritys_id"> <option name="yritys"  value="0">- Tyhjä -</option>';
+	foreach ( $rows as $yritys ) {
+		$return_string .= "<option name='yritys' value='{$yritys->id}'>{$yritys->id}; {$yritys->nimi}</option>";
+	}
+	$return_string .= "</select>";
+
+	return $return_string;
+}
+
+/**
+ * //TODO: Väliaikainen ratkaisu
+ * @param DByhteys $db
+ * @return String <p> HTML-koodia. Dropdown-valikko.
+ */
+function hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( $db ) {
+	$sql = "SELECT id, nimi FROM hankintapaikka ORDER BY nimi ASC";
+	$rows = $db->query( $sql, NULL, FETCH_ALL );
+
+	$return_string = '<select name="hkp_id" required> <option disabled>- Tyhjä -</option>';
+	foreach ( $rows as $hkp ) {
+		$return_string .= "<option name='hkp_id' value='{$hkp->id}'>{$hkp->id}; {$hkp->nimi}</option>";
+	}
+	$return_string .= "</select>";
+
+	return $return_string;
+}
+
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-	header("Location:etusivu.php"); exit();
+	header("Location:etusivu.php");
+	exit();
 }
 
 // Uusi tuoteryhmä
@@ -88,10 +125,30 @@ else if ( !empty($_POST['muokkaa_id']) ) {
 				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['muokkaa_id'] ] );
 }
 
+// Alennuksen lisäys
+else if ( !empty($_POST['lisaa_alennus_id']) ) {
+	$sql = "INSERT INTO tuoteryhma_erikoishinta
+				(tuoteryhma_id, hankintapaikka_id, yritys_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm)
+			VALUES (?,?,?,?,?,?,?)";
+	$db->query( $sql, [ $_POST['lisaa_alennus_id'], $_POST['hkp_id'], $_POST['yritys_id'], $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'] ] );
+}
+// Alennuksen muokkaus
+else if ( !empty($_POST['muokkaa_alennus_id']) ) {
+	$sql = "UPDATE tuoteryhma_erikoishinta SET maaraalennus_kpl = ?, alennus_prosentti = ?, alkuPvm = ?, loppuPvm = ? WHERE id = ?";
+	$db->query( $sql, [ $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'], $_POST['muokkaa_alennus_id'] ] );
+}
+
 $sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin
 		FROM tuoteryhma";
 $rows = $db->query( $sql, null, true, null, 'Tuoteryhma' );
 $tree = rakenna_puu( $rows );
+
+$yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db );
+$hkp_nimet_alennuksen_asettamista_varten = hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( $db );
+
+// Loppu pvm:n valmistelu, niin ei tarvitse sekoittaa HTML:ää.
+$today = date('Y-m-d');
+$future = date('Y-m-d',strtotime('+6 months'));
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
@@ -176,6 +233,10 @@ else {
 	let edit_napit = document.getElementsByClassName("edit");
 	let sales_napit = document.getElementsByClassName("sales");
 	let uusi_alennus = document.getElementById('uusi_alennus');
+	let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
+	let hkp_valikko = <?= json_encode($hkp_nimet_alennuksen_asettamista_varten) ?>;
+	let today = <?= json_encode($today) ?>;
+	let future = <?= json_encode($future) ?>;
 
 	Array.from(add_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
@@ -243,50 +304,54 @@ else {
 
 	Array.from(sales_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
-			let tuoteryhmaID = element.dataset.id;
-			let ajax =  new XMLHttpRequest();
-			let loader = document.getElementById('loader');
+			let tuoteryhmaID = element.dataset.id; // Tuoteryhmä, jonka alennukset haetaan.
+			let ajax =  new XMLHttpRequest(); // AJAX-pyyntöä varten.
+			let loader = document.getElementById('loader'); // Lataus-ikonin container. Näyttämistä/piilottamista varten.
 			let alennukset, saleHTML, alennusCount, i;
 
+			// Asetetaan nappi uuden alennuksen lisäämistä varten näkyviin, ja lisätään siihen tr.ID
 			uusi_alennus.dataset.id = tuoteryhmaID;
 			uusi_alennus.style.visibility = 'visible';
+			// Pistetään lataus ikoni näkyviin. Käytännössä tätä ei tarvita, koska systeemi liian nopea muutenkin.
 			loader.style.display = "visible";
+			// Luodaan AJAX-pyyntö
 			ajax.open('POST', 'ajax_requests.php', true);
 			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
 
 			ajax.onreadystatechange = function() {
 				if (ajax.readyState === 4 && ajax.status === 200) {
+					// Pyyntö valmis, ja tiedot vastaanotettu: piilotetaan lataus-ikoni
 					loader.style.visibility = 'none';
 					alennukset = JSON.parse(ajax.responseText);
 					alennusCount = alennukset.length;
 					saleHTML = "";
+					// Lisätäään muokkaus-formit jokaista alennusta varten.
 					for ( i=0; i<alennusCount; i++ ) {
 						saleHTML += `
-							<form class='lomake'>
-								<fieldset><legend>Alennus ${i}</legend>
+							<form method="post" class='lomake'>
+								<fieldset><legend>Alennuksen muokkaus</legend>
 								<label for='id' class='required'>Alennus-ID</label>
 								<span>${alennukset[i].id}</span>
-								<input type='hidden' name='id' value='${alennukset[i].id}' id='id'>
+								<input type='hidden' name='muokkaa_alennus_id' value='${alennukset[i].id}' id='id'>
 								<br><br>
 								<label>Hankintapaikka</label>
-								<span>${alennukset[i].hankintapaikka_id}</span>
+								<span>${alennukset[i].hankintapaikka_id}: ${alennukset[i].hkp_nimi}</span>
 								<br><br>
 								<label>Yritys</label>
-								<span>${alennukset[i].yritys_id}</span>
+								<span>${alennukset[i].yritys_id}: ${alennukset[i].yritys_nimi}</span>
 								<br><br>
 								<label for='maara' class='required'>Määräalennus-kpl</label>
-								<input type='number' name='maara' value='${alennukset[i].maaraalennus_kpl}' id='maara'>
+								<input type='number' name='maara' value='${alennukset[i].maaraalennus_kpl}' id='maara' required>
 								<br><br>
-								<label for='pros' class='required'>Prosentti</label>
-								<input type='number' name='pros' value='${alennukset[i].alennus_prosentti}' id='pros'> %
+								<label for='pros' class='required'>Prosentti (kokonaislukuna)</label>
+								<input type='number' name='pros' value='${alennukset[i].alennus_prosentti*100}' min="0" max="100" id='pros' required> %
 								<br><br>
 								<label for='alku_pvm' class='required'>Alku-pvm</label>
-								<input type='text' name='alku_pvm' value='${alennukset[i].alkuPvm}'
-										id='alku_pvm' class="datepicker">
+								<input type='date' name='alku_pvm' value='${alennukset[i].alkuPvm}' max='${future}' id='alku_pvm' required>
 								<br><br>
-								<label for='loppu_pvm' class=''>Loppu-pvm</label>
-								<input type='text' name='loppu_pvm' value='${alennukset[i].loppuPvm}'
-										id='loppu_pvm' class="datepicker">
+								<label for='loppu_pvm' class='required'>Loppu-pvm</label>
+								<input type='date' name='loppu_pvm' value='${alennukset[i].loppuPvm}'
+										min='${today}' max='${future}' id='loppu_pvm' required>
 								<br><br>
 								<span class='small_note'><span class='required'></span> = pakollinen kenttä</span>
 								<br>
@@ -311,27 +376,28 @@ else {
 				<form method="post">
 					<fieldset> <legend>Uusi alennus</legend>
 						<label for='hkp' class="required">Hankintapaikka</label>
-						<input type='number' name='hkp' value='' id='hkp' required>
+						${hkp_valikko}
 						<br><br>
 						<label for='yr'>Yritys</label>
-						<input type='number' name='yr' value='' id='yr'>
+						${yrit_valikko}
 						<br><br>
 						<label for='maara' class='required'>Määräalennus-kpl</label>
-						<input type='number' name='maara' value='1' id='maara' required>
+						<input type='number' name='maara' value='1' min="1" max="9000" id='maara' required>
 						<br><br>
 						<label for='pros' class='required'>Prosentti (kokonaislukuna)</label>
-						<input type='number' name='pros' value='' id='pros' required> %
+						<input type='number' name='pros' value='1' min="0" max="100" id='pros' required> %
 						<br><br>
 						<label for='alku_pvm' class='required'>Alku-pvm</label>
-						<input type='text' name='alku_pvm' value='' id='alku_pvm' class="datepicker" required>
+						<input type='date' name='alku_pvm' value='${today}' min='${today}' max='${future}'
+								id='alku_pvm' required>
 						<br><br>
-						<label for='loppu_pvm'>Loppu-pvm</label>
-						<input type='text' name='loppu_pvm' value='' id='loppu_pvm' class="datepicker">
+						<label for='loppu_pvm' class="required">Loppu-pvm</label>
+						<input type='date' name='loppu_pvm' value='' id='loppu_pvm' min='${today}' max='${future}' required>
 						<br><br>
 						<span class='small_note'><span class='required'></span> = pakollinen kenttä</span>
 						<br>
 						<div class="center">
-							<input type='hidden' name="id" value='${uusi_alennus.dataset.id}'>
+							<input type='hidden' name="lisaa_alennus_id" value='${uusi_alennus.dataset.id}'>
 							<input type='submit' value='Tallenna muokkaukset' class='nappi'>
 						</div>
 					</fieldset>
@@ -339,12 +405,6 @@ else {
 			`,
 			draggable: true
 		});
-	});
-
-	$('.datepicker').datepicker({
-		dateFormat: 'yy-mm-dd',
-	}).keydown(function (e) {
-		e.preventDefault();
 	});
 </script>
 </body>
