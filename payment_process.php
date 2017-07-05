@@ -65,8 +65,8 @@ if ( !empty( $tilaus_id ) ) {
 	 * Laskujen luonti ja sähköpostit tehdään cronjobin välityksellä.
 	 */
 
-	$_SESSION[ "feedback" ] = "<span class='success'>Tilaus on maksettu onnistuneesti.
-		Laskun lähetyksessa saattaa kestää jopa 5 minuuttia.</span>";
+	$_SESSION[ "feedback" ] = "<span class='success'>Tilaus on suoritettu onnistuneesti.
+		Laskun/kuitin pitäisi saapua minuutin sisällä.</span>";
 	header( "location:tilaus_info.php?id={$tilaus_id}" );
 	exit();
 }

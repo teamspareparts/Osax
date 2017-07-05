@@ -368,3 +368,10 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma`(
   `hinnoittelukerroin` decimal(3,2) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
+CREATE TABLE IF NOT EXISTS `tuoteryhma_tuote`(
+  `tuoteryhma_id` smallint(5) UNSIGNED NOT NULL, -- PK, FK
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  PRIMARY KEY (`tuote_id`,`tuoteryhma_id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+

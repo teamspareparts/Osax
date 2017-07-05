@@ -76,7 +76,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
     $return_string = '<select name="alv_lista" id="alv_lista">';
     foreach ( $rows as $alv ) {
         $alv->prosentti = str_replace( '.', ',', $alv->prosentti );
-        $return_string .= "<option name=\"alv\" value=\"{$alv->kanta}\">{$alv->kanta}; {$alv->prosentti}</option>";
+        $return_string .= "<option value=\"{$alv->kanta}\">{$alv->kanta}; {$alv->prosentti}</option>";
     }
     $return_string .= "</select>";
 
@@ -95,7 +95,27 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( $db ) {
 	$return_string = '<select name="yritys_id">
 		<option value="">- Tyhjä -</option>';
 	foreach ( $rows as $yritys ) {
-		$return_string .= "<option name='yritys' value='{$yritys->id}'>{$yritys->id}; {$yritys->nimi}</option>";
+		$return_string .= "<option value='{$yritys->id}'>{$yritys->id}; {$yritys->nimi}</option>";
+	}
+	$return_string .= "</select>";
+
+	return $return_string;
+}
+
+/**
+ * //TODO: Väliaikainen ratkaisu.
+ * //TODO MIKSI TÄMÄ ON VÄLIAIKAINEN RATKAISU?! MITÄ MINÄ OIKEIN AJATTELIN? --jj170705
+ * @param DByhteys $db
+ * @return String <p> HTML-koodia. Dropdown-valikko.
+ */
+function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( $db ) {
+	$sql = "SELECT id, nimi FROM tuoteryhma ORDER BY nimi ASC";
+	$rows = $db->query( $sql, NULL, FETCH_ALL );
+
+	$return_string = '<select name="tuoteryhma_id">
+		<option selected disabled>- Tyhjä -</option>';
+	foreach ( $rows as $tuoteryhma ) {
+		$return_string .= "<option value='{$tuoteryhma->id}'>{$tuoteryhma->id}; {$tuoteryhma->nimi}</option>";
 	}
 	$return_string .= "</select>";
 
@@ -283,7 +303,7 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['hankintapaikat'],
         $tuotekoodi,
         str_replace(" ", "", $_POST['tilauskoodi']),
-		str_replace(',', '.', $_POST['ostohinta']),
+		str_replace(',', '.', $_POST['ostohinta']), //TODO: Turha, HTML tekee automaattisesti tämän.
 		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
@@ -327,6 +347,15 @@ elseif ( !empty($_POST['tuotealennus']) ) {
 		$_SESSION["feedback"] = '<p class="error">ERROR: Alennuksen lisäys ei onnistunut.</p>';
 	}
 }
+elseif ( !empty($_POST['tuote_tuoteryhma']) ) {
+	$result = $db->query("INSERT INTO tuoteryhma_tuote (tuote_id, tuoteryhma_id) VALUES (?,?)",
+	                     [$_POST['tuote_tuoteryhma'],$_POST['tuoteryhma_id']] );
+	if ( $result ) {
+		$_SESSION["feedback"] = '<p class="success">Tuote lisätty tuoteryhmään! Linkitys onnistui</p>';
+	} else {
+		$_SESSION["feedback"] = '<p class="error">ERROR: Tuotteen ja tuoteryhmän linkitys epäonnistui.</p>';
+	}
+}
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
@@ -339,6 +368,7 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 $yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_lisaa_alasvetovalikko( $db );
+$tuoteryhmien_nimet_tuotteiden_linkitysta_varten = hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko( $db );
 
 if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -640,8 +670,10 @@ require 'tuotemodal.php';
 	 * @param hyllypaikka
 	 */
     function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera, hyllypaikka ) {
-        let alv_valikko = <?php echo json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ); ?>;
+        let alv_valikko = <?= json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
+        //TODO: Eikö nämä pitäisi olla funktion ulkopuol-- y'know what I don't care. --jj170705
         let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
+		let tr_valikko = <?= json_encode($tuoteryhmien_nimet_tuotteiden_linkitysta_varten) ?>;
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Muokkaa tuotetta'+tuotekoodi+'</div> \
@@ -692,6 +724,21 @@ require 'tuotemodal.php';
 					<span class="small_note"><span style="color:red;">*</span> = pakollinen kenttä</span> \
 					<br> \
 					<input class="nappi" type="submit" value="Lisää alennus"> \
+					<button class="nappi red" type="button" style="margin-left:10pt;" \
+						onclick="Modal.close()">Peruuta</button> \
+				</form>\
+				<hr> \
+				<form method="post"> \
+					<span style="font-weight:bold;">Lisää alennus tuotteelle:</span>\
+					<input type="hidden" name="tuote_tuoteryhma" value="' + id + '"> \
+					<br> \
+					<label for="tr_int" class="required">Tuoteryhmä:</label> \
+						<input name="tuoreryhma_id" class="number" placeholder="0" value="" id="tr_int"> \
+					<br> \
+					<label for="tr_select" class="required">Tuoteryhmä:</label> \
+						'+tr_valikko+' \
+					<br> \
+					<input type="submit" class="nappi" value="Lisää tuoteryhmään"> \
 					<button class="nappi red" type="button" style="margin-left:10pt;" \
 						onclick="Modal.close()">Peruuta</button> \
 				</form>',

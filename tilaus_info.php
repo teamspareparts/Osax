@@ -86,8 +86,16 @@ elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin()
 $tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
 
 $lasku_file_nimi = "lasku-". sprintf( '%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
-$noutolista_file_nimi =
-	"noutolista-". sprintf('%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
+$noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus_tiedot->laskunro)."-{$tilaus_tiedot->kayttaja_id}.pdf";
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
+	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] );
+	exit();
+} else {
+	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
+	unset( $_SESSION[ "feedback" ] );
+}
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -104,6 +112,7 @@ $noutolista_file_nimi =
 <?php include 'header.php'; ?>
 
 <main class="main_body_container">
+	<?= $feedback ?>
 	<section style="white-space: nowrap">
 		<div class="otsikko">
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
@@ -121,7 +130,7 @@ $noutolista_file_nimi =
 			<?php endif; ?>
 		</div>
 		<div id="painikkeet">
-            <?php if ( $tilaus_tiedot->maksettu ) : ?>
+            <?php if ( $tilaus_tiedot->maksettu AND !is_null($tilaus_tiedot->laskunro) ) : ?>
 	            <!-- Laskun lataus -->
 	            <form method="post" action="download.php" class="inline-block">
 		            <input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">

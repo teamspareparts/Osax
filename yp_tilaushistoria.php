@@ -1,9 +1,11 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-require 'apufunktiot.php';
+
 if( !$user->isAdmin() ) {
-	header("Location:etusivu.php"); exit();
+	header("Location:etusivu.php");
+	exit();
 }
+
 $sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
             kayttaja.etunimi, kayttaja.sukunimi, 
 			SUM( tilaus_tuote.kpl * 
@@ -50,13 +52,11 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->yritys?></td>
 					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
-					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_euros($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
+					<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_number($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
 					<td class="smaller_cell" data-href="tilaus_info.php?id=<?= $tilaus->id ?>">
-						<?php if ( $tilaus->kasitelty === 0 ) : ?>
-							<span style="color: red">EI</span>
-						<?php else : ?>
-							<span style="color: green">OK</span>
-						<?php endif;?>
+						<?=	$tilaus->kasitelty == 1
+							? "<span style='color:green;'>OK</span>"
+							: "<span style='color:red;'>EI</span>" ?>
 					</td>
 				</tr>
 			<?php endforeach; ?>
@@ -66,7 +66,6 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 	<?php else: ?>
 	<span style="font-weight: bold;">Ei tilauksia.</span>
 	<?php endif;?>
-
 
 </main>
 <script>
