@@ -118,7 +118,7 @@ class Ostoskori {
 				$this->cart_mode = 1;
 			}
 			else { // Käytä Tuote-luokkaa
-				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi,
+				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi, tuote.hankintapaikka_id,
 							tuote.varastosaldo, tuote.minimimyyntiera, ALV_kanta.prosentti AS alv_prosentti,
 							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, tuote.tuoteryhma_id, hyllypaikka
