@@ -114,7 +114,7 @@ elseif ( isset( $_POST[ 'tuoteryhma_alennukset' ] ) ) {
 				hankintapaikka.nimi AS hkp_nimi, maaraalennus_kpl, tuoteryhma_erikoishinta.alennus_prosentti,
  				DATE_FORMAT(alkuPvm, '%Y-%m-%d') AS alkuPvm, DATE_FORMAT(loppuPvm, '%Y-%m-%d') AS loppuPvm
 			FROM tuoteryhma_erikoishinta
-			JOIN yritys ON yritys_id = yritys.id
+			LEFT JOIN yritys ON yritys_id = yritys.id
 			JOIN hankintapaikka ON hankintapaikka_id = hankintapaikka.id
 			WHERE tuoteryhma_id = ?";
 	$result = $db->query( $sql, array_values( $_POST ), DByhteys::FETCH_ALL );

@@ -129,7 +129,8 @@ class Ostoskori {
 				$db->prepare_stmt( $sql );
 				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
 				/** @var $row Tuote */
-				while ( $row = $db->get_next_row( null, 'tuote' ) ) {
+				while ( $row = $db->get_next_row( null, 'Tuote' ) ) {
+					$row->haeTuoteryhmat( $db );
 					$row->haeAlennukset( $db, $this->yritys_id );
 					$this->tuotteet[] = $row;
 					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;

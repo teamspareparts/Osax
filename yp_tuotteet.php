@@ -112,7 +112,7 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( $db ) {
 	$sql = "SELECT id, nimi FROM tuoteryhma ORDER BY nimi ASC";
 	$rows = $db->query( $sql, NULL, FETCH_ALL );
 
-	$return_string = '<select name="tuoteryhma_id">
+	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
 	foreach ( $rows as $tuoteryhma ) {
 		$return_string .= "<option value='{$tuoteryhma->id}'>{$tuoteryhma->id}; {$tuoteryhma->nimi}</option>";
@@ -536,7 +536,7 @@ require 'tuotemodal.php';
 							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
 								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
-								<button class="nappi" onclick="showRemoveDialog(<?=$product->id?>)">
+								<button class="nappi red" onclick="showRemoveDialog(<?=$product->id?>)">
                                     Poista</button><br>
                                 <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>', '<?=$product->tilauskoodi?>',
                                     '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
@@ -629,7 +629,7 @@ require 'tuotemodal.php';
                         <label for="minimimyyntiera">Hyllypaikka:</label>\
                             <input class="kpl" name="hyllypaikka"><br> \
                         <input class="nappi" type="submit" name="lisaa" value="Lisää">\
-                        <button class="nappi" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
+                        <button class="nappi grey" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button> \
                         <input type="hidden" name="nimi" value="' + nimi + '"> \
                         <input type="hidden" name="valmistaja" value="' + valmistaja + '"> \
                         <input type="hidden" name="articleNo" value="' + articleNo + '"> \
@@ -650,8 +650,8 @@ require 'tuotemodal.php';
 		<div class="dialogi-otsikko">Poista tuote</div> \
 		<p>Haluatko varmasti poistaa tuotteen valikoimasta?</p> \
 		<form action="" name="poistolomake" method="post"> \
-		    <input class="nappi" type="submit" name="poista" value="Poista">\
-		    <button class="nappi" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
+		    <input class="nappi red" type="submit" name="poista" value="Poista">\
+		    <button class="nappi grey" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 		    <input type="hidden" name="id" value="' + id + '"> \
 		</form>'
         } );
@@ -694,7 +694,7 @@ require 'tuotemodal.php';
 						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"><br> \
 					<input class="nappi" type="submit" name="muokkaa" value="Tallenna"\
 						onclick="document.muokkauslomake.submit()">\
-					<button class="nappi red" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
+					<button class="nappi grey" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
 						<input type="hidden" name="id" value="' + id + '"> \
 				</form> \
 				<hr> \
@@ -724,7 +724,7 @@ require 'tuotemodal.php';
 					<span class="small_note"><span style="color:red;">*</span> = pakollinen kenttä</span> \
 					<br> \
 					<input class="nappi" type="submit" value="Lisää alennus"> \
-					<button class="nappi red" type="button" style="margin-left:10pt;" \
+					<button class="nappi grey" type="button" style="margin-left:10pt;" \
 						onclick="Modal.close()">Peruuta</button> \
 				</form>\
 				<hr> \
@@ -732,14 +732,11 @@ require 'tuotemodal.php';
 					<span style="font-weight:bold;">Lisää alennus tuotteelle:</span>\
 					<input type="hidden" name="tuote_tuoteryhma" value="' + id + '"> \
 					<br> \
-					<label for="tr_int" class="required">Tuoteryhmä:</label> \
-						<input name="tuoreryhma_id" class="number" placeholder="0" value="" id="tr_int"> \
-					<br> \
 					<label for="tr_select" class="required">Tuoteryhmä:</label> \
 						'+tr_valikko+' \
 					<br> \
 					<input type="submit" class="nappi" value="Lisää tuoteryhmään"> \
-					<button class="nappi red" type="button" style="margin-left:10pt;" \
+					<button class="nappi grey" type="button" style="margin-left:10pt;" \
 						onclick="Modal.close()">Peruuta</button> \
 				</form>',
             draggable: true

@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `articleNo` varchar(30) NOT NULL, -- UNIQUE KEY
   `brandNo` varchar(20) NOT NULL, -- UNIQUE KEY
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK, UK
-  `tuoteryhma_id` smallint UNSIGNED NOT NULL, -- FK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
   `nimi` varchar(40) DEFAULT NULL,
@@ -67,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `aktiivinen` boolean NOT NULL DEFAULT TRUE,
   PRIMARY KEY (`id`), UNIQUE KEY (`articleNo`, `brandNo`, `hankintapaikka_id`),
   CONSTRAINT fk_tuote_hankintapaikka FOREIGN KEY (hankintapaikka_id) REFERENCES hankintapaikka(id),
-  CONSTRAINT fk_tuote_tuoteryhma FOREIGN KEY (`tuoteryhma_id`) REFERENCES `tuoteryhma`(`id`),
   CONSTRAINT fk_tuote_alvKanta FOREIGN KEY (`ALV_kanta`) REFERENCES `ALV_kanta`(`kanta`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 

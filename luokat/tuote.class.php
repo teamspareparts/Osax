@@ -11,7 +11,6 @@ class Tuote {
 	/** @var int $hankintapaikka_id <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikka_id = 0;
 	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = '[Tuotekoodi]';
 	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = '[Tilauskoodi]';
-	/** @var int $tuoteryhma_id <p> */ public $tuoteryhma_id = 0;
 	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
 	/** @var int $varastosaldo <p> */ public $varastosaldo = 0;
@@ -19,6 +18,8 @@ class Tuote {
 
 	/** @var string $nimi <p> */ public $nimi = '[Tuotteen nimi]';
 	/** @var string $valmistaja <p> */ public $valmistaja = '[Tuotteen valmistaja]';
+
+	/** @var array $tuoteryhmat <p> Kaikkien ryhmien ID, joissa tuote on. */ public $tuoteryhmat = array();
 
 	/** @var float $a_hinta_ilman_alv <p> Kappale-hinta ilman alennusta, tai ALV:ta */ public $a_hinta_ilman_alv = 0.00;
 	/** @var float $a_hinta <p> Kappale-hinta ALV:n kanssa */ public $a_hinta = 0.00;
@@ -50,7 +51,7 @@ class Tuote {
 		if ( $id !== null ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi,
 						tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
-						ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, tuoteryhma, 
+						ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
 						hinta_ilman_alv AS a_hinta_ilman_alv, sisaanostohinta AS ostohinta
@@ -66,40 +67,20 @@ class Tuote {
 					$this->{$property} = $propertyValue;
 				}
 			}
+
+			//$this->haeTuoteryhmat($db);
 		}
 	}
 
 	/**
-	 * @param DByhteys $db
-	 * @param int      $yritys_id
-	 * @deprecated
+	 *
 	 */
-	function hae_alennukset ( DByhteys $db, /*int*/ $yritys_id ) {
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
-				FROM tuote_erikoishinta
-				WHERE tuote_id = ?
-					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
-				ORDER BY maaraalennus_kpl";
-		$tuote_maaraalennukset = $db->query( $sql, [ $this->id ], DByhteys::FETCH_ALL );
-
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
-				FROM tuoteyritys_erikoishinta
-				WHERE tuote_id = ? AND yritys_id = ?
-					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
-				ORDER BY maaraalennus_kpl";
-		$yritys_maaraalennukset = $db->query( $sql, [ $this->id, $yritys_id ], DByhteys::FETCH_ALL );
-
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
-				FROM tuoteryhma_erikoishinta
-				WHERE hankintapaikka_id = ? AND tuoteryhma = ?
-					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
-					AND (yritys_id = 0 OR yritys_id = ?)
-				ORDER BY maaraalennus_kpl";
-		$ryhma_maaraalennukset = $db->query( $sql, [ $this->hankintapaikka_id, $this->tuoteryhma, $yritys_id ],
-											 DByhteys::FETCH_ALL );
-
-		$this->maaraalennukset = array_merge( $tuote_maaraalennukset, $yritys_maaraalennukset, $ryhma_maaraalennukset );
-		asort( $this->maaraalennukset );
+	function haeTuoteryhmat( DByhteys $db ) {
+		$rows = $db->query( "SELECT tuoteryhma_id FROM tuoteryhma_tuote WHERE tuote_id = ?",
+							[ $this->id ], DByhteys::FETCH_ALL, PDO::FETCH_NUM );
+		foreach ( $rows as $row ) {
+			$this->tuoteryhmat[] = $row[0];
+		}
 	}
 
 	/**
@@ -110,6 +91,7 @@ class Tuote {
 		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuote_erikoishinta
 				WHERE tuote_id = ?
+					AND (alkuPvm <= CURRENT_TIMESTAMP)
 					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
 				ORDER BY maaraalennus_kpl";
 		$tuote_maaraalennukset = $db->query( $sql, [ $this->id ], DByhteys::FETCH_ALL );
@@ -117,18 +99,26 @@ class Tuote {
 		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuoteyritys_erikoishinta
 				WHERE tuote_id = ? AND yritys_id = ?
+					AND (alkuPvm <= CURRENT_TIMESTAMP)
 					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
 				ORDER BY maaraalennus_kpl";
 		$yritys_maaraalennukset = $db->query( $sql, [ $this->id, $yritys_id ], DByhteys::FETCH_ALL );
 
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
-				FROM tuoteryhma_erikoishinta
-				WHERE hankintapaikka_id = ? AND id = ?
-					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
-					AND (yritys_id = 0 OR yritys_id = ?)
-				ORDER BY maaraalennus_kpl";
-		$ryhma_maaraalennukset = $db->query( $sql, [ $this->hankintapaikka_id, $this->tuoteryhma_id, $yritys_id ],
-											 DByhteys::FETCH_ALL );
+		if ( $this->tuoteryhmat ) {
+			$inQuery = implode(',', array_fill(0, count($this->tuoteryhmat), '?'));
+			$values = array_merge( [ $this->hankintapaikka_id, $yritys_id ], $this->tuoteryhmat );
+
+			$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+					FROM tuoteryhma_erikoishinta
+					WHERE hankintapaikka_id = ?
+						AND (alkuPvm <= CURRENT_TIMESTAMP)
+						AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+						AND (yritys_id = 0 OR yritys_id = ?)
+						AND tuoteryhma_id IN ( {$inQuery} )
+					ORDER BY maaraalennus_kpl";
+			$ryhma_maaraalennukset = $db->query( $sql, $values, DByhteys::FETCH_ALL );
+		} else {
+			$ryhma_maaraalennukset = []; }
 
 		$this->maaraalennukset = array_merge( $tuote_maaraalennukset, $yritys_maaraalennukset, $ryhma_maaraalennukset );
 		asort( $this->maaraalennukset );

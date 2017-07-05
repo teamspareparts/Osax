@@ -357,6 +357,9 @@ else {
 								</fieldset>
 							</form>`;
 					}
+					if (alennusCount === 0) {
+						saleHTML += "<p>Ei alennuksia.</p>"
+					}
 
 					document.getElementById('alennukset').innerHTML = saleHTML;
 				}
