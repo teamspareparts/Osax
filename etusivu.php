@@ -59,7 +59,18 @@ $css_version = filemtime( 'css/styles.css' );
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<section>
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
+		</section>
+		<section class="otsikko">
+			<h1>Etusivu</h1>
+		</section>
+		<section class="napit">
+			<!--<button class="nappi">Lisää uusi</button>-->
+		</section>
+	</div>
+
 	<section class="white-bg" style="border:1px solid; border-radius:4px; padding-top:5px;">
 		<div class="tuotekoodihaku">
 			<form action="tuotehaku.php" method="get" class="haku">
@@ -88,10 +99,11 @@ $css_version = filemtime( 'css/styles.css' );
 				</div>
 				<br>
 				<input class="nappi" type="submit" value="Hae">
+				<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
 			</form>
 		</div>
-				<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
 	</section>
+
 
 	<?php if ( $user->isAdmin() ) : ?>
 	<div class="admin_hallinta">
@@ -105,6 +117,12 @@ $css_version = filemtime( 'css/styles.css' );
 		<?php foreach ( $news as $column ) : ?>
 			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?> white-bg"
 				<?=(!$column) ? "hidden" : ''?> >
+
+				<div class="otsikko_container">
+					<section class="otsikko">
+						<h1><?=$column[0]->col_loc?></h1>
+					</section>
+				</div>
 				<ul>
 					<?php foreach ( $column as $uutinen ) : ?>
 						<li>

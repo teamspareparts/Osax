@@ -201,15 +201,25 @@ else {
 <?php require './header.php'; ?>
 
 <main class="main_body_container flex_row" style="flex-wrap: wrap-reverse;">
+
 	<?= $feedback ?>
 
 	<section class="white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
-		<h3>Tuoteryhmät</h3>
+		<div class="otsikko_container">
+			<section class="otsikko">
+				<h1>Tuoteryhmät</h1>
+			</section>
+		</div>
 		<?php tulosta_puu( $tree ); ?>
 	</section>
 
 	<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
-		<h3>Tuoteryhmän alennukset:</h3>
+		<div class="otsikko_container">
+			<section class="otsikko">
+				<h1>Alennukset</h1>
+				<span id="alennus_box_otsikko"></span>
+			</section>
+		</div>
 		<div id="loader" style="display: none;">
 			<div class="loading"></div>
 			<p>lataa alennuksia...</p>

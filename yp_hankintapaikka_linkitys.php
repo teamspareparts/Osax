@@ -102,14 +102,25 @@ unset($_SESSION["feedback"]);
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi grey">Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<span>Brändien linkitys&nbsp;&nbsp;</span>
+			<h1><?=$hankintapaikka->nimi?></h1>
+			<span>&nbsp;&nbsp;<?=$hankintapaikka->id?></span>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
 	<!-- Otsikko ja napit -->
 	<section>
-		<h1 class="otsikko"><?=$hankintapaikka->nimi?> - <?=$hankintapaikka->id?></h1>
 		<div id="painikkeet">
-			<a href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi grey">Takaisin</a>
-			<input form="linkitys_form" type="submit" name="lisaa_linkitys" value="Valitse" class="nappi">
+			<input form="linkitys_form" type="submit" name="lisaa_linkitys" value="Vahvista linkitettävät brändit" class="nappi">
 		</div>
-		<h4>Valitse linkitettävät brändit</h4>
 	</section><br>
 
 	<!-- Brändien listaus -->

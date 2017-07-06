@@ -50,6 +50,16 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 <?php require 'header.php'?>
 <main class="main_body_container">
 
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Saapuvat tilauskirjat</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
 	<?= $feedback?>
 
 	<?php if ( $ostotilauskirjat ) : ?>

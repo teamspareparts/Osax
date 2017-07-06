@@ -63,7 +63,23 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-    <h1>EULA</h1>
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>EULA</h1>
+		</section>
+		<section class="napit">
+			<form method="post" action="download.php" id="download_form">
+				<input type="hidden" name="filepath" value="eula/eula.txt">
+				<input type="submit" name="submit" value="Lataa nykyinen EULA" class="nappi">
+			</form>
+		</section>
+	</div>
+
+    <?= $feedback ?>
+	
     <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
     <p class="small_note">Käytäthän uudessa EULA:ssa windows-1252 (ANSI) -koodausta, jotta skandit näkyvät oikein.</p>
 
@@ -76,7 +92,6 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
         </form>
     </fieldset>
 
-    <?= $feedback ?>
 </main>
 
 <?php require 'footer.php'; ?>

@@ -45,20 +45,31 @@ $asiakkaat = $rows = $db->query(
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<section>
-		<h1 class="otsikko"><?=$yritys->nimi?></h1>
-		<div id="painikkeet">
-			<a href="yp_lisaa_asiakas.php?yritys_id=<?=$yritys->id?>" class="nappi"> Lisää uusi asiakas</a>
-			<a class="nappi grey" href="yp_yritykset.php">Takaisin</a>
-		</div>
-		<div class="flex_row" style="margin:5px;">
-			<div style="padding: 6pt 10pt; background-color:lightgrey;">
-				<?=$yritys->y_tunnus?><br><?=$yritys->puhelin?><br><?=$yritys->sahkoposti?></div>
-			<div style="padding: 6pt 10pt; background-color:lightgrey;">
-				<?=$yritys->katuosoite?><br><?=$yritys->postinumero?> <?=$yritys->postitoimipaikka?><br>
-				<?=$yritys->maa?></div>
-		</div>
-		<?= $feedback ?>
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="yp_yritykset.php">
+				<i class="material-icons">navigate_before</i>Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<span>Yritys:&nbsp;&nbsp;</span><h1><?=$yritys->nimi?></h1>
+		</section>
+		<section class="napit">
+			<a href="yp_lisaa_asiakas.php?yritys_id=<?=$yritys->id?>" class="nappi">
+				Lisää yritykselle uusi asiakas</a>
+		</section>
+	</div>
+
+	<?= $feedback ?>
+
+	<section class="flex_row" style="margin:5px;">
+		<p>Yrityksen tiedot:</p>
+		<div style="padding: 6pt 10pt; background-color:lightgrey;">
+			<?=$yritys->y_tunnus?><br><?=$yritys->puhelin?><br><?=$yritys->sahkoposti?></div>
+		<div style="padding: 6pt 10pt; background-color:lightgrey;">
+			<?=$yritys->katuosoite?><br><?=$yritys->postinumero?> <?=$yritys->postitoimipaikka?><br>
+			<?=$yritys->maa?></div>
+		<a href="yp_muokkaa_yritysta.php?id=<?=$yritys->id?>" class="nappi">Muokkaa tietoja</a>
 	</section>
 
 	<table style="width: 100%;">

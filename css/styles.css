@@ -205,12 +205,47 @@ legend {
 /********************************************
 	Otsikon tyylittely
 ********************************************/
-.otsikko {
-	vertical-align: middle;
-	display: inline-block;
-	position: relative;
-	width: 45%;
-	left: 5%;
+.otsikko_container {
+	display: flex; /* For that sweet responsive design. */
+	margin-top: -9px; /* Yksinkertaisesti sanottuna: keskittää otsikon bodyn ja headering väliin. */
+	margin-bottom: 11px; /* Ditto. */
+	background-color: lightsteelblue; /* Well, now I'm just being flashy. */
+	border-radius: 19px;
+}
+/* Pitää sisällään takaisin-napin. */
+.otsikko_container .takaisin {
+	display: flex; /* Napin keskitystä varten */
+	align-items: center; /* ditto */
+}
+/* Itse otsikko. */
+.otsikko_container .otsikko {
+	display: flex; /* Keskitystä varten */
+	align-items: center; /* Vertical center */
+	justify-content: center; /* Horizontal center */
+	margin: 0 1rem; /* Erottaa napeista hieman. */
+	padding: 10px;
+	border-top: 1px solid #1d7ae2; /* Hieman iloisempaa väriä sivustolle. */
+	border-bottom: 1px solid #1d7ae2; /* Syy miksi ei sivuilla borderia: looks cooler. */
+	border-radius: 5px;
+	color: #2f5cad; /* Tekstin väri */
+	background-color: whitesmoke;
+	flex-grow: 4;
+	text-align: center;
+}
+.otsikko_container .otsikko :first-of-type {
+	margin: 0; /* Margin ja padding asetetaan jo ylhäällä */
+	padding: 0;
+}
+.otsikko_container .napit {
+	display: flex;
+	flex-grow: 0;
+	justify-content: flex-end;
+}
+.otsikko_container .takaisin .material-icons {
+	margin-left: -10px; /* Vähemmän tyhjää tilaa. Muuten sekä ikoni, että nappi vie tilaa, mikä näyttää rumalle. */
+}
+.otsikko_container .napit .material-icons {
+	margin-right: -10px; /* Ditto, mutta toiseen suuntaan. */
 }
 
 

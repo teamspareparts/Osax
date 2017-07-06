@@ -144,12 +144,18 @@ unset($_SESSION["feedback"]);
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<section>
-		<h1 class="otsikko">Hankintapaikat</h1>
-		<div id="painikkeet">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Hankintapaikat</h1>
+		</section>
+		<section class="napit">
 			<button class="nappi" onClick="avaa_modal_uusi_hankintapaikka()">Uusi hankintapaikka</button>
-		</div>
-	</section>
+		</section>
+	</div>
+
 	<?=$feedback?>
 	<?php if ( $hankintapaikat ) : ?>
 		<table>
@@ -207,10 +213,10 @@ unset($_SESSION["feedback"]);
 	<?php endif; ?>
 </main>
 
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
-<?php require 'footer.php'; ?>
+
     /**
      * Avaa modalin, jossa voi syöttää uuden hankintapaikan tiedot.
      */

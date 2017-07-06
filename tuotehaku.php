@@ -248,6 +248,18 @@ require 'header.php';
 require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
+		</section>
+		<section class="otsikko">
+			<h1>Tuotehaku</h1>
+		</section>
+		<section class="napit">
+			<!--<button class="nappi">Lisää uusi</button>-->
+		</section>
+	</div>
+
 	<section>
 		<div class="tuotekoodihaku">
 			<form action="tuotehaku.php" method="get" class="haku">

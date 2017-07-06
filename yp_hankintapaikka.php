@@ -71,16 +71,21 @@ unset($_SESSION["feedback"]);
 <body>
 	<?php require 'header.php'; ?>
 	<main class="main_body_container">
-		<!-- Otsikko ja painikkeet -->
-		<section>
-			<h1 class="otsikko"><?=$hankintapaikka->nimi?> - <?=$hankintapaikka->hankintapaikka_id?></h1>
-			<div id="painikkeet">
-				<a href="yp_hankintapaikka.php" class="nappi grey">Takaisin</a>
+
+		<div class="otsikko_container">
+			<section class="takaisin">
+				<a href="yp_hankintapaikka.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+			</section>
+			<section class="otsikko">
+				<span><?=$hankintapaikka->hankintapaikka_id?>&nbsp;&nbsp;</span>
+				<h1><?=$hankintapaikka->nimi?></h1>
+			</section>
+			<section class="napit">
 				<a href="yp_hankintapaikka_linkitys.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi">Linkitä brändi</a>
 				<a href="yp_lisaa_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Lisää TecDoc tuotteita</a>
 				<a href="yp_lisaa_omia_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Perusta omia tuotteita</a>
-			</div>
-		</section>
+			</section>
+		</div>
 
 		<!-- Yhteystiedot -->
 		<table style="float: left; padding-right: 50px;">

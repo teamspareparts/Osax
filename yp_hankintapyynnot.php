@@ -46,13 +46,33 @@ else {
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Osto- ja hankintapyynnöt</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
 	<?php if ( !$ostopyynnot && !$hankintapyynnot ) : ?>
 		<p class="center">Ei jätettyjä ostopyyntöjä tai hankintapyyntöjä.</p>
 	<?php endif;
 	if ( $ostopyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
+			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">
+					<div class="otsikko_container">
+						<section class="takaisin">
+						</section>
+						<section class="otsikko">
+							<h1>Osto- ja hankintapyynnöt</h1>
+						</section>
+						<section class="napit">
+						</section>
+					</div> </th></tr>
 			<tr><th>#</th>
 				<th>Tuote</th>
 				<th></th>

@@ -130,6 +130,19 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="ostoskori.php?cancel">
+				<i class="material-icons">navigate_before</i>Palaa takaisin</a>
+		</section>
+		<section class="otsikko">
+			<h1>Tilauksen vahvistus</h1>
+		</section>
+		<section class="napit">
+		</section>
+		<br>
+	</div>
+
 	<?= $feedback ?>
 	<table style="width:90%;">
 		<thead>
@@ -176,7 +189,6 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	</div>
 
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user, FALSE ) ?>
-	<p><a class="nappi grey" href="ostoskori.php?cancel_tilaus">Palaa takaisin</a></p>
 </main>
 
 <?php require 'footer.php'; ?>

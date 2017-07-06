@@ -144,21 +144,24 @@ unset($_SESSION["feedback"]);
 <?php require 'header.php'; ?>
 <main class="main_body_container">
 
-    <!-- Brändin logo ja painikkeet -->
-    <section>
-        <img src="<?= $brand->logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;">
-        <h2 style="display:inline-block; vertical-align:middle;"><?= $brand->nimi?></h2>
-        <div id="painikkeet">
-            <a class="nappi grey" href="toimittajat.php">Takaisin</a>
-            <?php if ( $brand->oma_brandi ) : ?>
-                <button class="nappi" onClick="avaa_modal_muokkaa_brandi(<?=$brand->id?>, '<?=$brand->nimi?>','<?=$brand->url?>')">
-                    Muokkaa brändiä</button>
-                <button class="nappi red" onClick="poista_brandi(<?=$brand->id?>)">
-                    Poista brändi</button>
-            <?php endif;?>
-        </div>
-    </section>
-    <br>
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="toimittajat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<img src="<?= $brand->logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;">
+			<h1 style="display:inline-block; vertical-align:middle;"><?= $brand->nimi?></h1>
+		</section>
+		<section class="napit">
+			<?php if ( $brand->oma_brandi ) : ?>
+				<button class="nappi" onClick="avaa_modal_muokkaa_brandi(<?=$brand->id?>, '<?=$brand->nimi?>','<?=$brand->url?>')">
+					Muokkaa brändiä</button>
+				<button class="nappi red" onClick="poista_brandi(<?=$brand->id?>)">
+					Poista brändi</button>
+			<?php endif;?>
+		</section>
+	</div>
+
 	<?=$feedback?>
 
     <!-- Brändin yhteystiedot -->

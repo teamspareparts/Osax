@@ -82,8 +82,19 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require 'header.php'?>
 <main class="main_body_container lomake">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<span>Yrityksen muokkaus &nbsp;&nbsp;</span>
+			<h1><?= $yritys->nimi?></h1>
+		</section>
+		<section class="napit">
+			<button class="nappi">Toinen nappi</button>
+		</section>
+	</div>
     <?= $feedback ?>
-    <a class="nappi grey" href="yp_yritykset.php">Takaisin</a><br><br>
     <form name="muokkaa_yritysta" method="post" accept-charset="utf-8">
         <fieldset><legend>Muokkaa yrityksen tietoja</legend>
             <label> Yritys </label><p style="display:inline; font-size:16px; font-weight:bold;"><?= $yritys->nimi?></p>

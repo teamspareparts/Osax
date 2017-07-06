@@ -167,6 +167,18 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <?php require "header.php"; ?>
 
 <main class="main_body_container lomake">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
+		</section>
+		<section class="otsikko">
+			<h1>Omat tiedot</h1>
+		</section>
+		<section class="napit">
+			<!--<button class="nappi">Lisää uusi</button>-->
+		</section>
+	</div>
+
 	<?= $feedback ?>
 
 	<form method="post" accept-charset="utf-8">

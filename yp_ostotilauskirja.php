@@ -117,16 +117,22 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 <body>
 <?php require 'header.php'?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="yp_ostotilauskirja_hankintapaikka.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<span>Ostotilauskirja</span>
+			<h1><?=$hp->id?> - <?=$hp->nimi?></h1>
+		</section>
+		<section class="napit">
+			<button class="nappi" type="button" onclick="avaa_modal_uusi_ostotilauskirja('<?=$hankintapaikka_id?>')">
+				Uusi ostotilauskirja</button>
+		</section>
+	</div>
+
     <section>
-        <h1 class="otsikko">Ostotilauskirja</h1>
-        <div id="painikkeet">
-            <a class="nappi grey" href="yp_ostotilauskirja_hankintapaikka.php">Takaisin</a>
-            <button class="nappi" type="button" onClick="avaa_modal_uusi_ostotilauskirja('<?=$hankintapaikka_id?>')">
-                Uusi ostotilauskirja</button>
-        </div>
-    </section>
-    <section>
-        <h2><?=$hp->id?> - <?=$hp->nimi?></h2>
         <h4>Valitse ostotilauskirja:</h4>
     </section>
 

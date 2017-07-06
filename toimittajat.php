@@ -90,34 +90,39 @@ unset($_SESSION["feedback"]);
 </form>
 
 <?php require 'header.php'; ?>
-<!-- Otsikko ja napit -->
-<section>
-    <h1 class="otsikko">Brändit</h1>
-    <div id="painikkeet">
-        <button class="nappi" onClick="document.getElementById('paivita_tecdoc').submit();">Päivitä TecDoc</button>
-        <button class="nappi" onClick="avaa_modal_uusi_brandi();">Lisää oma brändi</button>
-    </div>
-</section><br>
 
-<!-- Brändien listaus -->
-<div class="container">
-    <?php foreach ($brands as $brand) : ?>
-	    <!-- Brändille oma box -->
-        <div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
-	        <!-- Brändin nimi ja kuva -->
-            <div class="line">
-                <img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
-                <span><?=mb_strtoupper($brand->nimi)?></span>
-            </div>
-	        <!-- Viimeisin hinnastonpäivitys -->
-            <?php if ( !empty($brand->hinnaston_pvm) ) : ?>
-                <span>Päivitetty: <?=date('d.m.Y',strtotime($brand->hinnaston_pvm))?></span>
-            <?php endif;?>
-        </div>
-    <?php endforeach;?>
-</div>
+<main class="main_body_container">
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Brändit</h1>
+		</section>
+		<section class="napit">
+			<button class="nappi" onclick="document.getElementById('paivita_tecdoc').submit();">Päivitä TecDoc</button>
+			<button class="nappi" onclick="avaa_modal_uusi_brandi();">Lisää oma brändi</button>
+		</section>
+	</div>
 
+	<!-- Brändien listaus -->
+	<div class="container">
+	    <?php foreach ($brands as $brand) : ?>
+		    <!-- Brändille oma box -->
+	        <div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
+		        <!-- Brändin nimi ja kuva -->
+	            <div class="line">
+	                <img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
+	                <span><?=mb_strtoupper($brand->nimi)?></span>
+	            </div>
+		        <!-- Viimeisin hinnastonpäivitys -->
+	            <?php if ( !empty($brand->hinnaston_pvm) ) : ?>
+	                <span>Päivitetty: <?=date('d.m.Y',strtotime($brand->hinnaston_pvm))?></span>
+	            <?php endif;?>
+	        </div>
+	    <?php endforeach;?>
+	</div>
 
+</main>
 
 <?php require 'footer.php'; ?>
 

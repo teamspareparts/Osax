@@ -40,6 +40,18 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 <body>
 <?php include 'header.php'; ?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Asiakasyritykset</h1>
+		</section>
+		<section class="napit">
+			<a class="nappi" href="yp_lisaa_yritys.php">Lisää uusi Yritys</a>
+		</section>
+	</div>
+
 	<?= $feedback ?>
 	<table style="width: 100%;">
 		<thead>
@@ -68,15 +80,9 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 		<?php endforeach;?>
 		</tbody>
 	</table>
-	<section class="flex_row" style="margin:20px 40px;">
-		<span style="flex-grow:5; text-align:start;">
-			<a class="nappi" href="yp_lisaa_yritys.php">Lisää uusi Yritys</a>
-		</span>
-
+	<section class="flex_row" style="margin:20px 40px; justify-content: flex-end;">
 		<form action="" method="post" id="deactivate_company">
-			<span style="flex-grow:5; text-align:end;">
-				<input type="submit" name="poista" value="Poista valitut Yritykset" class="nappi red">
-			</span>
+			<input type="submit" name="poista" value="Poista valitut Yritykset" class="nappi red">
 		</form>
 	</section>
 </main>

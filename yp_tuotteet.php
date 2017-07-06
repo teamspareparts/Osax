@@ -459,7 +459,16 @@ require 'header.php';
 require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
-	<section>
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Ylläpitäjän tuotehaku</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
 	<section class="white-bg" style="border-radius: 5px; border: 1px solid;">
 		<div class="tuotekoodihaku">
 			<form action="" method="get" class="haku">

@@ -29,7 +29,16 @@ if ( !$user->isAdmin() ) {
 
 <?php include("header.php");?>
 <main class="main_body_container">
-    <h1>Raportit</h1>
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Raportit</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
 
     <div class="floating-box clickable line" data-href="yp_raportti_varastolistaus.php">
 	    <span>Varastolistausraportti</span></div>

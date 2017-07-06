@@ -32,12 +32,17 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 <body>
 <?php include 'header.php'; ?>
 <main class="main_body_container">
-	<section>
-		<h1 class="otsikko">Tilaushistoria</h1>
-		<div id="painikkeet">
-		    <a class="nappi grey" href="yp_tilaukset.php">Takaisin</a>
-	    </div>
-	</section>
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="yp_tilaukset.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<h1>Tilaushistoria</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
 
 	<?php if ($tilaukset) : ?>
 	<section>

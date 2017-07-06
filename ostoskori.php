@@ -48,7 +48,22 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 
 <?php require "header.php"; ?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<button class="nappi grey" id="takaisin_nappi">
+				<i class="material-icons">navigate_before</i>Takaisin</button>
+		</section>
+		<section class="otsikko">
+			<h1>Ostoskori</h1>
+		</section>
+		<section class="napit">
+		</section>
+		<br>
+	</div>
+
 	<?= $feedback ?>
+
 	<table style="width:90%;">
 		<thead>
 		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Tuotteet ostoskorissa</th></tr>
@@ -92,7 +107,6 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user ) ?>
-	<p><a class="nappi grey" id="takaisin_nappi">Palaa takaisin</a></p>
 </main>
 
 <?php require 'footer.php'; ?>

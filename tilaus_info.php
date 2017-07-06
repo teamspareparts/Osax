@@ -112,40 +112,51 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 <?php include 'header.php'; ?>
 
 <main class="main_body_container">
-	<?= $feedback ?>
-	<section style="white-space: nowrap">
-		<div class="otsikko">
-            <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<?php if ( $user->isAdmin() ) : ?>
+				<a href="yp_tilaukset.php" class="nappi grey">
+					<i class="material-icons">navigate_before</i>Takaisin</a>
+			<?php else : ?>
+				<a href="tilaushistoria.php" class="nappi grey">
+					<i class="material-icons">navigate_before</i>Tilaushistoriaan</a>
+			<?php endif; ?>
+		</section>
+		<section class="otsikko">
+			<h1>Tilaus <?=sprintf('%04d', $tilaus_tiedot->id)?> &nbsp;&nbsp;</h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
 				<?php if ( $user->isAdmin() ) : ?>
 					<button class="nappi red" id="peruuta_tilaus">Peruuta tilaus?</button>
 				<?php endif; ?>
-            <?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
-                <span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
+			<?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
+				<span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
 			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
 				<span class="inline-block" style="color:steelblue;"> Odottaa käsittelyä. </span>
 			<?php else: ?>
 				<span class="inline-block" style="color:green;"> Käsitelty ja toimitettu. </span>
 			<?php endif; ?>
-		</div>
-		<div id="painikkeet">
-            <?php if ( $tilaus_tiedot->maksettu AND !is_null($tilaus_tiedot->laskunro) ) : ?>
-	            <!-- Laskun lataus -->
-	            <form method="post" action="download.php" class="inline-block">
-		            <input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
-	                <input type="submit" name="submit" value="Lasku" class="nappi">
-	            </form>
-                <?php if ( $user->isAdmin() ) : ?>
-		            <!-- Noutolistan lataus -->
-		            <form method="post" action="download.php" class="inline-block">
-			            <input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
-		                <input type="submit" name="submit" value="Noutolista" class="nappi">
-		            </form>
+		</section>
+		<section class="napit">
+			<?php if ( $tilaus_tiedot->maksettu AND !is_null($tilaus_tiedot->laskunro) ) : ?>
+				<!-- Laskun lataus -->
+				<form method="post" action="download.php" class="inline-block">
+					<input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
+					<input type="submit" name="submit" value="Lasku" class="nappi">
+				</form>
+				<?php if ( $user->isAdmin() ) : ?>
+					<!-- Noutolistan lataus -->
+					<form method="post" action="download.php" class="inline-block">
+						<input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
+						<input type="submit" name="submit" value="Noutolista" class="nappi">
+					</form>
 				<?php endif; ?>
-            <?php endif; ?>
-		</div>
-	</section>
+				<i class="material-icons">file_download</i>
+			<?php endif; ?>
+		</section>
+	</div>
+
+	<?= $feedback ?>
 
 	<div class="flex_row">
 

@@ -47,7 +47,7 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 
 ?>
 
-<?php require 'footer.php'; ?>
+
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -60,47 +60,58 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Ostotilauskirjat</h1>
+			<span>&nbsp;&nbsp; Valitse alla olevalta listalta hankintapaikka</span>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
     <section>
-        <h1 class="otsikko">Ostotilauskirjat</h1>
-        <h4>Valitse hankintapaikka:</h4>
+        <h2>Valitse hankintapaikka:</h2>
     </section>
-        <?php if ( $hankintapaikat ) : ?>
-        <table>
-            <thead>
-            <tr><th>ID</th>
-                <th>Nimi</th>
-                <th>Brandit</th>
-				<th>Tilauskirjat</th>
+    <?php if ( $hankintapaikat ) : ?>
+    <table>
+        <thead>
+        <tr><th>ID</th>
+            <th>Nimi</th>
+            <th>Brandit</th>
+			<th>Tilauskirjat</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ( $hankintapaikat as $hp ) :
+            $hp->brandit = explode(",", $hp->brandit)
+            ?>
+            <tr data-href="yp_ostotilauskirja.php?id=<?= intval($hp->id)?>">
+                <td><?= $hp->id?></td>
+                <td><?= $hp->nimi?></td>
+                <td>
+                    <?php foreach ($hp->brandit as $brand) : ?>
+                        <span><?= $brand?></span><br>
+                    <?php endforeach;?>
+                </td>
+				<td>
+					<?php foreach ($hp->ostotilauskirjat as $otk) : ?>
+						<?= $otk->tunniste?> - <?= $otk->kpl?> - <?= format_euros($otk->hinta)?><br>
+					<?php endforeach; ?>
+				</td>
             </tr>
-            </thead>
-            <tbody>
-            <?php foreach ( $hankintapaikat as $hp ) :
-                $hp->brandit = explode(",", $hp->brandit)
-                ?>
-                <tr data-href="yp_ostotilauskirja.php?id=<?= intval($hp->id)?>">
-                    <td><?= $hp->id?></td>
-                    <td><?= $hp->nimi?></td>
-                    <td>
-                        <?php foreach ($hp->brandit as $brand) : ?>
-                            <span><?= $brand?></span><br>
-                        <?php endforeach;?>
-                    </td>
-					<td>
-						<?php foreach ($hp->ostotilauskirjat as $otk) : ?>
-							<?= $otk->tunniste?> - <?= $otk->kpl?> - <?= format_euros($otk->hinta)?><br>
-						<?php endforeach; ?>
-					</td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php else : ?>
-            <p>Ei hankintapaikkoja. Käy luomassa uusia hankintapaikkoja
-            toimittajat -sivulla!</p>
-        <?php endif; ?>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php else : ?>
+        <p>Ei hankintapaikkoja. Käy luomassa uusia hankintapaikkoja
+        toimittajat -sivulla!</p>
+    <?php endif; ?>
 </main>
 
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
     $(document).ready(function(){

@@ -60,9 +60,20 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="etusivu.php" class="nappi grey">
+				<i class="material-icons">navigate_before</i>Etusivulle</a><br><br>
+		</section>
+		<section class="otsikko">
+			<h1>Uutisen lisäys</h1>
+			<span>&nbsp; tai vanhan uutisen muokkaus</span>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
 
 	<?= $feedback ?>
-	<p><a href="etusivu.php" class="nappi grey">Palaa takaisin</a></p>
 
 	<fieldset>
 		<legend><?= !empty($row->id) ? "Muokkaa uutista" : "Lisää uusi uutinen/mainos etusivulle" ?></legend>

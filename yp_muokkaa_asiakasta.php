@@ -51,8 +51,19 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 <body>
 <?php include("header.php"); ?>
 <main class="main_body_container lomake">
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>" class="nappi grey">
+				<i class="material-icons">navigate_before</i>Takaisin</a><br><br>
+		</section>
+		<section class="otsikko">
+			<h1>Muokkaa asiakkaan tietoja</h1>
+			<span>&nbsp;&nbsp; Asiakas: <?= $asiakas->sahkoposti ?></span>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
 	<?= $feedback ?>
-	<a class="nappi grey" href="yp_asiakkaat.php?yritys_id=<?=$asiakas->yritys_id?>">Takaisin</a><br><br>
 	<form action="#" name="asiakkaan_tiedot" method="post" accept-charset="utf-8">
 		<fieldset><legend>Asiakkaan tiedot</legend>
 			<br>

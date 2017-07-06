@@ -58,6 +58,17 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 <body>
 <?php require "header.php"; ?>
 <main class="main_body_container lomake">
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>ALV-kantojen muokkaus</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
 	<form method="post">
 		<fieldset><legend>Muokkaa ALV-kantoja</legend>
 			Kokonaislukuina, kiitos.<br><br>

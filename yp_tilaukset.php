@@ -46,12 +46,17 @@ $tilaukset = hae_tilaukset( $db );
 <body>
 <?php require 'header.php'; ?>
 <main class="main_body_container">
-	<section>
-		<h1 class="otsikko">Tilaukset</h1>
-		<div id="painikkeet">
-			<a href="yp_tilaushistoria.php" class="nappi grey">Tilaushistoria</a>
-		</div>
-	</section>
+
+	<div class="otsikko_container">
+		<section class="takaisin">
+		</section>
+		<section class="otsikko">
+			<h1>Odottavat tilaukset</h1>
+		</section>
+		<section class="napit">
+			<a href="yp_tilaushistoria.php" class="nappi grey">Tilaushistoria<i class="material-icons">navigate_next</i></a>
+		</section>
+	</div>
 
 	<section>
 		<?php if ($tilaukset) : ?>
