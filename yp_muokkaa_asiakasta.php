@@ -110,6 +110,8 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 	<?php endif;?>
 </main>
 
+<?php require 'footer.php'; ?>
+
 </body>
 </html>
 

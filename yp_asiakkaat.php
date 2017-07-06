@@ -60,6 +60,7 @@ $asiakkaat = $rows = $db->query(
 		</div>
 		<?= $feedback ?>
 	</section>
+
 	<table style="width: 100%;">
 		<thead>
 			<tr> <th>Nimi</th> <th>Puhelin</th> <th>Sähköposti</th> <th>Viim. kirj.</th>
@@ -86,6 +87,8 @@ $asiakkaat = $rows = $db->query(
 		</div>
 	</form>
 </main>
+
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
 

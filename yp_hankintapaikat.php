@@ -210,7 +210,7 @@ unset($_SESSION["feedback"]);
 
 
 <script type="text/javascript">
-
+<?php require 'footer.php'; ?>
     /**
      * Avaa modalin, jossa voi syöttää uuden hankintapaikan tiedot.
      */

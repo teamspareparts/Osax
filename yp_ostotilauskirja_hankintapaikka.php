@@ -47,7 +47,7 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 
 ?>
 
-
+<?php require 'footer.php'; ?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>

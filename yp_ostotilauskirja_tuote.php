@@ -286,8 +286,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         </table>
 </main>
 
-
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
 

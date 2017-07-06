@@ -50,7 +50,7 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
             border-radius: 6px;
         }
         #eula_tiedosto:hover {
-            border-color: cadetblue;
+            border-color: #1d7ae2;
         }
     </style>
 </head>
@@ -65,19 +65,21 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 <main class="main_body_container">
     <h1>EULA</h1>
     <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
-    <p><i><small>Käytäthän uudessa EULA:ssa windows-1252 (ANSI) -koodausta, jotta skandit näkyvät oikein.</small></i></p>
+    <p class="small_note">Käytäthän uudessa EULA:ssa windows-1252 (ANSI) -koodausta, jotta skandit näkyvät oikein.</p>
 
     <br><br>
     <fieldset><legend>Käyttöoikeussopimus</legend>
         <form action="#" method="post" enctype="multipart/form-data">
             Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
             <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
-            <a href="#" onclick="document.getElementById('download_form').submit()" style="margin-left:100px;">Lataa nykyinen EULA</a>
+            <a href="#" onclick="document.getElementById('download_form').submit();" style="margin-left:100px;">Lataa nykyinen EULA</a>
         </form>
     </fieldset>
 
     <?= $feedback ?>
 </main>
+
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
 

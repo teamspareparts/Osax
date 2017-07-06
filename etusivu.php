@@ -60,6 +60,7 @@ $css_version = filemtime( 'css/styles.css' );
 <?php require 'header.php'; ?>
 <main class="main_body_container">
 	<section>
+	<section class="white-bg" style="border:1px solid; border-radius:4px; padding-top:5px;">
 		<div class="tuotekoodihaku">
 			<form action="tuotehaku.php" method="get" class="haku">
 				<div class="inline-block">
@@ -89,7 +90,7 @@ $css_version = filemtime( 'css/styles.css' );
 				<input class="nappi" type="submit" value="Hae">
 			</form>
 		</div>
-		<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
+				<a href="./tuotehaku.php" style="text-decoration:underline;">Linkki ajoneuvomallilla hakuun</a>
 	</section>
 
 	<?php if ( $user->isAdmin() ) : ?>

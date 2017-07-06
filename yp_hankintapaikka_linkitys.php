@@ -139,6 +139,8 @@ unset($_SESSION["feedback"]);
 	</div>
 </main>
 
+<?php require 'footer.php'; ?>
+
 </body>
 </html>
 

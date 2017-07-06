@@ -118,7 +118,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
             <h1 class="inline-block" style="margin-right: 35pt">Tilauksen tiedot</h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
-				<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
+				<?php if ( $user->isAdmin() ) : ?>
 					<button class="nappi red" id="peruuta_tilaus">Peruuta tilaus?</button>
 				<?php endif; ?>
             <?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
@@ -165,8 +165,8 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 					( ml. rahtimaksu )
 				</div>
 			</div>
-			<div class="tr fill">
-				<p class="small_note" style="width:100%;">Kaikki hinnat sisältävät ALV:n</p>
+			<div>
+				<p class="small_note">Kaikki hinnat sisältävät ALV:n</p>
 			</div>
 		</div>
 
@@ -178,11 +178,11 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		</div>
 	</div>
 	<br>
-	<table>
+	<table width="100%">
 		<thead>
-			<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Hinta (yht.)</th>
-				<th class="number">Kpl-hinta</th> <th class="number">ALV-%</th> <th class="number">Alennus</th>
-				<th class="number">Kpl</th> </tr>
+			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Tilatut tuotteet</th></tr>
+			<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Kpl-hinta</th> <th class="number">Kpl</th> <th class="number">Hinta (yht.)</th> <th class="number">ALV-%</th> <th class="number">Alennus</th>
+			</tr>
 		</thead>
 		<tbody>
 		<?php foreach ( $tuotteet as $tuote) : ?>
@@ -190,13 +190,13 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<td><?= $tuote->tuotekoodi ?></td>
 				<td><?= $tuote->nimi ?></td>
 				<td><?= $tuote->valmistaja ?></td>
-				<td class="number"><?= $tuote->summa_toString() ?></td>
 				<td class="number"><?= $tuote->a_hinta_toString() ?></td>
+				<td class="number"><?= $tuote->kpl_maara?></td>
+				<td class="number"><?= $tuote->summa_toString() ?></td>
 				<td class="number"><?= $tuote->alv_toString() ?></td>
 				<td class="number">
 					<?=((float)$tuote->alennus_prosentti!=0) ? (round($tuote->alennus_prosentti*100)." %") : ("---")?>
 				</td>
-				<td class="number"><?= $tuote->kpl_maara?></td>
 			</tr>
 		<?php endforeach; ?>
 			<tr style="background-color:#cecece;">
@@ -207,7 +207,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
 				<td class="number">24 %</td>
 				<td class="number"><?= ($tilaus_tiedot->pysyva_rahtimaksu==0) ? "Ilmainen toimitus" : "---" ?></td>
-				<td class="number">1</td>
+				<td class="number">---</td>
 			</tr>
 		</tbody>
 	</table>

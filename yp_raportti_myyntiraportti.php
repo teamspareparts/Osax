@@ -48,6 +48,9 @@ if ( !$user->isAdmin() ) {
 	</fieldset>
 
 </main>
+
+<?php require 'footer.php'; ?>
+
 <script>
     $(document).ready(function(){
         $("#myyntiraportti").on("submit", function(e) {

@@ -33,11 +33,7 @@ $sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauski
  		WHERE hyvaksytty = 0
  		GROUP BY ostotilauskirja_arkisto.id";
 $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="fi" xmlns="http://www.w3.org/1999/html">
@@ -96,11 +92,9 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 
 </main>
 
-
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
-
 
 	$(document).ready(function(){
 

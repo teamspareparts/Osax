@@ -90,6 +90,9 @@ $hankintapaikat = hae_hankintapaikat($db);
 		</form>
 	</fieldset>
 </main>
+
+<?php require 'footer.php'; ?>
+
 <script>
     $(document).ready(function(){
         $("#varastolistausraportti").on("submit", function(e) {

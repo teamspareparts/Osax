@@ -99,11 +99,7 @@ $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hi
  		WHERE ostotilauskirja.hankintapaikka_id = ?
  		GROUP BY ostotilauskirja.id";
 $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
-
-
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="fi" xmlns="http://www.w3.org/1999/html">
@@ -189,11 +185,9 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         <p>Ei ostotilaukirjoja.</p>
     <?php endif; ?>
 
-
 </main>
 
-
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
 

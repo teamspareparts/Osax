@@ -28,6 +28,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
+// Tarkistetaan $feedback ennen näitä, koska nämä hakevat juttuja tietokannasta HTML-osuutta varten.
 $user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
 $cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
 check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja rahtimaksu.
@@ -50,7 +51,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 	<?= $feedback ?>
 	<table style="width:90%;">
 		<thead>
-		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Ostoskori</th></tr>
+		<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Tuotteet ostoskorissa</th></tr>
 		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th>
 			<th class="number">Hinta</th> <th class="number">Kpl-hinta</th> <th class="number">Kpl</th>
 			<th>Info</th> <th></th> </tr>
@@ -93,6 +94,8 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user ) ?>
 	<p><a class="nappi grey" id="takaisin_nappi">Palaa takaisin</a></p>
 </main>
+
+<?php require 'footer.php'; ?>
 
 <form name="ostoskorilomake" method="post" class="hidden">
 	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">

@@ -43,7 +43,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 	<?= $feedback ?>
 	<table style="width: 100%;">
 		<thead>
-		<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Asiakasyritykset</th></tr>
+		<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Aktiiviset yritykset</th></tr>
 		<tr><th>Yritys</th>
 			<th>Y-tunnus</th>
 			<th>Osoite</th>
@@ -81,6 +81,7 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 	</section>
 </main>
 
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
     $(document).ready(function(){

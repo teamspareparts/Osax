@@ -138,8 +138,10 @@ $yritykset = hae_yritykset($db);
 		</form>
 	</fieldset>
 
-
 </main>
+
+<?php require 'footer.php'; ?>
+
 <script>
     $(document).ready(function(){
         $("#tuotekohtainen_myyntiraportti").on("submit", function(e) {

@@ -160,7 +160,6 @@ unset($_SESSION["feedback"]);
     </section>
     <br>
 	<?=$feedback?>
-    <br>
 
     <!-- Brändin yhteystiedot -->
     <?php if ( !empty($brandAddress) ) : ?>
@@ -213,6 +212,8 @@ unset($_SESSION["feedback"]);
 	<?php endforeach; ?>
 
 </main>
+
+<?php require 'footer.php'; ?>
 
 <script>
 	//

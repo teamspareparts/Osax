@@ -62,7 +62,6 @@ legend {
 .tr { display: table-row; }
 .tr:nth-child(odd) { background: #eee; }
 .tr:nth-child(even) { background: #fff; }
-.fill { column-fill: auto; }
 
 .td { display: table-cell; }
 .pad { padding: 10px; }
@@ -248,7 +247,7 @@ legend {
 .nappi:hover { background: #356094; border: solid 1px #2A4E77; }
 
 /** Takaisin-nappia varten - Väri harmaa */
-.nappi.grey { color:black; background-color:#BDBDBD; border-color:#212121; }
+.nappi.grey { color:black; background-color:#BDBDBD; border-color:#212121; text-shadow: none; }
 .nappi.grey:hover { color:black; background-color: #9E9E9E; border-color:#212121; }
 
 /** Peruuta/Poista-napit - Väri punainen */
@@ -719,7 +718,7 @@ Sivustus (pagination) (requires bootstrap)
 	margin-bottom: 10px;
 }
 .news_content {
-	max-height: 10rem;
+	/*max-height: 10rem;*/
 	overflow: hidden;
 	text-overflow: ellipsis;
 }

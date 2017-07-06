@@ -207,6 +207,8 @@ if ( $page > $total_pages ) {
 
 </main>
 
+<?php require 'footer.php'; ?>
+
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.3/js/bootstrap.min.js"></script>
 <script>
 	$(document).ready(function(){

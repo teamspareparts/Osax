@@ -80,13 +80,13 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 				<option value="2">Oikea kolumni</option>
 			</select>
 
-			<label> Summary. Näytetään käyttäjälle aina. </label>
-			<textarea name="summary" maxlength="200" placeholder="SUMMARY. Tekstin tiivistelmä."
-			          rows="3" title="Tekstin sisältö. Hyväksyy HTML:ää."
+			<label> Summary. Näytetään käyttäjälle aina. <span style="font-weight: normal;">Hyväksyy HTML-koodia. Max. pituus 500 merkkiä.<span></label>
+			<textarea name="summary" maxlength="500" placeholder="SUMMARY. Tekstin tiivistelmä."
+			          rows="5" title="Tekstin sisältö. Hyväksyy HTML:ää."
 			          required><?= !empty($row) ? $row->summary : '' ?></textarea>
 
 			<label> Details. Piilotettu summary-osion alle; näkyviin painamalla nuolta.
-				Jätä tyhjäksi, jos et halua nuolta. </label>
+				Jätä tyhjäksi, jos et halua nuolta. <span style="font-weight: normal;">Hyväksyy HTML-koodia. Max. pituus 500 merkkiä.<span></label>
 			<textarea name="details" maxlength="10000" placeholder="DETAILS. Tarkempaa lisätietoa." rows="10"
 					  title="Tekstin sisältö. Hyväksyy HTML:ää."
 			><?= !empty($row) ? $row->details : '' ?></textarea>
@@ -107,6 +107,8 @@ if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyk
 	</fieldset>
 
 </main>
+
+<?php require 'footer.php'; ?>
 
 </body>
 </html>

@@ -263,11 +263,9 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 	</table>
 </main>
 
-
-
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
-
 	
 	function muokkaa_ostotilauskirjaa(ostotilauskirja_id) {
 		//Luodaan form

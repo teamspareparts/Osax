@@ -48,22 +48,21 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /
 
 		if ( $depth < $maxDepth OR $el->children ) {
 			echo "<details>
-				<summary> {$el->parentID}-{$el->id}: {$el->nimi}
+				<summary>{$el->nimi}
 					<a href='#' class='edit'
 						data-id='{$el->id}' data-nimi='{$el->nimi}' data-kerroin='{$el->hinnoittelukerroin}'>
 						<i class='material-icons'>edit</i>
 					</a>
-					<a href='#' class='sales' data-id='{$el->id}'> Alennukset </a>
+					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</summary>";
 			tulosta_puu( $el->children, $el->id, $depth );
 			echo '</details>';
 		}
 		else {
-			echo "<span>
-					{$el->parentID}-{$el->id}: {$el->nimi}
+			echo "<span>{$el->nimi}
 					<a href='#' class='edit' data-id='{$el->id}' data-nimi='{$el->nimi}'
 						data-kerroin='{$el->hinnoittelukerroin}'><i class='material-icons'>edit</i></a>
-					<a href='#' class='sales'> Alennukset </a>
+					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</span>";
 		}
 
@@ -233,6 +232,7 @@ else {
 	let hkp_valikko = <?= json_encode($hkp_nimet_alennuksen_asettamista_varten) ?>;
 	let today = <?= json_encode($today) ?>;
 	let future = <?= json_encode($future) ?>;
+	let ale_tr_otsikko = document.getElementById("alennus_box_otsikko");
 
 	Array.from(add_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
@@ -304,6 +304,8 @@ else {
 			let ajax =  new XMLHttpRequest(); // AJAX-pyyntöä varten.
 			let loader = document.getElementById('loader'); // Lataus-ikonin container. Näyttämistä/piilottamista varten.
 			let alennukset, saleHTML, alennusCount, i;
+
+			ale_tr_otsikko.innerHTML = "&nbsp;&nbsp;" + tuoteryhmaID + ": " + element.dataset.nimi;
 
 			// Asetetaan nappi uuden alennuksen lisäämistä varten näkyviin, ja lisätään siihen tr.ID
 			uusi_alennus.dataset.id = tuoteryhmaID;

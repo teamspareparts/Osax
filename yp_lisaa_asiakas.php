@@ -129,7 +129,9 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		</fieldset>
 	</form><br><br>
 </main>
-	
+
+<?php require 'footer.php'; ?>
+
 <script type="text/javascript">
 	$(document).ready(function(){
 		/** Muuttujien alustusta */

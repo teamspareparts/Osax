@@ -43,6 +43,7 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 	<section>
 		<table style="width:100%;">
 			<thead>
+			<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Kaikki tehdyt tilaukset</th></tr>
 			<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Yritys</th><th>Tilaaja</th><th>Summa</th><th class="smaller_cell">Käsitelty</th></tr>
 			</thead>
 			<tbody>
@@ -68,6 +69,9 @@ $tilaukset = $db->query( $sql, NULL, FETCH_ALL );
 	<?php endif;?>
 
 </main>
+
+<?php require 'footer.php'; ?>
+
 <script>
 	$(function(){
 		$('*[data-href]')

@@ -42,6 +42,9 @@ if ( !$user->isAdmin() ) {
 	    <span>Lataa hinnasto <i class="material-icons">file_download</i></span>
     </div>
 </main>
+
+<?php require 'footer.php'; ?>
+
 <script>
 	$(document).ready(function(){
         $('.clickable').click(function(){

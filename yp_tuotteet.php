@@ -460,6 +460,7 @@ require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
 	<section>
+	<section class="white-bg" style="border-radius: 5px; border: 1px solid;">
 		<div class="tuotekoodihaku">
 			<form action="" method="get" class="haku">
 				<div class="inline-block">
@@ -579,6 +580,8 @@ require 'tuotemodal.php';
 		<?php endif; //if $haku?>
 	</section>
 </main>
+
+<?php require 'footer.php'; ?>
 
 <script type="text/javascript">
 

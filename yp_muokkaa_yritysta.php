@@ -140,7 +140,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
             <input name="rahtimaksu" type="number" step="0.01" min="0" max="100000" value="<?= $yritys->rahtimaksu ?>"
 				   title="Anna käyttäjäkohtainen rahtimaksu euroina (€)."> €
             <br>
-            <label> Ilmaisen toimitus: </label>
+            <label> Ilmaisen toimituksen raja: </label>
             <input name="ilmainen_toimitus" type="number" step="0.01" min="0" max="100000"
 				   value="<?= $yritys->ilm_toim_sum_raja ?>" title="Ilmaisen toimituksen raja euroina (€)."> €
             <br>
@@ -169,5 +169,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		</fieldset>
 	</form>
 </main>
+
+<?php require 'footer.php'; ?>
+
 </body>
 </html>

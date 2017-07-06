@@ -84,5 +84,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		</fieldset>
 	</form>
 </main>
+
+<?php require 'footer.php'; ?>
+
 </body>
 </html>

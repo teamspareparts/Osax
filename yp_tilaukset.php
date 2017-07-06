@@ -57,6 +57,7 @@ $tilaukset = hae_tilaukset( $db );
 		<?php if ($tilaukset) : ?>
 			<table style="width:100%;">
 				<thead>
+				<tr><th colspan="5" class="center" style="background-color:#1d7ae2;">Tilaukset</th></tr>
 				<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Merkitse käsitellyksi</th></tr>
 				</thead>
 				<tbody>
@@ -89,6 +90,8 @@ $tilaukset = hae_tilaukset( $db );
 		<?php endif;?>
 	</section>
 </main>
+
+<?php require 'footer.php'; ?>
 
 <script>
 	$(function(){

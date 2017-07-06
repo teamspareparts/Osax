@@ -306,6 +306,8 @@ unset($_SESSION["feedback"]);
     <?= $feedback ?>
 </main>
 
+<?php require 'footer.php'; ?>
+
 <script type="text/javascript">
     //Täytetään dynaamisesti select-option valinnat.
 	let sarake;

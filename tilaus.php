@@ -133,7 +133,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<?= $feedback ?>
 	<table style="width:90%;">
 		<thead>
-		<tr> <th colspan="8" class="center" style="background-color:#1d7ae2;">Tilauksen vahvistus</th> </tr>
+		<tr> <th colspan="8" class="center" style="background-color:#1d7ae2;">Ostoskorin tuotteet</th> </tr>
 		<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Hinta</th>
 			 <th class="number">Kpl-hinta</th> <th class="number">Kpl</th> <th>Info</th> </tr>
 		</thead>

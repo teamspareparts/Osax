@@ -57,6 +57,7 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 	<?php if ( $tilaukset ) : ?>
 	<table>
 		<thead>
+			<tr><th colspan="5" class="center" style="background-color:#1d7ae2;">Kaikki tehdyt tilaukset</th></tr>
 			<tr><th>Tilausnumero</th>
 				<th>Päivämäärä</th>
 				<th>Tuotteet (kpl)</th>
@@ -82,11 +83,11 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 		<p>Ei tehtyjä tilauksia.</p>
 	<?php endif; ?>
 </main>
-<br>
+
+<?php include 'footer.php'; ?>
 
 <script>
 	$(function(){
-		//TODO: Miten alla olevan rivin tekisi ilman jQuerya?
 		$('*[data-href]')
 			.css('cursor', 'pointer')
 			.click(function(){

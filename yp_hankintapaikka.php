@@ -125,11 +125,13 @@ unset($_SESSION["feedback"]);
 
 
 	</main>
+	
+<?php require 'footer.php'; ?>
+
 </body>
 </html>
 
 <script>
-
     /**
      * Luo piilotetun formin, jota tarvitaan linkityksen poistamiseen
      */
@@ -170,7 +172,4 @@ unset($_SESSION["feedback"]);
         document.body.appendChild(form);
         form.submit();
     }
-
-
-
 </script>

@@ -89,9 +89,9 @@ else {
 			</tbody>
 		</table>
 	<?php endif; ?>
-	<br>
-	<hr>
-	<br>
+
+	<?= ( $ostopyynnot && $hankintapyynnot ) ? '<br><hr><br>' : '' ?>
+
 	<?php if ( $hankintapyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
