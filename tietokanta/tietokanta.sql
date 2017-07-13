@@ -370,6 +370,8 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma`(
 CREATE TABLE IF NOT EXISTS `tuoteryhma_tuote`(
   `tuoteryhma_id` smallint(5) UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
-  PRIMARY KEY (`tuote_id`,`tuoteryhma_id`)
+  PRIMARY KEY (`tuote_id`,`tuoteryhma_id`),
+  CONSTRAINT fk_tuoteryhmaTuote_tuoteryhma FOREIGN KEY (`tuoteryhma_id`) REFERENCES `tuoteryhma`(`id`),
+  CONSTRAINT fk_tuoteryhmaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
