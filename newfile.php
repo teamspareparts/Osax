@@ -30,9 +30,11 @@ if(!empty($_POST)){debug($_POST);}
 		</section>
 	</div>
 
-	<br>
-	<hr>
-	<br>
+	<span class="success">Jotain onnistui!</span>
+
+	<br> <hr> <br>
+
+	<p class="error">Jotain meni vikaan!</p>
 
 	<div class="otsikko_container">
 		<section class="takaisin">
@@ -44,6 +46,21 @@ if(!empty($_POST)){debug($_POST);}
 		</section>
 		<section class="napit">
 		</section>
+	</div>
+
+	<br> <hr> <br>
+
+	<div style="width: 400px; height: 300px; border: 1px solid;">
+		<div class="otsikko_container">
+			<section class="takaisin">
+			</section>
+			<section class="otsikko">
+				<h1>Otsikko</h1>
+			</section>
+			<section class="napit">
+				<button class="nappi">Toinen nappi</button>
+			</section>
+		</div>
 	</div>
 
 </main>
