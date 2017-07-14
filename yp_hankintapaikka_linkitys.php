@@ -116,16 +116,18 @@ unset($_SESSION["feedback"]);
 		</section>
 	</div>
 
-	<!-- Otsikko ja napit -->
+	<!-- Otsikko ja napit
 	<section>
 		<div id="painikkeet">
 			<input form="linkitys_form" type="submit" name="lisaa_linkitys" value="Vahvista linkitettävät brändit" class="nappi">
 		</div>
 	</section><br>
-
+-->
+	
 	<!-- Brändien listaus -->
 	<div class="container">
 		<form action="" method="post" id="linkitys_form">
+			<input type="submit" name="lisaa_linkitys" value="Vahvista linkitettävät brändit" class="nappi">
 			<?php foreach ($brands as $brand) : ?>
 				<div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
 					<div class="line">
