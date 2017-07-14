@@ -58,12 +58,9 @@ switch ( $get_count ) {
 				require './luokat/email.class.php';
 				require './mpdf/mpdf.php';
 
-				$mpdf = new mPDF();
-				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $user );
+				$config = parse_ini_file( "./config/config.ini.php" );
 
-				// Alemmat tiedostot vaativat $lasku-objektia.
-				require './misc/lasku_html.php';
-				require './misc/noutolista_html.php';
+				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $user, $config['indev'] );
 
 				if ( !file_exists('./tilaukset') ) {
 					mkdir( './tilaukset' );
@@ -72,6 +69,8 @@ switch ( $get_count ) {
 				/********************
 				 * Laskun luonti
 				 ********************/
+				$mpdf = new mPDF();
+				require './misc/lasku_html.php';
 				$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
 				$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
 				$mpdf->WriteHTML( $pdf_lasku_html_body );
@@ -81,6 +80,8 @@ switch ( $get_count ) {
 				/********************
 				 * Noutolistan luonti
 				 ********************/
+				$mpdf = new mPDF();
+				require './misc/noutolista_html.php';
 				$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 				$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 				$mpdf->WriteHTML( $pdf_noutolista_html_body );
