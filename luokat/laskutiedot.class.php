@@ -39,8 +39,9 @@ class Laskutiedot {
 	 * @param DByhteys $db
 	 * @param int      $tilausID
 	 * @param User     $user
+	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, /*int*/ $tilausID = null, User $user ) {
+	function __construct( DByhteys $db, /*int*/ $tilausID = null, User $user, $indev = 1 ) {
 		/*
 		 * Alustetaan luokan muuttujat ja oliot
 		 */
@@ -49,7 +50,7 @@ class Laskutiedot {
 		$this->asiakas = $user;
 		$this->osax = new Yritys( $db, 1 );
 
-		$this->laskuHeader = ( $_SESSION['indev'] )
+		$this->laskuHeader = ( $indev )
 			? "<h2 style='color: red;'>InDev testilasku</h2>"
 			: "<img src='./img/osax_logo.jpg' alt='Osax.fi'>";
 

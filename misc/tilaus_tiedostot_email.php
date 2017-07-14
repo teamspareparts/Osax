@@ -17,6 +17,7 @@ $sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NU
 $rows = $db->query( $sql, null, DByhteys::FETCH_ALL );
 
 if ( $rows ) {
+	$config = parse_ini_file( "./config/config.ini.php" ); // Jannen sähköpostin tarkistusta varten
 
 	// Aivan ensimmäiseksi päivitämme kaikkiin tilauksiin laskunumeron, jotta ei tule ongelmia päällekkäisyyden kanssa.
 	// Cronjob ajetaan 1 minuutin välein, laskujen luominen saattaa kestää pitempään.
@@ -49,9 +50,7 @@ if ( $rows ) {
 		echo "- $tilaus->id :: ";
 
 		$user = new User( $db, $tilaus->kayttaja_id );
-
-		$mpdf = new mPDF();
-		$lasku = new Laskutiedot( $db, $tilaus->id, $user );
+		$lasku = new Laskutiedot( $db, $tilaus->id, $user, $config['indev'] );
 
 		require './lasku_html.php';     // HTML-tiedostot vaativat $lasku-objektia, joten siksi nämä ei alussa.
 		require './noutolista_html.php';
@@ -59,6 +58,7 @@ if ( $rows ) {
 		/********************
 		 * Laskun luonti
 		 ********************/
+		$mpdf = new mPDF();
 		$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
 		$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
 		$mpdf->WriteHTML( $pdf_lasku_html_body );
@@ -72,6 +72,7 @@ if ( $rows ) {
 		/********************
 		 * Noutolistan luonti
 		 ********************/
+		$mpdf = new mPDF();
 		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 		$mpdf->WriteHTML( $pdf_noutolista_html_body );
@@ -88,7 +89,7 @@ if ( $rows ) {
 		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus->id, $lasku_nimi );
 		Email::lahetaNoutolista( $tilaus->id, $noutolista_nimi );
 
-		if ( !$_SESSION['indev'] ) {
+		if ( !$config['indev'] ) {
 			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus_id, $lasku_nimi );
 		}
 		echo "<br>\r\n";

@@ -73,7 +73,7 @@ class Tuote {
 	}
 
 	/**
-	 *
+	 * @param DByhteys $db
 	 */
 	function haeTuoteryhmat( DByhteys $db ) {
 		$rows = $db->query( "SELECT tuoteryhma_id FROM tuoteryhma_tuote WHERE tuote_id = ?",
