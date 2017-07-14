@@ -50,6 +50,7 @@ $db->query(
 $db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
 
 $db->query( "INSERT INTO laskunumero (laskunro) VALUES (?)", [1]);
-$db->query( "INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [0,0.00]);
-
-echo 'Done.';
+for( $i=0; $i<=5; $i++ ) {
+	$db->query("INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [$i, 0.00]);
+}
+echo 'Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';

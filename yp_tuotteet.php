@@ -862,29 +862,15 @@ require 'tuotemodal.php';
 		return b;
 	})(window.location.search.substr(1).split('&'));
 
-	//laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
-	if ( qs["manuf"] ) {
-		let manuf = qs["manuf"];
-		let model = qs["model"];
-		let car = qs["car"];
-		let osat = qs["osat"];
-		let osat_alalaji = qs["osat_alalaji"];
-
-		getModelSeries(manuf);
-		getVehicleIdsByCriteria(manuf, model);
-		getPartTypes(car);
-		getChildNodes(car, osat);
-
-		setTimeout(setSelected ,1000);
-
-		function setSelected(){
-			$("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
-			$("#model").find("option[value=" + model + "]").attr('selected', 'selected');
-			$("#car").find("option[value=" + car + "]").attr('selected', 'selected');
-			$("#osaTyyppi").find("option[value=" + osat + "]").attr('selected', 'selected');
-			$("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
-		}
-	}
+    // Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
+    if ( qs["manuf"] ) {
+        let manuf = qs["manuf"];
+        let model = qs["model"];
+        let car = qs["car"];
+        let osat = qs["osat"];
+        let osat_alalaji = qs["osat_alalaji"];
+        taytaAjoneuvomallillahakuValinnat(manuf, model, car, osat, osat_alalaji);
+    }
 
 	if ( qs["haku"] ) {
 		let search = qs["haku"];
