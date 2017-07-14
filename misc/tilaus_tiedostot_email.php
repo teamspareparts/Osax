@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 chdir(__DIR__); // Määritellään työskentelykansio
 set_time_limit(300); // 5min
 
@@ -89,7 +89,7 @@ if ( $rows ) {
 		Email::lahetaNoutolista( $tilaus->id, $noutolista_nimi );
 
 		if ( !$_SESSION['indev'] ) {
-			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus_id, $lasku_nimi );
+			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus->id, $lasku_nimi );
 		}
 		echo "<br>\r\n";
 	}
