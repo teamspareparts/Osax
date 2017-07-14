@@ -276,6 +276,46 @@ $manufs = getManufacturers();
         return (text.substr(0, 4) + "/" + text.substr(4));
     }
 
+    /**
+     * Taytetaan selectit annettujen parametrien perusteella.
+     * Valitaan listasta haluttu kohta.
+     * @param manuf
+     * @param model
+     * @param car
+     * @param osat
+     * @param osat_alalaji
+     */
+    function taytaAjoneuvomallillahakuValinnat (/*int*/manuf, /*int*/model, /*int*/car, /*int*/osat, /*int*/osat_alalaji) {
+
+        /**
+         * Odottaa niin kauan, kunnes kaikki tiedot on haettu tecdocista.
+         * Tämän jälkeen päivittää ajoneuvomallillahakuun oikeat valinnat.
+         */
+        function teeValinnat() {
+            if ($("#manufacturer").children('option').length === 1 ||
+                $("#model").children('option').length === 1 ||
+                $("#car").children('option').length === 1 ||
+                $("#osat_ylalaji").children('option').length === 1 ||
+                $("#osat_alalaji").children('option').length === 1) {
+                setTimeout(teeValinnat, 100);
+            } else {
+                $("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
+                $("#model").find("option[value=" + model + "]").attr('selected', 'selected');
+                $("#car").find("option[value=" + car + "]").attr('selected', 'selected');
+                $("#osat_ylalaji").find("option[value=" + osat + "]").attr('selected', 'selected');
+                $("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
+            }
+        }
+
+        // Haetaan tiedot tecdocista
+        getModelSeries(manuf);
+        getVehicleIdsByCriteria(manuf, model);
+        getPartTypes(car);
+        getChildNodes(car, osat);
+
+        teeValinnat();
+    }
+
 
 
     $("#manufacturer").on("change", function(){

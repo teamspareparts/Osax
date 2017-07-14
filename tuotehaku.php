@@ -44,10 +44,11 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
     }
 
 	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
-	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
+	$ids = $articleIds = array(); // Duplikaattien tarkistusta varten
 
     // Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
+		$product->articleNo = str_replace(" ", "", $product->articleNo);
         $row = get_tecdoc_product_from_database($db, $product->articleNo, $product->brandNo);
 		if ( !$row && !in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
@@ -63,9 +64,9 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
                     $tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
                     $tuote->brandName = $product->brandName;
                     if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
-                       $catalog_products[] = $tuote;
+                    	$catalog_products[] = $tuote;
                     } else {
-                        $not_available_catalog_products[] = $tuote;
+                    	$not_available_catalog_products[] = $tuote;
                     }
                 }
             }
@@ -651,29 +652,14 @@ require 'tuotemodal.php';
 		return b;
 	})(window.location.search.substr(1).split('&'));
 
-	//Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
+	// Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
 	if ( qs["manuf"] ){
 		let manuf = qs["manuf"];
 		let model = qs["model"];
 		let car = qs["car"];
 		let osat = qs["osat"];
 		let osat_alalaji = qs["osat_alalaji"];
-
-		getModelSeries(manuf);
-		getVehicleIdsByCriteria(manuf, model);
-		getPartTypes(car);
-		getChildNodes(car, osat);
-
-		setTimeout(setSelected ,1000);
-
-		function setSelected(){
-			$("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
-			$("#model").find("option[value=" + model + "]").attr('selected', 'selected');
-			$("#car").find("option[value=" + car + "]").attr('selected', 'selected');
-			$("#osat_ylalaji").find("option[value=" + osat + "]").attr('selected', 'selected');
-			$("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
-		}
-
+        taytaAjoneuvomallillahakuValinnat(manuf, model, car, osat, osat_alalaji);
 	}
 
 	if ( qs["haku"] ){
