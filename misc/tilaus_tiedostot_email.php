@@ -10,6 +10,9 @@ require '../luokat/email.class.php';
 require '../luokat/user.class.php'; // Laskutiedot-luokkaa ja sähköpostia varten
 require '../mpdf/mpdf.php';
 
+//
+// TODO: Tämä rivi ei toimi Osaxilla. Tuotantopuolella hardkoodattu arvot. Älä suoraan ylikirjoita tätä tiedostoa sinne!
+//
 $db = new DByhteys( null, "../config/config.ini.php" );
 
 // Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
