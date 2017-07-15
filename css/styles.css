@@ -492,19 +492,6 @@ th {
 	font-size: 90%;
 }
 
-/** Otsikon vasemmalla puolella olevat napit */
-#painikkeet {
-	vertical-align: middle;
-	width: 49%;
-	text-align: right;
-	display: inline-block;
-}
-
-#painikkeet a {
-	text-align: right;
-	/*text-decoration: none;*/
-}
-
 /****************************************
 Tuotteen MODAL-ikkuna
 ****************************************/
