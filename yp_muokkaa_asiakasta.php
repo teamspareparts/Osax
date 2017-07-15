@@ -53,7 +53,7 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 <main class="main_body_container lomake">
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>" class="nappi grey">
+			<a href="yp_asiakkaat.php?yritys_id=<?= $asiakas->yritys_id ?>" class="nappi grey">
 				<i class="material-icons">navigate_before</i>Takaisin</a><br><br>
 		</section>
 		<section class="otsikko">

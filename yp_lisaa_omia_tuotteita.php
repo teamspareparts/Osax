@@ -293,13 +293,17 @@ unset($_SESSION["feedback"]);
 <main class="main_body_container">
 
 	<!-- Otsikko ja painikkeet  -->
-	<section>
-		<h1 class="otsikko"> Perusta omia tuotteita<br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
-		<div id="painikkeet">
-			<a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>		</section>
+		<section class="otsikko">
+			<span>Perusta omia tuotteita</span>
+			<h1><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
+		</section>
+		<section class="napit">
 			<button class="nappi" id="info_button">Info</button>
-		</div>
-	</section>
+		</section>
+	</div>
 
 	<!-- Info -->
 	<fieldset id="info_box" hidden><legend>INFO</legend>

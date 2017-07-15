@@ -47,7 +47,7 @@ function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
  * @param $ostotilauskirja_id
  * @return bool Palauttaa false tai arkistoidun ostotilauskirjan id:n.
  */
-function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
+function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_id){
 
     //Haetaan ostotilauskirjan tuotteet
     $sql = "SELECT * FROM ostotilauskirja_tuote
@@ -69,7 +69,7 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
 	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
             SELECT hankintapaikka_id, tunniste, rahti, NOW() + INTERVAL ? DAY , NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
-	if (!$db->query($sql, [$toimitusaika, $user->id, $ostotilauskirja_id])) {
+	if (!$db->query($sql, [$toimitusaika, $user_id, $ostotilauskirja_id])) {
 	    return false;
 	}
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
@@ -115,21 +115,13 @@ function laheta_ostotilauskirja(DByhteys $db, User $user, $ostotilauskirja_id){
  * @return array <p> Sama array sortattuna
  */
 function sortProductsByName( $products ){
-	usort($products, "cmpName");
+	//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
+	//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
+	usort($products, function ($a, $b) {
+		return ($a->articleNo > $b->articleNo);
+	});
 	return $products;
 }
-
-//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
-//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
-/** Vertailufunktio usortille.
- * @param $a
- * @param $b
- * @return bool
- */
-function cmpName($a, $b) {
-	return ($a->articleNo > $b->articleNo);
-}
-
 
 if ( isset($_POST['muokkaa']) ) {
     unset($_POST['muokkaa']);
@@ -165,7 +157,7 @@ else if( isset($_POST['poista_kaikki']) ) {
 }
 else if( isset($_POST['laheta']) ) {
     unset($_POST['laheta']);
-    if ( $id = laheta_ostotilauskirja($db, $user, $_POST['id']) ) {
+    if ( $id = laheta_ostotilauskirja($db, $user->id, $_POST['id']) ) {
         $_SESSION["download"] = $id;
 		header("Location: yp_ostotilauskirja_odottavat.php");
 		exit();
@@ -174,9 +166,9 @@ else if( isset($_POST['laheta']) ) {
     }
 }
 
-
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ){
-    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+    header("Location: " . $_SERVER['REQUEST_URI']);
     exit();
 }
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
@@ -219,6 +211,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 <body>
 <?php require 'header.php'?>
 <main class="main_body_container">
+
+	<!-- Otsikko ja painikkeet -->
 	<div class="otsikko_container">
 		<section class="takaisin">
 			<a href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>" class="nappi grey">Takaisin</a>
@@ -229,6 +223,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		</section>
 		<section class="napit">
 			<button class="nappi" onclick="varmista_lahetys(<?=$otk->id?>)">Lähetä</button>
+			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
 		</section>
 	</div>
 
@@ -236,7 +231,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
     <?= $feedback?>
 
-    <table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
+    <table style="min-width: 90%;">
         <thead>
         <tr><th>Tilauskoodi</th>
             <th>Tuotenumero</th>
@@ -246,22 +241,27 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             <th class="number">Ostohinta</th>
             <th class="number">Yhteensä</th>
             <th>Selite</th>
+	        <th></th>
             <th></th>
         </tr>
         </thead>
         <tbody>
         <!-- Rahtimaksu -->
-        <tr><td></td><td></td><td>Rahtimaksu</td><td></td><td></td><td class="number"><?=format_euros($otk->rahti)?></td>
-            <td class="number"><?=format_euros($otk->rahti)?></td><td></td><td></td></td></tr>
+        <tr><td colspan="2"></td>
+	        <td>Rahtimaksu</td>
+	        <td colspan="2"></td>
+	        <td class="number"><?=format_number($otk->rahti)?></td>
+            <td class="number"><?=format_number($otk->rahti)?></td>
+	        <td colspan="3"></td></tr>
         <!-- Tuotteet -->
         <?php foreach ($products as $product) : ?>
             <tr><td><?=$product->tilauskoodi?></td>
                 <td><?=$product->tuotekoodi?></td>
                 <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
-                <td class="number"><?=format_integer($product->kpl)?></td>
-                <td class="number"><?=$product->varastosaldo?></td>
-                <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
-                <td class="number"><?=format_euros($product->kokonaishinta)?></td>
+                <td class="number"><?=format_number($product->kpl,true)?></td>
+                <td class="number"><?=format_number($product->varastosaldo,true)?></td>
+                <td class="number"><?=format_number($product->sisaanostohinta)?></td>
+                <td class="number"><?=format_number($product->kokonaishinta)?></td>
                 <td>
                     <?php if ( $product->automaatti ) : ?>
                         <span style="color: red"><?=$product->selite?></span>
@@ -279,20 +279,15 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             </tr>
         <?php endforeach;?>
         <!-- Yhteensä -->
-        <tr><td style="border-top: 1px solid black;">YHTEENSÄ</td><td colspan="2" style="border-top: 1px solid black"></td>
-            <td class="number" style="border-top: 1px solid black"><?= format_integer($yht_kpl)?></td>
-            <td style="border-top: 1px solid black"></td>
-            <td class="number" style="border-top: 1px solid black"><?=format_euros($yht_hinta)?></td>
-            <td colspan="3" style="border-top: 1px solid black"></td>
+        <tr class="border_top"><td>YHTEENSÄ</td>
+	        <td colspan="2"></td>
+            <td class="number"><?= format_number($yht_kpl,true)?></td>
+            <td></td>
+            <td class="number"><?=format_number($yht_hinta)?></td>
+            <td colspan="4"></td>
         </tr>
-
-
         </tbody>
     </table>
-
-	<div id="painikkeet">
-		<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
-	</div>
 </main>
 
 <?php require 'footer.php'; ?>

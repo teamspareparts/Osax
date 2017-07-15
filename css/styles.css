@@ -364,6 +364,10 @@ tr .rivi {
 	max-height: 1em;
 }
 
+tr.border_top td { /* Taulukon alin "yhteensä"-rivi */
+	border-top: 1px solid black;
+}
+
 th, td {
 	padding: 6pt 10pt;
 	margin: 0;
@@ -499,61 +503,6 @@ th {
 #painikkeet a {
 	text-align: right;
 	/*text-decoration: none;*/
-}
-
-
-/**************************************************
-	Tuotehaku-sivun infonapin tyylittely
-**************************************************/
-span.info-box {
-	display: inline-block;
-	line-height: 16px;
-	color: White;
-	font-size: 13px;
-	font-weight: bold;
-	text-align: center;
-	position: relative;
-}
-span.question {
-  	cursor: pointer;
-  	display: inline-block;
-  	width: 16px;
-  	height: 16px;
-  	background-color: #89A4CC;
-  	line-height: 16px;
-  	color: White;
-  	font-size: 13px;
-  	font-weight: bold;
-  	border-radius: 8px;
-  	text-align: center;
-  	position: relative;
-  	vertical-align: top;
-}
-span.question:hover { background-color: #3D6199; }
-div.tooltip {
-  	background-color: #3D6199;
-  	color: White;
-  	position: absolute;
-  	z-index: 10;
-  	border-radius: 5px;
-}
-div.tooltip:before {
-	border: 6px solid transparent;
-	border-right-color: #3D6199;
-	border-left-width: 0;
-	content: "";
-  	display: block;
-  	height: 0;
-  	width: 0;
-  	line-height: 0;
-  	position: absolute;
-  	top: 40%;
-  	left: -6px;
-}
-div.tooltip p {
-  	margin: 10px;
-  	color: White;
-	white-space: nowrap;
 }
 
 /****************************************

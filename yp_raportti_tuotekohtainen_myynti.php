@@ -1,6 +1,5 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
-//require 'tecdoc.php';
 
 //Vain ylläpitäjälle
 if ( !$user->isAdmin() ) {
@@ -17,18 +16,6 @@ function hae_brandit( DByhteys $db ) {
 	$sql = "SELECT DISTINCT id, nimi FROM brandi ORDER BY nimi";
 	return $db->query($sql, [], FETCH_ALL);
 }
-
-//Vaihtoehtoinen funktio, joka toimii ilman brandit-taulua
-/*
-function hae_brandit() {
-	$brands = getAmBrands();
-	foreach ($brands as $brand) {
-		$brand->id = $brand->brandId;
-		$brand->nimi = $brand->brandName;
-	}
-	usort($brands, function ($a, $b){return ($a->nimi > $b->nimi);});
-	return $brands;
-}*/
 
 /**
  * Haetaan kaikki hankintapaikat
@@ -73,15 +60,21 @@ $yritykset = hae_yritykset($db);
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
-	<!-- Otsikko ja painikkeet -->
-	<section>
-		<h1 class="otsikko">Tuotekohtainen myyntiraportti</h1>
-		<div id="painikkeet">
-			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
-		</div>
-	</section>
 
-	<div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
+	<!-- Otsikko ja painikkeet -->
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<h1>Tuotekohtainen myyntiraportti</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
+	<div class="feedback"></div>
+
 	<fieldset><legend>Raportin rajaukset</legend>
 		<form action="yp_luo_tuotekohtainen_myyntiraportti.php" method="post" id="tuotekohtainen_myyntiraportti">
 
@@ -145,8 +138,7 @@ $yritykset = hae_yritykset($db);
 <script>
     $(document).ready(function(){
         $("#tuotekohtainen_myyntiraportti").on("submit", function(e) {
-            $(".feedback").show().fadeOut(5000);
-
+            $(".feedback").append("<p class='success'>Odota kunnes raportti valmistuu!</p>").fadeOut(5000);
         });
         $('.datepicker').datepicker({
             dateFormat: 'yy-mm-dd',

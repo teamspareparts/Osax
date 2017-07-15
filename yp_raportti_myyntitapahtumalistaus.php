@@ -23,15 +23,21 @@ if ( !$user->isAdmin() ) {
 <body>
 <?php include("header.php");?>
 <main class="main_body_container">
-	<!-- Otsikko ja painikkeet -->
-	<section>
-		<h1 class="otsikko">Myyntitapahtumalistaus</h1>
-		<div id="painikkeet">
-			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
-		</div>
-	</section>
 
-	<div class="feedback success" hidden>Odota kunnes raportti valmistuu!</div>
+	<!-- Otsikko ja painikkeet -->
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<h1>Myyntitapahtumalistaus</h1>
+		</section>
+		<section class="napit">
+		</section>
+	</div>
+
+	<div class="feedback"></div>
+
 	<fieldset><legend>Raportin rajaukset</legend>
 		<form action="yp_luo_myyntitapahtumalistaus.php" method="post" id="myyntitapahtumalistaus">
 
@@ -54,7 +60,7 @@ if ( !$user->isAdmin() ) {
 <script>
     $(document).ready(function(){
         $("#myyntitapahtumalistaus").on("submit", function(e) {
-            $(".feedback").show().fadeOut(5000);
+            $(".feedback").append("<p class='success'>Odota kunnes raportti valmistuu!</p>").fadeOut(5000);
         });
         $('.datepicker').datepicker({
             dateFormat: 'yy-mm-dd',

@@ -218,15 +218,19 @@ unset($_SESSION["feedback"]);
 
 <main class="main_body_container">
 
-	<!-- Otsikko ja painikkeet  -->
-    <section>
-        <h1 class="otsikko">Lisää TecDoc-tuotteita tietokantaan
-	        <br>Hankintapaikka: <?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi ?></h1>
-        <div id="painikkeet">
-            <a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
-	        <button class="nappi" id="info_button">Info</button>
-        </div>
-    </section>
+	<!-- Otsikko ja painikkeet -->
+	<div class="otsikko_container">
+		<section class="takaisin">
+			<a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
+		</section>
+		<section class="otsikko">
+			<span>Lisää TecDoc-tuotteita</span>
+			<h1><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></h1>
+		</section>
+		<section class="napit">
+			<button class="nappi" id="info_button">Info</button>
+		</section>
+	</div>
 
 	<!-- Info -->
 	<fieldset id="info_box" hidden><legend>INFO</legend>
