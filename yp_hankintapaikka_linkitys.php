@@ -103,6 +103,7 @@ unset($_SESSION["feedback"]);
 <?php require 'header.php'; ?>
 <main class="main_body_container">
 
+	<!-- Otsikko ja painikkeet -->
 	<div class="otsikko_container">
 		<section class="takaisin">
 			<a href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi grey">Takaisin</a>
@@ -113,21 +114,13 @@ unset($_SESSION["feedback"]);
 			<span>&nbsp;&nbsp;<?=$hankintapaikka->id?></span>
 		</section>
 		<section class="napit">
+			<button onclick="submit_linkitys();" class="nappi">Vahvista linkitettävät brändit</button>
 		</section>
 	</div>
-
-	<!-- Otsikko ja napit
-	<section>
-		<div id="painikkeet">
-			<input form="linkitys_form" type="submit" name="lisaa_linkitys" value="Vahvista linkitettävät brändit" class="nappi">
-		</div>
-	</section><br>
--->
 	
 	<!-- Brändien listaus -->
 	<div class="container">
 		<form action="" method="post" id="linkitys_form">
-			<input type="submit" name="lisaa_linkitys" value="Vahvista linkitettävät brändit" class="nappi">
 			<?php foreach ($brands as $brand) : ?>
 				<div class="floating-box clickable"  data-brandId="<?=$brand->id?>">
 					<div class="line">
@@ -158,6 +151,21 @@ unset($_SESSION["feedback"]);
 </html>
 
 <script>
+
+    /**
+     * Vahvistus-nappia painettaessa tulostetaan vielä varoitus.
+     * @returns {boolean}
+     */
+	function submit_linkitys() {
+        let c = confirm('Poistettujen brändien tuotteet deaktivoidaan ' +
+            'kyseiseltä hankintapaikalta.\n\nHaluatko varmasti jatkaa?');
+        if (c === false) {
+            return false;
+        }
+        document.getElementById("linkitys_form").submit();
+        return true;
+    }
+
 	// Kun checkboxia painaa, näytetään input
     $('.checkbox').change(function () {
 	    let id = $(this).val();
@@ -169,15 +177,6 @@ unset($_SESSION["feedback"]);
 		} else {
 		    box.hide();
             input.prop('disabled', true);
-        }
-    });
-
-    $('#linkitys_form').submit(function (e) {
-		let c = confirm('Poistettujen brändien tuotteet deaktivoidaan ' +
-			'kyseiseltä hankintapaikalta.\n\nHaluatko varmasti jatkaa?');
-        if (c === false) {
-            e.preventDefault();
-            return false;
         }
     });
 
