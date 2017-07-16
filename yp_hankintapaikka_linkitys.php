@@ -15,21 +15,24 @@ if ( !$user->isAdmin() ) {
  * @param String $brandName
  * @return array|bool|stdClass
  */
-function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brand_ids, array $optional_brand_ids) {
+function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands ) {
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ?";
 	$db->query($sql, [$hankintapaikka_id]);
-	$values = [];
-	foreach ( $brand_ids as $index=>$brand_id ) {
-		$values[] = $hankintapaikka_id;
-		$values[] = $brand_id;
-		$values[] = $optional_brand_ids[$index];
+	if ( !$brands ) {
+		return false;
 	}
-	$questionmarks = implode(',', array_fill( 0, count($brand_ids), '( ?, ?, ? )'));
-	$sql = "  INSERT INTO brandin_linkitys
-			  (hankintapaikka_id, brandi_id, brandi_kaytetty_id)
-			  VALUES {$questionmarks}
-			  ON DUPLICATE KEY
-			  UPDATE brandi_kaytetty_id = VALUES(brandi_kaytetty_id)";
+	$values = [];
+	foreach ( $brands as $brand ) {
+		$values[] = $hankintapaikka_id;
+		$values[] = $brand['id'];
+		$values[] = $brand['optional_id'];
+	}
+	$questionmarks = implode(',', array_fill( 0, count($brands), '( ?, ?, ? )'));
+	$sql = "INSERT INTO brandin_linkitys
+			(hankintapaikka_id, brandi_id, brandi_kaytetty_id)
+			VALUES {$questionmarks}
+			ON DUPLICATE KEY
+			UPDATE brandi_kaytetty_id = VALUES(brandi_kaytetty_id)";
 	return $db->query($sql, $values);
 }
 
@@ -39,19 +42,37 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brand_
  * @param array $brand_ids
  * @return array|int|stdClass
  */
-function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brand_ids ){
+function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands ){
 	$values = [];
-	$questionmarks = "(".implode(',', array_fill( 0, count($brand_ids), '?')).")";
+	$questionmarks = "('".implode("','", array_fill( 0, count($brands), '?'))."')";
 	$sql = "UPDATE tuote
 			SET aktiivinen = 0
 			WHERE hankintapaikka_id = ? 
 				AND brandNo NOT IN {$questionmarks}";
 	$values[] = $hankintapaikka_id;
-	foreach ( $brand_ids as $brand_id ) {
-		$values[] = $brand_id;
+	foreach ( $brands as $brand ) {
+		$values[] = $brand['id'];
 	}
 	return $db->query($sql, $values);
 }
+
+if ( isset($_POST['lisaa_linkitys']) ) {
+	unset($_POST['lisaa_linkitys']);
+	$brands = isset($_POST['brands']) ? $_POST['brands'] : [];
+	$hankintapaikka_id = isset($_POST['hankintapaikka_id']) ? $_POST['hankintapaikka_id'] : 0;
+	lisaa_linkitys($db, $hankintapaikka_id, $brands);
+	poista_linkitys($db, $hankintapaikka_id, $brands);
+	header("Location: yp_hankintapaikka.php?hankintapaikka_id={$_POST['hankintapaikka_id']}");
+	exit();
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if (!empty($_POST)) {
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
+}
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+unset($_SESSION["feedback"]);
 
 // Haetaan hankintapaikan tiedot
 $hankintapaikka_id = isset($_GET['hankintapaikka_id']) ? $_GET['hankintapaikka_id'] : null;
@@ -71,21 +92,6 @@ $sql = "SELECT brandi.*, brandin_linkitys.brandi_kaytetty_id FROM brandi
  		GROUP BY brandi.id
  		ORDER BY nimi ASC";
 $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
-
-
-if ( isset($_POST['lisaa_linkitys']) ) {
-	lisaa_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_ids'], $_POST['optional_ids']);
-	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_ids']);
-	header("Location: yp_hankintapaikka.php?hankintapaikka_id={$_POST['hankintapaikka_id']}");
-	exit();
-}
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if (!empty($_POST)) {
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
-}
-$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-unset($_SESSION["feedback"]);
 
 ?>
 <!DOCTYPE html>
@@ -128,12 +134,12 @@ unset($_SESSION["feedback"]);
 							<img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
 							<span><?=mb_strtoupper($brand->nimi)?></span>
 						</label>
-						<input type="checkbox" name="brand_ids[]" value="<?=$brand->id?>"
+						<input type="checkbox" name="brands[<?=$brand->id?>][id]" value="<?=$brand->id?>"
 						       id="brand_checkbox-<?=$brand->id?>" class="checkbox">
 					</div>
 					<div id="brand_box-<?=$brand->id?>" hidden>
 						<label for="id=<?=$brand->id?>">Hinnastossa käytetty id:</label>
-						<input type="text" name="optional_ids[]"
+						<input type="text" name="brands[<?=$brand->id?>][optional_id]"
 						       value="<?= !empty($brand->brandi_kaytetty_id) ? $brand->brandi_kaytetty_id : $brand->id ?>"
 						       id="brand_input-<?=$brand->id?>"
 						       placeholder="ID" required disabled>
@@ -141,6 +147,7 @@ unset($_SESSION["feedback"]);
 				</div>
 			<?php endforeach;?>
 			<input type="hidden" name="hankintapaikka_id" value="<?=$hankintapaikka->id?>">
+			<input type="submit" name="lisaa_linkitys" id="submit_button" hidden>
 		</form>
 	</div>
 </main>
@@ -162,7 +169,7 @@ unset($_SESSION["feedback"]);
         if (c === false) {
             return false;
         }
-        document.getElementById("linkitys_form").submit();
+        document.getElementById("submit_button").click();
         return true;
     }
 
