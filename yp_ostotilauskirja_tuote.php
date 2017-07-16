@@ -175,12 +175,19 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 
-$sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta 
-          FROM ostotilauskirja_tuote
-          LEFT JOIN tuote
-            ON ostotilauskirja_tuote.tuote_id = tuote.id 
-          WHERE ostotilauskirja_id = ?
-          GROUP BY tuote_id, automaatti";
+$sql = "SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
+		IFNULL((SELECT IFNULL( SUM(temp.varastosaldo), 0 )
+				FROM tuote AS temp
+				WHERE tuote.hyllypaikka = temp.hyllypaikka
+					AND tuote.id != temp.id
+					AND temp.aktiivinen = 1
+				GROUP BY tuote.hyllypaikka
+  		), 0) AS hyllyssa_vastaavia_tuotteita
+        FROM ostotilauskirja_tuote
+        LEFT JOIN tuote
+        	ON ostotilauskirja_tuote.tuote_id = tuote.id 
+        WHERE ostotilauskirja_id = ?
+        GROUP BY tuote_id, automaatti";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
@@ -262,18 +269,25 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <td class="number"><?=format_number($product->varastosaldo,true)?></td>
                 <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                 <td class="number"><?=format_number($product->kokonaishinta)?></td>
-                <td>
+	            <td>
                     <?php if ( $product->automaatti ) : ?>
                         <span style="color: red"><?=$product->selite?></span>
                     <?php else : ?>
 				        <?=$product->selite?>
                     <?php endif;?>
                 </td>
+	            <td class="number">
+		            <?php if ( $product->hyllyssa_vastaavia_tuotteita ) : ?>
+			            <span title="Hyllyssä <?=$product->hyllypaikka?> vastaavia tuotteita" style="color: rebeccapurple">
+				            <i class="material-icons">warning</i>
+				            <?=$product->hyllyssa_vastaavia_tuotteita?></span>
+	                <?php endif; ?>
+	            </td>
                 <td class="toiminnot">
                     <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                             '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
                             '<?=$product->selite?>', <?=$product->automaatti?>)">Muokkaa</button>
-                    <button class="nappi" onclick="poista_ostotilauskirjalta(
+                    <button class="nappi red" onclick="poista_ostotilauskirjalta(
                     <?=$product->id?>, <?=$product->automaatti?>)">Poista</button>
                 </td>
             </tr>
