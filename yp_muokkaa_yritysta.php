@@ -166,6 +166,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		<fieldset><legend>Maksutavan valinta</legend>
 			<span>Käyttäjä voi silti valita maksaa Paytraililla.<br>
 			<br>
+			<!-- //TODO: Tämän voisi tehdä paremmin. Näytä valittu arvo. Vaatisi joko js:ää tai PHP:ta. -->
 			<label for="mt" class="special_snowflake"> Maksutapa: </label>
 			<select name="maksutapa" id="mt">
 				<option selected disabled>Valitse maksutapa (nykyinen arvo: <?= $yritys->maksutapa ?>)</option>

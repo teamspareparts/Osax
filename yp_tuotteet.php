@@ -326,7 +326,7 @@ elseif ( !empty($_POST['poista']) ) {
 elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
 		str_replace(" ", "", $_POST['tilauskoodi']),
-		str_replace(',', '.', $_POST['ostohinta']),
+		str_replace(',', '.', $_POST['ostohinta']), //TODO: HTML tekee tämän automaattisesti.
 		str_replace(',', '.', $_POST['hinta']),
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
@@ -341,6 +341,7 @@ elseif ( !empty($_POST['muokkaa']) ) {
     }
 }
 elseif ( !empty($_POST['tuotealennus']) ) {
+	$_POST['alennus_pros'] = $_POST['alennus_pros'] / 100;
 	if ( lisaa_alennus( $db, array_values($_POST), !empty($_POST['yritys_id']) ) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuotteelle lisätty alennus!</p>';
 	} else {
@@ -566,7 +567,7 @@ require 'tuotemodal.php';
 				<table><!-- Katalogissa ei olevat, ei tilattavissa olevat tuotteet. TecDocista. -->
 					<thead>
 					<tr><th colspan="3" class="center" style="background-color:#1d7ae2;">Kaikki tuotteet: (<?=count($all_products)?>)</th></tr>
-					<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th> </tr>
+					<tr> <th>Tuotenumero</th> <th>Tuote</th> <th></th> </tr>
 					</thead>
 					<tbody>
 					<?php foreach ($all_products as $product) : ?>
@@ -686,6 +687,7 @@ require 'tuotemodal.php';
         //TODO: Eikö nämä pitäisi olla funktion ulkopuol-- y'know what I don't care. --jj170705
         let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
 		let tr_valikko = <?= json_encode($tuoteryhmien_nimet_tuotteiden_linkitysta_varten) ?>;
+		//TODO: ostohinta liian monella desimaalilla käyttäjälle näkyvissä. --jj170717
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Muokkaa tuotetta'+tuotekoodi+'</div> \
@@ -741,7 +743,7 @@ require 'tuotemodal.php';
 				</form>\
 				<hr> \
 				<form method="post"> \
-					<span style="font-weight:bold;">Lisää alennus tuotteelle:</span>\
+					<span style="font-weight:bold;">Linkitä tuoteryhmään:</span>\
 					<input type="hidden" name="tuote_tuoteryhma" value="' + id + '"> \
 					<br> \
 					<label for="tr_select" class="required">Tuoteryhmä:</label> \

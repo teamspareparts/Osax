@@ -142,7 +142,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	</form>
 </main>
 
-<?php require 'footer.php'; ?>
+<?php require 'footer.php'; //TODO: footer menee päällekkin Paytrailin jutun kanssa. ?>
 
 <script src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>
 <script>
