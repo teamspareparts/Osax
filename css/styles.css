@@ -399,7 +399,10 @@ th {
 	width: 10%;
 }
 
-.success, .error {
+.success,
+.error,
+.info,
+.warning {
 	position: relative;
 	display: block;
 	padding: 10pt;
@@ -408,13 +411,10 @@ th {
 	font-weight: bold;
 }
 
-.success {
-	background-color: #DFF2BF;
-}
-
-.error {
-	background-color: #FFBABA;
-}
+.success { background-color: #DFF2BF; }
+.error { background-color: #FFBABA; }
+.info { background-color: lightsteelblue; }
+.warning { background-color: lightgoldenrodyellow; }
 
 .disabled {
 	opacity: 0.2;

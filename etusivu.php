@@ -35,12 +35,19 @@ function jaottele_uutiset ( &$news ) {
 	$news = $arr;
 }
 
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
+}
+
 $sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%Y-%m-%d %H:00') AS simple_pvm, loppu_pvm
 		FROM etusivu_uutinen
 		WHERE aktiivinen = 1 AND loppu_pvm > CURDATE()
 		ORDER BY pvm DESC";
 $news = $db->query( $sql, null, FETCH_ALL );
-
 jaottele_uutiset( $news );
 
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: CSS cache-busting)
@@ -70,6 +77,8 @@ $css_version = filemtime( 'css/styles.css' );
 			<!--<button class="nappi">Lisää uusi</button>-->
 		</section>
 	</div>
+
+	<?= $feedback ?>
 
 	<section class="white-bg" style="border:1px solid; border-radius:4px; padding-top:5px;">
 		<div class="tuotekoodihaku">

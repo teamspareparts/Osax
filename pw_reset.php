@@ -1,5 +1,6 @@
 <?php
 require 'luokat/dbyhteys.class.php';
+session_start();
 
 /**
  * Tarkistetaan onko avain validi ja onko se vanhentunut
@@ -86,6 +87,14 @@ if ( !empty($_POST['reset']) ) {
 		$error = TRUE;
 	}
 }
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
+	header("Location: " . $_SERVER['REQUEST_URI']); exit();
+} else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -95,11 +104,24 @@ if ( !empty($_POST['reset']) ) {
 	<title>Password reset</title>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<style>
+		.info {
+			position: relative;
+			display: block;
+			padding: 10pt;
+			margin: 1em;
+			width: auto;
+			font-weight: bold;
+			background-color: lightsteelblue;
+		}
+	</style>
 </head>
 <body>
 
 <main class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
+
+	<?= $feedback ?>
 
 	<?php if ( $error ) : ?>
 		<fieldset id=error><legend> Salasana ja varmistus eivät täsmää </legend>
@@ -136,7 +158,7 @@ if ( !empty($_POST['reset']) ) {
 		$('#uusi_salasana, #vahv_uusi_salasana').on('keyup', function () {
 			pwSubmit.prop('disabled', true);
 			if ( newPassword.val().length >= 8 ) {
-				if ( newPassword.val() == $('#vahv_uusi_salasana').val() ) {
+				if ( newPassword.val() === $('#vahv_uusi_salasana').val() ) {
 					pwCheck.html('<i class="material-icons">done</i>Salasana OK.').css('color', 'green');
 					pwSubmit.prop('disabled', false);
 				} else {

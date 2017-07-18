@@ -75,7 +75,13 @@ function password_reset( DByhteys $db, stdClass $user, /*string*/ $reset_mode ) 
 	$sql = "INSERT INTO pw_reset (kayttaja_id, reset_key_hash) VALUES ( ?, ? )";
 	$db->query( $sql, [ $user->id, $key_hashed ] );
 
-	if ( $reset_mode === "expired" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
+	if ( $reset_mode === "vanhentunut" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
+		$_SESSION['feedback'] = "<p class='info'>Salasana on vanhentunut.<br>Ole hyvä ja luo uusi salasana.</p>";
+		header( "Location:pw_reset.php?id={$key}" );
+		exit;
+	}
+	elseif ( $reset_mode === "uusittava" ) { //Jos salasana vanhentunut, ohjataan suoraan salasananvaihtosivulle
+		$_SESSION['feedback'] = "<p class='info'>Salasana pitää uusia.<br>Ole hyvä ja luo uusi salasana.</p>";
 		header( "Location:pw_reset.php?id={$key}" );
 		exit;
 	}
@@ -140,45 +146,54 @@ if ( $mode === "login" ) {
 		//check_IP_address( $db, $user->id, $user_info->viime_sijainti );
 
 		/** Tarkistetaan salasanan voimassaoloaika */
-		$time_then = new DateTime( strval( $login_user->salasana_vaihdettu ) ); // muunnettuna DateTime-muotoon
-		$time_now = new DateTime();
-		//Jos salasana vanhentunut tai salasana on uusittava
-		if ( ($time_then->modify( "+{$salasanan_voimassaoloaika} days" ) < $time_now)
-				OR $login_user->salasana_uusittava ) {
-			password_reset( $db, $login_user, 'expired' );
+		$date = new DateTime( $login_user->salasana_vaihdettu );
+		$date->modify( "+{$salasanan_voimassaoloaika} days" );
+		$now = new DateTime('today');
+
+		$diff = $now->diff($date)->days;
+
+		if ( $login_user->salasana_uusittava ) {
+			password_reset( $db, $login_user, 'uusittava' );
+		}
+		elseif ( $date < $now ) {
+			password_reset( $db, $login_user, 'vanhentunut' );
+		}
+		elseif ( $diff <= 20 ) { $colour = 'info';
+			if ($diff <= 10) { $colour = 'error'; }
+
+			$_SESSION['feedback'] = "<p class='{$colour}'>Salasana vanhenee {$diff} päivän päästä. 
+				<a href='./omat_tiedot.php' style='text-decoration: underline;'>Vaihda salasana.</a></p>";
 		}
 
-		else { //JOS KAIKKI OK->
-			// Kirjataan ylös viimeisin kirjautumisaika ylläpitoa varten.
-			$db->query( "UPDATE kayttaja SET viime_kirjautuminen = current_timestamp WHERE id = ? LIMIT 1",
-						[ $login_user->id ] );
+		/*
+		 * Kaikki OK, jatketaan sivustolle
+		 */
+		// Kirjataan ylös viimeisin kirjautumisaika ylläpitoa varten.
+		$db->query( "UPDATE kayttaja SET viime_kirjautuminen = current_timestamp WHERE id = ? LIMIT 1",
+					[ $login_user->id ] );
 
-			// Kirjataan ylös käyttäjän selain ja OS
-			// Näin voimme seurata mitä selaimia sivustolla käytetään.
-			file_put_contents("./config/log.txt", $login_user->id . '::' . $_SERVER['HTTP_USER_AGENT'] . "<br>\r\n", FILE_APPEND | LOCK_EX);
+		// Kirjataan ylös käyttäjän selain ja OS
+		// Näin voimme seurata mitä selaimia sivustolla käytetään.
+		file_put_contents("./config/log.txt", $login_user->id . '::' . $_SERVER['HTTP_USER_AGENT'] . '<br>\r\n', FILE_APPEND | LOCK_EX);
 
-			$_SESSION[ 'id' ] = $login_user->id;
-			$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
-			$_SESSION[ 'email' ] = $login_user->sahkoposti;
+		$_SESSION[ 'id' ] = $login_user->id;
+		$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
+		$_SESSION[ 'email' ] = $login_user->sahkoposti;
 
-			$config = parse_ini_file( "./config/config.ini.php" );
-			$_SESSION['indev'] = $config['indev'];
-			$_SESSION['header_tervehdys'] = $config['header_tervehdys'];
+		$config = parse_ini_file( "./config/config.ini.php" );
+		$_SESSION['indev'] = $config['indev'];
+		$_SESSION['header_tervehdys'] = $config['header_tervehdys'];
 
-			addDynamicAddress();
+		addDynamicAddress();
 
-			if ( $login_user->vahvista_eula ) {
-				header( "Location:eula.php" );
-				exit;
-			}
-			else {
-				if ( !empty( $_SESSION[ 'redirect_url' ] ) ) {
-					header( "Location:{$_SESSION['redirect_url']}" );
-					exit;
-				}
-				header( "Location:etusivu.php" );
-				exit;
-			}
+		if ( $login_user->vahvista_eula ) {
+			header( "Location:eula.php" );
+			exit;
+		}
+		else {
+			$url = !empty( $_SESSION[ 'redirect_url' ] ) ? $_SESSION['redirect_url'] : 'etusivu.php';
+			header( "Location:{$url}" );
+			exit;
 		}
 
 	}
@@ -207,7 +222,5 @@ elseif ( $mode === "password_reset" ) {
 	}
 }
 
-else {
-	header( "Location:index.php?redir=4" );
-	exit();
-}
+header( "Location:index.php?redir=98" );
+exit();

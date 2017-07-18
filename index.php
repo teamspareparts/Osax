@@ -72,6 +72,10 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 			"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta.",
 			"style" => "style='color:{$colors['warning']};'" ),
 
+		98 => array(
+			"otsikko" => " Error ",
+			"teksti" => 'Jotain meni vikaan',
+			"style" => "style='color:{$colors['warning']};'" ),
 		99 => array(
 			"otsikko" => " Kirjautuminen ",
 			"teksti" => 'Olet jo kirjautunut sisään.<p>

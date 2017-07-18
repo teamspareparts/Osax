@@ -19,8 +19,11 @@ class User {
 	public $yllapitaja = false;
 	public $demo = false;
 	public $vahvista_eula = true;
+
+	public $salasana_vaihdettu;
 	public $voimassaolopvm = null;
 	public $salasana_uusittava = null;
+
 	/** @var stdClass[] */
 	public $toimitusosoitteet = array();
 
@@ -42,7 +45,7 @@ class User {
 		if ( $user_id !== null ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT kayttaja.id, kayttaja.yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
 						kayttaja.puhelin, yllapitaja, demo, kayttaja.voimassaolopvm, salasana_uusittava,
-				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi AS yrityksen_nimi,
+				  		vahvista_eula, kayttaja.aktiivinen, yritys.nimi AS yrityksen_nimi, salasana_vaihdettu,
 				  		yritys.alennus_prosentti AS yleinen_alennus, yritys.maksutapa, viime_kirjautuminen,
 				  		yritys.ilmainen_toimitus_summa_raja AS ilm_toim_sum_raja, yritys.rahtimaksu			  		
 					FROM kayttaja 
