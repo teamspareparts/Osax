@@ -44,15 +44,15 @@ $pdf_noutolista_html_body = "
 	</tbody>
 </table>
 <hr>"
-. ($_SESSION['indev'] ? "<span style='color:red;'>dev.osax: tämä noutolista tarkoitettu vain testaukseen.</span><hr>" : "")
+. ($config['indev'] ? "<span style='color:red;'>dev.osax: tämä noutolista tarkoitettu vain testaukseen.</span><hr>" : "")
 . "
 <table style='width:100%;font-size:80%;'>
 	<thead>
 	<tr><th colspan='6'><h2>Noutolista &mdash; tilatut tuotteet</h2></th></tr>
 	<tr><th style='text-align:right;'>#</th>
-		<th>Tuotekoodi</th>
-		<th>Nimi</th>
-		<th>Valmistaja</th>
+		<th style='text-align:left;'>Tuotekoodi</th>
+		<th style='text-align:left;'>Nimi</th>
+		<th style='text-align:left;'>Valmistaja</th>
 		<th style='text-align:right;'>kpl</th>
 		<th>Hyllypaikka</th>
 	</tr>
@@ -67,11 +67,11 @@ $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
 	$pdf_noutolista_html_body .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
-			<td style='text-align:center;'>{$tuote->tuotekoodi}</td>
-			<td style='text-align:center;'>{$tuote->nimi}</td>
-			<td style='text-align:center;'>{$tuote->valmistaja}</td>
+			<td style='text-align:left;'>{$tuote->tuotekoodi}</td>
+			<td style='text-align:left;'>{$tuote->nimi}</td>
+			<td style='text-align:left;'>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
-			<td style='text-align:center;'>{$tuote->hyllypaikka}</td>
+			<td style='text-align:left;'>{$tuote->hyllypaikka}</td>
 		</tr>";
 }
 

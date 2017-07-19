@@ -13,6 +13,7 @@ function debug($var,$var_dump=false){
 
 $lasku = new Laskutiedot( $db, 3, $user, $yritys );
 
+$config['indev'] = 1;
 
 require 'misc/lasku_html.php';
 $mpdf = new mPDF();
@@ -28,3 +29,6 @@ $mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 $mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 $mpdf->WriteHTML( $pdf_noutolista_html_body );
 $mpdf->Output("./testi-noutolista.pdf", 'F');
+
+
+//$mpdf->Output();

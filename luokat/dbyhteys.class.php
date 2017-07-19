@@ -45,16 +45,19 @@ class DByhteys {
 	/**
 	 * Konstruktori.
 	 * Lukee tarvittavat tiedot suoraan config.ini -tiedostosta.
-	 * @param string[] $config [optional] <p> Enum-array. Kentät: user, pass, name, host (tuossa järjestyksessä)
-	 * @param string   $iniFileName [optional], default = "./config/config.ini.php"
+	 * @param array $config       [optional] <p> Kenttien järjestys: <br>
+	 *                            Jos enum: host, name, user, pass (sama kuin config.ini)<br>
+	 *                            Jos assoc: ei väliä, mutta nimet pitää olla samat kuin config.ini.
+	 * @param string $iniFileName [optional], default = "./config/config.ini.php" <p>
+	 *                            Muuta, jos käytät tiedostoa jossain muussa kansiossa kuin ./root.
 	 */
-	public function __construct( array $config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
+	public function __construct( array &$config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
 		define( 'FETCH_ALL', true );
 		if ( $config === null ) {
 			$config = parse_ini_file( $iniFileName );
 		}
-		else {
-			$config = [ 'user' => $config[ 0 ], 'pass' => $config[ 1 ], 'name' => $config[ 2 ], 'host' => $config[ 3 ] ];
+		elseif ( isset( $config[ 0 ] ) ) {
+			$config = [ 'host' => $config[ 0 ], 'name' => $config[ 1 ], 'user' => $config[ 2 ], 'pass' => $config[ 3 ] ];
 		}
 		$this->pdo_dsn = "mysql:host={$config[ 'host' ]};dbname={$config[ 'name' ]};charset=utf8";
 		$this->connection = new PDO( $this->pdo_dsn, $config[ 'user' ], $config[ 'pass' ], $this->pdo_options );

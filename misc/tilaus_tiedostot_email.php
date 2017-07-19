@@ -10,17 +10,15 @@ require '../luokat/email.class.php';
 require '../luokat/user.class.php'; // Laskutiedot-luokkaa ja sähköpostia varten
 require '../mpdf/mpdf.php';
 
-//
-// TODO: Tämä rivi ei toimi Osaxilla. Tuotantopuolella hardkoodattu arvot. Älä suoraan ylikirjoita tätä tiedostoa sinne!
-//
-$db = new DByhteys( null, "../config/config.ini.php" );
+$config = parse_ini_file( "../config/config.ini.php" ); // Jannen sähköpostin tarkistusta varten
+
+$db = new DByhteys( $config );
 
 // Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
 $sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
 $rows = $db->query( $sql, null, DByhteys::FETCH_ALL );
 
 if ( $rows ) {
-	$config = parse_ini_file( "./config/config.ini.php" ); // Jannen sähköpostin tarkistusta varten
 
 	// Aivan ensimmäiseksi päivitämme kaikkiin tilauksiin laskunumeron, jotta ei tule ongelmia päällekkäisyyden kanssa.
 	// Cronjob ajetaan 1 minuutin välein, laskujen luominen saattaa kestää pitempään.

@@ -50,7 +50,7 @@ $pdf_lasku_html_body = "
 	</tbody>
 </table>
 <hr>"
-. ($_SESSION['indev'] ? "<span style='color:red;'>dev.osax: tämä lasku tarkoitettu vain testaukseen.</span><hr>" : "")
+. ($config['indev'] ? "<span style='color:red;'>dev.osax: tämä lasku tarkoitettu vain testaukseen.</span><hr>" : "")
 . "
 <!-- Tilauksen numero ja tilausaika -->
 <div>
@@ -64,9 +64,9 @@ $pdf_lasku_html_body = "
 	<thead>
 	<tr><th colspan='8' class='center'><h2>Tilatut tuotteet</h2></th></tr>
 	<tr><th style='text-align:right;'>#</th>
-		<th>Tuotekoodi</th>
-		<th>Nimi</th>
-		<th>Valmistaja</th>
+		<th style='text-align:left;'>Tuotekoodi</th>
+		<th style='text-align:left;'>Nimi</th>
+		<th style='text-align:left;'>Valmistaja</th>
 		<th style='text-align:right;'>Veroton<br>&agrave;-hinta</th>
 		<th style='text-align:right;'>ALV</th>
 		<th style='text-align:right;'>Ale</th>
@@ -83,9 +83,9 @@ $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
 	$pdf_lasku_html_body .= "
 		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
-			<td>{$tuote->tuotekoodi}</td>
-			<td>{$tuote->nimi}</td>
-			<td>{$tuote->valmistaja}</td>
+			<td style='text-align:left;'>{$tuote->tuotekoodi}</td>
+			<td style='text-align:left;'>{$tuote->nimi}</td>
+			<td style='text-align:left;'>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->a_hinta_toString( true )}</td>
 			<td style='text-align:right;'>{$tuote->alv_toString()}</td>
 			<td style='text-align:right;'>{$tuote->alennus_toString()}</td>
