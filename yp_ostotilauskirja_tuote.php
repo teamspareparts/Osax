@@ -174,18 +174,14 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
-
-$sql = "SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
-		IFNULL((SELECT IFNULL( SUM(temp.varastosaldo), 0 )
-				FROM tuote AS temp
-				WHERE tuote.hyllypaikka = temp.hyllypaikka
-					AND tuote.id != temp.id
-					AND temp.aktiivinen = 1
-				GROUP BY tuote.hyllypaikka
-  		), 0) AS hyllyssa_vastaavia_tuotteita
+$sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
+ 			tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
+		SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita
         FROM ostotilauskirja_tuote
-        LEFT JOIN tuote
-        	ON ostotilauskirja_tuote.tuote_id = tuote.id 
+        INNER JOIN tuote
+        	ON ostotilauskirja_tuote.tuote_id = tuote.id
+        LEFT JOIN tuote t2
+        	ON tuote.hyllypaikka = t2.hyllypaikka AND tuote.id != t2.id AND t2.aktiivinen = 1
         WHERE ostotilauskirja_id = ?
         GROUP BY tuote_id, automaatti";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
