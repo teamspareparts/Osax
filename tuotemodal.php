@@ -71,7 +71,7 @@ require_once 'tecdoc_asetukset.php';?>
         //spinning icon (max 5s)
         let cover = $("#cover");
         cover.addClass("loading");
-        setTimeout(function (){ cover.removeClass("loading") }, 5000);
+        setTimeout(function (){ cover.removeClass("loading"); MODAL_OPEN = false; }, 5000);
 
         //Haetaan tuotteen tiedot
         let functionName = "getDirectArticlesByIds6";
@@ -372,8 +372,8 @@ require_once 'tecdoc_asetukset.php';?>
                         articleIdPairs = [];
                     }
                 }
+                getLinkedVehicleInfos(articleId, articleIdPairs);
             }
-            getLinkedVehicleInfos(articleId, articleIdPairs);
         });
     }
 
