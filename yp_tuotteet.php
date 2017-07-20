@@ -105,6 +105,7 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( $db ) {
 /**
  * //TODO: Väliaikainen ratkaisu.
  * //TODO MIKSI TÄMÄ ON VÄLIAIKAINEN RATKAISU?! MITÄ MINÄ OIKEIN AJATTELIN? --jj170705
+ * //TODO: KOSKA https://stackoverflow.com/questions/23740548/how-to-pass-variables-and-data-from-php-to-javascript --SL170720
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
@@ -540,9 +541,9 @@ require 'tuotemodal.php';
 										(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 								endforeach; ?>
 							</td>
-							<td class="number"><?=format_integer($product->varastosaldo)?></td>
-							<td class="number"><?=format_euros($product->hinta)?></td>
-                            <td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+							<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+							<td class="number"><?=format_number($product->hinta)?></td>
+                            <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                             <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>
 							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
@@ -550,7 +551,8 @@ require 'tuotemodal.php';
 								<button class="nappi red" onclick="showRemoveDialog(<?=$product->id?>)">
                                     Poista</button><br>
                                 <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>', '<?=$product->tilauskoodi?>',
-                                    '<?=$product->sisaanostohinta?>', '<?=$product->hinta_ilman_ALV?>',
+		                            '<?=number_format(round($product->sisaanostohinta,2),2)?>',
+		                            '<?=number_format(round($product->hinta_ilman_ALV,2),2)?>',
                                     '<?=$product->ALV_kanta?>', '<?=$product->varastosaldo?>',
                                     '<?=$product->minimimyyntiera?>', '<?=$product->hyllypaikka?>')">
                                     Muokkaa</button><br>
@@ -610,7 +612,7 @@ require 'tuotemodal.php';
 				brand_id: brandNo },
 			function( data ) {
 				hankintapaikat = JSON.parse(toJSON(data));
-				if(hankintapaikat.length === 0){
+				if( hankintapaikat.length === 0 ){
 					alert("Linkitä ensin tuotteen brändi johonkin hankintapaikkaan!");
 					return;
 				}
@@ -687,11 +689,10 @@ require 'tuotemodal.php';
         //TODO: Eikö nämä pitäisi olla funktion ulkopuol-- y'know what I don't care. --jj170705
         let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
 		let tr_valikko = <?= json_encode($tuoteryhmien_nimet_tuotteiden_linkitysta_varten) ?>;
-		//TODO: ostohinta liian monella desimaalilla käyttäjälle näkyvissä. --jj170717
         Modal.open( {
             content: '\
 				<div class="dialogi-otsikko">Muokkaa tuotetta'+tuotekoodi+'</div> \
-				<form action="" name="muokkauslomake" method="post"> \
+				<form action="" method="post"> \
 					<label for="ostohinta">Ostohinta:</label> \
 						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;<br> \
 					<label for="hinta">Hinta (ilman ALV):</label> \
@@ -706,10 +707,9 @@ require 'tuotemodal.php';
 						<input type="number" class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'" min="1" required> kpl<br> \
 					<label for="hyllypaikka">Hyllypaikka:</label> \
 						<input class="kpl" name="hyllypaikka" value="'+hyllypaikka+'"><br> \
-					<input class="nappi" type="submit" name="muokkaa" value="Tallenna"\
-						onclick="document.muokkauslomake.submit()">\
+					<input class="nappi" type="submit" name="muokkaa" value="Tallenna">\
 					<button class="nappi grey" type="button" style="margin-left: 10pt;" onclick="Modal.close()">Peruuta</button>\
-						<input type="hidden" name="id" value="' + id + '"> \
+					<input type="hidden" name="id" value="' + id + '"> \
 				</form> \
 				<hr> \
 				<form method="post"> \

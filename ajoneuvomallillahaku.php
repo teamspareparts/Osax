@@ -4,7 +4,7 @@ require_once 'tecdoc.php';
  *
  * Ajoneuvomallillahaun kaikki toiminnallisuus.
  *
- * Vaatii toimiakseen jQueryn ja TecDocin jsonEndpointin
+ * Vaatii toimiakseen TecDocin jsonEndpointin
  *
  ****************************************************************/
 
@@ -36,16 +36,16 @@ $manufs = getManufacturers();
             <option value="">-- Valmistaja --</option>
             <?= printManufSelectOptions($manufs) ?>
         </select><br>
-        <select id="model" name="model" disabled="disabled" title="Auton malli">
+        <select id="model" name="model" title="Auton malli" disabled>
             <option value="">-- Malli --</option>
         </select><br>
-        <select id="car" name="car" disabled="disabled" title="Auto">
+        <select id="car" name="car" title="Auto" disabled>
             <option value="">-- Tyyppi --</option>
         </select><br>
-        <select id="osat_ylalaji" name="osat" disabled="disabled" title="Osan tyyppi">
+        <select id="osat_ylalaji" name="osat" title="Osan tyyppi" disabled>
             <option value="">-- Tuoteryhmä --</option>
         </select><br>
-        <select id="osat_alalaji" name="osat_alalaji" disabled="disabled" title="Tyypin alalaji">
+        <select id="osat_alalaji" name="osat_alalaji" title="Tyypin alalaji" disabled>
             <option value="">-- Tuoteryhmä --</option>
         </select>
         <br>
@@ -96,11 +96,10 @@ $manufs = getManufacturers();
 
     //hakee lisätietoa autoista id:n perusteella
     function getVehicleByIds3( response ) {
-        let params, i;
-        let functionName = "getVehicleByIds3";
-        let ids = [], IDarray = [];
+        if ( !response.data ) { return false; }
 
-        for ( i = 0; i < response.data.array.length; i++ ) {
+        let ids = [], IDarray = [];
+        for ( let i = 0; i < response.data.array.length; i++ ) {
             ids.push(response.data.array[i].carId);
         }
 
@@ -113,8 +112,8 @@ $manufs = getManufacturers();
                 IDarray = ids.slice(0, ids.length);
                 ids.splice(0, ids.length);
             }
-
-            params = {
+            let functionName = "getVehicleByIds3";
+            let params = {
                 "favouredList": 1,
                 "carIds" : { "array" : IDarray},
                 "articleCountry" : TECDOC_COUNTRY,
@@ -170,99 +169,88 @@ $manufs = getManufacturers();
     // Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updateModelList( response ) {
-        let model, text, yearTo, i, modelList;
+        let model_select, model_option;
         response = response.data;
 
         //uudet tiedot listaan
-        modelList = document.getElementById("model");
-
+        model_select = document.getElementById("model");
 
         if (response.array){
-            for (i = 0; i < response.array.length; i++) {
-                yearTo = response.array[i].yearOfConstrTo;
-                if(!yearTo) {
-                    yearTo = "";
-                } else {
-                    yearTo = addSlash(yearTo);
-                }
-
-
-                text = response.array[i].modelname
+            for (let i = 0; i < response.array.length; i++) {
+                model_option = document.createElement("option");
+                model_option.text = response.array[i].modelname
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
                     + "Year: " + addSlash(response.array[i].yearOfConstrFrom)
-                    + " -> " + yearTo;
-
-                model = new Option(text, response.array[i].modelId);
-                modelList.options.add(model);
+                    + " -> " + addSlash(response.array[i].yearOfConstrTo);
+                model_option.value = response.array[i].modelId;
+                model_select.options.add(model_option);
             }
         }
-        $("#model").removeAttr('disabled');
+        model_select.removeAttribute('disabled');
     }
 
     // Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updateCarList( response ) {
-        let car, text, yearTo, i, carList;
+        let car_select, car_option;
         response = response.data;
 
         //uudet tiedot listaan
-        carList = document.getElementById("car");
+        car_select = document.getElementById("car");
 
         if (response.array){
-            for (i = 0; i < response.array.length; i++) {
-                yearTo = response.array[i].vehicleDetails.yearOfConstrTo;
-                if(!yearTo){
-                    yearTo = "";
-                } else {
-                    yearTo = addSlash(yearTo);
-                }
-                text = response.array[i].vehicleDetails.typeName
+            for (let i = 0; i < response.array.length; i++) {
+                car_option = document.createElement("option");
+                car_option.text = text = response.array[i].vehicleDetails.typeName
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
                     + "Year: " + addSlash(response.array[i].vehicleDetails.yearOfConstrFrom)
-                    + " -> " + yearTo
+                    + " -> " + addSlash(response.array[i].vehicleDetails.yearOfConstrTo)
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
                     + response.array[i].vehicleDetails.powerKwFrom + "KW"
                     + " (" +response.array[i].vehicleDetails.powerHpFrom + "hp)";
-
-                car = new Option(text, response.array[i].carId);
-                carList.options.add(car);
+                car_option.value = response.array[i].carId;
+	            car_select.options.add(car_option);
             }
         }
-        $('#car').removeAttr('disabled');
+        car_select.removeAttribute('disabled');
     }
 
 	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartTypeList( response ) {
-        let partType, i, partTypeList;
+        let osat_ylalaji_select, osat_ylalaji_option;
         response = response.data;
 
         //uudet tiedot listaan
-        partTypeList = document.getElementById("osat_ylalaji");
+        osat_ylalaji_select = document.getElementById("osat_ylalaji");
         if (response.array){
-            for (i = 0; i < response.array.length; i++) {
-                partType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
-                partTypeList.options.add(partType);
+            for (let i = 0; i < response.array.length; i++) {
+                osat_ylalaji_option = document.createElement("option");
+                osat_ylalaji_option.text = response.array[i].assemblyGroupName;
+                osat_ylalaji_option.value = response.array[i].assemblyGroupNodeId;
+                osat_ylalaji_select.options.add(osat_ylalaji_option);
             }
         }
-        $('#osat_ylalaji').removeAttr('disabled');
+        osat_ylalaji_select.removeAttribute('disabled');
     }
 
 	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartSubTypeList( response ) {
-        let subPartType, i, subPartTypeList;
+        let osat_alalaji_select, osat_alalaji_option;
         response = response.data;
 
         //uudet tiedot listaan
-        subPartTypeList = document.getElementById("osat_alalaji");
-        if (response.array){
-            for (i = 0; i < response.array.length; i++) {
-                subPartType = new Option(response.array[i].assemblyGroupName, response.array[i].assemblyGroupNodeId);
-                subPartTypeList.options.add(subPartType);
+        osat_alalaji_select = document.getElementById("osat_alalaji");
+        if ( response.array ){
+            for (let i = 0; i < response.array.length; i++) {
+                osat_alalaji_option = document.createElement("option");
+                osat_alalaji_option.text = response.array[i].assemblyGroupName;
+                osat_alalaji_option.value = response.array[i].assemblyGroupNodeId;
+                osat_alalaji_select.options.add(osat_alalaji_option);
             }
         }
-        $('#osat_alalaji').removeAttr('disabled');
+        osat_alalaji_select.removeAttribute('disabled');
     }
 
 
@@ -272,8 +260,13 @@ $manufs = getManufacturers();
      * @returns {string}
      */
 	function addSlash(text) {
-        text = String(text);
-        return (text.substr(0, 4) + "/" + text.substr(4));
+	    if (typeof text === 'number' || typeof text === 'number') {
+            text = text.toString();
+            if (text.length === 6) {
+                return text.substr(0, 4) + "/" + text.substr(4);
+            }
+        }
+        return "";
     }
 
     /**
@@ -292,60 +285,86 @@ $manufs = getManufacturers();
          * Tämän jälkeen päivittää ajoneuvomallillahakuun oikeat valinnat.
          */
         function teeValinnat() {
-            if ($("#manufacturer").children('option').length === 1 ||
-                $("#model").children('option').length === 1 ||
-                $("#car").children('option').length === 1 ||
-                $("#osat_ylalaji").children('option').length === 1 ||
-                $("#osat_alalaji").children('option').length === 1) {
+            if (manufacturer_select.options.length === 1 ||
+                model_select.options.length === 1 ||
+                car_select.options.length === 1 ||
+                osat_ylalaji_select.options.length === 1 ||
+                osat_alalaji_select.options.length === 1) {
                 setTimeout(teeValinnat, 100);
             } else {
-                $("#manufacturer").find("option[value=" + manuf + "]").attr('selected', 'selected');
-                $("#model").find("option[value=" + model + "]").attr('selected', 'selected');
-                $("#car").find("option[value=" + car + "]").attr('selected', 'selected');
-                $("#osat_ylalaji").find("option[value=" + osat + "]").attr('selected', 'selected');
-                $("#osat_alalaji").find("option[value=" + osat_alalaji + "]").attr('selected', 'selected');
+                // Sallitaan valintojen tekeminen
+                manufacturer_select.classList.remove('disabled');
+                model_select.classList.remove('disabled');
+                car_select.classList.remove('disabled');
+                osat_ylalaji_select.classList.remove('disabled');
+                osat_alalaji_select.classList.remove('disabled');
+                // Tehdään valinnat
+                manufacturer_select.querySelector('[value="'+manuf+'"]').setAttribute('selected', 'selected');
+                model_select.querySelector('[value="'+model+'"]').setAttribute('selected', 'selected');
+                car_select.querySelector('[value="'+car+'"]').setAttribute('selected', 'selected');
+                osat_ylalaji_select.querySelector('[value="'+osat+'"]').setAttribute('selected', 'selected');
+                osat_alalaji_select.querySelector('[value="'+osat_alalaji+'"]').setAttribute('selected', 'selected');
             }
         }
+
+        let manufacturer_select = document.getElementById("manufacturer");
+        let model_select = document.getElementById("model");
+        let car_select = document.getElementById("car");
+        let osat_ylalaji_select = document.getElementById("osat_ylalaji");
+        let osat_alalaji_select = document.getElementById("osat_alalaji");
+
+        // Estetään valintojen muuttaminen
+        manufacturer_select.classList.add('disabled');
+        model_select.classList.add('disabled');
+        car_select.classList.add('disabled');
+        osat_ylalaji_select.classList.add('disabled');
+        osat_alalaji_select.classList.add('disabled');
 
         // Haetaan tiedot tecdocista
         getModelSeries(manuf);
         getVehicleIdsByCriteria(manuf, model);
         getPartTypes(car);
         getChildNodes(car, osat);
-
         teeValinnat();
+        // Virheenkäsittely
+        setTimeout(function(){
+            manufacturer_select.classList.remove('disabled');
+            model_select.classList.remove('disabled');
+            car_select.classList.remove('disabled');
+            osat_ylalaji_select.classList.remove('disabled');
+            osat_alalaji_select.classList.remove('disabled');
+        },4000);
     }
 
-
-
-    $("#manufacturer").on("change", function(){
-        //kun painaa jotain automerkkiä->
+    document.getElementById("manufacturer").addEventListener("change", function() {
+        // Kun painaa jotain automerkkiä->
         let manuList = document.getElementById("manufacturer");
+        let model_select = document.getElementById("model");
+        let car_select = document.getElementById("car");
+        let osat_ylalaji_select = document.getElementById("osat_ylalaji");
+        let osat_alalaji_select = document.getElementById("osat_alalaji");
+
         let selManu = parseInt(manuList.options[manuList.selectedIndex].value);
 
-        //Poistetaan vanhat tiedot
-        let modelList = document.getElementById("model");
-        let carList = document.getElementById("car");
-        let partTypeList = document.getElementById("osat_ylalaji");
-        let subPartTypeList = document.getElementById("osat_alalaji");
-        while ( modelList.options.length - 1 ) {
-            modelList.remove(1);
+        // Poistetaan vanhat tiedot
+        while ( model_select.options.length - 1 ) {
+            model_select.remove(1);
         }
-        while ( carList.options.length - 1 ) {
-            carList.remove(1);
+        while ( car_select.options.length - 1 ) {
+            car_select.remove(1);
         }
-        while ( partTypeList.options.length - 1 ) {
-            partTypeList.remove(1);
+        while ( osat_ylalaji_select.options.length - 1 ) {
+            osat_ylalaji_select.remove(1);
         }
-        while ( subPartTypeList.options.length - 1 ) {
-            subPartTypeList.remove(1);
+        while ( osat_alalaji_select.options.length - 1 ) {
+            osat_alalaji_select.remove(1);
         }
 
-        //väliaikaisesti estetään mallin, auton ja osatyyppien valinta
-        $('#model').attr('disabled', 'disabled');
-        $('#car').attr('disabled', 'disabled');
-        $('#osat_ylalaji').attr('disabled', 'disabled');
-        $('#osat_alalaji').attr('disabled', 'disabled');
+        // Väliaikaisesti estetään mallin, auton ja osatyyppien valinta
+        model_select.setAttribute('disabled', 'disabled');
+        car_select.setAttribute('disabled', 'disabled');
+        osat_ylalaji_select.setAttribute('disabled', 'disabled');
+        osat_alalaji_select.setAttribute('disabled', 'disabled');
 
         //Haetaan automallit
         if ( selManu > 0 ) {
@@ -353,31 +372,32 @@ $manufs = getManufacturers();
         }
     });//#manuf.onChange
 
-    $("#model").on("change", function(){
-        //kun painaa jotain automallia->
+    document.getElementById("model").addEventListener("change", function() {
+        // Kun painaa jotain automallia->
         let manuList = document.getElementById("manufacturer");
-        let modelList = document.getElementById("model");
-        let selManu = parseInt(manuList.options[manuList.selectedIndex].value);
-        let selModel = parseInt(modelList.options[modelList.selectedIndex].value);
+        let model_select = document.getElementById("model");
+        let car_select = document.getElementById("car");
+        let osat_ylalaji_select = document.getElementById("osat_ylalaji");
+        let osat_alalaji_select = document.getElementById("osat_alalaji");
 
-		//Poistetaan vanhat tiedot
-        let carList = document.getElementById("car");
-		let partTypeList = document.getElementById("osat_ylalaji");
-		let subPartTypeList = document.getElementById("osat_alalaji");
-        while (carList.options.length - 1) {
-            carList.remove(1);
+        let selManu = parseInt(manuList.options[manuList.selectedIndex].value);
+        let selModel = parseInt(model_select.options[model_select.selectedIndex].value);
+
+		// Poistetaan vanhat tiedot
+        while (car_select.options.length - 1) {
+            car_select.remove(1);
         }
-        while (partTypeList.options.length - 1) {
-            partTypeList.remove(1);
+        while (osat_ylalaji_select.options.length - 1) {
+            osat_ylalaji_select.remove(1);
         }
-        while (subPartTypeList.options.length - 1) {
-            subPartTypeList.remove(1);
+        while (osat_alalaji_select.options.length - 1) {
+            osat_alalaji_select.remove(1);
         }
 
         //Väliaikaisesti estetään auton, ja osatyyppien valinta
-        $('#car').attr('disabled', 'disabled');
-        $('#osat_ylalaji').attr('disabled', 'disabled');
-        $('#osat_alalaji').attr('disabled', 'disabled');
+        car_select.setAttribute('disabled', 'disabled');
+        osat_ylalaji_select.setAttribute('disabled', 'disabled');
+        osat_alalaji_select.setAttribute('disabled', 'disabled');
 
         //Haetaan tarkka automalli
         if (selModel > 0 ) {
@@ -385,24 +405,25 @@ $manufs = getManufacturers();
         }
     });//#model.onChange
 
-    $("#car").on("change", function(){
-        //kun painaa jotain autoa->
-        let carList = document.getElementById("car");
-        let selCar = parseInt(carList.options[carList.selectedIndex].value);
+    document.getElementById("car").addEventListener("change", function() {
+        // Kun painaa jotain autoa->
+        let car_select = document.getElementById("car");
+        let osat_ylalaji_select = document.getElementById("osat_ylalaji");
+        let osat_alalaji_select = document.getElementById("osat_alalaji");
+
+        let selCar = parseInt(car_select.options[car_select.selectedIndex].value);
 
 		//Poistetaan vanhat tiedot
-        let subPartTypeList = document.getElementById("osat_alalaji");
-        let partTypeList = document.getElementById("osat_ylalaji");
-        while (partTypeList.options.length - 1) {
-            partTypeList.remove(1);
+        while (osat_ylalaji_select.options.length - 1) {
+            osat_ylalaji_select.remove(1);
         }
-        while (subPartTypeList.options.length - 1) {
-            subPartTypeList.remove(1);
+        while (osat_alalaji_select.options.length - 1) {
+            osat_alalaji_select.remove(1);
         }
 
         //Väliaikaisesti estetään osatyyppien valinta
-        $('#osat_ylalaji').attr('disabled', 'disabled');
-        $('#osat_alalaji').attr('disabled', 'disabled');
+        osat_ylalaji_select.setAttribute('disabled', 'disabled');
+        osat_alalaji_select.setAttribute('disabled', 'disabled');
 
         //Haetaan osatyyppit
         if (selCar > 0 ) {
@@ -410,21 +431,22 @@ $manufs = getManufacturers();
         }
     });//#car.onChange
 
-    $("#osat_ylalaji").on("change", function(){
+    document.getElementById("osat_ylalaji").addEventListener("change", function() {
         //kun painaa jotain osan ylätyyppiä->
-        let carList = document.getElementById("car");
-        let partTypeList = document.getElementById("osat_ylalaji");
-        let selCar = parseInt(carList.options[carList.selectedIndex].value);
-        let selPartType = parseInt(partTypeList.options[partTypeList.selectedIndex].value);
+        let car_select = document.getElementById("car");
+        let osat_ylalaji_select = document.getElementById("osat_ylalaji");
+        let osat_alalaji_select = document.getElementById("osat_alalaji");
+
+        let selCar = parseInt(car_select.options[car_select.selectedIndex].value);
+        let selPartType = parseInt(osat_ylalaji_select.options[osat_ylalaji_select.selectedIndex].value);
 
 		//Poistetaan vanhat tiedot
-        let subPartTypeList = document.getElementById("osat_alalaji");
-        while (subPartTypeList.options.length - 1) {
-            subPartTypeList.remove(1);
+        while (osat_alalaji_select.options.length - 1) {
+            osat_alalaji_select.remove(1);
         }
 
         //Väliaikaisesti estetään osan alalajin valinta
-        $('#osat_alalaji').attr('disabled', 'disabled');
+        osat_alalaji_select.setAttribute('disabled', 'disabled');
 
         //Haetaan tuoteryhmän alalajit
         if (selPartType > 0 ) {
@@ -434,7 +456,7 @@ $manufs = getManufacturers();
 
 
     //Sallitaan ajoneuvomallillahaku vain, jos kaikki tiedot annettu
-	$("#ajoneuvomallihaku").submit(function(e) {
+    document.getElementById("ajoneuvomallihaku").addEventListener("submit", function(e){
         if (document.getElementById("osat_alalaji").selectedIndex !== 0) {
             return true;
         } else {
@@ -442,6 +464,6 @@ $manufs = getManufacturers();
             alert("Täytä kaikki kohdat ennen hakua!");
             return false;
         }
-    }); //#ajoneuvomallihaku.submit
+    });
 
 </script>
