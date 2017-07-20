@@ -16,12 +16,14 @@ require 'apufunktiot.php';
  */
 function filter_catalog_products ( DByhteys $db, array $products ) {
 
-    /**
-     * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
-     * @param DByhteys $db
-     * @param stdClass $product
-     * @return array|bool|stdClass
-     */
+	/**
+	 * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
+	 * @param DByhteys $db
+	 * @param $articleNo
+	 * @param $brandNo
+	 * @return array|int|stdClass
+	 */
+
     function get_tecdoc_product_from_database( DByhteys $db, /*string*/$articleNo, /*int*/$brandNo ){
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
@@ -330,10 +332,10 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_integer($product->varastosaldo)?></td>
-					<td class="number"><?=format_euros($product->hinta)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
-						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+						<td class="number"><?=format_number($product->sisaanostohinta)?></td>
                         <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 2)?>%</td>
 					<?php endif;?>
 					<td style="padding-top: 0; padding-bottom: 0;">
@@ -384,10 +386,10 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_integer($product->varastosaldo)?></td>
-					<td class="number"><?=format_euros($product->hinta)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
-						<td class="number"><?=format_euros($product->sisaanostohinta)?></td>
+						<td class="number"><?=format_number($product->sisaanostohinta)?></td>
                         <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>
 					<?php endif; ?>
                     <td>
@@ -528,6 +530,7 @@ require 'tuotemodal.php';
 					kpl_maara: kpl_maara,
 					tuote_nimi: tuoteNimi,
 					tuote_valmistaja: tuoteValmistaja },
+
 				function( data ) {
 					if ( data.success === true ) {
 						$("#tuote_cartAdd_" + product_id)
@@ -561,7 +564,7 @@ require 'tuotemodal.php';
 				tuote_valmistaja: tuote_valmistaja },
 			function( data ) {
 				ostotilauskirjat = JSON.parse(toJSON(data));
-				if(ostotilauskirjat.length === 0){
+				if( ostotilauskirjat.length === 0 ){
 					alert("Luo ensin tuotteen hankintapaikalle ostotilauskirja!" +
 						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
 					return;
@@ -600,7 +603,7 @@ require 'tuotemodal.php';
 		//Tuotteen lisääminen ostotilauskirjalle
 		$(document.body)
 			.on('submit', '#ostotilauskirjalomake', function(e){
-				e.preventDefault();
+			    e.preventDefault();
 				let tuote_id = $('#otk_id').val();
 				$.post(
 					"ajax_requests.php",

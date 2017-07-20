@@ -10,9 +10,8 @@ if ( !$user->isAdmin() ) {
  * jota käytetään kyseisen valmistajan hinnastossa.
  *
  * @param DByhteys $db
- * @param int $brandId
- * @param int $hankintapaikkaId
- * @param String $brandName
+ * @param int $hankintapaikka_id
+ * @param array $brands
  * @return array|bool|stdClass
  */
 function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands ) {
@@ -39,12 +38,16 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands
 /**
  * @param DByhteys $db
  * @param $hankintapaikka_id
- * @param array $brand_ids
+ * @param array $brands
  * @return array|int|stdClass
  */
 function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands ){
 	$values = [];
-	$questionmarks = "('".implode("','", array_fill( 0, count($brands), '?'))."')";
+	if ( $brands ) {
+		$questionmarks = "(" . implode(',', array_fill(0, count($brands), '?')) . ")";
+	} else {
+		$questionmarks = "('')";
+	}
 	$sql = "UPDATE tuote
 			SET aktiivinen = 0
 			WHERE hankintapaikka_id = ? 
