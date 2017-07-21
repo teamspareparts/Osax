@@ -1,5 +1,5 @@
 <?php
-require_once 'tecdoc.php';
+require_once 'tecdoc_asetukset.php';
 /****************************************************************
  *
  * Ajoneuvomallillahaun kaikki toiminnallisuus.
@@ -7,26 +7,6 @@ require_once 'tecdoc.php';
  * Vaatii toimiakseen TecDocin jsonEndpointin
  *
  ****************************************************************/
-
-/**
- * Palauttaa Autovalmistajat selectiin.
- * @param array $manufs <p> automerkit
- * @return string <p> option lista automerkeistä, HTML:nä.
- * 		Jos ei yhteyttä TecDociin, huomauttaa siitä.
- */
-function printManufSelectOptions ( array $manufs ) {
-    $returnString = '';
-    if ( $manufs ){
-        foreach ( $manufs as $manuf ) {
-            $returnString .= "<option value='$manuf->manuId'>$manuf->manuName</option>";
-        }
-    } else { $returnString = "<script>alert('TecDoc ei vastaa.');</script>"; }
-
-    return $returnString;
-}
-
-$manufs = getManufacturers();
-
 ?>
 
 <div class="ajoneuvomallihaku">
@@ -34,7 +14,6 @@ $manufs = getManufacturers();
     <form action="" method="get" id="ajoneuvomallihaku">
         <select id="manufacturer" name="manuf" title="Valmistaja">
             <option value="">-- Valmistaja --</option>
-            <?= printManufSelectOptions($manufs) ?>
         </select><br>
         <select id="model" name="model" title="Auton malli" disabled>
             <option value="">-- Malli --</option>
@@ -53,7 +32,6 @@ $manufs = getManufacturers();
     </form>
 </div>
 
-
 <!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta
  		tecdocin metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon
  		heti funktion alussa. //TODO: Pitäisikö tämä korjata? -->
@@ -62,6 +40,20 @@ $manufs = getManufacturers();
     var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
     var TECDOC_COUNTRY = <?= json_encode(TECDOC_COUNTRY); ?>;
     var TECDOC_LANGUAGE = <?= json_encode(TECDOC_LANGUAGE); ?>;
+
+    //hakee tecdocista autovalmistajat
+    function getManufacturers() {
+        let functionName = 'getManufacturers';
+        let params = {
+            'favouredList': 1,
+            'linkingTargetType': 'P',
+            'country': TECDOC_COUNTRY,
+            'lang': TECDOC_LANGUAGE,
+            'provider': TECDOC_MANDATOR
+        };
+        params = toJSON(params);
+        tecdocToCatPort[functionName] (params, updateManufacturerList);
+    }
 
     //hakee tecdocista automallit annetun valmistaja id:n perusteella
     function getModelSeries( manufacturerID ) {
@@ -98,32 +90,21 @@ $manufs = getManufacturers();
     function getVehicleByIds3( response ) {
         if ( !response.data ) { return false; }
 
-        let ids = [], IDarray = [];
-        for ( let i = 0; i < response.data.array.length; i++ ) {
-            ids.push(response.data.array[i].carId);
-        }
-
-        //max 25 id:tä kerralla
-        while( ids.length > 0 ) {
-            if( ids.length >= 25 ){
-                IDarray = ids.slice(0,25);
-                ids.splice(0, 25);
-            } else {
-                IDarray = ids.slice(0, ids.length);
-                ids.splice(0, ids.length);
-            }
+        // Max 25 id:tä kerralla
+        while( response.data.array.length ) {
+            let ids = response.data.array.splice(0,25).map(function(obj){return obj.carId});
             let functionName = "getVehicleByIds3";
             let params = {
                 "favouredList": 1,
-                "carIds" : { "array" : IDarray},
+                "carIds" : { "array" : ids},
                 "articleCountry" : TECDOC_COUNTRY,
                 "countriesCarSelection" : TECDOC_COUNTRY,
                 "country" : TECDOC_COUNTRY,
                 "lang" : TECDOC_LANGUAGE,
                 "provider" : TECDOC_MANDATOR
             };
-            params = toJSON(params);
-            tecdocToCatPort[functionName] (params, updateCarList);
+	        params = toJSON(params);
+	        tecdocToCatPort[functionName] ( params, updateCarList );
         }
     }
 
@@ -164,6 +145,26 @@ $manufs = getManufacturers();
     // Muuttaa tecdociin lähetettävän pyynnön JSON-muotoon
     function toJSON( obj ) {
         return JSON.stringify(obj).replace(/,/g,", ");
+    }
+
+    // Callback function to do something with the response:
+    // Päivittää alasvetolistaan uudet tiedot
+    function updateManufacturerList( response ) {
+        let manufacturer_select, manufacturer_option;
+        response = response.data;
+
+        //uudet tiedot listaan
+        manufacturer_select = document.getElementById("manufacturer");
+
+        if (response.array){
+            for (let i = 0; i < response.array.length; i++) {
+                manufacturer_option = document.createElement("option");
+                manufacturer_option.text = response.array[i].manuName;
+                manufacturer_option.value = response.array[i].manuId;
+                manufacturer_select.options.add(manufacturer_option);
+            }
+        }
+        manufacturer_select.removeAttribute('disabled');
     }
 
     // Callback function to do something with the response:
@@ -321,6 +322,7 @@ $manufs = getManufacturers();
         osat_alalaji_select.classList.add('disabled');
 
         // Haetaan tiedot tecdocista
+        getManufacturers();
         getModelSeries(manuf);
         getVehicleIdsByCriteria(manuf, model);
         getPartTypes(car);
@@ -454,7 +456,6 @@ $manufs = getManufacturers();
         }
     });//#osat_ylalaji.onChange
 
-
     //Sallitaan ajoneuvomallillahaku vain, jos kaikki tiedot annettu
     document.getElementById("ajoneuvomallihaku").addEventListener("submit", function(e){
         if (document.getElementById("osat_alalaji").selectedIndex !== 0) {
@@ -465,5 +466,7 @@ $manufs = getManufacturers();
             return false;
         }
     });
+
+    getManufacturers();
 
 </script>
