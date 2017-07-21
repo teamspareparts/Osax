@@ -55,7 +55,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
 
 		if ( $depth < $maxDepth OR $el->children ) {
 			echo "<details>
-				<summary>{$el->nimi}
+				<summary>{$el->nimi} ({$el->id})
 					<a href='#' class='edit'
 						data-id='{$el->id}' data-nimi='{$el->nimi}' data-kerroin='{$el->hinnoittelukerroin}'>
 						<i class='material-icons'>edit</i>
@@ -236,7 +236,7 @@ $future = date('Y-m-d',strtotime('+6 months'));
 	<?= $feedback ?>
 
 	<section class="flex_row" style="flex-wrap: wrap-reverse;">
-		<section class="white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
+		<section class="white-bg" style="width:510px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
 			<?php tulosta_puu( $tree ); ?>
 		</section>
 

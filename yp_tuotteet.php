@@ -115,10 +115,13 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( $db ) {
 
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
-	foreach ( $rows as $tuoteryhma ) {
-		$taso = strlen( $tuoteryhma->oma_taso ) / 3;
-		$taso = str_repeat( "-", $taso-1 );
-		$return_string .= "<option value='{$tuoteryhma->id}'>{$taso} {$tuoteryhma->nimi}</option>";
+	foreach ( $rows as $tr ) {
+		$taso = strlen( $tr->oma_taso ) / 3; // Monesko taso, 11 merkkiä / 3 = 3[,6666]
+		$taso = str_repeat( "-", $taso-1 ); // Montako viivaa == monesko taso
+		if ( $taso == '' ) {
+			$return_string .= "<option disabled>--------------------------</option>";
+		}
+		$return_string .= "<option value='{$tr->id}'>{$taso} {$tr->nimi} ({$tr->id})</option>";
 	}
 	$return_string .= "</select>";
 
