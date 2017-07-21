@@ -110,13 +110,15 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( $db ) {
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
 function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( $db ) {
-	$sql = "SELECT id, nimi FROM tuoteryhma ORDER BY nimi ASC";
+	$sql = "SELECT id, nimi, oma_taso FROM tuoteryhma ORDER BY oma_taso ASC";
 	$rows = $db->query( $sql, NULL, FETCH_ALL );
 
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
 	foreach ( $rows as $tuoteryhma ) {
-		$return_string .= "<option value='{$tuoteryhma->id}'>{$tuoteryhma->id}; {$tuoteryhma->nimi}</option>";
+		$taso = strlen( $tuoteryhma->oma_taso ) / 3;
+		$taso = str_repeat( "-", $taso-1 );
+		$return_string .= "<option value='{$tuoteryhma->id}'>{$taso} {$tuoteryhma->nimi}</option>";
 	}
 	$return_string .= "</select>";
 

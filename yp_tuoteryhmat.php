@@ -35,15 +35,22 @@ function rakenna_puu( array &$elements, $parentId = 0, /*int*/$depth = 0, /*int*
  * Tulostaa suoraan funktiossa puun käyttäen listoja, ja <details><summary>-tageja.
  * @param Tuoteryhma[] $elements
  * @param int          $par_ID
+ * @param string       $par_oT
  * @param int          $depth    <p> Syvyys rekursiossa. Pidetään lukua varmuuden vuoksi.
  * @param int          $maxDepth <p> Max syvyys. To prevent endless loops.
  */
-function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /*int*/$maxDepth = 3 ) {
+function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = "", /*int*/$depth = 0, /*int*/$maxDepth = 3 ) {
 	if ( ++$depth > $maxDepth ) {
 		return;
 	}
 	echo "<ul>";
 	foreach ($elements as &$el) {
+		if ( $depth == 1 ) {
+			$new_oT = $par_oT . sprintf("%03d", $el->id) ;
+		} else {
+			$new_oT = $par_oT . sprintf( "-%03d", $el->id );
+		}
+
 		echo "<li id='li_{$el->id}'>";
 
 		if ( $depth < $maxDepth OR $el->children ) {
@@ -55,7 +62,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /
 					</a>
 					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</summary>";
-			tulosta_puu( $el->children, $el->id, $depth );
+			tulosta_puu( $el->children, $el->id, $new_oT, $depth );
 			echo '</details>';
 		}
 		else {
@@ -68,7 +75,8 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*int*/$depth = 0, /
 
 		echo '</li>';
 	}
-	echo "<li> <a href='#' class='add' data-id='{$par_ID}'><i class='material-icons'>add_box</i></a> </li>
+	echo "<li> <a href='#' class='add' data-id='{$par_ID}' data-taso='{$par_oT}'>
+			<i class='material-icons'>add_box</i></a> </li>
 		</ul>";
 }
 
@@ -119,6 +127,16 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 if ( isset($_POST['lisaa_parent_id']) ) {
 	$db->query( "INSERT INTO tuoteryhma (parent_id, nimi, hinnoittelukerroin) VALUES (?,?,?)",
 				[ $_POST['lisaa_parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
+
+	$last_id = $db->getConnection()->lastInsertId();
+	if ( $_POST[ 'lisaa_parent_id' ] == 0 ) {
+		$uusi_taso = $_POST['par_taso'] . sprintf("%03d", $last_id);
+	} else {
+		$uusi_taso = $_POST['par_taso'] . sprintf("-%03d", $last_id);
+	}
+
+	$db->query( "UPDATE tuoteryhma SET oma_taso = ? WHERE id = ?",
+				[ $uusi_taso, $last_id ] );
 }
 /*
  * Tuoteryhmän muokkaus
@@ -155,8 +173,7 @@ else {
 	unset($_SESSION["feedback"]);
 }
 
-$sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin
-		FROM tuoteryhma";
+$sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin FROM tuoteryhma";
 $rows = $db->query( $sql, null, true, null, 'Tuoteryhma' );
 $tree = rakenna_puu( $rows );
 
@@ -257,6 +274,7 @@ $future = date('Y-m-d',strtotime('+6 months'));
 	Array.from(add_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
 			let parent = element.dataset.id;
+			let pTaso = element.dataset.taso;
 
 			Modal.open({
 				content: `
@@ -264,6 +282,7 @@ $future = date('Y-m-d',strtotime('+6 months'));
 						<fieldset> <legend>Tuoteryhmien lisäys</legend>
 							<label for="form_par_id" class="required"> Parent ID:</label>
 							<input type="hidden" name="lisaa_parent_id" value="${parent}" id="form_par_id">
+							<input type="hidden" name="par_taso" value="${pTaso}">
 							<span>${parent}</span>
 							<br>
 							<label for="form_name" class="required">Nimi:</label>
