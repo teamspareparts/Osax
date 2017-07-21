@@ -113,28 +113,46 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 	exit();
 }
 
-// Uusi tuoteryhmä
+/*
+ * Uusi tuoteryhmä
+ */
 if ( isset($_POST['lisaa_parent_id']) ) {
 	$db->query( "INSERT INTO tuoteryhma (parent_id, nimi, hinnoittelukerroin) VALUES (?,?,?)",
 				[ $_POST['lisaa_parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
 }
-// Tuoteryhmän muokkaus
+/*
+ * Tuoteryhmän muokkaus
+ */
 else if ( !empty($_POST['muokkaa_id']) ) {
 	$db->query( "UPDATE tuoteryhma SET nimi = ?, hinnoittelukerroin = ? WHERE id = ?",
 				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['muokkaa_id'] ] );
 }
 
-// Alennuksen lisäys
+/*
+ * Alennuksen lisäys
+ */
 else if ( !empty($_POST['lisaa_alennus_id']) ) {
 	$sql = "INSERT INTO tuoteryhma_erikoishinta
 				(tuoteryhma_id, hankintapaikka_id, yritys_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm)
 			VALUES (?,?,?,?,?,?,?)";
 	$db->query( $sql, [ $_POST['lisaa_alennus_id'], $_POST['hkp_id'], $_POST['yritys_id'], $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'] ] );
 }
-// Alennuksen muokkaus
+/*
+ * Alennuksen muokkaus
+ */
 else if ( !empty($_POST['muokkaa_alennus_id']) ) {
 	$sql = "UPDATE tuoteryhma_erikoishinta SET maaraalennus_kpl = ?, alennus_prosentti = ?, alkuPvm = ?, loppuPvm = ? WHERE id = ?";
 	$db->query( $sql, [ $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'], $_POST['muokkaa_alennus_id'] ] );
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) || !empty($_FILES) ) {
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
+}
+else {
+	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	unset($_SESSION["feedback"]);
 }
 
 $sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin
@@ -148,15 +166,6 @@ $hkp_nimet_alennuksen_asettamista_varten = hae_kaikki_hankintapaikat_ja_luo_alas
 // Loppu pvm:n valmistelu, niin ei tarvitse sekoittaa HTML:ää.
 $today = date('Y-m-d');
 $future = date('Y-m-d',strtotime('+6 months'));
-
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-	header("Location: " . $_SERVER['REQUEST_URI']); exit();
-}
-else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-	unset($_SESSION["feedback"]);
-}
 ?>
 <!DOCTYPE html><html lang="fi">
 <head>
@@ -168,7 +177,6 @@ else {
 	<script src="./js/details-shim.min.js" async></script>
 	<script src="./js/jsmodal-1.0d.min.js" async></script>
 	<style>
-		/*form, p, div, section, span, details, summary, ul, li { border: 1px solid; }*/
 		ul {
 			list-style: none;
 		}
@@ -200,35 +208,37 @@ else {
 
 <?php require './header.php'; ?>
 
-<main class="main_body_container flex_row" style="flex-wrap: wrap-reverse;">
+<main class="main_body_container">
+
+	<div class="otsikko_container">
+		<section class="otsikko">
+			<h1>Tuoteryhmät</h1>
+		</section>
+	</div>
 
 	<?= $feedback ?>
 
-	<section class="white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
-		<div class="otsikko_container">
-			<section class="otsikko">
-				<h1>Tuoteryhmät</h1>
-			</section>
-		</div>
-		<?php tulosta_puu( $tree ); ?>
-	</section>
+	<section class="flex_row" style="flex-wrap: wrap-reverse;">
+		<section class="white-bg" style="width:444px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
+			<?php tulosta_puu( $tree ); ?>
+		</section>
 
-	<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
-		<div class="otsikko_container">
-			<section class="otsikko">
-				<h1>Alennukset</h1>
-				<span id="alennus_box_otsikko"></span>
-			</section>
-		</div>
-		<div id="loader" style="display: none;">
-			<div class="loading"></div>
-			<p>lataa alennuksia...</p>
-		</div>
-		<button id="uusi_alennus" class="nappi" data-id='' style="visibility: hidden;">Lisää uusi alennus</button>
-		<div id="alennukset">
-		</div>
+		<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
+			<div class="otsikko_container blue">
+				<section class="otsikko">
+					<h1>Alennukset</h1>
+					<span id="alennus_box_otsikko"></span>
+				</section>
+			</div>
+			<div id="loader" style="display: none;">
+				<div class="loading"></div>
+				<p>lataa alennuksia...</p>
+			</div>
+			<button id="uusi_alennus" class="nappi" data-id='' style="visibility: hidden;">Lisää uusi alennus</button>
+			<div id="alennukset">
+			</div>
+		</section>
 	</section>
-
 </main>
 
 <?php require './footer.php'; ?>

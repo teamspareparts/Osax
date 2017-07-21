@@ -127,7 +127,7 @@ $css_version = filemtime( 'css/styles.css' );
 			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?> white-bg"
 				<?=(!$column) ? "hidden" : ''?> >
 
-				<div class="otsikko_container">
+				<div class="otsikko_container blue">
 					<section class="otsikko">
 						<h1><?=$column[0]->col_loc?></h1>
 					</section>

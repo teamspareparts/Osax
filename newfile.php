@@ -51,16 +51,12 @@ if(!empty($_POST)){debug($_POST);}
 	<br> <hr> <br>
 
 	<div style="width: 400px; height: 300px; border: 1px solid;">
-		<div class="otsikko_container">
-			<section class="takaisin">
-			</section>
+		<div class="otsikko_container blue">
 			<section class="otsikko">
 				<h1>Otsikko</h1>
 			</section>
-			<section class="napit">
-				<button class="nappi">Toinen nappi</button>
-			</section>
 		</div>
+		<p>Stuff about stuff that are so stuffy, but still awesome. Liek this thing ans stuff.</p>
 	</div>
 
 </main>

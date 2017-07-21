@@ -212,6 +212,14 @@ legend {
 	margin-bottom: 11px; /* Ditto. */
 	background-color: lightsteelblue; /* Well, now I'm just being flashy. */
 	border-radius: 19px;
+	font-weight: bold;
+}
+/* Tarkoitettu aliotsikoihin. Ei suunniteltu nappien kanssa käytettäväksi. */
+.otsikko_container.blue {
+	margin: 0; /* Pois se -9px top margin */
+	background-color: #1d7ae2; /* Eri värinen yläotsikosta, erottuu. */
+	color: white; /* Koska taustan väri on tumma. */
+	border-radius: 0; /* Koska ne halua border-radiusta tähän. Fight me IRL. */
 }
 /* Pitää sisällään takaisin-napin. */
 .otsikko_container .takaisin {
@@ -233,9 +241,16 @@ legend {
 	flex-grow: 4;
 	text-align: center;
 }
+/* Aliotsikkoa varten. Eri värit. */
+.otsikko_container.blue .otsikko,
+.otsikko_container.blue .otsikko :first-of-type
+{
+	color: inherit; /* Valkoinen */
+	background-color: inherit; /* Sininen */
+}
 .otsikko_container .otsikko :first-of-type {
-	margin: 0; /* Margin ja padding asetetaan jo ylhäällä */
-	padding: 0;
+	margin: 0; /* Margin ja padding asetetaan jo ylhäällä. */
+	padding: 0; /* Joten nollataan tässä, jotta esim <p> ei aiheita ongelmia. */
 }
 .otsikko_container .napit {
 	display: flex;
