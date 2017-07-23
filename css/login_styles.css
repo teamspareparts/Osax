@@ -3,14 +3,23 @@
 	Kirjautumissivu
 *********************************************/
 body {
-	position:relative;
-	background-color:#fff; /* Jannen pyynnöstä valkoinen bg. Logo surkeasti tehty, hardcoded valkoinen bg. */
+	position: relative;
+	background-color: white; /* Jannen pyynnöstä valkoinen bg. Logo surkeasti tehty, hardcoded valkoinen bg. */
 	font-family: 'Open Sans', Helvetica, sans-serif;
+	margin: 0;
+	padding: 0;
 }
 
-.login_container {
+main.login_container {
+	display: block;
 	margin: auto; /* Keskittää */
 	width: 400px; /* Chosen by trial and error */
+}
+img {
+	text-align: center;
+	display: block;
+	margin: 0 auto -20px auto;
+	padding: 32px 0;
 }
 
 fieldset {
@@ -23,12 +32,14 @@ fieldset {
 legend {
     font-size: 105%;
     font-weight: bold;
-    background-color: #bdbdbd;
-    border: 0 threedface;
-    border-radius: 15px;
+	background-color: lightsteelblue;
+	border-radius: 10px;
     padding: 5px 12px;
 }
 
+label {
+	font-weight: bold;
+}
 input {
 	padding: 8px 15px;
 	font-size: 1em;
@@ -47,20 +58,29 @@ input[type=submit] {
 
 input[type=submit] { color:black; background-color: #9ebcee; border-color:#212121; }
 input[type=submit]:hover { color:white; background-color: #0a3c93; border-color:#212121; }
+input[type=submit]:disabled { color:dimgrey; background-color: darkgrey; border-color:#212121; }
 
-img {
-    text-align: center;
-    display: block;
-    margin: 0 auto;
-}
 
 #error {
 	padding: 3px 20px 3px 20px;
 }
 
-main { /* F*** IE */
+.success,
+.error,
+.info,
+.warning {
+	position: relative;
 	display: block;
+	padding: 10pt 15pt;
+	width: auto;
+	margin-top: 15px;
 }
+
+.success { background-color: #DFF2BF; }
+.error { background-color: #FFBABA; }
+.info { background-color: lightsteelblue; }
+.warning { background-color: lightgoldenrodyellow; }
+
 /********************************************
 	EULA:n hyväksyminen
 *********************************************/

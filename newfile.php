@@ -1,5 +1,5 @@
 <?php
-require '_start.php';
+require '_start.php'; global $db, $user, $cart;
 if(!empty($_POST)){debug($_POST);}
 ?>
 <!DOCTYPE html><html lang="fi">
@@ -16,56 +16,21 @@ if(!empty($_POST)){debug($_POST);}
 <?php require 'header.php'; ?>
 
 <main class="main_body_container">
-
-	<div class="otsikko_container">
-		<section class="takaisin">
-			<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>
-		</section>
-		<section class="otsikko">
-			<h1>Otsikko</h1>
-		</section>
-		<section class="napit">
-			<button class="nappi">Toinen nappi</button>
-			<button class="nappi red">Toinen nappi jossa pitkä teksti</button>
-		</section>
-	</div>
-
-	<span class="success">Jotain onnistui!</span>
-
-	<br> <hr> <br>
-
-	<p class="error">Jotain meni vikaan!</p>
-
 	<div class="otsikko_container">
 		<section class="takaisin">
 		</section>
 		<section class="otsikko">
 			<h1>Otsikko</h1>
-			<span>&nbsp;&nbsp;Pieni teksti.</span>
-			<p>&nbsp;&nbsp;Toinen pieni teksti.</p>
 		</section>
 		<section class="napit">
 		</section>
 	</div>
-
-	<br> <hr> <br>
-
-	<div style="width: 400px; height: 300px; border: 1px solid;">
-		<div class="otsikko_container blue">
-			<section class="otsikko">
-				<h1>Otsikko</h1>
-			</section>
-		</div>
-		<p>Stuff about stuff that are so stuffy, but still awesome. Liek this thing ans stuff.</p>
-	</div>
-
 </main>
 
 <?php require 'footer.php'; ?>
 
 <script>
 </script>
-
 
 </body>
 </html>

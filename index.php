@@ -22,66 +22,63 @@ if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 		'success' => 'green',
 		'note' => 'blue',
 	];
-
 	/**
-	 * @var array <p> Pitää sisällään <fieldset>-tagin sisälle tulostettavan viestin.
+	 * @var array <p> Pitää sisällään käyttäjälle sisälle tulostettavan viestin.
 	 * GET-arvona saatava $mode määrittelee mikä index tulostetaan.
 	 */
 	$modes_array = [
 		1 => array(
-			"otsikko" => " Väärä sähköposti ",
-			"teksti" => "Sähköpostia ei löytynyt. Varmista, että kirjoitit tiedot oikein.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"otsikko" => "Sähköpostia ei löytynyt.",
+			"teksti" => "Varmista, että kirjoitit tiedot oikein.",
+			"style" => "error" ),
 		2 => array(
-			"otsikko" => " Väärä salasana ",
-			"teksti" => "Väärä salasana. Varmista, että kirjoitit tiedot oikein.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"otsikko" => "Väärä salasana",
+			"teksti" => "Varmista, että kirjoitit tiedot oikein.",
+			"style" => "error" ),
 		3 => array(
-			"otsikko" => " Käyttäjätili de-aktivoitu ",
+			"otsikko" => "Käyttäjätili de-aktivoitu",
 			"teksti" => "Ylläpitäjä on poistanut käyttöoikeutesi palveluun.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"style" => "error" ),
 		4 => array(
-			"otsikko" => " Et ole kirjautunut sisään ",
-			"teksti" => "Ole hyvä, ja kirjaudu sisään.<p>
-						 Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"otsikko" => "Et ole kirjautunut sisään",
+			"teksti" => "Sinun pitää kirjautua sisään ennen kuin voit käyttää sivustoa.",
+			"style" => "error" ),
 		5 => array(
-			"otsikko" => " Kirjaudutaan ulos ",
+			"otsikko" => "Kirjaudutaan ulos",
 			"teksti" => "Olet onnistuneesti kirjautunut ulos.",
-			"style" => "style='color:{$colors['note']};'" ),
+			"style" => "info" ),
 		6 => array(
-			"otsikko" => " Salasanan palautus - Palautuslinkki lähetetty",
-			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.<p> 
-						 Muistathan varmistaa, että sähköposti ei mennyt roskaposteihin.",
-			"style" => "style='color:{$colors['success']};'" ),
+			"otsikko" => "Salasanan palautus - Palautuslinkki lähetetty",
+			"teksti" => "Salasanan palautuslinkki on lähetetty antamaasi osoitteeseen.<p></p>
+						 Varmista, että sähköposti ei mennyt roskaposteihin.",
+			"style" => "warning" ),
 		7 => array(
 			"otsikko" => " Salasanan palautus - Pyyntö vanhentunut ",
 			"teksti" => "Salasanan palautuslinkki on vanhentunut. Ole hyvä ja kokeile uudestaan.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"style" => "error" ),
 		8 => array(
 			"otsikko" => " Salasanan palautus - Onnistunut ",
-			"teksti" => "Salasana on vaihdettu onnistuneesti. Ole hyvä ja kirjaudu uudella salasanalla sisään.",
-			"style" => "style='color:{$colors['success']};'" ),
+			"teksti" => "Salasana on vaihdettu onnistuneesti. Voit nyt kirjautua sisään uudella salasanalla.",
+			"style" => "success" ),
 		9 => array(
 			"otsikko" => " Käyttöoikeus vanhentunut ",
 			"teksti" => "Käyttöoikeutesi palveluun on nyt päättynyt. 
 						 Jos haluat jatkaa palvelun käyttöä ota yhteyttä sivuston ylläpitäjään.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"style" => "error" ),
 		10 => array(
 			"otsikko" => " Käyttöoikeussopimus ",
 			"teksti" => "Sinun on hyväksyttävä käyttöoikeussopimus käyttääksesi sovellusta.",
-			"style" => "style='color:{$colors['warning']};'" ),
+			"style" => "error" ),
 
 		98 => array(
 			"otsikko" => " Error ",
 			"teksti" => 'Jotain meni vikaan',
-			"style" => "style='color:{$colors['warning']};'" ),
+			"style" => "error" ),
 		99 => array(
-			"otsikko" => " Kirjautuminen ",
-			"teksti" => 'Olet jo kirjautunut sisään.<p>
-						<a href="etusivu.php">Linkki etusivulle</a><p>
-						<a href="logout.php">Kirjaudu ulos</a>',
-			"style" => "style='color:{$colors['note']};'" ),
+			"otsikko" => "Olet jo kirjautunut sisään.",
+			"teksti" => '<p><a href="etusivu.php">Linkki etusivulle</a>
+						<p><a href="logout.php">Kirjaudu ulos</a>',
+			"style" => "info" ),
 	];
 }
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: cache-busting)
@@ -98,31 +95,35 @@ $css_version = filemtime( 'css/login_styles.css' );
 <main class="login_container">
 	<img src="img/osax_logo.jpg" alt="Osax.fi">
 
-<?php if ( !empty( $mode ) && !empty( $modes_array ) && array_key_exists( $mode, $modes_array ) ) : ?>
-	<fieldset id=error <?= $modes_array[ $mode ][ 'style' ] ?>>
-		<legend> <?= $modes_array[ $mode ][ 'otsikko' ] ?> </legend>
-		<p> <?= $modes_array[ $mode ][ 'teksti' ] ?> </p>
-	</fieldset>
-<?php endif;
-if ( $config[ 'update' ] ) : ?>
-	<fieldset style="color:#0a3c93; border-color:#0a3c93;"><legend>Sivuston päivitys</legend>
-		<?= $config[ 'update_txt' ] ?>
-	</fieldset>
-<?php endif;
-if ( $config[ 'indev' ] ) : ?>
-	<fieldset style="color:#0a3c93; border-color:red;"><legend>Osax testaussivusto</legend>
-		<?= $config[ 'indev_txt' ] ?>
-	</fieldset>
-<?php endif; ?>
-
-	<fieldset><legend>Sisäänkirjautuminen</legend>
-		<noscript>
-			<p>Sivusto vaatii javascriptin toimiakseen. Juuri nyt käyttämässäsi selaimessa ei ole
-			javascript päällä. Ohjeet miten javascriptin saa päälle selaimessa (englanniksi):
+	<noscript>
+		<div class="error">
+			<span style="font-weight:bold;">Sivusto vaatii javascriptin toimiakseen.</span> <hr>
+			Juuri nyt käyttämässäsi selaimessa ei ole javascript päällä.
+			Ohjeet miten javascriptin saa päälle selaimessa (englanniksi):
 			<a href="http://www.enable-javascript.com/" target="_blank">
-			instructions how to enable JavaScript in your web browser</a>.</p>
-		</noscript>
+				instructions how to enable JavaScript in your web browser</a>.
+		</div>
+	</noscript>
 
+
+	<?php if ( !empty( $mode ) && !empty( $modes_array ) && array_key_exists( $mode, $modes_array ) ) : ?>
+		<div class="<?= $modes_array[ $mode ][ 'style' ] ?>">
+			<span style="font-weight:bold;display: block;"> <?= $modes_array[ $mode ][ 'otsikko' ] ?> </span>
+			<hr>
+			<?= $modes_array[ $mode ][ 'teksti' ] ?>
+		</div>
+	<?php endif;
+	if ( $config[ 'update' ] ) : ?>
+		<div class="warning">
+			<?= $config[ 'update_txt' ] ?>
+		</div>
+	<?php endif;
+	if ( $config[ 'indev' ] ) : ?>
+		<div class="info">
+			<?= $config[ 'indev_txt' ] ?>
+		</div>
+	<?php endif; ?>
+	<fieldset><legend>Sisäänkirjautuminen</legend>
 		<form action="login_check.php" method="post" accept-charset="utf-8">
 			<label>Sähköposti:
 				<input type="email" name="email" placeholder="Nimi @ Email.com" pattern=".{8,255}$" id="login_email"
