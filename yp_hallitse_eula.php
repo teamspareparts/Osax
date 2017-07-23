@@ -41,13 +41,13 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 <head>
     <meta charset="UTF-8">
     <title>EULA</title>
-    <link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="css/styles.css">
     <style type="text/css">
         #eula_tiedosto {
             border: 1px dashed;
             border-radius: 6px;
+	        padding: 15px;
         }
         #eula_tiedosto:hover {
             border-color: #1d7ae2;
@@ -62,33 +62,39 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 </form>
 
 <?php require 'header.php'; ?>
-<main class="main_body_container">
+<main class="main_body_container lomake">
 
 	<div class="otsikko_container">
-		<section class="takaisin">
-		</section>
 		<section class="otsikko">
 			<h1>EULA</h1>
 		</section>
 		<section class="napit">
 			<form method="post" action="download.php" id="download_form">
 				<input type="hidden" name="filepath" value="eula/eula.txt">
-				<input type="submit" name="submit" value="Lataa nykyinen EULA" class="nappi">
+				<button type="submit" class="nappi">Lataa nykyinen EULA <i class="material-icons">file_download</i></button>
 			</form>
 		</section>
 	</div>
 
     <?= $feedback ?>
-	
-    <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
-    <p class="small_note">Käytäthän uudessa EULA:ssa windows-1252 (ANSI) -koodausta, jotta skandit näkyvät oikein.</p>
+
+	<div class="white-bg" style="border:1px solid;border-radius:3px;width:450px;margin:auto;">
+	    <p>Tällä sivulla voit ladata palvelimelle uudet käyttöehdot.</p>
+		<p>Käytäthän uudessa EULA:ssa <strong>windows-1252 (ANSI) -koodausta</strong>, jotta skandit näkyvät oikein.</p>
+		<p> <a href="#" onclick="document.getElementById('download_form').submit();">
+				Lataa nykyinen EULA<i class="material-icons">file_download</i>
+			</a></p>
+	</div>
 
     <br><br>
-    <fieldset><legend>Käyttöoikeussopimus</legend>
+    <fieldset style="width:475px;"><legend>Käyttöoikeussopimus</legend>
         <form action="#" method="post" enctype="multipart/form-data">
-            Uusi EULA: <input id="eula_tiedosto" type="file" name="eula" accept=".txt">
-            <input id="submit_eula" type="submit" name="submit" value="Submit" disabled>
-            <a href="#" onclick="document.getElementById('download_form').submit();" style="margin-left:100px;">Lataa nykyinen EULA</a>
+	        <label>Uusi EULA:
+		        <input type="file" name="eula" accept=".txt" id="eula_tiedosto">
+	        </label>
+	        <input type="submit" name="submit" value="Submit" class="nappi" id="submit_eula" disabled>
+
+	        <p class="small_note">Drag&Drop toimii myös.</p>
         </form>
     </fieldset>
 
@@ -97,13 +103,9 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 <?php require 'footer.php'; ?>
 
 <script type="text/javascript">
-
-    $(document).ready(function(){
-        $('#eula_tiedosto').on("change", function() {
-            $('#submit_eula').prop('disabled', !$(this).val());
-        });
-
-    });
+	document.getElementById('eula_tiedosto').addEventListener('change', function (el) {
+		document.getElementById('submit_eula').disabled = !el.target.value;
+	})
 </script>
 
 </body>

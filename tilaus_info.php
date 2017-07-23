@@ -142,16 +142,15 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<!-- Laskun lataus -->
 				<form method="post" action="download.php" class="inline-block">
 					<input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
-					<input type="submit" name="submit" value="Lasku" class="nappi">
+					<button type="submit" class="nappi">Lasku <i class="material-icons">file_download</i></button>
 				</form>
 				<?php if ( $user->isAdmin() ) : ?>
 					<!-- Noutolistan lataus -->
 					<form method="post" action="download.php" class="inline-block">
 						<input type="hidden" name="filepath" value="./tilaukset/<?= $noutolista_file_nimi ?>">
-						<input type="submit" name="submit" value="Noutolista" class="nappi">
+						<button type="submit" class="nappi">Noutolista <i class="material-icons">file_download</i></button>
 					</form>
 				<?php endif; ?>
-				<i class="material-icons">file_download</i>
 			<?php endif; ?>
 		</section>
 	</div>

@@ -305,6 +305,7 @@ legend {
 .nappi.red { background: #D32F2F; border-color: #B71C1C; }
 .nappi.red:hover { background: #b60000; border-color: #B71C1C; }
 
+.nappi:disabled { color:dimgrey; background-color: darkgrey; border-color:#212121; }
 
 /********************************************
 	Kaikkien lomakkeitten (form) tyylittely
