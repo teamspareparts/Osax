@@ -72,12 +72,10 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 		</section>
 	</div>
 
-    <section>
-        <h2>Valitse hankintapaikka:</h2>
-    </section>
     <?php if ( $hankintapaikat ) : ?>
     <table>
         <thead>
+        <tr><th colspan="4" class="center" style="background-color:#1d7ae2;">Valitse hankintapaikka:</th></tr>
         <tr><th>ID</th>
             <th>Nimi</th>
             <th>Brandit</th>

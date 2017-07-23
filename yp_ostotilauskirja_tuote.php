@@ -221,7 +221,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<a href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>" class="nappi grey">Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Ostotilauskirja</span>
+			<span>Ostotilauskirja&nbsp;&nbsp;</span>
 			<h1><?=$otk->tunniste?></h1>
 		</section>
 		<section class="napit">

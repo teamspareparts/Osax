@@ -59,7 +59,6 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		</section>
 		<section class="napit">
 		</section>
-		<br>
 	</div>
 
 	<?= $feedback ?>

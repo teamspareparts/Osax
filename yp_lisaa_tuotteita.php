@@ -224,8 +224,8 @@ unset($_SESSION["feedback"]);
 			<a class="nappi grey" href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Lisää TecDoc-tuotteita</span>
-			<h1><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></h1>
+			<h1>Lisää TecDoc-tuotteita</h1>
+			<span>&nbsp;&nbsp;<?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></span>
 		</section>
 		<section class="napit">
 			<button class="nappi" id="info_button">Info</button>

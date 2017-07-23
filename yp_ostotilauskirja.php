@@ -1,7 +1,7 @@
 <?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
+
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
@@ -123,7 +123,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 			<a href="yp_ostotilauskirja_hankintapaikka.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Ostotilauskirja</span>
+			<span>Ostotilauskirja&nbsp;&nbsp;</span>
 			<h1><?=$hp->id?> - <?=$hp->nimi?></h1>
 		</section>
 		<section class="napit">
@@ -168,11 +168,11 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
-                        <?= format_integer($otk->kpl)?></td>
+                        <?= format_number($otk->kpl,true)?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
-                        <?= format_euros($otk->hinta)?></td>
+                        <?= format_number($otk->hinta)?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
-                        <?= format_euros($otk->rahti)?></td>
+                        <?= format_number($otk->rahti)?></td>
                     <td class="toiminnot">
                         <a class="nappi" href='javascript:void(0)'
                            onclick="avaa_modal_muokkaa_ostotilauskirja('<?=$otk->tunniste?>',
