@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require '_start.php'; global $db, $user, $cart;
 
 // Huom. upload_max_filesize = 5M
@@ -11,7 +11,6 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
 /**
  * Luetaan / päivitetään valmistajan hinnasto tietokantaan.
  * @param DByhteys $db
- * @param int $brandId
  * @param int $hankintapaikka_id
  * @return array
  */
@@ -23,7 +22,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 	$ohita_otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
 	$row = 0;
 	$successful_inserts = 0;
-	$failed_inserts = []; // Otetaan talteen epäonnistuneiden lisäysten rivinumerot
+	$failed_inserts = []; // Otetaan talteen epäonnistuneet lisäykset ja virheet
 	$inserted_brands = []; // Brandit, joiden tuotteita lisättiin
 	$placeholders = []; // Placeholderit sql-kyselyyn
 	$handle = fopen($_FILES['tuotteet']['tmp_name'], 'r'); // Tiedostokahva
@@ -49,6 +48,21 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 			WHERE hankintapaikka_id = ?";
 	$brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL, PDO::FETCH_ASSOC);
 
+	// Etsitään missä columneissa on mitäkin
+	$search_array = array($_POST["s0"], $_POST["s1"], $_POST["s2"], $_POST["s3"], $_POST["s4"],
+		$_POST["s5"], $_POST["s6"], $_POST["s7"], $_POST["s8"], $_POST["s9"], $_POST["s10"]);
+
+	$brandId_index = array_search('0', $search_array);
+	$brandName_index = array_search('1', $search_array);
+	$articleNo_index = array_search('2', $search_array);
+	$ostohinta_index = array_search('3', $search_array);
+	$myyntihinta_index = array_search('4', $search_array);
+	$vero_id_index = array_search('5', $search_array);
+	$minimimyyntiera_index = array_search('6', $search_array);
+	$kpl_index = array_search('7', $search_array);
+	$nimi_index = array_search('8', $search_array);
+	$kuva_url_index = array_search('9', $search_array);
+	$infot_index = array_search('10', $search_array);
 
 	// Käydään läpi csv tiedosto rivi kerrallaan
 	while (($data = fgetcsv($handle, 1000, ";")) !== FALSE) {
@@ -62,23 +76,24 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 		$num = count($data); // rivin sarakkeiden lkm
 		// Tarkistetaan sarakkeiden lukumäärän oikeellisuus
 		if (($num != 12 && ($_POST["tilauskoodin_tyyppi"] == "liite_eri")) || ($num != 11 && ($_POST["tilauskoodin_tyyppi"]) != "liite_eri") ) {
-			$failed_inserts[] = $row;
+			$failed_inserts[] = "$row - Sarakkeiden lukumäärä ei täsmää.";
 			continue;
 		}
 
 		$hankintapaikka_id = (int)$hankintapaikka_id;
-		$brandId = $data[$_POST["s0"]];;
-		$brandName = utf8_encode($data[$_POST["s1"]]);
-		$articleNo = utf8_encode(str_replace(" ", "", $data[$_POST["s2"]]));
-		$ostohinta = (double)str_replace(",", ".", $data[$_POST["s3"]]);
-		$myyntihinta = (double)str_replace(",", ".", $data[$_POST["s4"]]);
-		$vero_id = (int)$data[$_POST["s5"]];
-		$minimimyyntiera = (int)$data[$_POST["s6"]];
-		$kappaleet = (int)$data[$_POST["s7"]];
-		$nimi = utf8_encode($data[$_POST["s8"]]);
-		$kuva_url = $data[$_POST["s9"]];
-		$infot = utf8_encode($data[$_POST["s10"]]);
+		$brandId = $data[$brandId_index];
+		$brandName = utf8_encode($data[$brandName_index]);
+		$articleNo = utf8_encode(str_replace(" ", "", $data[$articleNo_index]));
+		$ostohinta = (double)str_replace(",", ".", $data[$ostohinta_index]);
+		$myyntihinta = (double)str_replace(",", ".", $data[$myyntihinta_index]);
+		$vero_id = (int)$data[$vero_id_index];
+		$minimimyyntiera = (int)$data[$minimimyyntiera_index];
+		$kappaleet = (int)$data[$kpl_index];
+		$nimi = utf8_encode($data[$nimi_index]);
+		$kuva_url = $data[$kuva_url_index];
+		$infot = utf8_encode($data[$infot_index]);
 		$tilauskoodi = "";
+
 		switch ($_POST["tilauskoodin_tyyppi"]) {
 			case "liite_sama":
 				$tilauskoodi = $articleNo;
@@ -104,13 +119,13 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 		// Tarkastetaan csv:n solujen oikeellisuus
 		if ( !($brandId && $brandName && $hankintapaikka_id && $ostohinta &&
 			$myyntihinta && $minimimyyntiera && $articleNo && $nimi) ) {
-			$failed_inserts[] = $row;
+			$failed_inserts[] = "$row - Jokin soluista on tyhjä tai 0.";
 			continue;
 		}
 
 		// Tarkastetaan brändi id:n oikeellisuus
 		if ( ($key = array_search($brandId, array_column($brands, 'brandi_kaytetty_id'))) === false ) {
-			$failed_inserts[] = $row;
+			$failed_inserts[] = "$row - Brändin id:tä ei löydy linkitetyistä brändeistä.";
 			continue;
 		} else {
 			$brandId = $brands[$key]['brandi_id'];
@@ -138,7 +153,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 
 		// Tuotteiden lisäys
 		if ( $successful_inserts % $inserts_per_query == 0 ) {
-			$response = $db->query($insert_query, $placeholders);
+			$db->query($insert_query, $placeholders);
 			$placeholders = [];
 		}
 	}
@@ -233,7 +248,7 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 
 		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
 		if ( $epaonnistuneet ) {
-			$_SESSION['feedback'] .= "<br>Hylättyjen rivien numerot: " .rtrim(implode(', ',$epaonnistuneet), ',') ."</p>";
+			$_SESSION['feedback'] .= "<br>Hylättyjen rivien virheet:<br>" .rtrim(implode('<br>',$epaonnistuneet), ',') ."</p>";
 		}
 	}
 	else { // Jos virhe
