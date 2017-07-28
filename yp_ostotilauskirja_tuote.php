@@ -66,8 +66,9 @@ function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_
 
 
 	//Lisätään ostotilauskirja arkistoon
-	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, rahti, oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
-            SELECT hankintapaikka_id, tunniste, rahti, NOW() + INTERVAL ? DAY , NOW(), ?, id FROM ostotilauskirja
+	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, original_rahti, rahti,
+ 				oletettu_saapumispaiva, lahetetty, lahettaja, ostotilauskirja_id)
+            SELECT hankintapaikka_id, tunniste, rahti, rahti, NOW() + INTERVAL ? DAY , NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
 	if (!$db->query($sql, [$toimitusaika, $user_id, $ostotilauskirja_id])) {
 	    return false;

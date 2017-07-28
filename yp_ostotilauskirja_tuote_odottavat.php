@@ -6,10 +6,9 @@ require 'apufunktiot.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
-error_reporting(E_ALL);
 
 /** Järjestetään tuotteet artikkelinumeron mukaan
- * @param $catalog_products
+ * @param $products
  * @return array <p> Sama array sortattuna
  */
 function sortProductsByName( $products ){
@@ -92,18 +91,25 @@ if( isset($_POST['vastaanotettu']) ) {
     }
 }
 
-if ( isset($_POST['muokkaa']) ) {
-	unset($_POST['muokkaa']);
-	$sql = "  UPDATE ostotilauskirja_tuote_arkisto SET kpl = ?
-  	          WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ?";
+if ( isset($_POST['muokkaa_tuote']) ) {
+	unset($_POST['muokkaa_tuote']);
+	$sql = "UPDATE ostotilauskirja_tuote_arkisto
+		  	SET kpl = ?
+  	        WHERE tuote_id = ?
+  	        	AND ostotilauskirja_id = ?
+  	        	AND automaatti = ?";
 	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]);
 	$sql = "UPDATE tuote SET hyllypaikka = ? WHERE id = ?";
 	$result2 = $db->query($sql, [$_POST['hyllypaikka'], $_POST['id']]);
     if ( !$result1 || !$result2 ) {
-        $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+        $_SESSION["feedback"] = "<p class='error'>Muokkaus epäonnistui.</p>";
 	}
 }
-
+if ( isset($_POST['muokkaa_rahti']) ) {
+	unset($_POST['muokkaa_rahti']);
+	$sql = "UPDATE ostotilauskirja_arkisto SET rahti = ? WHERE id = ?";
+	$db->query($sql, [$_POST['rahti'], $ostotilauskirja_id]);
+}
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ){
@@ -201,7 +207,10 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<td class="number"><?=format_number($otk->rahti)?></td>
 	            <td class="number"><?=format_number($otk->rahti)?></td>
 	            <td class="center">---</td>
-				<td colspan="2"></td></tr>
+				<td></td>
+				<td class="toiminnot">
+					<button class="nappi" onclick="avaa_modal_muokkaa_rahtimaksu(<?=$otk->rahti?>)">
+						Muokkaa</button></td></tr>
 			<!-- Tuotteet -->
 			<?php foreach ($products as $product) : ?>
 				<tr><td><?=$product->tilauskoodi?></td>
@@ -312,24 +321,41 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				 erä ei vastaa tilattua tai merkkaa hyllypaikka.</h4>\
 				<hr>\
 				<br>\
-				<form action="" method="post" name="muokkaa_hankintapaikka">\
+				<form action="" method="post">\
 					<label>Tuote</label>\
-                    <h4 style="display: inline;">'+tuotenumero+'</h4>\
+                    <h4 class="inline-block">'+tuotenumero+'</h4>\
 					<br><br>\
 					<label>KPL</label>\
-					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="0" required>\
+					<input type="number" name="kpl" value="'+kpl+'" title="Tilattavat kappaleet" min="0" required>\
 					<br><br>\
 					<label>Hyllypaikka</label>\
-					<input name="hyllypaikka" type="text" value="'+hyllypaikka+'" title="Hyllypaikka">\
+					<input type="text" name="hyllypaikka" value="'+hyllypaikka+'" title="Hyllypaikka">\
 					<br><br>\
-					<input name="id" type="hidden" value="'+tuote_id+'">\
-					<input name="automaatti" type="hidden" value="'+automaatti+'">\
-					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
+					<input type="hidden" name="id" value="'+tuote_id+'">\
+					<input type="hidden" name="automaatti" value="'+automaatti+'">\
+					<input type="submit" name="muokkaa_tuote" value="Muokkaa" class="nappi"> \
 				</form>\
 				',
 			draggable: true
 		});
 	}
+
+    function avaa_modal_muokkaa_rahtimaksu(rahti){
+        Modal.open( {
+            content:  '\
+				<h4>Muokkaa rahtimaksua.</h4>\
+				<hr>\
+				<br>\
+				<form action="" method="post">\
+					<label>Rahtimaksu (€)</label>\
+					<input type="number" name="rahti" value="'+rahti+'" min="0" step="0.01" class="dialogi-kentta" required>\
+					<br><br>\
+					<input type="submit" name="muokkaa_rahti" value="Muokkaa" class="nappi"> \
+				</form>\
+				',
+            draggable: true
+        });
+    }
 
 </script>
 </body>

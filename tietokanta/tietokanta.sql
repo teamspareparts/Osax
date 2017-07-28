@@ -306,7 +306,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,
-  `rahti` decimal(11,2),
+  `original_rahti` decimal(11,2) NOT NULL,
+  `rahti` decimal(11,2) NOT NULL,
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,
   `lahettaja` int(11), -- Tilauskirjan lähettäjän käyttäjä ID
