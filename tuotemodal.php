@@ -222,7 +222,7 @@ require_once 'tecdoc_asetukset.php';?>
                 "lang": TECDOC_LANGUAGE,
                 "provider": TECDOC_MANDATOR,
                 "articleNumber": articleNumber,
-                "numberType": 3,
+                "numberType": 10,
                 "searchExact": true
             };
             params = JSON.stringify(params).replace(/,/g,", ");
@@ -237,24 +237,21 @@ require_once 'tecdoc_asetukset.php';?>
             let comparableNumbers;
 
             //Luodaan haetuista vertailunumeroista html-muotoinen taulu
-            //Lisätään myös tuote, jolla haettiin, sillä tuotetta ei palauteta vertailunumerojen mukana.
             comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
                 "<table class='vertailunumero_table'>" +
-                "<th colspan='2' class='center'>Vertailunumerot</th>" +
-                "<tr><td>" + brand + "</td>" +
-                "<td><a href='?haku=" + articleNo + "&numerotyyppi=comparable&exact=on'>" + articleNo + "</a></td></tr>";
+                "<th colspan='2' class='center'>Vertailunumerot</th>";
 
-            if (response.data !== "") {
+            if ( response.data ) {
                 response = response.data.array;
                 for (let i = 0; i < response.length; i++) {
-                    comparableNumbers += "<tr>";
-                    comparableNumbers += "<td style='font-size:14px;'>" + response[i].brandName + "</td>" +
-                        "<td style='font-size:14px;'><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>"
-                        + response[i].articleNo + "</a></td>";
-                    comparableNumbers += "</tr>";
+                    if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
+                        comparableNumbers += "<tr><td style='font-size:14px;'>" + response[i].brandName + "</td>" +
+                            "<td style='font-size:14px;'><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>"
+                            + response[i].articleNo + "</a></td></tr>";
+                    }
                 }
-                comparableNumbers += "</table>";
             }
+            comparableNumbers += "</table>";
 
             //lisätään modaliin
             $("#menu3").append(comparableNumbers);
@@ -391,7 +388,7 @@ require_once 'tecdoc_asetukset.php';?>
         tecdocToCatPort[functionName] (params, function (response){
             let pair;
             let articleIdPairs = [];
-            if ( response.data !== "" ) {
+            if ( response.data ) {
                 response = response.data.array[0];
                 for (let i = 0; i < response.articleLinkages.array.length; i++) {
                     pair = {
@@ -436,8 +433,7 @@ require_once 'tecdoc_asetukset.php';?>
      */
     function addLinkedVehiclesToModal( /*array*/response ) {
         $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
-        let i;
-        for (i=0; i<response.data.array.length ; i++) {
+        for (let i=0; i<response.data.array.length ; i++) {
             let yearTo = "";
             if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
                 yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
