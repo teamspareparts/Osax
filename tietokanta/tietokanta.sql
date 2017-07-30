@@ -377,3 +377,10 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_tuote`(
   CONSTRAINT fk_tuoteryhmaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `tuote_linkitys`(
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `brandNo` int(11) UNSIGNED NOT NULL, -- PK
+  `articleNo` varchar(30) NOT NULL, -- PK
+  PRIMARY KEY (`tuote_id`,`brandNo`, `articleNo`),
+  CONSTRAINT fk_tuoteLinkitys_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

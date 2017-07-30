@@ -363,6 +363,23 @@ elseif ( !empty($_POST['tuote_tuoteryhma']) ) {
 		$_SESSION["feedback"] = '<p class="error">ERROR: Tuotteen ja tuoteryhmän linkitys epäonnistui.</p>';
 	}
 }
+elseif ( !empty($_POST['tuote_linkitys']) ) {
+	//TODO: KESKEN!
+	var_dump($_POST);
+	/*
+	$result = true;
+	$sql = "INSERT IGNORE INTO tuote_linkitys (tuote_id, brandNo, articleNo) VALUES (?,?,?)";
+	foreach ($_POST['tuote'] as $tuote) {
+		if ( !$db->query($sql, [$_POST['id'], $tuote['brand'], $tuote['article']]) ) {
+			$result = false;
+		}
+	}
+	if ( $result ) {
+		$_SESSION["feedback"] = '<p class="success">Tuote linkitetty onnistuneesti.</p>';
+	} else {
+		$_SESSION["feedback"] = '<p class="error">Osa tuotteista oli jo linkitetty.</p>';
+	}*/
+}
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
@@ -697,7 +714,7 @@ require 'tuotemodal.php';
 		let tr_valikko = <?= json_encode($tuoteryhmien_nimet_tuotteiden_linkitysta_varten) ?>;
         Modal.open( {
             content: '\
-				<div class="dialogi-otsikko">Muokkaa tuotetta'+tuotekoodi+'</div> \
+				<div class="dialogi-otsikko">Muokkaa tuotetta '+tuotekoodi+'</div> \
 				<form action="" method="post"> \
 					<label for="ostohinta">Ostohinta:</label> \
 						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;<br> \
@@ -758,11 +775,81 @@ require 'tuotemodal.php';
 					<input type="submit" class="nappi" value="Lisää tuoteryhmään"> \
 					<button class="nappi grey" type="button" style="margin-left:10pt;" \
 						onclick="Modal.close()">Peruuta</button> \
+				</form>\
+				<hr> \
+                <form method="post" id="tuote_linkitys_form"> \
+                    <span style="font-weight:bold;">Linkitä TecDoc tuotteisiin:</span> \
+					<input type="hidden" name="id" value="' + id + '"> \
+					<br> \
+					<input type="text" name="tecdoctuote" id="tecdoctuote" autocomplete="off"> \
+					<button onclick="nayta_tecdoctuotteet(event)">Hae</button> \
+					<br> \
+					<table id="vertailunumerot"></table> \
+					<input type="submit" name="tuote_linkitys" id="tuote_linkitys" class="nappi" value="Linkitä" disabled> \
+					<button class="nappi grey" type="button" style="margin-left:10pt;" \
+						onclick="Modal.close()">Peruuta</button> \
 				</form>',
-            draggable: true
+            draggable: true,
+	        width: "400px"
         } );
         $("#alv_lista").val(alv);
     }
+
+    /**
+     *
+     */
+    function nayta_tecdoctuotteet(/*event*/e){
+        e.preventDefault();
+        const search_number = document.getElementById("tecdoctuote").value;
+        let submit_painike = document.getElementById("tuote_linkitys");
+        let linkitys_form = document.getElementById("tuote_linkitys_form");
+        let table = document.getElementById("vertailunumerot");
+        submit_painike.disabled = true; // Submit disabled
+        // Tyhjennetään taulu
+        while(table.rows.length > 0) {
+            table.deleteRow(0);
+        }
+        let functionName = "getArticleDirectSearchAllNumbersWithState";
+        let params = {
+            "articleCountry": TECDOC_COUNTRY,
+            "lang": TECDOC_LANGUAGE,
+            "provider": TECDOC_MANDATOR,
+            "articleNumber": search_number,
+            "numberType": 10,
+            "searchExact": true
+        };
+        params = JSON.stringify(params).replace(/,/g,", ");
+        tecdocToCatPort[functionName] (params, function(response){
+            if ( response.data ) {
+                submit_painike.disabled = false; // Submit enabled
+                response = response.data.array;
+                //Vertailunumerot tauluun
+                for (let i = 0; i < response.length; i++) {
+                    if ( response[i].numberType === 3 || response[i].numberType === 0 ) {
+                        let row = table.insertRow(0);
+                        let brand_no = row.insertCell(0);
+                        let brand = row.insertCell(1);
+                        let article_no = row.insertCell(2);
+                        brand_no.innerHTML = response[i].brandNo;
+                        brand.innerHTML = response[i].brandName;
+                        article_no.innerHTML = response[i].articleNo;
+	                    // Hidden inputs
+                        let input = document.createElement("input");
+                        input.setAttribute("type", "hidden");
+                        input.setAttribute("name", "tuote["+response[i].articleId+"][brand]");
+                        input.setAttribute("value", response[i].brandNo);
+                        linkitys_form.appendChild(input);
+
+                        input = document.createElement("input");
+                        input.setAttribute("type", "hidden");
+                        input.setAttribute("name", "tuote["+response[i].articleId+"][article]");
+                        input.setAttribute("value", response[i].articleNo);
+                        linkitys_form.appendChild(input);
+                    }
+                }
+            }
+        });
+	}
 
 	/**
 	 * Lisää tuotteen ostotilauskirjalle
