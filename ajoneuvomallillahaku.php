@@ -12,7 +12,7 @@ require_once 'tecdoc_asetukset.php';
 <div class="ajoneuvomallihaku">
     <label for="manufacturer">Ajoneuvomallilla haku:</label><br>
     <form action="" method="get" id="ajoneuvomallihaku">
-        <select id="manufacturer" name="manuf" title="Valmistaja">
+        <select id="manufacturer" name="manuf" title="Valmistaja" disabled>
             <option value="">-- Valmistaja --</option>
         </select><br>
         <select id="model" name="model" title="Auton malli" disabled>
