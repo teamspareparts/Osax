@@ -54,7 +54,7 @@ $pdf_noutolista_html_body = "
 		<th style='text-align:left;'>Nimi</th>
 		<th style='text-align:left;'>Valmistaja</th>
 		<th style='text-align:right;'>kpl</th>
-		<th>Hyllypaikka</th>
+		<th style='text-align:right;'>Hyllypaikka</th>
 	</tr>
 	</thead>
 	<tbody>
@@ -71,7 +71,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 			<td style='text-align:left;'>{$tuote->nimi}</td>
 			<td style='text-align:left;'>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
-			<td style='text-align:left;'>{$tuote->hyllypaikka}</td>
+			<td style='text-align:right;'>{$tuote->hyllypaikka}</td>
 		</tr>";
 }
 
