@@ -40,14 +40,16 @@ $yhteensa_myynti = 0;
 $yhteensa_kpl = 0;
 $raportti = "";
 
-//TODO: Laske hinnoittelukatteen sijasta aito myyntikate
+//TODO: Varmista, että keskiostohinta on OK ja ota käyttöön katteessa --20170728 SL
 // Haetaan tuotteet annetuilla rajauksilla
 $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekoodi,
  			tuote.nimi, SUM(tilaus_tuote.kpl) AS yhteensa_kpl, 
  			ROUND( tuote.hinta_ilman_ALV, 2 ) AS hinta_ilman_ALV,
  			ROUND( SUM( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) * tilaus_tuote.kpl ), 2 ) AS yhteensa_summa,
  			ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ) AS keskimyyntihinta,
- 			ROUND( 100*((tuote.hinta_ilman_ALV - tuote.sisaanostohinta) / tuote.hinta_ilman_ALV), 0 ) AS kate
+ 			ROUND( 100*(
+ 				(ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ) - tuote.sisaanostohinta) / 
+ 				tuote.hinta_ilman_ALV), 0 ) AS kate
  		FROM tilaus
  		LEFT JOIN kayttaja
  			ON tilaus.kayttaja_id = kayttaja.id

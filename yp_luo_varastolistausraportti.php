@@ -29,13 +29,18 @@ switch ($_POST["sort"]) {
 $tuotteet = [];
 $raportti = "";
 
+//TODO: Varmista, että keskiostohinta on OK ja ota käyttöön katteessa --20170728 SL
 $sql = "SELECT tuote.id, tuote.hyllypaikka, tuote.tuotekoodi, tuote.sisaanostohinta, 
  			tuote.nimi, tuote.varastosaldo,
  			IFNULL( SUM(tilaus_tuote.kpl), 0 ) AS yhteensa_kpl,
  			ROUND( tuote.hinta_ilman_ALV, 2 ) AS hinta_ilman_ALV,
  			IFNULL( ROUND( SUM( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) * tilaus_tuote.kpl ), 2 ), 0 ) AS yhteensa_summa,
  			IFNULL( ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ), 0 ) AS keskimyyntihinta,
- 			ROUND( 100*((tuote.hinta_ilman_ALV - tuote.sisaanostohinta) / tuote.hinta_ilman_ALV), 0 ) AS kate
+ 			IF( IFNULL( ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ), 0 ),
+ 				ROUND( 100*(
+ 					(IFNULL( ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ), 0 ) - tuote.sisaanostohinta) /
+ 					tuote.hinta_ilman_ALV), 0 ),
+ 				0) AS kate
  		FROM tuote
 		LEFT JOIN tilaus_tuote
 			ON tuote.id = tilaus_tuote.tuote_id

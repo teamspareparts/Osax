@@ -240,8 +240,9 @@ if ( !empty($_GET["manuf"]) ) {
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-    <script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>
-    <script src="js/jsmodal-1.0d.min.js"></script>
+    <!--<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>-->
+	<script src="./js/TecdocToCatDLB.jsonEndpoint"></script>
+	<script src="./js/jsmodal-1.0d.min.js"></script>
 
     <title>Tuotehaku</title>
 </head>

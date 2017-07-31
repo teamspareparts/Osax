@@ -306,7 +306,8 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilausk
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
   `tunniste` varchar(50) NOT NULL,
-  `rahti` decimal(11,2),
+  `original_rahti` decimal(11,2) NOT NULL,
+  `rahti` decimal(11,2) NOT NULL,
   `oletettu_saapumispaiva` timestamp NULL,
   `lahetetty` timestamp NULL,
   `lahettaja` int(11), -- Tilauskirjan lähettäjän käyttäjä ID
@@ -376,3 +377,10 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_tuote`(
   CONSTRAINT fk_tuoteryhmaTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `tuote_linkitys`(
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
+  `brandNo` int(11) UNSIGNED NOT NULL, -- PK
+  `articleNo` varchar(30) NOT NULL, -- PK
+  PRIMARY KEY (`tuote_id`,`brandNo`, `articleNo`),
+  CONSTRAINT fk_tuoteLinkitys_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
