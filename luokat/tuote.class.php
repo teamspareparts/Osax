@@ -22,8 +22,9 @@ class Tuote {
 	/** @var array $tuoteryhmat <p> Kaikkien ryhmien ID, joissa tuote on. */ public $tuoteryhmat = array();
 
 	/** @var float $a_hinta_ilman_alv <p> Kappale-hinta ilman alennusta, tai ALV:ta */ public $a_hinta_ilman_alv = 0.00;
-	/** @var float $a_hinta <p> Kappale-hinta ALV:n kanssa */ public $a_hinta = 0.00;
+	/** @var float $a_hinta <p> Kappale-hinta ALV:n kanssa (ilman alennusta) */ public $a_hinta = 0.00;
 	/** @var float $a_hinta_alennettu <p> With ALV ja alennus. */ public $a_hinta_alennettu = 0.00;
+	/** @var float $a_hinta_alennettu <p> w/out ALV, mutta w/ alennus. */ public $a_hinta_alennettu_ilman_alv = 0.00;
 
 	/** @var float $alv_prosentti <p> */ public $alv_prosentti = 0.00;
 	/** @var float $alennus_prosentti <p> */ public $alennus_prosentti = 0.00;
@@ -51,10 +52,10 @@ class Tuote {
 		if ( $id !== null ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT tuote.id, articleNo, brandNo, hankintapaikka_id, tuotekoodi,
 						tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
-						ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, 
+						ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
-						hinta_ilman_alv AS a_hinta_ilman_alv, sisaanostohinta AS ostohinta
+						hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv
 					FROM tuote
 					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 					WHERE tuote.id = ? LIMIT 1";
@@ -125,7 +126,7 @@ class Tuote {
 	}
 
 	/**
-	 * Palauttaa hinnan valittujen parametrien mukaan. Defaultina tulostaa alennetun veron kanssa.
+	 * Palauttaa hinnan valittujen parametrien mukaan. Defaultina tulostaa verollisen alennetun hinnan.
 	 * @param boolean $ilman_alv     [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro    [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @param bool    $ilman_alennus [optional] default=false <p> Tulostetaanko hinta ilman alennusta.
@@ -135,17 +136,22 @@ class Tuote {
 	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false,
 			/*bool*/ $ilman_alennus = false, /*int*/ $dec_count = 2 ) {
 
-		if ( $ilman_alv && !$ilman_alennus ) {      // Hinta ilman ALV:ta ja alennusta
-			$hinta = $this->a_hinta_ilman_alv;
+		// Hinta ilman ALV:ta ja alennusta
+		if ( $ilman_alv && $ilman_alennus ) {
+			return number_format( (float)$this->a_hinta_ilman_alv, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 		}
-		elseif ( !$ilman_alv && $ilman_alennus ) { // Hinta ALV:n kanssa, mutta ilman alennusta
-			$hinta = $this->a_hinta;
+		// Hinta ALV:n kanssa, mutta ilman alennusta
+		elseif ( !$ilman_alv && $ilman_alennus ) {
+			return number_format( (float)$this->a_hinta, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 		}
-		else {                                     // Hinta ALV:n ja alennuksen kanssa
-			$hinta = $this->a_hinta_alennettu;
+		// Hinta ilman ALV:ta, mutta alennuksen kanssa
+		elseif ( $ilman_alv && !$ilman_alennus ) {
+			return number_format( (float)$this->a_hinta_alennettu_ilman_alv, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 		}
-
-		return number_format( (float)$hinta, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
+		// Hinta ALV:n ja alennuksen kanssa
+		else {
+			return number_format( (float)$this->a_hinta_alennettu, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
+		}
 	}
 
 	/**
@@ -155,7 +161,7 @@ class Tuote {
 	 * @return string
 	 */
 	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
-		$summa = $ilman_alv ? ($this->a_hinta_ilman_alv * $this->kpl_maara) : $this->summa;
+		$summa = $ilman_alv ? ($this->a_hinta_alennettu_ilman_alv * $this->kpl_maara) : $this->summa;
 
 		return number_format( (float)$summa, $dec_count, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}

@@ -102,12 +102,12 @@ class Laskutiedot {
 					tilaus_tuote.kpl AS kpl_maara,
 					tilaus_tuote.pysyva_alv AS alv_prosentti,
 					tilaus_tuote.pysyva_alennus AS alennus_prosentti,
-					(tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus)) 
-						AS a_hinta_ilman_alv,
+					tilaus_tuote.pysyva_hinta AS a_hinta_ilman_alv,
+					(tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) AS a_hinta,					
 					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
-						AS a_hinta,					
-					((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
-						AS a_hinta_alennettu,
+						AS a_hinta_alennettu,	
+					(tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus))
+						AS a_hinta_alennettu_ilman_alv,
 					(((tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv)) * (1-tilaus_tuote.pysyva_alennus))
 					 	* tilaus_tuote.kpl)
 						AS summa 
@@ -144,15 +144,14 @@ class Laskutiedot {
 			 */
 			// Ensimmäisenä lasketaan ALV-perus. Kpl-hinta-ilman-ALV * Kpl-määrä
 			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'perus' ]
-				+= $row->a_hinta_ilman_alv * $row->kpl_maara;
+				+= $row->a_hinta_alennettu_ilman_alv * $row->kpl_maara;
 			// ALV-määrä. ALV:n määrä * Kpl-määrä
 			$this->hintatiedot[ 'alv_kannat' ][ $row->alv_toString(true) ][ 'maara' ]
-				+= ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
+				+= ($row->a_hinta_alennettu - $row->a_hinta_alennettu_ilman_alv) * $row->kpl_maara;
 
 			// ... ja sitten ALV-kannat yhteensä.
-			$this->hintatiedot[ 'alv_perus' ] += $row->a_hinta_ilman_alv * $row->kpl_maara;
-			$this->hintatiedot[ 'alv_maara' ] += ($row->a_hinta - $row->a_hinta_ilman_alv) * $row->kpl_maara;
-
+			$this->hintatiedot[ 'alv_perus' ] += $row->a_hinta_alennettu_ilman_alv * $row->kpl_maara;
+			$this->hintatiedot[ 'alv_maara' ] += ($row->a_hinta_alennettu - $row->a_hinta_alennettu_ilman_alv) * $row->kpl_maara;
 		}
 
 		// Vielä lopuksi lisätään rahtimaksun tiedot ALV-hintaan (jos > 0), ja kokonaissummaan.
@@ -219,10 +218,10 @@ class Laskutiedot {
 	 * @return string
 	 */
 	function rahtimaksuALV_toString ( /*bool*/ $ilman_pros = false, /*bool*/ $decimaalina = false ) {
-		if ( !$decimaalina ) {
-			return round( (float)$this->hintatiedot[ 'rahtimaksu_alv' ] * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
-		} else
+		if ( $decimaalina ) {
 			return number_format( (double)$this->hintatiedot[ 'rahtimaksu_alv' ], 2, ',' );
+		} else
+			return round( (float)$this->hintatiedot[ 'rahtimaksu_alv' ] * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
 	}
 
 	/**
