@@ -1,5 +1,5 @@
 ﻿<?php
-chdir(__DIR__); // Määritellään työskentelykansio
+chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
 require '../luokat/laskutiedot.class.php';

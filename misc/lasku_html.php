@@ -38,9 +38,9 @@ $pdf_lasku_html_body = "
 <table style='width:100%; margin-left:20px;'>
 	<tbody>
 	<tr><th style='text-align:left;'>Asiakas (".sprintf('%04d', $lasku->asiakas->id).")</th></tr>
-	<tr><td>{$lasku->asiakas->yrityksen_nimi}<br>
-			{$lasku->toimitusosoite[' katuosoite ']}<br>
-			{$lasku->toimitusosoite[' postinumero ']} {$lasku->toimitusosoite[' postitoimipaikka ']}<br><br>
+	<tr><td>{$lasku->yritys->nimi}<br>			
+			{$lasku->yritys->katuosoite}<br>
+			{$lasku->yritys->postinumero} {$lasku->yritys->postitoimipaikka}<br><br>
 			
 			{$lasku->asiakas->puhelin}, {$lasku->asiakas->sahkoposti}<br>
 			</td>

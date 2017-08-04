@@ -48,6 +48,7 @@ class Laskutiedot {
 		$this->tilaus_nro = !empty( $tilausID ) ? $tilausID : '[Til nro]';
 		$this->db = $db;
 		$this->asiakas = $user;
+		$this->yritys = new Yritys( $db, $user->yritys_id );
 		$this->osax = new Yritys( $db, 1 );
 
 		$this->laskuHeader = ( $indev )
