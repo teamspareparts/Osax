@@ -91,12 +91,12 @@ switch ( $get_count ) {
 				/********************
 				 * Sähköpostit
 				 ********************/
-				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $_GET[ 'ORDER_NUMBER' ], $lasku_nimi );
+				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $lasku_nimi );
 				Email::lahetaNoutolista( $_GET[ 'ORDER_NUMBER' ], $noutolista_nimi );
 
 				if ( !$_SESSION['indev'] ) {
 					// Kopio Jannelle
-					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $_GET[ 'ORDER_NUMBER' ], $lasku_nimi );
+					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $lasku_nimi );
 				}
 			}
 		}

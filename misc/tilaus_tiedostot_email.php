@@ -87,11 +87,11 @@ if ( $rows ) {
 		/********************
 		 * Sähköpostit
 		 ********************/
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $tilaus->id, $lasku_nimi );
+		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $lasku_nimi );
 		Email::lahetaNoutolista( $tilaus->id, $noutolista_nimi );
 
 		if ( !$_SESSION['indev'] ) {
-			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $tilaus->id, $lasku_nimi );
+			Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $lasku_nimi );
 		}
 		echo "<br>\r\n";
 	}
