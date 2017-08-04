@@ -12,14 +12,16 @@ function debug($var,$var_dump=false){
 /**
  * Tulostaa numeron muodossa 1.000[,00 [€]]
  * @param float|int $number     <p> Tulostettava numero/luku/hinta
- * @param bool       $int        [optional] default=FALSE <p> Kokonaisluvuille eri tulostus ilman decimaalipaikkoja tai euro-merkkiä.
- * @param bool       $ilman_euro [optional] default=FALSE <p> Tulostetaanko float-arvo ilman euro-merkkiä
- * @param int        $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
+ * @param int       $dec_count  [optional] default=2 <p> Kuinka monta desimaalia. Jos nolla, ei €-merkkiä.
+ * @param bool      $ilman_euro [optional] default=FALSE <p> Tulostetaanko float-arvo ilman €-merkkiä
  * @return string
  */
-function format_number( /*mixed*/$number, /*bool*/$int = false, /*bool*/$ilman_euro = false, /*int*/ $dec_count = 2 ) {
-	if ( $int ) { return number_format( (int)$number, 0, ',', '.' );
-	} else { return number_format( (float)$number, $dec_count, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' ); }
+function format_number( /*mixed*/$number, /*int*/ $dec_count = 2, /*bool*/$ilman_euro = false ) {
+	if ( $dec_count == 0 ) {
+		return number_format( $number, 0, ',', '.' );
+	} else {
+		return number_format( $number, $dec_count, ',', '.' )
+			. ( $ilman_euro ? '' : '&nbsp;&euro;' ); }
 }
 
 /*

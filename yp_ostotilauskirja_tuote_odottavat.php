@@ -216,7 +216,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<tr><td><?=$product->tilauskoodi?></td>
 					<td><?=$product->tuotekoodi?></td>
 					<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
-					<td class="number"><?=format_number($product->kpl,true)?></td>
+					<td class="number"><?=format_number($product->kpl,0)?></td>
 					<td class="number"><?=format_number($product->ostohinta)?></td>
 	                <td class="number"><?=format_number($product->kokonaishinta)?></td>
 					<td class="center"><?= $product->hyllypaikka?></td>
@@ -238,7 +238,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<!-- Yhteensä -->
 			<tr class="border_top"><td>YHTEENSÄ</td>
 				<td colspan="2"></td>
-				<td class="number"><?= format_number($yht->kpl,true)?></td>
+				<td class="number"><?= format_number($yht->kpl,0)?></td>
 	            <td></td>
 				<td class="number"><?=format_number($yht->hinta)?></td>
 				<td colspan="3"></td>
@@ -297,7 +297,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<!-- Yhteensä -->
 				<tr class="border_top"><td>YHTEENSÄ</td>
 					<td colspan="2"></td>
-					<td class="number"><?= format_number($yht->kpl,true)?></td>
+					<td class="number"><?= format_number($yht->kpl,0)?></td>
 					<td></td>
 					<td class="number"><?=format_number($yht->hinta)?></td>
 					<td colspan="2"></td>

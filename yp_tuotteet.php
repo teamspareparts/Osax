@@ -564,7 +564,7 @@ require 'tuotemodal.php';
 										(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 								endforeach; ?>
 							</td>
-							<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+							<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
 							<td class="number"><?=format_number($product->hinta)?></td>
                             <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                             <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>

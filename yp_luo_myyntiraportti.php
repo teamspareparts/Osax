@@ -55,15 +55,15 @@ foreach ( $tilaukset as $tilaus ) {
 // Luodaan raportti
 $raportti = "Myyntiraportti aikaväliltä ".date('d.m.Y', strtotime($_POST["pvm_from"])) .
 				" - " . date('d.m.Y', strtotime($_POST["pvm_to"])) . "\r\n\r\n" .
-			"Myynti yhteensä ". format_number( $myynti_alvillinen , false, true ) ." € sis alv\r\n" .
-			"Myynti yhteensä ". format_number( $myynti_alviton, false, true ) ." € alv 0%\r\n" .
+			"Myynti yhteensä ". format_number( $myynti_alvillinen ) ." sis alv\r\n" .
+			"Myynti yhteensä ". format_number( $myynti_alviton ) ." alv 0%\r\n" .
 			"Tapahtumamäärä ". count($tilaukset) . " kpl\r\n" .
 			"\r\n" .
 			"ALV erottelu myynnistä\r\n";
 foreach ($alv_kannat as $alv_kanta) {
 	$raportti .=    "Kanta\t {$alv_kanta[ 'kanta' ]} \r\n".
-					"Perus\t ". format_number($alv_kanta[ 'perus' ], false, true). " €\r\n".
-					"Maara\t ". format_number($alv_kanta[ 'maara' ], false, true). " €\r\n\r\n";
+					"Perus\t ". format_number($alv_kanta[ 'perus' ]). "\r\n".
+					"Maara\t ". format_number($alv_kanta[ 'maara' ]). "\r\n\r\n";
 }
 
 // Ladataan tiedosto suoraan selaimeen

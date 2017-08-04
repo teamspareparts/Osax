@@ -333,7 +333,7 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_number($product->sisaanostohinta)?></td>
@@ -387,7 +387,7 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, true)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_number($product->sisaanostohinta)?></td>

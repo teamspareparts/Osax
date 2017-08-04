@@ -262,8 +262,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             <tr><td><?=$product->tilauskoodi?></td>
                 <td><?=$product->tuotekoodi?></td>
                 <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
-                <td class="number"><?=format_number($product->kpl,true)?></td>
-                <td class="number"><?=format_number($product->varastosaldo,true)?></td>
+                <td class="number"><?=format_number($product->kpl,0)?></td>
+                <td class="number"><?=format_number($product->varastosaldo,0)?></td>
                 <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                 <td class="number"><?=format_number($product->kokonaishinta)?></td>
 	            <td>
@@ -292,7 +292,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         <!-- Yhteensä -->
         <tr class="border_top"><td>YHTEENSÄ</td>
 	        <td colspan="2"></td>
-            <td class="number"><?= format_number($yht_kpl,true)?></td>
+            <td class="number"><?= format_number($yht_kpl,0)?></td>
             <td></td>
             <td class="number"><?=format_number($yht_hinta)?></td>
             <td colspan="4"></td>

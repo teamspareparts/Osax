@@ -168,7 +168,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
-                        <?= format_number($otk->kpl,true)?></td>
+                        <?= format_number($otk->kpl,0)?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_number($otk->hinta)?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
