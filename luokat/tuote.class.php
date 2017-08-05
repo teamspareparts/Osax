@@ -8,12 +8,13 @@ class Tuote {
 	/** @var int|NULL $id <p> Tuotteen ID meidän tietokannassa */ public $id = NULL;
 	/** @var string $articleNo <p> Tunnus TecDocista */ public $articleNo = '[ArticleNo]';
 	/** @var string $brandNo <p> Valmistajan tunnus TecDocista */ public $brandNo = '[BrandNo]';
-	/** @var int $hankintapaikka_id <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikka_id = 0;
+	/** @var int $hankintapaikkaID <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikkaID = 0;
 	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = '[Tuotekoodi]';
 	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = '[Tilauskoodi]';
 	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = '[Hyllypaikka]';
 	/** @var int $varastosaldo <p> */ public $varastosaldo = 0;
+	/** @var int $tehdassaldo <p> */ public $tehdassaldo = 0;
 	/** @var int $minimimyyntiera <p> */ public $minimimyyntiera = 0;
 
 	/** @var string $nimi <p> */ public $nimi = '[Tuotteen nimi]';
@@ -55,9 +56,13 @@ class Tuote {
 						ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 						(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
-						hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv
+						hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
+						toimittaja_tehdassaldo.tehdassaldo
 					FROM tuote
 					LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+					LEFT JOIN toimittaja_tehdassaldo 
+						ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+							AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
 					WHERE tuote.id = ? LIMIT 1";
 			// a_hinta_alennettu on sama, jotta a_hinta_toString() toimii.
 			// Se on kuitenkin tarkoitus laskea manuaalisti jälkeenpäin, koska alennukset haetaan erikseen.
@@ -107,7 +112,7 @@ class Tuote {
 
 		if ( $this->tuoteryhmat ) {
 			$inQuery = implode(',', array_fill(0, count($this->tuoteryhmat), '?'));
-			$values = array_merge( [ $this->hankintapaikka_id, $yritys_id ], $this->tuoteryhmat );
+			$values = array_merge( [ $this->hankintapaikkaID, $yritys_id ], $this->tuoteryhmat );
 
 			$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 					FROM tuoteryhma_erikoishinta

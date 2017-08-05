@@ -121,10 +121,14 @@ class Ostoskori {
 				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi, tuote.hankintapaikka_id,
 							tuote.varastosaldo, tuote.minimimyyntiera, ALV_kanta.prosentti AS alv_prosentti,
 							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, hyllypaikka
+							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, hyllypaikka,
+                            toimittaja_tehdassaldo.tehdassaldo
 						FROM ostoskori_tuote
 						LEFT JOIN tuote ON tuote.id = ostoskori_tuote.tuote_id
 						LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+						LEFT JOIN toimittaja_tehdassaldo
+							ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+								AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
 						WHERE ostoskori_id = ?";
 				$db->prepare_stmt( $sql );
 				$db->run_prepared_stmt( [ $this->ostoskori_id ] );

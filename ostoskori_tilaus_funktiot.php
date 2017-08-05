@@ -13,9 +13,13 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
 	 * Käydään läpi kaikki ostoskorin tuotteet ja tarkistetaan jokaisesta alennukset, ja oikea hinta.
 	 */
 	foreach ( $cart->tuotteet as $tuote ) {
-		// Tarkistetaan, että tuotetta on tilattu tarpeeksi, ennen kuin lasketaan alennus.
-		if ( $tuote->kpl_maara >= $tuote->minimimyyntiera ) {
-			// Asetetaan aloitusarvo tuotteen alennukselle
+
+		if ( $tuote->kpl_maara > $tuote->varastosaldo and $tuote->kpl_maara > $tuote->tehdassaldo ) {
+			$tuote->alennus_huomautus = "<span style='color:red;'>Ei varastossa</span>";
+		}
+
+		// Alennuksien lasku
+		else if ( $tuote->kpl_maara >= $tuote->minimimyyntiera ) {
 			$tuote->alennus_prosentti = $user->yleinen_alennus; // Yrityksen yleinen alennusprosentti
 
 			// Tarkistetaan määräalennukset (sortattu kappale-määrän mukaan)
@@ -152,7 +156,7 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 
 	if ( $cart->tuotteet ) {
 		foreach ( $cart->tuotteet as $tuote) {
-			if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
+			if ( $tuote->kpl_maara > $tuote->varastosaldo and $tuote->kpl_maara > $tuote->tehdassaldo ) {
 				$enough_in_stock = false;
 				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei ole tarpeeksi varastossa.<br>";
 			}

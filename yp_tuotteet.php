@@ -177,9 +177,12 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	 * @return array|bool|stdClass
 	 */
 	function get_product_from_database(DByhteys $db, stdClass $product){
-		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+                        toimittaja_tehdassaldo.tehdassaldo
 				FROM 	tuote 
 				JOIN 	ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
 				WHERE 	tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 ";
 
 		return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL );
@@ -231,22 +234,26 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 		// Hakunumero muotoa q%t%b%2%4%9%, joten lyhyillä hakunumeroilla se voi löytää liikaa tuloksia
 	}
 	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
-                            LEAST( 
+                        LEAST( 
                             COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
                             COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
-                            ) AS saapumispaiva,
-                            MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
-                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
-				FROM 	    tuote
-				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
-				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
-				            AND ostotilauskirja_arkisto.hyvaksytty = 0
-				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
-				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
-				WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
-				GROUP BY    tuote.id
-				LIMIT 10";
+                        ) AS saapumispaiva,
+                        MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                        MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva,
+                        toimittaja_tehdassaldo.tehdassaldo
+			FROM 	    tuote
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+			LEFT JOIN   ostotilauskirja_arkisto
+						ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+			            AND ostotilauskirja_arkisto.hyvaksytty = 0
+			LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+			LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+			LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+			WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
+			GROUP BY    tuote.id
+			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
 	foreach ($own_products as $tuote) {
@@ -564,7 +571,9 @@ require 'tuotemodal.php';
 										(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 								endforeach; ?>
 							</td>
-							<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
+							<td class="number"><?=format_number($product->varastosaldo, 0)?><br>
+								(<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+							</td>
 							<td class="number"><?=format_number($product->hinta)?></td>
                             <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                             <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>

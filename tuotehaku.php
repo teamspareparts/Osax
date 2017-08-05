@@ -19,26 +19,29 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	/**
 	 * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
 	 * @param DByhteys $db
-	 * @param $articleNo
-	 * @param $brandNo
+	 * @param string   $articleNo
+	 * @param int      $brandNo
 	 * @return array|int|stdClass
 	 */
-
     function get_tecdoc_product_from_database( DByhteys $db, /*string*/$articleNo, /*int*/$brandNo ){
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
-                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
-                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+	                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+	                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
                             ) AS saapumispaiva,
                             MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
-                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
+                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva,
+                            toimittaja_tehdassaldo.tehdassaldo
 				FROM 	    tuote
 				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
-				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+				LEFT JOIN   ostotilauskirja_arkisto
+							ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
 				            AND ostotilauskirja_arkisto.hyvaksytty = 0
 				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
 				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+				LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+							AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
 				WHERE 	    tuote.articleNo = ? AND tuote.aktiivinen = 1 AND tuote.brandNo = ? AND tuote.tecdocissa = 1
 				GROUP BY    tuote.id";
 
@@ -65,7 +68,9 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
                     $tuote->articleId = $product->articleId;
                     $tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
                     $tuote->brandName = $product->brandName;
-                    if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
+
+					if ( (($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera))
+						or (($tuote->tehdassaldo != 0) and ($tuote->tehdassaldo >= $tuote->minimimyyntiera)) ) {
                     	$catalog_products[] = $tuote;
                     } else {
                     	$not_available_catalog_products[] = $tuote;
@@ -97,22 +102,26 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 		// Hakunumero muotoa q%t%b%2%4%9%, joten lyhyillä hakunumeroilla se voi löytää liikaa tuloksia
 	}
 	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
-                            LEAST( 
-                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
-                            COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
-                            ) AS saapumispaiva,
-                            MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
-                            MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva
-				FROM 	    tuote
-				JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
-				LEFT JOIN   ostotilauskirja_arkisto ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
-				            AND ostotilauskirja_arkisto.hyvaksytty = 0
-				LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
-				LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
-				WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
-				GROUP BY    tuote.id
-				LIMIT 10";
+                        LEAST( 
+	                        COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+	                        COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+                        ) AS saapumispaiva,
+                        MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                        MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva,
+                        toimittaja_tehdassaldo.tehdassaldo
+			FROM 	    tuote
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+			LEFT JOIN   ostotilauskirja_arkisto
+						ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+			            AND ostotilauskirja_arkisto.hyvaksytty = 0
+			LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+			LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+			LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+			WHERE 	    tuote.articleNo LIKE ? AND tuote.aktiivinen = 1 AND tuote.tecdocissa = 0
+			GROUP BY    tuote.id
+			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
 	foreach ($own_products as $tuote) {
@@ -125,7 +134,9 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 			$tuote->infos[$index]->attrName = $info;
 		}
 		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-		if (($tuote->varastosaldo >= $tuote->minimimyyntiera) && ($tuote->varastosaldo != 0)) {
+
+		if ( (($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera))
+			or (($tuote->tehdassaldo != 0) and ($tuote->tehdassaldo >= $tuote->minimimyyntiera)) ) {
 			$catalog_products[] = $tuote;
 		} else {
 			$not_available_catalog_products[] = $tuote;
@@ -333,7 +344,11 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?>
+						<?php if ($product->tehdassaldo) : ?>
+							<br> (<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+						<?php endif; ?>
+					</td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_number($product->sisaanostohinta)?></td>
@@ -387,7 +402,11 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?>
+						<?php if ($product->tehdassaldo) : ?>
+							<br> (<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+						<?php endif; ?>
+					</td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_number($product->sisaanostohinta)?></td>

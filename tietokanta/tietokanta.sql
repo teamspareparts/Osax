@@ -246,6 +246,13 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
+CREATE TABLE IF NOT EXISTS `toimittaja_tehdassaldo` (
+  `hankintapaikka_id` int(11) UNSIGNED NOT NULL, -- PK
+  `tuote_articleNo` varchar(30) NOT NULL, -- PK
+  `tehdassaldo` mediumint NOT NULL,
+  PRIMARY KEY (`hankintapaikka_id`,`tuote_articleNo`)
+) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
+
 CREATE TABLE IF NOT EXISTS `brandi` (
   `id` int(11) UNSIGNED NOT NULL, -- PK -- TecDocin id tai oma. Omat id:t alkaa 100 000 ->
   `nimi` varchar(50) NOT NULL, -- UK
