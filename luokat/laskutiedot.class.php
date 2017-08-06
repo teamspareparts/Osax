@@ -204,25 +204,23 @@ class Laskutiedot {
 	 * @return string
 	 */
 	function rahtimaksu_toString ( /*bool*/ $veroton = false, /*bool*/ $ilman_euro = false ) {
-		if ( $veroton ) {
-			$rahti = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
-		} else {
-			$rahti = $this->hintatiedot[ 'rahtimaksu' ];
-		}
-		return number_format( $rahti, 2, ',', '.' ) . ( $ilman_euro ? '' : ' &euro;' );
+		$rahti = ($veroton)
+			? $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1)
+			: $this->hintatiedot[ 'rahtimaksu' ] ;
+
+		return number_format( $rahti, 2, ',', '.' )
+			. ( $ilman_euro ? '' : '&nbsp;&euro;' );
 	}
 
 	/**
 	 * Palauttaa rahtimaksun ALV:n. Mahdollinen formaatti: [0,]xx[ %]
-	 * @param bool $ilman_pros [optional] default=false <p> Tulostetaanko ALV ilman %-merkkiä.
-	 * @param bool $decimaalina [optional] default=false <p> Tulostetaanko ALV decimaalina (vai kokonaislukuna).
+	 * @param bool $ilmanPros [optional] default=false <p> Tulostetaanko ALV ilman %-merkkiä.
+	 * @param int  $decCount  [optional] default=0 <p> Montako desimaalia (0 == pyöristetty kokonaisluku).
 	 * @return string
 	 */
-	function rahtimaksuALV_toString ( /*bool*/ $ilman_pros = false, /*bool*/ $decimaalina = false ) {
-		if ( $decimaalina ) {
-			return number_format( (double)$this->hintatiedot[ 'rahtimaksu_alv' ], 2, ',' );
-		} else
-			return round( (float)$this->hintatiedot[ 'rahtimaksu_alv' ] * 100 ) . ( $ilman_pros ? '' : ' &#37;' );
+	function rahtimaksuALV_toString ( /*bool*/ $ilmanPros = false, /*int*/ $decCount = 0 ) {
+		return number_format( $this->hintatiedot[ 'rahtimaksu_alv' ], $decCount, ',', '.' )
+			. ( $ilmanPros ? '' : '&nbsp;&#37;' );
 	}
 
 	/**
@@ -230,10 +228,8 @@ class Laskutiedot {
 	 * @return string
 	 */
 	function maksutapa_toString ( /*bool*/ $alku = true ) {
-		if ( $this->maksutapa ) {
-			return ( $alku ? "Lasku 14 pv." : "! Maksetaan laskulla &mdash; maksuaika 14 päivää !" );
-		} else {
-			return ( $alku ? "e-korttimaksu" : "! Maksettu korttiveloituksena tilausta tehdessä !" );
-		}
+		return ($this->maksutapa)
+			? ( $alku ? "Lasku 14 pv." : "! Maksetaan laskulla &mdash; maksuaika 14 päivää !" )
+			: ( $alku ? "e-korttimaksu" : "! Maksettu korttiveloituksena tilausta tehdessä !" );
 	}
 }
