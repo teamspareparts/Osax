@@ -25,7 +25,7 @@ merch_auth = "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"
 [Misc]
 indev = "1"
 indev_txt = "<p>Osaxin inDev kehityspuoli."
-update = "1"
+update = "0"
 update_txt = "<p>Sivustoa päivitetään. Käyttö on päivityksen ajaksi estetty.</p><p>YYYY-MM-DD hh:mm"
 header_tervehdys = "<span style='color: red;'>InDev testaussivusto</span>"
 tecdoc_koodi = "149"
