@@ -243,6 +243,7 @@ CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `fax` varchar(50) DEFAULT '',
   `www_url` varchar(50) DEFAULT '',
   `tilaustapa` varchar(50) DEFAULT '',
+  `tehdassaldo_viim_paivitys` timestamp DEFAULT NULL,
   PRIMARY KEY (`id`), UNIQUE KEY (`nimi`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;
 
