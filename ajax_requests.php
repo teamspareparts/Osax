@@ -117,7 +117,7 @@ elseif ( isset( $_POST[ 'tuoteryhma_alennukset' ] ) ) {
 			LEFT JOIN yritys ON yritys_id = yritys.id
 			JOIN hankintapaikka ON hankintapaikka_id = hankintapaikka.id
 			WHERE tuoteryhma_id = ?";
-	$result = $db->query( $sql, array_values( $_POST ), DByhteys::FETCH_ALL );
+	$result = $db->query( $sql, array_values( $_POST ), FETCH_ALL );
 }
 
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa

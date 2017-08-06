@@ -16,7 +16,7 @@ $db = new DByhteys( $config );
 
 // Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
 $sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
-$rows = $db->query( $sql, null, DByhteys::FETCH_ALL );
+$rows = $db->query( $sql, null, FETCH_ALL );
 
 if ( $rows ) {
 
@@ -29,7 +29,7 @@ if ( $rows ) {
 
 	foreach ( $rows as $tilaus ) {
 		$sql = "UPDATE tilaus SET laskunro = ? WHERE id = ?";
-		$result = $db->query( $sql, [$laskunro++, $tilaus->id], DByhteys::FETCH_ALL );
+		$result = $db->query( $sql, [$laskunro++, $tilaus->id], FETCH_ALL );
 
 		echo "{$tilaus->id} lisätty laskunumero ". ($laskunro-1) . "<br>\r\n";
 	}

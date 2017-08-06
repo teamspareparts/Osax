@@ -18,7 +18,7 @@ function hae_tilaukset ( DByhteys $db, User $user ) {
 			WHERE kayttaja_id = ?
 			GROUP BY tilaus.id";
 
-	return $db->query( $sql, [$user->id], DByhteys::FETCH_ALL );
+	return $db->query( $sql, [$user->id], FETCH_ALL );
 }
 
 // Jos käyttäjä on admin, ja tarkoitus hakea asiakkaan tilaukset

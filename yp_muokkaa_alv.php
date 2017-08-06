@@ -13,7 +13,7 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  */
 function hae_kaikki_ALV_kannat( DByhteys $db ) {
 	$sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
-	$rows = $db->query( $sql, NULL, DByhteys::FETCH_ALL );
+	$rows = $db->query( $sql, NULL, FETCH_ALL );
 
 	if ($rows[0]->kanta==0 && $rows[0]->prosentti==0) { unset($rows[0]); }
 	for ( $i=count($rows)+1; $i<=5; $i++ ) { // Täytetään array, jos ei tarpeeksi elementtejä

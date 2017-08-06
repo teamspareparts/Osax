@@ -126,7 +126,7 @@ class User {
 					FROM	toimitusosoite
 					WHERE	kayttaja_id = ?
 					ORDER BY osoite_id";
-			$this->toimitusosoitteet = $db->query( $sql, [ $this->id ], DByhteys::FETCH_ALL, $retType );
+			$this->toimitusosoitteet = $db->query( $sql, [ $this->id ], FETCH_ALL, $retType );
 
 		}
 		elseif ( $to_id >= 0 ) {
