@@ -71,7 +71,7 @@ require_once 'tecdoc_asetukset.php';?>
         //spinning icon (max 5s)
         let cover = $("#cover");
         cover.addClass("loading");
-        setTimeout(function (){ cover.removeClass("loading"); MODAL_OPEN = false; }, 5000);
+        setTimeout(function (){ cover.removeClass("loading"); MODAL_OPEN = false; }, 6000);
 
         //Haetaan tuotteen tiedot
         let functionName = "getDirectArticlesByIds6";
@@ -214,14 +214,16 @@ require_once 'tecdoc_asetukset.php';?>
         /**
          * Haetaan vertailunumerot
          * @param articleNumber
+         * @param genericArticleId
          */
-        function getComparableNumber( /*string*/articleNumber ) {
+        function getComparableNumber( /*string*/articleNumber, /*int*/genericArticleId ) {
             let functionName = "getArticleDirectSearchAllNumbersWithState";
             let params = {
                 "articleCountry": TECDOC_COUNTRY,
                 "lang": TECDOC_LANGUAGE,
                 "provider": TECDOC_MANDATOR,
                 "articleNumber": articleNumber,
+	            "genericArticleId": genericArticleId,
                 "numberType": 10,
                 "searchExact": true
             };
@@ -294,15 +296,16 @@ require_once 'tecdoc_asetukset.php';?>
             $('#maintab').tab('show');
         }
 
-        let documents, infos, brand, articleNo, name, OEtable, imgs, articleId, display_img, display_img_id, img;
+        let documents, infos, brand, articleNo, name, OEtable, imgs, articleId, display_img, display_img_id, img, genericArticleId;
         response = response.data.array[0];
         articleId = response.directArticle.articleId;
+        articleNo = response.directArticle.articleNo;
+        genericArticleId = response.directArticle.genericArticleId;
 
         //Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
         imgs = imgsToHTML(response);
         OEtable = oesToHTML(response.oenNumbers);
         name = response.directArticle.articleName;
-        articleNo = response.directArticle.articleNo;
         brand = response.directArticle.brandName;
         infos = infosToHTML(response);
         documents = getDocuments(response);
@@ -338,7 +341,7 @@ require_once 'tecdoc_asetukset.php';?>
         $("#dd").empty();
 
         //Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
-        getComparableNumber(articleNo);
+        getComparableNumber(articleNo, genericArticleId);
         //Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
         getLinkedManufacturers(articleId);
         showModal(); //näytetään modal
