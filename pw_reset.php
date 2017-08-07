@@ -57,14 +57,13 @@ function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
  */
 function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_salasana, $reset_key ) {
 	$hajautettu_uusi_salasana = password_hash($uusi_salasana, PASSWORD_DEFAULT);
-	$query = "	UPDATE	kayttaja 
-				SET 	salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
-				WHERE	id = ? ";
-	$db->query( $query, [$hajautettu_uusi_salasana, $user->id] );
+	$sql = "UPDATE kayttaja SET salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
+			WHERE id = ?";
+	$db->query( $sql, [$hajautettu_uusi_salasana, $user->id] );
 
 	//Merkataan avain käytetyksi
-	$query = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
-	$db->query( $query, [$user->id, $reset_key] );
+	$sql = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
+	$db->query( $sql, [$user->id, $reset_key] );
 }
 
 if ( empty($_GET['id']) ) {

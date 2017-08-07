@@ -43,7 +43,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
-$sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%Y-%m-%d %H:00') AS simple_pvm, loppu_pvm
+$sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%d.%m.%Y %H:00') AS simple_pvm, loppu_pvm
 		FROM etusivu_uutinen
 		WHERE aktiivinen = 1 AND loppu_pvm > CURDATE()
 		ORDER BY pvm DESC";
@@ -127,11 +127,13 @@ $css_version = filemtime( 'css/styles.css' );
 			<section class="<?=($column) ? "{$column[0]->col_loc}" : ''?> white-bg"
 				<?=(!$column) ? "hidden" : ''?> >
 
-				<div class="otsikko_container blue">
-					<section class="otsikko">
-						<h1><?=$column[0]->col_loc?></h1>
-					</section>
-				</div>
+				<?php if ( $_SESSION['indev'] or $user->isAdmin() ) : ?>
+					<div class="otsikko_container blue">
+						<section class="otsikko">
+							<h1><?=$column[0]->col_loc?></h1>
+						</section>
+					</div>
+				<?php endif; ?>
 				<ul>
 					<?php foreach ( $column as $uutinen ) : ?>
 						<li>

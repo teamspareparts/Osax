@@ -3,6 +3,7 @@ require '_start.php'; global $db, $user, $cart;
 
 /**
  * @param DByhteys $db
+ * @param \User    $user
  * @param array    $variables
  * @return string <p> for _SESSION['feedback']
  */
@@ -17,18 +18,15 @@ function vaihda_salasana( DByhteys $db, User $user, array $variables ) {
 	if ( $variables[ 'uusi_salasana' ] !== $variables[ 'vahv_uusi_salasana' ] ) {
 		return "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
 	}
-	if ( $variables[ 'uusi_salasana' ] !== $variables[ 'vahv_uusi_salasana' ] ) {
-		return "<p class='error'>Salasanan vahvistus ei täsmää.</p>";
-	}
 
 	$hajautettu_uusi_salasana = password_hash( $variables[ 'uusi_salasana' ], PASSWORD_DEFAULT );
-	if ( $db->query( "UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
-					 [ $hajautettu_uusi_salasana, $variables[ 'user_id' ] ] )
+	if ( $db->query( "UPDATE kayttaja SET salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0
+							WHERE id = ?", [ $hajautettu_uusi_salasana, $variables[ 'user_id' ] ] )
 	) {
 		return "<p class='success'>Salasanan vaihtaminen onnistui.</p>";
 	}
 	else {
-		return "<p class='error'>Salasanan vaihtaminen epäonnistui.</p>";
+		return "<p class='error'>Salasanan vaihtaminen epäonnistui. Tietokantavirhe.</p>";
 	}
 }
 
