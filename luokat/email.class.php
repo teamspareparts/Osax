@@ -131,14 +131,14 @@ class Email {
 		$config = parse_ini_file( Email::$configPath );
 		$date = date('d.m.Y');
 		Email::$targetEmail = $config['kirjanpito_email'];
-		Email::$subject = "Tapahtumalistausraportti {$date}";
+		Email::$subject = "Osax Oy tapahtumalistaus {$date}";
 		Email::$message = "<p>Hei,</p>
-				<p>Ohessa Osax Oy:n vimeisimmät tilaukset.</p>
+				<p>Ohessa Osax Oy:n tilaukset eiliseltä.</p>
 				<p>Yhteystiedot:<br>
 					Osax Oy<br>
-					Jukolankatu 19 80100 Joensuu<br>		
+					Jukolankatu 19, 80100 Joensuu<br>		
 					puh. 010 5485200<br>
-					janne@osax.fi';</p>";
+					janne@osax.fi;</p>";
 
 		Email::$fileName = $fileName;
 		Email::$file = $file;
