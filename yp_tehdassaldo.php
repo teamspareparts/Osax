@@ -6,8 +6,10 @@ if ( !$user->isAdmin() ) {
 
 $hankintapaikka_id = !empty($_GET['hkp']) ? $_GET['hkp'] : null;
 
-if ( !empty( $_FILES ) and !empty($hankintapaikka_id) ) {
+$sql = "SELECT id, nimi, DATE_FORMAT(tehdassaldo_viim_paivitys,'%d.%m.%Y %H:%i') AS viimPaiv FROM hankintapaikka WHERE id = ?";
+$hkp = $db->query( $sql, [$hankintapaikka_id]);
 
+if ( !empty( $_FILES ) and !empty($hankintapaikka_id) ) {
 	// Alustukset
 	$ohita_otsikkorivi = !empty($_POST['otsikkorivi']);
 	$rows_in_query_at_one_time = 15000;
@@ -20,8 +22,8 @@ if ( !empty( $_FILES ) and !empty($hankintapaikka_id) ) {
 
 	while (($data = fgetcsv($handle, 1000, ";")) !== false) {
 		$values[] = (int)$hankintapaikka_id; // hkp-ID
-		$values[] = utf8_encode($data[0]);  // tuote artikkeli-nro
-		$values[] = (int)$data[1]; // tehdassaldo
+		$values[] = utf8_encode( str_replace( [" ","'"], "", $data[ 0 ] ) );  // tuote artikkeli-nro
+		$values[] = (int)$data[ 1 ]; // tehdassaldo
 	}
 
 	$sql = "INSERT INTO toimittaja_tehdassaldo (hankintapaikka_id, tuote_articleNo, tehdassaldo) VALUES (?,?,?)
@@ -36,6 +38,9 @@ if ( !empty( $_FILES ) and !empty($hankintapaikka_id) ) {
 						$sql),
 			$values_chunk);
 	}
+
+	$db->query( "UPDATE hankintapaikka SET tehdassaldo_viim_paivitys = NOW() WHERE id = ?",
+	            [$hankintapaikka_id] );
 
 	$_SESSION['feedback'] = "<p class='success'>Tehdassaldot päivitetty onnistuneesti</p>";
 }
@@ -71,6 +76,8 @@ if ( false and !empty($_POST) or !empty($_FILES) ) { //Estetään formin uudelle
 <main class="main_body_container lomake">
 	<div class="otsikko_container">
 		<section class="takaisin">
+			<a href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hkp->id?>" class="nappi grey">
+				<i class="material-icons">navigate_before</i>Hankintapaikka</a>
 		</section>
 		<section class="otsikko">
 			<h1>Tehdassaldojen manuaalinen päivitys</h1>
@@ -79,15 +86,16 @@ if ( false and !empty($_POST) or !empty($_FILES) ) { //Estetään formin uudelle
 		</section>
 	</div>
 
-	<div class="white-bg" style="border:1px solid;border-radius:3px;width:450px;margin:auto;">
-		<p>Tällä sivulla voit päivittää toimittajan tehdassaldon.</p>
-		<p>CSV-tiedoston muoto:<br>
-			<span style="text-align: right;">
-				(Vaihtoehtoinen otsikkorivi)<br>
-				tuotenro;kpl-määrä
-			</span>
-		</p>
-		<p>Viimeksi päivitetty: </p>
+	<div class="white-bg" style="border:1px solid;border-radius:3px;width:450px;margin:auto;text-align:left;padding:10px;">
+		<p>Tällä sivulla voit päivittää <strong><?="{$hkp->id}: {$hkp->nimi}"?></strong> tehdassaldot.</p>
+		<p>Viimeksi päivitetty: <strong><?= !empty($hkp->viimPaiv) ? $hkp->viimPaiv : "Ei koskaan" ?></strong></p>
+		<div>CSV-tiedoston muoto:<br>
+			<p style="margin-left:20px;margin-top:3px;">
+			(Vaihtoehtoinen otsikkorivi)<br>
+			tuote-nro ; kpl-määrä
+			</p>
+		</div>
+		<p>Tuotenumeroista poistetaan tyhjät välit ja heittomerkit.</p>
 	</div>
 	<br><br>
 
