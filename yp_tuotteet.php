@@ -371,18 +371,27 @@ elseif ( !empty($_POST['tuote_tuoteryhma']) ) {
 	}
 }
 elseif ( !empty($_POST['tuote_linkitys']) ) {
-	//TODO: indev
-	/*
 	$articleNo = mb_strtoupper(preg_replace('/\s+/', '', $_POST['tecdoctuote']['article']));
+	$brandNo = (int)$_POST['tecdoctuote']['brand'];
+	// Lisätään haussa käytetty tuote
 	$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) VALUES (?,?,?)
 			ON DUPLICATE KEY 
-			UPDATE brandNo = VALUES(brandNo), articleNo = VALUES(articleNo)";
-	$result = $db->query($sql, [$_POST['id'], $_POST['tecdoctuote']['brand'], $articleNo]);
+			UPDATE tuote_id = tuote_id";
+	$result = $db->query($sql, [$_POST['id'], $brandNo, $articleNo]);
+	// Lisätään kaikki tecdocista löytyvät vertailutuotteet
+	$verrattavat_tuotteet = getArticleDirectSearchAllNumbersWithState($articleNo, 3, true, $brandNo);
+	foreach ( $verrattavat_tuotteet as $tuote ) {
+		$tuote->articleNo = str_replace(" ", "", $tuote->articleNo);
+		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) VALUES (?,?,?)
+			ON DUPLICATE KEY 
+			UPDATE tuote_id = tuote_id";
+		$db->query($sql, [$_POST['id'], $tuote->brandNo, $tuote->articleNo]);
+	}
 	if ( $result ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote linkitetty onnistuneesti.</p>';
 	} else {
 		$_SESSION["feedback"] = '<p class="error">Linkitys epäonnistui.</p>';
-	}*/
+	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -727,12 +736,12 @@ require 'tuotemodal.php';
 				<span style="font-weight:bold;">Linkitä TecDoc tuotteisiin:</span> \
 				<input type="hidden" name="id" value="' + id + '"> \
 				<br> \
-				<label for="tecdoctuote_brand">Brändin id:</label> \
-				<input type="number" name="tecdoctuote[brand]" class="required" \
+				<label for="tecdoctuote_brand" class="required">Brändin id:</label> \
+				<input type="number" name="tecdoctuote[brand]" \
 					id="tecdoctuote_brand" step="1" min="1" autocomplete="off" required> \
 				<br>\
-				<label for="tecdoctuote_article">Tuotenumero:</label>\
-				<input type="text" name="tecdoctuote[article]" class="required"\
+				<label for="tecdoctuote_article" class="required">Tuotenumero:</label>\
+				<input type="text" name="tecdoctuote[article]" \
 				    id="tecdoctuote_article" autocomplete="off" required> \
 				<button onclick="return nayta_tecdoctuotteet();">Hae</button> \
 				<br> \
@@ -815,13 +824,12 @@ require 'tuotemodal.php';
     }
 
     /**
-     *
+     * Hakee tuotteen vertailunumerot muokkaus modaliin.
      */
     function nayta_tecdoctuotteet(){
         const search_number = document.getElementById("tecdoctuote_article").value;
         const brand_number = document.getElementById("tecdoctuote_brand").value;
         let submit_painike = document.getElementById("tuote_linkitys");
-        let linkitys_form = document.getElementById("tuote_linkitys_form");
         let table = document.getElementById("vertailunumerot");
         submit_painike.disabled = true; // Submit disabled
         // Tyhjennetään taulu
@@ -834,6 +842,7 @@ require 'tuotemodal.php';
             "lang": TECDOC_LANGUAGE,
             "provider": TECDOC_MANDATOR,
             "articleNumber": search_number,
+	        "brandId": brand_number,
             "numberType": 10,
             "searchExact": true
         };
@@ -868,65 +877,7 @@ require 'tuotemodal.php';
 	            }
 
                 submit_painike.disabled = false; // Submit enabled
-                /*
-                // Löydetty tuote tauluun
-                let row = table.insertRow(0);
-                let brand_no = row.insertCell(0);
-                let brand = row.insertCell(1);
-                let article_no = row.insertCell(2);
-                brand_no.innerHTML = response.brandNo;
-                brand.innerHTML = response.brandName;
-                article_no.innerHTML = response.articleNo;
 
-                // Tyylittely
-                row.style.backgroundColor = "MediumTurquoise";
-                row.style.fontWeight = "bold";
-
-                // Hidden inputs
-                let input = document.createElement("input");
-                input.setAttribute("type", "hidden");
-                input.setAttribute("name", "tecdoctuote[brand]");
-                input.setAttribute("value", response.brandNo);
-                linkitys_form.appendChild(input);
-
-                input = document.createElement("input");
-                input.setAttribute("type", "hidden");
-                input.setAttribute("name", "tecdoctuote[article]");
-                input.setAttribute("value", response.articleNo);
-                linkitys_form.appendChild(input);
-
-                //Haetaan vertailunumerot
-	            let generic_article_id = response.genericArticleId;
-                let functionName = "getArticleDirectSearchAllNumbersWithState";
-                let params = {
-                    "articleCountry": TECDOC_COUNTRY,
-                    "lang": TECDOC_LANGUAGE,
-                    "provider": TECDOC_MANDATOR,
-                    "articleNumber": search_number,
-                    "genericArticleId": generic_article_id,
-                    "numberType": 3,
-                    "searchExact": true
-                };
-                params = JSON.stringify(params).replace(/,/g,", ");
-                tecdocToCatPort[functionName] (params, function(response) {
-                    if (response.data) {
-                        if ( table.rows.length !== 1 ) {
-                            return false;
-                        }
-                        response = response.data.array;
-                        // Vertailunumerot tauluun
-                        for (let i = 0; i < response.length; i++) {
-                            let row = table.insertRow(0);
-                            let brand_no = row.insertCell(0);
-                            let brand = row.insertCell(1);
-                            let article_no = row.insertCell(2);
-                            brand_no.innerHTML = response[i].brandNo;
-                            brand.innerHTML = response[i].brandName;
-                            article_no.innerHTML = response[i].articleNo;
-                        }
-                    }
-                    submit_painike.disabled = false; // Submit enabled
-                });*/
             } else {
                 // Ei tuloksia
                 let row = table.insertRow(0);

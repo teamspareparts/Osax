@@ -112,7 +112,7 @@ unset($_SESSION["feedback"]);
 		        <!-- Brändin nimi ja kuva -->
 	            <div class="line">
 	                <img src="<?=$brand->url?>" style="vertical-align:middle; padding-right:10px;">
-	                <span><?=mb_strtoupper($brand->nimi)?></span>
+	                <span><?=mb_strtoupper($brand->nimi)?> - <?=$brand->id?></span>
 	            </div>
 		        <!-- Viimeisin hinnastonpäivitys -->
 	            <?php if ( !empty($brand->hinnaston_pvm) ) : ?>

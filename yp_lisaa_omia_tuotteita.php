@@ -192,6 +192,54 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 }
 
 /**
+ * @param DByhteys $db
+ * @param $hankintapaikka_id
+ * @return array
+ */
+function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id ) {
+	//TODO indev
+	// Alustukset
+	$otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
+	$row = 0;
+	$failed_inserts = [];
+	$handle = fopen($_FILES['linkitykset']['tmp_name'], 'r'); // Tiedostokahva
+
+	while (($data = fgetcsv($handle, 1000, ";")) !== false) {
+		$row++;
+		// Ohitetaan otsikkorivi
+		if ( $otsikkorivi ) {
+			$otsikkorivi = false;
+			continue;
+		}
+		// Tarkastukset
+		if ( count($data) !== 4 ) {
+			$failed_inserts[] = "{$row} - Väärä määrä rivejä.";
+			continue;
+		}
+		if ( !$data[0] && !$data[1] && !$data[2] && !$data[3] ) {
+			$failed_inserts[] = "{$row} - Jokin soluista on tyhjä.";
+			continue;
+		}
+
+		// Tietokantakysely
+		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, hae_tecdoc_vertailut) 
+				SELECT tuote.id, ?, ?, 1
+				FROM tuote
+				WHERE tuote.tecdocissa = 0 
+					AND tuote.brandNo = ?
+					AND tuote.articleNo = ?
+					AND tuote.hankintapaikka_id = ?
+				ON DUPLICATE KEY UPDATE tuote_linkitys.tuote_id = tuote_linkitys.tuote_id";
+		$result = $db->query($sql, [$data[2], $data[3], $data[0], $data[1], $hankintapaikka_id]);
+		if ( !$result ) {
+			$failed_inserts[] = "{$row} - Itse perustettua tuotetta ei löytynyt kannasta.";
+			continue;
+		}
+	}
+	return $failed_inserts;
+}
+
+/**
  * Perustetaan oma tuote.
  * @param DByhteys $db
  * @param $values
@@ -279,6 +327,14 @@ elseif ( isset($_POST['lisaa_tuote']) ){
 		$_SESSION['feedback'] = "<p class='success'>Tuote perustettu.</p>";
 	} else {
 		$_SESSION['feedback'] = "<p class='success'>Tuotteen perustaminen epäonnistui.</p>";
+	}
+}
+elseif ( isset($_FILES['linkitykset']['name']) ) {
+	if (!$_FILES['linkitykset']['error']) { // Jos ei virheitä
+		$result = lue_linkitykset_tietokantaan($db, $hankintapaikka->id);
+		$_SESSION['feedback'] = "<p class='success'></p>";
+	} else { // Jos virhe
+		$_SESSION['feedback'] = "Error: " . $_FILES['linkitykset']['error'];
 	}
 }
 
@@ -460,6 +516,24 @@ unset($_SESSION["feedback"]);
 				<br><br>
 
 				<input type="submit" name="lisaa_tuote" value="Lisää">
+			</form>
+		</fieldset>
+
+		<!-- Tuotteiden linkitys tecdoctuotteisiin -->
+		<fieldset><legend>Linkitä tecdoctuotteisiin</legend>
+			<form action="" method="post" enctype="multipart/form-data">
+				<!-- Tiesosto -->
+				<label for="linkitys_tiedosto">Luettava tiedosto:</label>
+				<input type="file" name="linkitykset" id="linkitys_tiedosto" accept=".csv"><br>
+				<!-- Otsikkorivi -->
+				<label for="linkitys_otsikkorivi">Otsikkorivi: </label>
+				<input type="checkbox" name="otsikkorivi" id="linkitys_otsikkorivi"><br>
+				<br>
+				1: Brändin id<br>
+				2: Tuotenumero<br>
+				3: Tecdoctuotteen brändin id<br>
+				4: Tecdoctuotteen tuotenumero<br>
+				<input type="submit" name="linkitys" value="Submit">
 			</form>
 		</fieldset>
 	</div>
