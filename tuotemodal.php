@@ -56,22 +56,29 @@ require_once 'tecdoc_asetukset.php';?>
     var TECDOC_LANGUAGE = <?= json_encode(TECDOC_LANGUAGE); ?>;
     var TECDOC_THUMB_URL = <?= json_encode(TECDOC_THUMB_URL); ?>;
 
-    let MODAL_OPEN = false;
+    const TIMEOUT = 7000; // Aika (ms), jonka jälkeen modalin avaus keskeytetään
+    let MODAL_OPEN = false; // Muuttuja ilmaisee pitäisikö modalin olla auki vai ei
 
     /**
      * Tuoteikkuna
      * @param id    Tuotteen articleId
      */
     function productModal ( /*int*/id ) {
+        // Tarkastetaan, onko modal jo auki
         if ( MODAL_OPEN ) {
 			return false;
         }
         MODAL_OPEN = true;
 
-        //spinning icon (max 5s)
+        // Spinning icon
         let cover = $("#cover");
         cover.addClass("loading");
-        setTimeout(function (){ cover.removeClass("loading"); MODAL_OPEN = false; }, 6000);
+
+        // Timeout
+        setTimeout(function (){
+            cover.removeClass("loading");
+            MODAL_OPEN = false;
+        }, TIMEOUT);
 
         //Haetaan tuotteen tiedot
         let functionName = "getDirectArticlesByIds6";
@@ -255,7 +262,6 @@ require_once 'tecdoc_asetukset.php';?>
             }
             comparableNumbers += "</table>";
 
-            //lisätään modaliin
             $("#menu3").append(comparableNumbers);
         }
 
@@ -289,10 +295,13 @@ require_once 'tecdoc_asetukset.php';?>
             // Poistetaan cover
             $('#cover').removeClass("loading");
             // Avataan modal
+	        if ( MODAL_OPEN === false ) {
+	            return false;
+            }
             $("#myModal").modal({
-                keyboard: true
+	            keyboard: true
             });
-            // Avataan aina "tuote" tabi ensin
+            // Avataan "tuote" tabi ensin
             $('#maintab').tab('show');
         }
 
@@ -302,7 +311,7 @@ require_once 'tecdoc_asetukset.php';?>
         articleNo = response.directArticle.articleNo;
         genericArticleId = response.directArticle.genericArticleId;
 
-        //Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
+        // Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
         imgs = imgsToHTML(response);
         OEtable = oesToHTML(response.oenNumbers);
         name = response.directArticle.articleName;
@@ -310,7 +319,7 @@ require_once 'tecdoc_asetukset.php';?>
         infos = infosToHTML(response);
         documents = getDocuments(response);
 
-        //display image
+        // Display image
         if (response.articleThumbnails.length === 0) {
             display_img = "img/ei-kuvaa.png";
             img = '<img src=' + display_img + ' border="1" id="display_img">'
@@ -340,11 +349,11 @@ require_once 'tecdoc_asetukset.php';?>
         $("#menu3").empty().append(OEtable);
         $("#dd").empty();
 
-        //Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
+        // Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
         getComparableNumber(articleNo, genericArticleId);
-        //Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
+        // Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
         getLinkedManufacturers(articleId);
-        showModal(); //näytetään modal
+        showModal(); // Näytetään modal
 
     }
 

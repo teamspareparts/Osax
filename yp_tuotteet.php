@@ -436,7 +436,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$all_products = $filtered_product_arrays[1];
 	$own_products = search_own_products_from_database( $db, $number, $exact );
 	$catalog_products = array_merge($catalog_products, $own_products);
-	//$all_products = array_merge($all_products, $own_products);
+	$all_products = array_merge($all_products, $own_products);
 	sortProductsByPrice($catalog_products);
 }
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
