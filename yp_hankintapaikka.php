@@ -70,7 +70,7 @@ $linkitetyt_brandit = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 		<!-- Otsikko ja painikkeet -->
 		<div class="otsikko_container">
 			<section class="takaisin">
-				<a href="yp_hankintapaikka.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+				<a href="yp_hankintapaikat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Hankintapaikat</a>
 			</section>
 			<section class="otsikko">
 				<span><?=$hankintapaikka->hankintapaikka_id?>&nbsp;&nbsp;</span>
@@ -80,6 +80,7 @@ $linkitetyt_brandit = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 				<a href="yp_hankintapaikka_linkitys.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi">Linkitä brändi</a>
 				<a href="yp_lisaa_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Lisää TecDoc tuotteita</a>
 				<a href="yp_lisaa_omia_tuotteita.php?hankintapaikka=<?=$hankintapaikka->id?>" class="nappi" >Perusta omia tuotteita</a>
+				<a href="./yp_tehdassaldo.php?hkp=<?=$hankintapaikka->id?>" class="nappi">Tehdassaldot</a>
 			</section>
 		</div>
 
