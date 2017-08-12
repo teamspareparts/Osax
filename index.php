@@ -7,21 +7,8 @@ $config = parse_ini_file( "./config/config.ini.php" );
  */
 if ( !empty($_GET['redir']) || !empty($_SESSION['id']) ) {
 
-	if ( !empty( $_SESSION[ 'id' ] ) ) { // Jo sisäänkirjautunut
-		$mode = 99;
-	} else {
-		$mode = $_GET[ "redir" ]; // Uudelleenohjauksen syy
-	}
+	$mode = !empty( $_SESSION[ 'id' ] ) ? 99 : $_GET[ "redir" ];
 
-	/**
-	 * @var array <p> Error-boxin väritys. Muuta haluamaasi väriin. Jos haluat muuttaa
-	 * vain yksittäisen boxin värin, niin muuta suoraan style-merkkijonoon.
-	 */
-	$colors = [
-		'warning' => 'red',
-		'success' => 'green',
-		'note' => 'blue',
-	];
 	/**
 	 * @var array <p> Pitää sisällään käyttäjälle sisälle tulostettavan viestin.
 	 * GET-arvona saatava $mode määrittelee mikä index tulostetaan.
