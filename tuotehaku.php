@@ -423,7 +423,7 @@ require 'tuotemodal.php';
                     </td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
 						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
-							<i class="material-icons">info</i></button>
+							<i class="material-icons" style="color:#2f5cad;">help_outline</i></button>
 						<?php if ($user->isAdmin()) : ?>
                             <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>"
                                     onclick="showLisaaOstotilauskirjalleDialog(<?=$product->id?>,
@@ -457,7 +457,7 @@ require 'tuotemodal.php';
 									'<?=$product->brandName?>',
 									'<?=$product->articleName?>',
 									'<?=$product->articleId?>');">
-						<i class="material-icons">help_outline</i></button>
+						<i class="material-icons" style="color:#2f5cad;">help_outline</i></button>
                     </td>
 				</tr>
 			<?php endforeach; ?>
