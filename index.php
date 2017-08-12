@@ -106,7 +106,7 @@ $css_version = filemtime( 'css/login_styles.css' );
 		</div>
 	<?php endif;
 	if ( $config[ 'indev' ] ) : ?>
-		<div class="info">
+		<div class="warning">
 			<?= $config[ 'indev_txt' ] ?>
 		</div>
 	<?php endif; ?>
