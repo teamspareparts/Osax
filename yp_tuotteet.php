@@ -371,27 +371,29 @@ elseif ( !empty($_POST['tuote_tuoteryhma']) ) {
 	}
 }
 elseif ( !empty($_POST['tuote_linkitys']) ) {
+	/**
 	$articleNo = mb_strtoupper(preg_replace('/\s+/', '', $_POST['tecdoctuote']['article']));
 	$brandNo = (int)$_POST['tecdoctuote']['brand'];
+	$genericArticleId = !empty($_POST['generic_article_id']) ? $_POST['generic_article_id'] : null;
 	// Lisätään haussa käytetty tuote
-	$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) VALUES (?,?,?)
+	$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId) VALUES (?,?,?,?)
 			ON DUPLICATE KEY 
 			UPDATE tuote_id = tuote_id";
-	$result = $db->query($sql, [$_POST['id'], $brandNo, $articleNo]);
+	$result = $db->query($sql, [$_POST['id'], $brandNo, $articleNo, $genericArticleId]);
 	// Lisätään kaikki tecdocista löytyvät vertailutuotteet
-	$verrattavat_tuotteet = getArticleDirectSearchAllNumbersWithState($articleNo, 3, true, $brandNo);
+	$verrattavat_tuotteet = getArticleDirectSearchAllNumbersWithState($articleNo, 3, true, null, $genericArticleId);
 	foreach ( $verrattavat_tuotteet as $tuote ) {
 		$tuote->articleNo = str_replace(" ", "", $tuote->articleNo);
-		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) VALUES (?,?,?)
+		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId) VALUES (?,?,?,?)
 			ON DUPLICATE KEY 
 			UPDATE tuote_id = tuote_id";
-		$db->query($sql, [$_POST['id'], $tuote->brandNo, $tuote->articleNo]);
+		$db->query($sql, [$_POST['id'], $tuote->brandNo, $tuote->articleNo, $genericArticleId]);
 	}
 	if ( $result ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote linkitetty onnistuneesti.</p>';
 	} else {
 		$_SESSION["feedback"] = '<p class="error">Linkitys epäonnistui.</p>';
-	}
+	}*/
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -735,6 +737,7 @@ require 'tuotemodal.php';
 			<form method="post" id="tuote_linkitys_form"> \
 				<span style="font-weight:bold;">Linkitä TecDoc tuotteisiin:</span> \
 				<input type="hidden" name="id" value="' + id + '"> \
+				<input type="hidden" name="generic_article_id" value="" id="generic_article_id"> \
 				<br> \
 				<label for="tecdoctuote_brand" class="required">Brändin id:</label> \
 				<input type="number" name="tecdoctuote[brand]" \
@@ -828,7 +831,7 @@ require 'tuotemodal.php';
      */
     function nayta_tecdoctuotteet(){
         const search_number = document.getElementById("tecdoctuote_article").value;
-        const brand_number = document.getElementById("tecdoctuote_brand").value;
+        const brand_number = +document.getElementById("tecdoctuote_brand").value;
         let submit_painike = document.getElementById("tuote_linkitys");
         let table = document.getElementById("vertailunumerot");
         submit_painike.disabled = true; // Submit disabled
@@ -842,7 +845,6 @@ require 'tuotemodal.php';
             "lang": TECDOC_LANGUAGE,
             "provider": TECDOC_MANDATOR,
             "articleNumber": search_number,
-	        "brandId": brand_number,
             "numberType": 10,
             "searchExact": true
         };
@@ -860,19 +862,26 @@ require 'tuotemodal.php';
                 let row = header.insertRow(0);
                 let th = document.createElement("th");
                 th.innerText = "Vertailunumerot";
-                th.colSpan = 3;
+                th.colSpan = 4;
                 row.appendChild(th);
 
                 // Vertailunumerot
 	            for (let i = 0; i < response.length; i++) {
 		            if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
-			            let row = table.insertRow(1);
+		                // Jos haettu tuote löytyy tecdocista otetaan talteen genericArticleId
+			            if ( response[i].brandNo === brand_number &&
+				            response[i].articleNo.replace(" ","") === search_number.toUpperCase().replace(" ","") ) {
+                            document.getElementById("generic_article_id").value = response[i].genericArticleId;
+			            }
+		                let row = table.insertRow(1);
 			            let brand_no = row.insertCell(0);
 			            let brand = row.insertCell(1);
 			            let article_no = row.insertCell(2);
+			            let article_name = row.insertCell(3);
 			            brand_no.innerHTML = response[i].brandNo;
 			            brand.innerHTML = response[i].brandName;
 			            article_no.innerHTML = response[i].articleNo;
+			            article_name.innerHTML = response[i].articleName;
 		            }
 	            }
 

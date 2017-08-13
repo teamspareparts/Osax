@@ -389,6 +389,7 @@ CREATE TABLE IF NOT EXISTS `tuote_linkitys`(
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `brandNo` int(11) UNSIGNED NOT NULL, -- PK
   `articleNo` varchar(30) NOT NULL, -- PK
+  `genericArticleId` smallint DEFAULT NULL,
   `hae_tecdoc_vertailut` tinyint(1) NOT NULL DEFAULT 0, -- Tarvitseeko hakea tecdocista vertailunumerot
   PRIMARY KEY (`tuote_id`,`brandNo`, `articleNo`),
   CONSTRAINT fk_tuoteLinkitys_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)

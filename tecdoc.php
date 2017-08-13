@@ -121,14 +121,16 @@ function getAmBrandAddress( $brandNo ) {
  * @return array
  */
 function getArticleDirectSearchAllNumbersWithState( /*string*/ $number, /*int*/ $search_type,
-													/*bool*/ $exact, /*int*/ $brandNo = NULL ) {
+													/*bool*/ $exact, /*int*/ $brandNo = NULL,
+													/*int*/ $genericArticleId = NULL) {
 	$function = 'getArticleDirectSearchAllNumbersWithState';
 	$params = [
 		'lang' => TECDOC_LANGUAGE,
 		'articleCountry' => TECDOC_COUNTRY,
 		'provider' => TECDOC_PROVIDER,
 		'articleNumber' => $number,
-        'brandNo' => $brandNo,
+        'brandId' => $brandNo,
+		'genericArticleId' => $genericArticleId,
         'searchExact' => $exact,
 		'numberType' => $search_type, //10: mikä tahansa numerotyyppi, 0:tuotenumero, 3:vertailut
 	];

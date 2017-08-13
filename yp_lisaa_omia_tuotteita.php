@@ -330,12 +330,13 @@ elseif ( isset($_POST['lisaa_tuote']) ){
 	}
 }
 elseif ( isset($_FILES['linkitykset']['name']) ) {
+	/**
 	if (!$_FILES['linkitykset']['error']) { // Jos ei virheitä
 		$result = lue_linkitykset_tietokantaan($db, $hankintapaikka->id);
 		$_SESSION['feedback'] = "<p class='success'></p>";
 	} else { // Jos virhe
 		$_SESSION['feedback'] = "Error: " . $_FILES['linkitykset']['error'];
-	}
+	}*/
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
