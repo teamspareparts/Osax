@@ -165,10 +165,13 @@ class Laskutiedot {
 				$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'perus' ] = 0;
 				$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'maara' ] = 0;
 			}
+			// Summa josta ALV lasketaan
 			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'perus' ] += $rahti_ilman_alv;
+			// ALV:n määrä
 			$this->hintatiedot[ 'alv_kannat' ][ '24' ][ 'maara' ]
 				+= $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
 
+			// Yhteensä kaikki (ml. tuotteet ja kaikki ALV-kannat)
 			$this->hintatiedot[ 'alv_perus' ] += $rahti_ilman_alv;
 			$this->hintatiedot[ 'alv_maara' ] += $this->hintatiedot[ 'rahtimaksu' ] - $rahti_ilman_alv;
 		}
@@ -219,7 +222,11 @@ class Laskutiedot {
 	 * @return string
 	 */
 	function rahtimaksuALV_toString ( /*bool*/ $ilmanPros = false, /*int*/ $decCount = 0 ) {
-		return number_format( $this->hintatiedot[ 'rahtimaksu_alv' ], $decCount, ',', '.' )
+		$rahtiALV = ($decCount == 0)
+			? $this->hintatiedot[ 'rahtimaksu_alv' ] * 100
+			: $this->hintatiedot[ 'rahtimaksu_alv' ] ;
+
+		return number_format( $rahtiALV, $decCount, ',', '.' )
 			. ( $ilmanPros ? '' : '&nbsp;&#37;' );
 	}
 

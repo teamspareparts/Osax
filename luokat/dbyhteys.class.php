@@ -65,8 +65,8 @@ class DByhteys {
 
 	/**
 	 * Suorittaa SQl-koodin prepared stmt:ia käytttäen. Palauttaa haetut rivit (SELECT),
-	 * tai muutettujen rivien määrän muussa tapauksessa.<br>Defaultina palauttaa yhden rivin.
-	 * Jos tarvitset useamman, huom. kolmas parametri.<p><p>
+	 * tai muutettujen rivien määrän muussa tapauksessa. <br>
+	 * Defaultina palauttaa yhden rivin. Jos tarvitset useamman, huom. kolmas parametri.<p><p>
 	 * Huom. Liian suurilla tuloksilla saattaa kaatua. Älä käytä FetchAll:ia jos odotat kymmeniä tuhansia tuloksia.<p>
 	 * Ilman neljättä parametria palauttaa tuloksen geneerisenä objektina.
 	 *
@@ -150,11 +150,9 @@ class DByhteys {
 	 * @return mixed|stdClass
 	 */
 	public function get_next_row( /*int*/ $returnType = null, /*string*/ $className = '' ) {
-		if ( empty( $className ) ) {
-			return $this->prepared_stmt->fetch( $returnType );
-		} else {
-			return $this->prepared_stmt->fetchObject( $className );
-		}
+		return (empty( $className ))
+			? $this->prepared_stmt->fetch( $returnType )
+			: $this->prepared_stmt->fetchObject( $className ) ;
 	}
 
 	/**
