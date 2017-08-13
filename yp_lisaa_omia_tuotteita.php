@@ -197,11 +197,11 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
  * @return array
  */
 function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id ) {
-	//TODO indev
 	// Alustukset
 	$otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
 	$row = 0;
 	$failed_inserts = [];
+	$successful_inserts = 0;
 	$handle = fopen($_FILES['linkitykset']['tmp_name'], 'r'); // Tiedostokahva
 
 	while (($data = fgetcsv($handle, 1000, ";")) !== false) {
@@ -213,13 +213,14 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 		}
 		// Tarkastukset
 		if ( count($data) !== 4 ) {
-			$failed_inserts[] = "{$row} - Väärä määrä rivejä.";
+			$failed_inserts[] = "{$row} - Väärä määrä sarakkeita.";
 			continue;
 		}
-		if ( !$data[0] && !$data[1] && !$data[2] && !$data[3] ) {
+		if ( !$data[0] || !$data[1] || !$data[2] || !$data[3] ) {
 			$failed_inserts[] = "{$row} - Jokin soluista on tyhjä.";
 			continue;
 		}
+		$successful_inserts++;
 
 		// Tietokantakysely
 		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, hae_tecdoc_vertailut) 
@@ -236,7 +237,7 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 			continue;
 		}
 	}
-	return $failed_inserts;
+	return array($successful_inserts, $failed_inserts);
 }
 
 /**
@@ -294,9 +295,9 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 		$epaonnistuneet = $result[1];
 		$kaikki = $onnistuneet + count($epaonnistuneet);
 
-		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.";
+		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.</p>";
 		if ( $epaonnistuneet ) {
-			$_SESSION['feedback'] .= "<br>Hylättyjen rivien virheet:<br>" .rtrim(implode('<br>',$epaonnistuneet), ',') ."</p>";
+			$_SESSION['feedback'] .= "<p class='error'>Hylättyjen rivien virheet:<br>" .rtrim(implode('<br>',$epaonnistuneet), ',') ."</p>";
 		}
 	}
 	else { // Jos virhe
@@ -330,13 +331,18 @@ elseif ( isset($_POST['lisaa_tuote']) ){
 	}
 }
 elseif ( isset($_FILES['linkitykset']['name']) ) {
-	/**
 	if (!$_FILES['linkitykset']['error']) { // Jos ei virheitä
 		$result = lue_linkitykset_tietokantaan($db, $hankintapaikka->id);
-		$_SESSION['feedback'] = "<p class='success'></p>";
+		$onnistuneet = $result[0];
+		$errors = $result[1];
+		$kaikki = $onnistuneet + count($errors);
+		$_SESSION['feedback'] = "<p class='success'>Tietokantaan vietiin {$onnistuneet} / {$kaikki} tuotetta.</p>";
+		if ( $errors ) {
+			$_SESSION['feedback'] .= "<p class='error'>Hylättyjen rivien virheet:<br>" .rtrim(implode('<br>',$errors), ',') ."</p>";
+		}
 	} else { // Jos virhe
 		$_SESSION['feedback'] = "Error: " . $_FILES['linkitykset']['error'];
-	}*/
+	}
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -397,8 +403,8 @@ unset($_SESSION["feedback"]);
 		<fieldset><legend>Tiedostosta</legend>
 				<form action="" method="post" enctype="multipart/form-data" id="lisaa_tuotteet">
 					<label for="tuote_tiedosto">Luettava tiedosto:</label>
-					<input id="tuote_tiedosto" type="file" name="tuotteet" accept=".csv">
-					<input id=submit_tuote type="submit" name="submit" value="Submit">
+					<input type="file" name="tuotteet" id="tuote_tiedosto" accept=".csv">
+					<input type="submit" name="submit" value="Submit" id=submit_tuote>
 					<br>
 					<label for="otsikkorivi">Otsikkorivi: </label><input type="checkbox" name="otsikkorivi" id="otsikkorivi"><br>
 					<label for="select0">1:</label><select name="s0" id="select0"></select><br>
@@ -534,7 +540,7 @@ unset($_SESSION["feedback"]);
 				2: Tuotenumero<br>
 				3: Tecdoctuotteen brändin id<br>
 				4: Tecdoctuotteen tuotenumero<br>
-				<input type="submit" name="linkitys" value="Submit">
+				<input type="submit" name="linkitys" value="Submit" id="submit_linkitys">
 			</form>
 		</fieldset>
 	</div>
@@ -566,9 +572,19 @@ unset($_SESSION["feedback"]);
     $(document).ready(function(){
         // Submit -napin toiminta
         let tiedosto = $('#tuote_tiedosto');
-        if (tiedosto.get(0).files.length === 0) { $('#submit_tuote').prop('disabled', 'disabled'); }
+        if (tiedosto.get(0).files.length === 0) {
+            $('#submit_tuote').prop('disabled', 'disabled');
+        }
         tiedosto.on("change", function() {
             $('#submit_tuote').prop('disabled', !$(this).val());
+        });
+
+        let tiedosto2 = $('#linkitys_tiedosto');
+        if (tiedosto2.get(0).files.length === 0) {
+            $('#submit_linkitys').prop('disabled', 'disabled');
+        }
+        tiedosto2.on("change", function() {
+            $('#submit_linkitys').prop('disabled', !$(this).val());
         });
 
         // Tarkastetaan ettei sarakkeissa dublikaatteja

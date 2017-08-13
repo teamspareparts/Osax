@@ -5,8 +5,6 @@
  *
  */
 
-//TODO: indev
-
 chdir(dirname(__FILE__)); //Määritellään työskentelykansio
 require 'tecdoc.php';
 require "luokat/dbyhteys.class.php";
@@ -46,16 +44,22 @@ foreach ( $tuotteet as $tuote ) {
 
 	// Vertailutuotteet kantaan
 	foreach ($vertailu_tuotteet as $vt) {
-		echo $vt->genericArticleId;
 		$vt->articleNo = str_replace(" ", "", $vt->articleNo);
+		// Tarkastetaan numerotyyppi (0: articleNo, 3: vertailunumero)
+		if ( $vt->numberType != 0 || $vt->numberType != 0) {
+			continue;
+		}
 		// Jos genericArticleId ei täsmää hakutuotteeseen, hypätään sen yli
 		if ( !empty($genericArticleId) && $genericArticleId != $vt->genericArticleId ) {
 			continue;
 		}
+		if ( $vt->articleSearcNo != $tuote->articleNo ) {
+			echo "";
+		}
 		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId)
 				VALUES (?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE genericArticleId = VALUES(genericArticleId)";
-		$db->query($sql, [$tuote->tuote_id, $vt->brandNo, $vt->articleNo, $genericArticleId]);
+		$db->query($sql, [$tuote->tuote_id, $vt->brandNo, $vt->articleNo, $vt->genericArticleId]);
 	}
 
 	// Merkataan käsitellyksi
