@@ -580,7 +580,7 @@ require 'tuotemodal.php';
 								endforeach; ?>
 							</td>
 							<td class="number"><?=format_number($product->varastosaldo, 0)?><br>
-								(<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+								Tehdas: <?=format_number($product->tehdassaldo, 0)?>
 							</td>
 							<td class="number"><?=format_number($product->hinta)?></td>
                             <td class="number"><?=format_number($product->sisaanostohinta)?></td>

@@ -346,7 +346,7 @@ require 'tuotemodal.php';
 					</td>
 					<td class="number"><?=format_number($product->varastosaldo, 0)?>
 						<?php if ($product->tehdassaldo) : ?>
-							<br> (<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+							<br>Tehdas: <?=format_number($product->tehdassaldo, 0)?>
 						<?php endif; ?>
 					</td>
 					<td class="number"><?=format_number($product->hinta)?></td>
