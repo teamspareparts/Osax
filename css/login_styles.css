@@ -27,6 +27,7 @@ fieldset {
 	padding: 20px;
 	margin: 20px 0; /* <top and bottom> <right and left> */
     border-radius: 5px; /* Pyöristää kulmat */
+	border-color: #2f5cad;
 }
 
 legend {
@@ -74,6 +75,7 @@ input[type=submit]:disabled { color:dimgrey; background-color: darkgrey; border-
 	padding: 10pt 15pt;
 	width: auto;
 	margin-top: 15px;
+	border: 1px solid #1d7ae2;
 }
 
 .success { background-color: #DFF2BF; }
