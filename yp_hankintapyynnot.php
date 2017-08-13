@@ -63,16 +63,7 @@ else {
 	if ( $ostopyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">
-					<div class="otsikko_container">
-						<section class="takaisin">
-						</section>
-						<section class="otsikko">
-							<h1>Osto- ja hankintapyynnöt</h1>
-						</section>
-						<section class="napit">
-						</section>
-					</div> </th></tr>
+			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
 			<tr><th>#</th>
 				<th>Tuote</th>
 				<th></th>

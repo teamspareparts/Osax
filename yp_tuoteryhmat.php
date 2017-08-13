@@ -59,7 +59,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
 					<a href='#' class='edit'
 						data-id='{$el->id}' data-nimi='{$el->nimi}' data-kerroin='{$el->hinnoittelukerroin}'>
 						<i class='material-icons'>edit</i>
-					</a>
+					</a> |
 					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</summary>";
 			tulosta_puu( $el->children, $el->id, $new_oT, $depth );
@@ -68,7 +68,8 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
 		else {
 			echo "<span>{$el->nimi}
 					<a href='#' class='edit' data-id='{$el->id}' data-nimi='{$el->nimi}'
-						data-kerroin='{$el->hinnoittelukerroin}'><i class='material-icons'>edit</i></a>
+						data-kerroin='{$el->hinnoittelukerroin}'><i class='material-icons'>edit</i>
+					</a> |
 					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</span>";
 		}

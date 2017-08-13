@@ -146,7 +146,7 @@ $css_version = filemtime( 'css/login_styles.css' );
 
 <script>
 	let update = <?= $config['update'] ?>;
-	if ( !update ) {
+	if ( update < 2 ) {
 		document.getElementById('login_email').removeAttribute('disabled');
 		document.getElementById('login_submit').removeAttribute('disabled');
 	}
