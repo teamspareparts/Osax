@@ -1,5 +1,5 @@
 <?php print('<pre>');
-//chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
+chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
 require './luokat/dbyhteys.class.php';
@@ -32,10 +32,10 @@ if ( !empty( $temp_handle ) ) {
 	}
 
 	$values = array();
-	while (($data = fgetcsv($temp_handle, 200, ";")) !== false) {
+	while ( ($data = fgetcsv( $temp_handle, 200, ";" )) !== false ) {
 		$values[] = (int)$hankintapaikka_id; // hkp-ID
-		$values[] = utf8_encode($data[0]);  // tuote artikkeli-nro
-		$values[] = ($data[1] === "0") ? 0 : 1; // tehdassaldo
+		$values[] = utf8_encode( str_replace( " ", "", $data[ 0 ] ) );  // tuote artikkeli-nro
+		$values[] = ($data[ 1 ] === "0") ? 0 : 1; // tehdassaldo
 	}
 
 	$sql = "INSERT INTO toimittaja_tehdassaldo (hankintapaikka_id, tuote_articleNo, tehdassaldo) VALUES (?,?,?)
