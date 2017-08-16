@@ -74,14 +74,14 @@ else {
 			</thead>
 			<tbody>
 			<?php $i = 0; foreach ( $ostopyynnot as $op ) : ?>
-				<tr id="<?= $op->tuote_id?>">
-					<td><?= ++$i ?></td>
+				<tr id="op<?=++$i?>" data-id="<?=$op->tuote_id?>">
+					<td><?= $i ?></td>
 					<td><?= $op->tuotekoodi ?></td>
 					<td><?= $op->valmistaja ?><br><?= $op->tuote_nimi ?></td>
 					<td><?= $op->varastosaldo ?></td>
 					<td><?= $op->sukunimi ?>,<br><?= $op->yritys_nimi ?></td>
 					<td><?= $op->pvm_formatted ?></td>
-					<td><form action="" method="post">
+					<td><form action="ajax_requests.php" method="post" data-row-id="op<?=$i?>">
 							<select name="ostopyyntojen_kasittely" title="Valitse toiminto">
 								<option disabled selected>Valitse vaihtoehto:</option>
 								<option value="0">0: Tarkistettu, ei toimenpiteitä</option>
@@ -91,7 +91,6 @@ else {
 							<input type="hidden" name="tuote_id" value="<?= $op->tuote_id ?>">
 							<input type="hidden" name="user_id" value="<?= $op->kayttaja_id ?>">
 							<input type="hidden" name="pvm" value="<?= $op->pvm ?>">
-							<input type="hidden" name="form_type" value="ostopyynto">
 							<input type="submit" value="OK" class="nappi">
 						</form>
 					</td>
@@ -118,14 +117,14 @@ else {
 			</thead>
 			<tbody>
 			<?php $i = 0; foreach ( $hankintapyynnot as $hkp ) : ?>
-				<tr id="<?= $hkp->articleNo?>">
-					<td rowspan="2" style="border-bottom:solid black 1px;"><?= ++$i ?></td>
+				<tr id="hkp<?=++$i?>" data-id="<?=$hkp->articleNo?>">
+					<td rowspan="2" style="border-bottom:solid black 1px;"><?=$i?></td>
 					<td><?= $hkp->articleNo ?></td>
 					<td><?= $hkp->valmistaja ?><br><?= $hkp->tuotteen_nimi ?></td>
 					<td><?= $hkp->sukunimi ?>,<br><?= $hkp->yritys_nimi ?></td>
 					<td><?= $hkp->pvm_formatted ?></td>
 					<td><?= ($hkp->korvaava_okey) ? 'Kyllä' : 'Ei' ?></td>
-					<td><form>
+					<td><form action="ajax_requests.php" method="post" data-row-id="hkp<?=$i?>">
 							<select name="hankintapyyntojen_kasittely" title="Valitse toiminto">
 								<option disabled selected>Valitse vaihtoehto:</option>
 								<option value="0">0: Tarkistettu, ei toimenpiteitä</option>
@@ -135,7 +134,6 @@ else {
 							<input type="hidden" name="tuote_id" value="<?= $hkp->articleNo ?>">
 							<input type="hidden" name="user_id" value="<?= $hkp->kayttaja_id ?>">
 							<input type="hidden" name="pvm" value="<?= $hkp->pvm ?>">
-							<input type="hidden" name="form_type" value="hnkntpyynto">
 							<input type="submit" value="OK" class="nappi">
 						</form>
 					</td>
@@ -151,66 +149,26 @@ else {
 
 <script>
 
-	/**
-	 * Oh my god what have I done? Javascript, that's what.
-	 * TODO: siivoa tämä kauhistuttava sotku
-	 */
 	document.addEventListener('submit', function(e) {
-		let ajax =  new XMLHttpRequest();
-		let foo = e.target || e.srcElement;
-		let formData = new FormData(foo);
-		let tuoteID = formData.get('tuote_id');
+		let ajax = new XMLHttpRequest();
+		let formData = new FormData(e.target);
+		let row = document.getElementById(e.target.dataset.rowId);
 
-		let formType = formData.get('form_type');
-		let toiminto, cheating;
-		if ( formType === "hnkntpyynto" ) {
-			toiminto = formData.get('hankintapyyntojen_kasittely');
-		} else {
-			toiminto = formData.get('ostopyyntojen_kasittely');
-		}
-		cheating = [
-			toiminto,
-			formData.get('tuote_id'),
-			formData.get('user_id'),
-			formData.get('pvm'),
-		];
-
-		if ( toiminto === null ) {
-			e.preventDefault();
-			return false;
-		}
-
-		if ( formType === "hnkntpyynto" ) {
-			toiminto = "hankintapyyntojen_kasittely=" + formData.get('hankintapyyntojen_kasittely');
-		} else {
-			toiminto = "ostopyyntojen_kasittely=" + formData.get('ostopyyntojen_kasittely');
-		}
-		cheating = "" +
-			toiminto + "&" +
-			"tuote_id=" + formData.get('tuote_id') + "&" +
-			"user_id=" + formData.get('user_id') + "&" +
-			"pvm=" + formData.get('pvm')
-		;
-
-		console.log( cheating );
-		if ( foo ) {
-			ajax.open('POST', 'ajax_requests.php', true);
-			//ajax.setRequestHeader('Content-Type', 'multipart/form-data; charset=utf-8; boundary=stuffthingsfoobar');
-			//ajax.setRequestHeader('Content-Type', 'application/json; charset=utf-8;');
-			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
-
-			ajax.onreadystatechange = function() {
-				if (ajax.readyState === 4 && ajax.status === 200) {
-					if ( ajax.responseText === '1' ) {
-						document.getElementById(tuoteID).style.transition = "all 1s";
-						document.getElementById(tuoteID).style.opacity = "0.2";
-					}
+		ajax.onreadystatechange = function() {
+			if (ajax.readyState === 4 && ajax.status === 200) {
+				console.log( ajax.responseText );
+				if ( ajax.responseText === '1' ) {
+					row.style.transition = "all 1s";
+					row.style.opacity = "0.2";
 				}
-			};
+			}
+		};
 
-			ajax.send( cheating );
-		}
+		ajax.open('POST', 'ajax_requests.php', true);
+		ajax.send( formData );
+
 		e.preventDefault();
+		return false;
 	});
 
 </script>

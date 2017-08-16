@@ -89,7 +89,7 @@ elseif ( !empty( $_POST[ 'lisaa_tilauskirjalle' ] ) ) {
 }
 
 /**
- *
+ * isset, koska voi palauttaa nollaa (0: Tarkistettu, ei toimenpiteitä)
  */
 elseif ( isset( $_POST[ 'ostopyyntojen_kasittely' ] ) ) {
 	$sql = "UPDATE tuote_ostopyynto SET kasitelty = ? WHERE tuote_id = ? AND kayttaja_id = ? AND pvm = ?";
@@ -98,7 +98,7 @@ elseif ( isset( $_POST[ 'ostopyyntojen_kasittely' ] ) ) {
 }
 
 /**
- *
+ * isset, koska voi palauttaa nollaa (0: Tarkistettu, ei toimenpiteitä)
  */
 elseif ( isset( $_POST[ 'hankintapyyntojen_kasittely' ] ) ) {
 	$sql = "UPDATE tuote_hankintapyynto SET kasitelty = ? WHERE articleNo = ? AND kayttaja_id = ? AND pvm = ?";
