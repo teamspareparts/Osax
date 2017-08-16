@@ -14,7 +14,7 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
 	 */
 	foreach ( $cart->tuotteet as $tuote ) {
 
-		if ( $tuote->kpl_maara > $tuote->varastosaldo and $tuote->kpl_maara > $tuote->tehdassaldo ) {
+		if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
 			$tuote->alennus_huomautus = "<span style='color:red;'>Ei varastossa</span>";
 		}
 
@@ -156,7 +156,7 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 
 	if ( $cart->tuotteet ) {
 		foreach ( $cart->tuotteet as $tuote) {
-			if ( $tuote->kpl_maara > $tuote->varastosaldo and $tuote->kpl_maara > $tuote->tehdassaldo ) {
+			if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
 				$enough_in_stock = false;
 				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei ole tarpeeksi varastossa.<br>";
 			}

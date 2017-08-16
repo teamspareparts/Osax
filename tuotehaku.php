@@ -69,8 +69,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
                     $tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
                     $tuote->brandName = $product->brandName;
 
-					if ( (($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera))
-						or (($tuote->tehdassaldo != 0) and ($tuote->tehdassaldo >= $tuote->minimimyyntiera)) ) {
+					if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
                     	$catalog_products[] = $tuote;
                     } else {
                     	$not_available_catalog_products[] = $tuote;
@@ -135,8 +134,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 		}
 		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
 
-		if ( (($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera))
-			or (($tuote->tehdassaldo != 0) and ($tuote->tehdassaldo >= $tuote->minimimyyntiera)) ) {
+		if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
 			$catalog_products[] = $tuote;
 		} else {
 			$not_available_catalog_products[] = $tuote;
@@ -344,11 +342,7 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, 0)?>
-						<?php if ($product->tehdassaldo) : ?>
-							<br>Tehdas: <?=format_number($product->tehdassaldo, 0)?>
-						<?php endif; ?>
-					</td>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
 						<td class="number"><?=format_number($product->sisaanostohinta)?></td>
@@ -377,9 +371,9 @@ require 'tuotemodal.php';
 		if ( $not_available) : // Tulokset (ei saatavilla) ?>
 		<table style="min-width: 90%;"><!-- Katalogissa olevat, ei tilattavissa olevat tuotteet (varastosaldo < minimimyyntierä) -->
 			<thead>
-			<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
+			<tr><th colspan="11" class="center" style="background-color:#1d7ae2;">Ei varastossa: (<?=count($not_available)?>)</th></tr>
 			<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th> <th class="number">Saldo</th>
-				<th class="number">Hinta (sis. ALV)</th>
+				<th class="number">Tehdassaldo</th> <th class="number">Hinta (sis. ALV)</th>
 				<?php if ( $user->isAdmin() ) : ?>
 					<th class="number">Ostohinta ALV0%</th>
                     <th class="number">Kate%</th>
@@ -402,9 +396,18 @@ require 'tuotemodal.php';
 								(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 						endforeach; ?>
 					</td>
-					<td class="number"><?=format_number($product->varastosaldo, 0)?>
+					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
+					<td class="number">
 						<?php if ($product->tehdassaldo) : ?>
-							<br> (<?=format_number($product->tehdassaldo, 0)?>)info-tähän
+							<i class="material-icons" style="color:green;"
+							   title="Varastossa saldoa: <?=format_number($product->tehdassaldo, 0)?> kpl">
+								check_circle
+							</i>
+						<?php else : ?>
+							<i class="material-icons" style="color:red;"
+							   title="Ei varastoasaldoa saatavilla, tai saldo nolla (0).">
+								highlight_off
+							</i>
 						<?php endif; ?>
 					</td>
 					<td class="number"><?=format_number($product->hinta)?></td>

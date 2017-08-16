@@ -559,7 +559,7 @@ require 'tuotemodal.php';
 					<thead>
 					<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
 					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
-						<th class="number">Saldo</th> <th class="number">Hinta (sis. ALV)</th>
+						<th class="number">Saldo</th> <th class="number">Tehdas</th> <th class="number">Hinta (sis. ALV)</th>
                         <th class="number">Ostohinta ALV0%</th><th class="number">Kate %</th>
 						<th>Hyllypaikka</th>
 						<th></th>
@@ -579,8 +579,19 @@ require 'tuotemodal.php';
 										(!empty($info->attrUnit) ? $info->attrUnit : "") . "<br>";
 								endforeach; ?>
 							</td>
-							<td class="number"><?=format_number($product->varastosaldo, 0)?><br>
-								Tehdas: <?=format_number($product->tehdassaldo, 0)?>
+							<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
+							<td class="number">
+								<?php if ($product->tehdassaldo) : ?>
+									<i class="material-icons" style="color:green;"
+									   title="Varastossa saldoa: <?=format_number($product->tehdassaldo, 0)?> kpl">
+										check_circle
+									</i>
+								<?php else : ?>
+									<i class="material-icons" style="color:red;"
+									   title="Ei varastoasaldoa saatavilla, tai saldo nolla (0).">
+										highlight_off
+									</i>
+								<?php endif; ?>
 							</td>
 							<td class="number"><?=format_number($product->hinta)?></td>
                             <td class="number"><?=format_number($product->sisaanostohinta)?></td>
