@@ -387,10 +387,9 @@ CREATE TABLE IF NOT EXISTS `tuoteryhma_tuote`(
 
 CREATE TABLE IF NOT EXISTS `tuote_linkitys`(
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
-  `brandNo` int(11) UNSIGNED NOT NULL, -- PK
-  `articleNo` varchar(30) NOT NULL, -- PK
-  `genericArticleId` smallint DEFAULT NULL,
-  `hae_tecdoc_vertailut` tinyint(1) NOT NULL DEFAULT 0, -- Tarvitseeko hakea tecdocista vertailunumerot
-  PRIMARY KEY (`tuote_id`,`brandNo`, `articleNo`),
+  `brandNo` int(11) UNSIGNED NOT NULL,
+  `articleNo` varchar(30) NOT NULL,
+  `genericArticleId` smallint DEFAULT NULL, -- Ilmaisee tuotteen tyypin (-1: ei löydy tecdocista)
+  PRIMARY KEY (`tuote_id`),
   CONSTRAINT fk_tuoteLinkitys_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)
 ) DEFAULT CHARSET=utf8 COLLATE=utf8_swedish_ci;

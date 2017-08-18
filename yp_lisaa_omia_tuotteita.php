@@ -204,6 +204,10 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 	$successful_inserts = 0;
 	$handle = fopen($_FILES['linkitykset']['tmp_name'], 'r'); // Tiedostokahva
 
+	// Haetaan kaikki tecdoc brandit
+	$brands = $db->query("SELECT id FROM brandi WHERE oma_brandi = 0", [], FETCH_ALL, PDO::FETCH_ASSOC);
+
+
 	while (($data = fgetcsv($handle, 1000, ";")) !== false) {
 		$row++;
 		// Ohitetaan otsikkorivi
@@ -220,17 +224,25 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 			$failed_inserts[] = "{$row} - Jokin soluista on tyhjä.";
 			continue;
 		}
+		if ( array_search($data[2], array_column($brands, 'id')) === false ) {
+			$failed_inserts[] = "{$row} - Brändiä ei löytynyt aktivoiduista tecdoc-brändeistä.";
+			continue;
+		}
+
 		$successful_inserts++;
 
-		// Tietokantakysely
-		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, hae_tecdoc_vertailut) 
-				SELECT tuote.id, ?, ?, 1
+		// Vertailujen lisäys
+		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) 
+				SELECT tuote.id, ?, ?
 				FROM tuote
 				WHERE tuote.tecdocissa = 0 
 					AND tuote.brandNo = ?
 					AND tuote.articleNo = ?
 					AND tuote.hankintapaikka_id = ?
-				ON DUPLICATE KEY UPDATE tuote_linkitys.tuote_id = tuote_linkitys.tuote_id";
+				ON DUPLICATE KEY
+				UPDATE tuote_linkitys.brandNo = VALUES(brandNo),
+					tuote_linkitys.articleNo = VALUES(articleNo),
+					tuote_linkitys.genericArticleId = VALUES(genericArticleId)";
 		$result = $db->query($sql, [$data[2], $data[3], $data[0], $data[1], $hankintapaikka_id]);
 		if ( !$result ) {
 			$failed_inserts[] = "{$row} - Itse perustettua tuotetta ei löytynyt kannasta.";

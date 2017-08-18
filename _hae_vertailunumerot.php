@@ -23,51 +23,27 @@ error_reporting( E_ALL );
  */
 $sql = "SELECT tuote_id, articleNo, brandNo
 		FROM tuote_linkitys
-		WHERE hae_tecdoc_vertailut = 1
+		WHERE genericArticleId IS NULL
 		LIMIT 10";
 $tuotteet = $db->query($sql, [], FETCH_ALL);
 
 foreach ( $tuotteet as $tuote ) {
-	$genericArticleId = null;
+	$generic_article_id = -1;
 
-	// Haetaan vertailunumerot tecdocista
-	$vertailu_tuotteet = getArticleDirectSearchAllNumbersWithState($tuote->articleNo, 10, true);
+	// Haetaan tuote tecdocista
+	$tecdoc_tuote = getArticleDirectSearchAllNumbersWithState($tuote->articleNo, 0, true, $tuote->brandNo);
 
-	// Etsitään genericArticleId, jos hakutuote tecdocissa
-	foreach ( $vertailu_tuotteet as $vt ) {
-		if ( str_replace(" ", "", $vt->articleNo) == $tuote->articleNo &&
-			$vt->brandNo == $tuote->brandNo) {
-			$genericArticleId = $vt->genericArticleId;
-			break;
-		}
+	if ( count($tecdoc_tuote) === 1 ) {
+		$generic_article_id = $tecdoc_tuote[0]->genericArticleId;
 	}
 
-	// Vertailutuotteet kantaan
-	foreach ($vertailu_tuotteet as $vt) {
-		$vt->articleNo = str_replace(" ", "", $vt->articleNo);
-		// Tarkastetaan numerotyyppi (0: articleNo, 3: vertailunumero)
-		if ( $vt->numberType != 0 || $vt->numberType != 0) {
-			continue;
-		}
-		// Jos genericArticleId ei täsmää hakutuotteeseen, hypätään sen yli
-		if ( !empty($genericArticleId) && $genericArticleId != $vt->genericArticleId ) {
-			continue;
-		}
-		if ( $vt->articleSearcNo != $tuote->articleNo ) {
-			echo "";
-		}
-		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId)
-				VALUES (?, ?, ?, ?)
-				ON DUPLICATE KEY UPDATE genericArticleId = VALUES(genericArticleId)";
-		$db->query($sql, [$tuote->tuote_id, $vt->brandNo, $vt->articleNo, $vt->genericArticleId]);
-	}
-
-	// Merkataan käsitellyksi
+	// Lisätään genericArticleId
 	$sql = "UPDATE tuote_linkitys
-			SET hae_tecdoc_vertailut = 0
+			SET genericArticleId = ?
 			WHERE tuote_id = ?
 				AND brandNo = ?
 				AND articleNo = ?";
-	$db->query($sql, [$tuote->tuote_id, $tuote->brandNo, $tuote->articleNo]);
+	$db->query($sql, [$generic_article_id, $tuote->tuote_id, $tuote->brandNo, $tuote->articleNo]);
 }
+
 ?>
