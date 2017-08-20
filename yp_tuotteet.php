@@ -225,7 +225,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
  * @return array
  */
 function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
-	$catalog_products = $not_available_catalog_products = [];
+	$catalog_products = [];
 	if ( $tarkka_haku ) {
 		$search_pattern = $search_number;
 	} else {
@@ -256,6 +256,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
+	// Attribuutit samaan muotoon kuin tecdoc-tuotteet
 	foreach ($own_products as $tuote) {
 		$tuote->articleId = 0;
 		$tuote->articleName = $tuote->nimi;
@@ -271,6 +272,83 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 	return $catalog_products;
 }
 
+
+/**
+ * Etsitään kannasta kaikki omat tuotteet, jotka ovat verrattavissa hakutuloksiin.
+ * @param DByhteys $db
+ * @param array $products
+ * @return array
+ */
+function search_comparable_products_from_database(  DByhteys $db, array $products ){
+
+	if ( !$products ) {
+		return array();
+	}
+
+	$values = [];
+	foreach ( $products as $product ) {
+		$values[] = str_replace(" ", "", $product->articleNo);
+		$values[] = $product->brandNo;
+	}
+	$questionmarks = implode( ',', array_fill( 0, count($products), 'ROW(?,?)' ) );
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                        LEAST(
+                        	COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+                        	COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+                        ) AS saapumispaiva,
+                        MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                        MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva,
+                        toimittaja_tehdassaldo.tehdassaldo
+			FROM 	    tuote_linkitys
+			JOIN		tuote ON tuote_linkitys.tuote_id = tuote.id
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+			LEFT JOIN   ostotilauskirja_arkisto
+						ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+			            AND ostotilauskirja_arkisto.hyvaksytty = 0
+			LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+			LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+			LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+			WHERE ROW(tuote_linkitys.articleNo, tuote_linkitys.brandNo) IN ( {$questionmarks} )
+			GROUP BY tuote.id";
+	$own_products = $db->query($sql, $values, FETCH_ALL);
+
+	if ( !$own_products ) {
+		$own_products = [];
+	}
+
+	foreach ($own_products as $tuote) {
+		$tuote->articleId = 0;
+		$tuote->articleName = $tuote->nimi;
+		$tuote->brandName = $tuote->valmistaja;
+		$infot = explode('|', $tuote->infot);
+		foreach ($infot as $index=>$info) {
+			$tuote->infos[$index] = new stdClass();
+			$tuote->infos[$index]->attrName = $info;
+		}
+		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
+		$catalog_products[] = $tuote;
+	}
+
+	return $own_products;
+}
+
+/**
+ * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
+ * @param DByhteys $db
+ * @param $search_number
+ * @return array|int|stdClass
+ */
+function get_comparable_number_for_own_product( DByhteys $db, /*string*/ $search_number ) {
+	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
+			FROM tuote
+			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
+			WHERE tuote.articleNo = ?
+			LIMIT 1";
+	return $db->query($sql, [$search_number]);
+}
+
 /**
  * Järjestetään tuotteet hinnan mukaan.
  * @param $catalog_products
@@ -284,7 +362,7 @@ function sortProductsByPrice( &$catalog_products ){
  * @param $number
  * @return bool
  */
-function tarkasta_etuliite( /*String*/ $number ) {
+function tarkasta_etuliite( /*string*/ $number ) {
 	if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
 		return true;
 	} else {
@@ -406,8 +484,9 @@ $tuoteryhmien_nimet_tuotteiden_linkitysta_varten = hae_kaikki_tuoteryhmat_ja_luo
 
 if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
-	$number = addslashes(str_replace(" ", "", $_GET['haku']));  //hakunumero
-	$etuliite = null;   //mahdollinen etuliite
+	$number = addslashes(str_replace(" ", "", $_GET['haku']));  // Hakunumero
+	$etuliite = null;   // Mahdollinen etuliite
+	$products = $own_products = $own_comparable_products = [];
 	//TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
 	//TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 
@@ -417,6 +496,12 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 		case 'all':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			if ( !$products ) {
+				$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+				$products = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
+			}
 			break;
 		case 'articleNo':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
@@ -427,22 +512,29 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 			$products1 = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
 			$products2 = getArticleDirectSearchAllNumbersWithState($number, 3, $exact);	//vertailut
 			$products = array_merge($products1, $products2);
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			if ( !$products ) {
+				$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+				$products = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
+			}
 			break;
 		case 'oe':
 			$products = getArticleDirectSearchAllNumbersWithState($number, 1, $exact);
 			break;
-		default:	//jos numerotyyppiä ei ole määritelty (= joku on ruvennut leikkimään GET parametrilla)
+		default:	//jos numerotyyppiä ei ole määritelty (= joku on ruvennut leikkimään GET parametreilla)
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
 			break;
 	}
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	$catalog_products = $filtered_product_arrays[0];
-	$all_products = $filtered_product_arrays[1];
+	// Etsitään omia tuotteita kannasta
 	$own_products = search_own_products_from_database( $db, $number, $exact );
-	$catalog_products = array_merge($catalog_products, $own_products);
-	$all_products = array_merge($all_products, $own_products);
+	// Yhdistetään kaikki tuotteet
+	$catalog_products = array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products);
+	$all_products = array_merge($filtered_product_arrays[1], $own_products, $own_comparable_products);
+	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
 }
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
