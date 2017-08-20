@@ -1,14 +1,9 @@
-<?php print('<pre>');
+<?php
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
 require './luokat/dbyhteys.class.php';
 $db = new DByhteys();
-
-function debug($var,$var_dump=false){
-	echo"<br>\r\n<pre>Print_r ::<br>\r\n";print_r($var);echo"</pre>";
-	if($var_dump){echo"<br><pre>Var_dump ::<br>\r\n";var_dump($var);echo"</pre><br>\r\n";};
-}
 
 $ohita_otsikkorivi = true;
 $rows_in_query_at_one_time = 15000;
