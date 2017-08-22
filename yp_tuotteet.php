@@ -668,16 +668,18 @@ require 'tuotemodal.php';
 							</td>
 							<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
 							<td class="number">
-								<?php if ($product->tehdassaldo) : ?>
-									<i class="material-icons" style="color:green;"
-									   title="Varastossa saldoa: <?=format_number($product->tehdassaldo, 0)?> kpl">
-										check_circle
-									</i>
-								<?php else : ?>
-									<i class="material-icons" style="color:red;"
-									   title="Ei varastoasaldoa saatavilla, tai saldo nolla (0).">
-										highlight_off
-									</i>
+								<?php if ( !is_null($product->tehdassaldo) ) : ?>
+									<?php if ( $product->tehdassaldo > 0 ) : ?>
+										<i class="material-icons" style="color:green;" title="
+											<?= ($product->hankintapaikka_id == 140) ? "Saatavilla toimittajalta."
+												: "Varastossa saldoa: ".format_number($product->tehdassaldo, 0)." kpl" ?>"
+											> check_circle
+										</i>
+									<?php else : ?>
+										<i class="material-icons" style="color:red;" title="Tehdasaldo nolla (0).">
+											highlight_off
+										</i>
+									<?php endif; ?>
 								<?php endif; ?>
 							</td>
 							<td class="number"><?=format_number($product->hinta)?></td>
