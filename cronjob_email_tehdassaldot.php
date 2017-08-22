@@ -8,7 +8,7 @@ require './luokat/dbyhteys.class.php';
 $db = new DByhteys();
 $rows_in_query_at_one_time = 15000;
 $hankintapaikka_id = 170;
-$tiedosto_polku = '../../../../imap/osax.fi/myynti/Maildir/cur';
+$tiedosto_polku = '../../../imap/osax.fi/myynti/Maildir/cur';
 $latest_filepath = '';
 
 $d = dir( $tiedosto_polku );
@@ -50,4 +50,7 @@ if ( !empty( $csv_array ) ) {
 			iterator_to_array(new RecursiveIteratorIterator(new RecursiveArrayIterator($values_chunk)),false)
 		);
 	}
+
+	$db->query( "UPDATE hankintapaikka SET tehdassaldo_viim_paivitys = NOW() WHERE id = ?",
+				[$hankintapaikka_id] );
 }

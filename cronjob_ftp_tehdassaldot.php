@@ -45,4 +45,7 @@ if ( !empty( $temp_handle ) ) {
 						$sql),
 			$values_chunk);
 	}
+
+	$db->query( "UPDATE hankintapaikka SET tehdassaldo_viim_paivitys = NOW() WHERE id = ?",
+				[$hankintapaikka_id] );
 }
