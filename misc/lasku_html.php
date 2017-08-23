@@ -86,7 +86,7 @@ foreach ( $lasku->tuotteet as $tuote ) {
 			<td style='text-align:left;'>{$tuote->tuotekoodi}</td>
 			<td style='text-align:left;'>{$tuote->nimi}</td>
 			<td style='text-align:left;'>{$tuote->valmistaja}</td>
-			<td style='text-align:right;'>{$tuote->a_hinta_toString( true, false, true )}</td>
+			<td style='text-align:right;'>{$tuote->aHintaIlmanALV_toString()}</td>
 			<td style='text-align:right;'>{$tuote->alv_toString()}</td>
 			<td style='text-align:right;'>{$tuote->alennus_toString()}</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>

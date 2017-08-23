@@ -428,7 +428,7 @@ require 'tuotemodal.php';
 		                 <?php endif; ?>
                     </td>
 					<td id="tuote_ostopyynto_<?=$product->id?>">
-						<button onClick="ostopyynnon_varmistus(<?=$product->id?>);">
+						<button class="nappi grey" onClick="ostopyynnon_varmistus(<?=$product->id?>);">
 							<i class="material-icons" style="color:#2f5cad;">help_outline</i></button>
 						<?php if ($user->isAdmin()) : ?>
                             <button class="nappi" id="lisaa_otk_nappi_<?=$product->id?>"
@@ -457,7 +457,7 @@ require 'tuotemodal.php';
 				<tr data-val="<?=$product->articleId?>">
 					<td class="clickable"><?=$product->articleNo?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
-					<td><button id="tuote_hnktpyynto_<?=$product->articleId?>"
+					<td><button class="nappi grey" id="tuote_hnktpyynto_<?=$product->articleId?>"
 								onClick="hankintapyynnon_varmistus(
 									'<?=$product->articleNo?>',
 									'<?=$product->brandName?>',
