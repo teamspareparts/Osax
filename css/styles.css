@@ -655,30 +655,6 @@ Toimittajien listaukseen
 }
 
 /*******************************
-Sivustus (pagination) (requires bootstrap)
-*******************************/
-.page_nav {
-	display: flex;
-	flex-direction: row;
-}
-
-.page_control {
-	display: flex;
-	flex-direction: column;
-	margin: auto 40px auto;
-}
-
-.pageNumberForm,
-.pageNumber,
-.productsPerPageForm {
-	display: inline-flex;
-	padding: 0;
-	margin: 0;
-	border: 0;
-	width: 2.7rem;
-}
-
-/*******************************
 	Etusivu
 *******************************/
 .etusivu_content {

@@ -122,7 +122,7 @@ $linkitetyt_brandit = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 							<input type="hidden" name="brand_id" value="<?=$brand->id?>">
 							<input type="submit" name="poista_linkitys" value="Poista linkitys" class="nappi red">
 						</form>
-						<a href="yp_valikoima.php?brand=<?=$brand->id?>&hankintapaikka=<?=$hankintapaikka->id?>" class="nappi">
+						<a href="yp_valikoima.php?brand=<?=$brand->id?>&hkp=<?=$hankintapaikka->id?>" class="nappi">
 							Valikoima</a>
 					</td></tr>
 			<?php endforeach;?>
