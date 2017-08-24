@@ -13,15 +13,17 @@ $sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, DATE_FORM
 		JOIN yritys ON yritys.id = yritys_id
 		WHERE kasitelty IS NULL 
 		ORDER BY pvm ASC";
-$hankintapyynnot = $db->query( $sql, null, true );
+$hankintapyynnot = $db->query( $sql, null, FETCH_ALL );
 
-$sql = "SELECT tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted, tuote.nimi AS tuote_nimi,
- 			tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, yritys.nimi AS yritys_nimi, kayttaja.sukunimi
+$sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted, tuote.nimi AS tuote_nimi,
+ 			tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, yritys.nimi AS yritys_nimi, kayttaja.sukunimi,
+ 			ostotilauskirja_tuote.kpl AS otk_kpl
 		FROM tuote_ostopyynto
 		JOIN kayttaja ON kayttaja.id = kayttaja_id
 		JOIN yritys ON yritys.id = yritys_id
 		JOIN tuote ON tuote.id = tuote_id
-		WHERE kasitelty IS NULL 
+		LEFT JOIN ostotilauskirja_tuote ON ostotilauskirja_tuote.tuote_id = tuote.id
+		WHERE kasitelty IS NULL
 		ORDER BY pvm ASC";
 $ostopyynnot = $db->query( $sql, null, FETCH_ALL );
 
@@ -63,11 +65,12 @@ else {
 	if ( $ostopyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
+			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
 			<tr><th>#</th>
 				<th>Tuote</th>
 				<th></th>
-				<th>Varastosaldo</th>
+				<th>Saldo</th>
+				<th>OTK</th>
 				<th>Käyttäjä</th>
 				<th>Pvm.</th>
 				<th>Käsittely:</th>
@@ -79,6 +82,7 @@ else {
 					<td><?= $op->tuotekoodi ?></td>
 					<td><?= $op->valmistaja ?><br><?= $op->tuote_nimi ?></td>
 					<td><?= $op->varastosaldo ?></td>
+					<td><?= $op->otk_kpl ?></td>
 					<td><?= $op->sukunimi ?>,<br><?= $op->yritys_nimi ?></td>
 					<td><?= $op->pvm_formatted ?></td>
 					<td><form action="ajax_requests.php" method="post" data-row-id="op<?=$i?>">
