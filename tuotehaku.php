@@ -397,7 +397,7 @@ require 'tuotemodal.php';
 						endforeach; ?>
 					</td>
 					<td class="number"><?=format_number($product->varastosaldo, 0)?></td>
-					<td class="number">
+					<td class="number" style="text-align: center;">
 						<?php if ( !is_null($product->tehdassaldo) ) : ?>
 							<?php if ( $product->tehdassaldo > 0 ) : ?>
 								<i class="material-icons" style="color:green;" title="

@@ -87,7 +87,6 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 		</section>
 	</div>
 
-
 	<nav style="white-space: nowrap; display: inline-flex; margin:5px auto 20px;">
 		<a class="nappi" href="<?=$first_page?>">
 			<i class="material-icons">first_page</i>
