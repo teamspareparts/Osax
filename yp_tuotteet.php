@@ -454,6 +454,7 @@ elseif ( !empty($_POST['tuote_linkitys']) ) {
 	$tecdoc_tuote = getArticleDirectSearchAllNumbersWithState($_POST['tecdoctuote']['article'],
 		0, true, $_POST['tecdoctuote']['brand']);
 	if ( count($tecdoc_tuote) === 1 ) {
+		$tecdoc_tuote[0]->articleNo = str_replace(" ", "", $tecdoc_tuote[0]->articleNo);
 		// Lisätään vertailu
 		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId) VALUES (?,?,?,?)
 				ON DUPLICATE KEY 
@@ -490,18 +491,29 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	//TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
 	//TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 
+	/**
+	 * Haun järjestys:
+	 * 1: Haetaan tecdocista annetulla hakunumerolla.
+	 * 2: Jos hakunumero vastaa omaa tuotetta, etsitään kannasta tecdoc-hakunumero ja
+	 *      etsitään sillä. (vain jos hakutyyppi "all" tai comparable)
+	 * 3: Etsitään kannasta omat tuotteet joiden tallennetut vertailutuotteet vastaavat
+	 *      hakutuloksia. (vain jos hakutyyppi "all" tai comparable)
+	 * 4: Karsitaan ne tuotteet, joita ei ole perustettu meidän järjestelmään.
+	 * 5: Etsitään kannasta ne omat tuotteet, jotka vastaavat suoraan hakunumeroa.
+	 */
 	$numerotyyppi = isset($_GET['numerotyyppi']) ? $_GET['numerotyyppi'] : null;	//numerotyyppi
 	$exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
 	switch ($numerotyyppi) {
 		case 'all':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
-			$own_comparable_products = search_comparable_products_from_database($db, $products);
-			if ( !$products ) {
-				$alternative_search_number = get_comparable_number_for_own_product($db, $number);
-				$products = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+			if ( $alternative_search_number ) {
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
 					10, $exact, null, $alternative_search_number->genericArticleId);
+				$products = array_merge($products, $products2);
 			}
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
 			break;
 		case 'articleNo':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
@@ -509,18 +521,20 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 			break;
 		case 'comparable':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
-			$products1 = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
+			$products = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
 			$products2 = getArticleDirectSearchAllNumbersWithState($number, 3, $exact);	//vertailut
-			$products = array_merge($products1, $products2);
-			$own_comparable_products = search_comparable_products_from_database($db, $products);
-			if ( !$products ) {
-				$alternative_search_number = get_comparable_number_for_own_product($db, $number);
-				$products = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+			$products = array_merge($products, $products2);
+			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+			if ( $alternative_search_number ) {
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
 					10, $exact, null, $alternative_search_number->genericArticleId);
+				$products = array_merge($products, $products2);
 			}
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
 			break;
 		case 'oe':
 			$products = getArticleDirectSearchAllNumbersWithState($number, 1, $exact);
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
 			break;
 		default:	//jos numerotyyppiä ei ole määritelty (= joku on ruvennut leikkimään GET parametreilla)
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
@@ -532,8 +546,8 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	// Etsitään omia tuotteita kannasta
 	$own_products = search_own_products_from_database( $db, $number, $exact );
 	// Yhdistetään kaikki tuotteet
-	$catalog_products = array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products);
-	$all_products = array_merge($filtered_product_arrays[1], $own_products, $own_comparable_products);
+	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
+	$all_products = array_unique(array_merge($filtered_product_arrays[1], $own_products, $own_comparable_products), SORT_REGULAR);
 	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
 }
@@ -985,7 +999,7 @@ require 'tuotemodal.php';
                 row.style.fontWeight = "bold";
 
                 // Submit enabled
-                //submit_painike.disabled = false;
+                submit_painike.disabled = false;
             } else {
                 // Ei tuloksia
                 let row = table.insertRow(0);

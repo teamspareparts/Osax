@@ -36,9 +36,9 @@ function paivita_tecdocin_brandit_kantaan( DByhteys $db ){
  */
 function lisaa_brandi( DByhteys $db, /*string*/$nimi, /*string*/$kuva_url ) {
 	// Lasketaan oma (tecdoc) id. Omien brändien id:t lähtee 100 000:sta.
-	$sql = "SELECT COUNT(id) AS count FROM brandi WHERE oma_brandi IS TRUE";
-	$kpl = $db->query($sql, [])->count;
-	$vapaa_id = 100000 + $kpl;
+	$sql = "SELECT MAX(id) AS max FROM brandi WHERE oma_brandi IS TRUE";
+	$max = $db->query($sql, [])->max;
+	$vapaa_id = ($max <= 100000) ? 100000 : $max + 1;
 
     $sql = "INSERT INTO brandi (id, nimi, url, oma_brandi)
             VALUES( ?, ?, ?, 1 )

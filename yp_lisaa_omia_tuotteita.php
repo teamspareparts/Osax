@@ -318,7 +318,7 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 }
 elseif ( isset($_POST['lisaa_tuote']) ){
 	$articleNo = str_replace(" ", "", $_POST['tuotenumero']);
-	$brand_nimi = $brands[array_search($_POST['brand'], $brands)]->nimi;
+	$brand_nimi = $brands[array_search($_POST['brand'], array_column(json_decode(json_encode($brands), true), 'brandi_id'))]->nimi;
 	$tuotekoodi = str_pad($hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . mb_strtoupper($articleNo); //esim: 100-QTB249
 	$values = [];
 	$values[] = $articleNo;
