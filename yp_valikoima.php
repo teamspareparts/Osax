@@ -7,42 +7,100 @@ if ( !$user->isAdmin() ) {
 }
 
 /**
- * @param DByhteys   $db
- * @param int|string $brandNo <p> Minkä brändin tuotteet haetaan.
- *                            Jos === "all", niin tulostaa kaikki tietokannassa olevat tuotteet.
- * @param int|string $hankintapaikka_id
- * @param int        $ppp     <p> Montako tuotetta kerralla ruudussa.
- * @param int        $offset  <p> Mistä tuotteesta aloitetaan palautus.
- * @return stdClass[] <p> Tuotteet
+ * @param DByhteys $db
+ * @param int      $brandNo           <p> Minkä brändin tuotteet haetaan. Jos tyhjä, hakee kaikki.
+ * @param int      $hankintapaikka_id <p> Jos tyhjä, hakee kaikki.
+ * @param int      $ppp               <p> Montako tuotetta kerralla ruudussa.
+ * @param int      $offset            <p> Mistä tuotteesta aloitetaan palautus.
+ * @param string   $order_by          <p> Minkä kolumnin mukaan järjestetään?
+ * @param string   $order_direction   <p> ASC vai DESC järjestys?
+ * @return array <p> [0] = row count, [1] tuotteet
  */
-function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id, /*int*/ $ppp, /*int*/ $offset ) {
-	if ( $brandNo !== "all" && $hankintapaikka_id !== "all" ) {
-		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote WHERE brandNo = ?) AS row_count
-				FROM tuote WHERE brandNo = ? AND hankintapaikka_id = ?
-				LIMIT ? OFFSET ?";
-		$result = $db->query( $sql, [ $brandNo, $brandNo, $hankintapaikka_id, $ppp, $offset ], FETCH_ALL );
+function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id, /*int*/ $ppp, /*int*/ $offset,
+		/*string*/ $order_by = "tuotekoodi", /*string*/ $order_direction = "DESC" ) {
+
+	$orders = array( ["nimi", "tuotekoodi", "varastosaldo"], ["ASC","DESC"] );
+	$col_name = $orders[0][ array_search( $order_by, $orders[0] ) ];
+	$order_dir = $orders[1][ array_search( $order_direction, $orders[1] ) ];
+
+	if ( $brandNo and $hankintapaikka_id ) {
+		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
+					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
+					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
+					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
+					toimittaja_tehdassaldo.tehdassaldo
+				FROM tuote
+				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN toimittaja_tehdassaldo 
+					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+				WHERE brandNo = ? AND tuote.hankintapaikka_id = ?
+				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
+		$result = $db->query( $sql, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
+		                      FETCH_ALL, null, "Tuote" );
+
+		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote WHERE brandNo = ? AND hankintapaikka_id = ?",
+		                   [$brandNo, $hankintapaikka_id])->row_count;
+	}
+	elseif ( $brandNo or $hankintapaikka_id ) {
+		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
+					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
+					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
+					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
+					toimittaja_tehdassaldo.tehdassaldo
+				FROM tuote
+				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN toimittaja_tehdassaldo 
+					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+				WHERE tuote.brandNo = ? OR tuote.hankintapaikka_id = ?
+				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
+		$result = $db->query( $sql, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
+		                      FETCH_ALL, null, "Tuote" );
+
+		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote WHERE brandNo = ? OR hankintapaikka_id = ?",
+						   [$brandNo, $hankintapaikka_id])->row_count;
 	}
 	else {
-		$sql = "SELECT *, (SELECT COUNT(id) FROM tuote) AS row_count
-				FROM tuote LIMIT ? OFFSET ?";
-		$result = $db->query( $sql, [ $ppp, $offset ], FETCH_ALL );
+		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
+					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
+					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
+					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
+					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
+					toimittaja_tehdassaldo.tehdassaldo
+				FROM tuote
+				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+				LEFT JOIN toimittaja_tehdassaldo 
+					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
+		$result = $db->query( $sql, [ $ppp, $offset ], FETCH_ALL, null, "Tuote" );
+		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote")->row_count;
 	}
 
-	return $result;
+	return [$row_count, $result];
 }
 
-$brand_id = isset( $_GET[ 'brand' ] ) ? (int)$_GET[ 'brand' ] : "all";
-$hankintapaikka_id = isset( $_GET[ 'hkp' ] ) ? (int)$_GET[ 'hkp' ] : "all";
-$page = isset( $_GET[ 'page' ] ) ? (int)$_GET[ 'page' ] : 1; // Mikä sivu tuotelistauksessa
-$products_per_page = isset( $_GET[ 'ppp' ] ) ? (int)$_GET[ 'ppp' ] : 20; // Miten monta tuotetta per sivu näytetään.
+$brand_id = !empty( $_GET[ 'brand' ] ) ? (int)$_GET[ 'brand' ] : "";
+$hankintapaikka_id = !empty( $_GET[ 'hkp' ] ) ? (int)$_GET[ 'hkp' ] : "";
+$page = !empty( $_GET[ 'page' ] ) ? (int)$_GET[ 'page' ] : 1; // Mikä sivu tuotelistauksessa
+$products_per_page = !empty( $_GET[ 'ppp' ] ) ? (int)$_GET[ 'ppp' ] : 20; // Miten monta tuotetta per sivu näytetään.
 
 if ( $page < 1 ) { $page = 1; }
-if ( $products_per_page < 1 || $products_per_page > 10000 ) { $products_per_page = 20; }
+if ( $products_per_page < 1 || $products_per_page > 5000 ) { $products_per_page = 20; }
 
 $offset = ($page - 1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
-$products = haeTuotteet( $db, $brand_id, $hankintapaikka_id, $products_per_page, $offset );
-
-$total_products = isset( $products[ 0 ] ) ? $products[ 0 ]->row_count : 0;
+$results = haeTuotteet( $db, $brand_id, $hankintapaikka_id, $products_per_page, $offset );
+$total_products = $results[0];
+/**
+ * @var Tuote[] $tuotteet
+ */
+$tuotteet = $results[1];
 
 if ( $total_products < $products_per_page ) {
 	$products_per_page = $total_products;
@@ -101,7 +159,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 				<input type="hidden" name="ppp" value="<?=$products_per_page?>">
 				<label>Sivu:
 					<input type="number" name="page" value="<?=$page?>"
-					       min="1"   maxlength="2"
+					       min="1" max="<?=$total_pages?>"  maxlength="2"
 					       style="padding:5px; border:0; width:3.5rem; text-align: right;">
 				</label>/ <?=$total_pages?>
 				<input class="hidden" type="submit">
@@ -140,36 +198,33 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 
 	<table>
 		<thead>
-		<tr><td>ID</td>
-			<td>ArtNo</td>
-			<td>BrandNo</td>
-			<td>Hinta</td>
-			<td>ALV</td>
-			<td>Saldo</td>
-			<td>Min.erä</td>
-			<td>Sis.ostohinta</td>
-			<td>Yht.kpl</td>
-			<td>Keskios.hinta</td>
-			<td>Alen.kpl</td>
-			<td>Alen.%</td>
-			<td>Akt.</td></tr>
+		<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Löydetyt tuotteet</th></tr>
+		<tr><th>Brändi</th>
+			<th>Tuotekoodi</th>
+			<th>Nimi</th>
+			<th>Myyntihinta</th>
+			<th>ALV 0 %</th>
+			<th>Ostohinta ALV 0 %</th>
+			<th>Hinnoittelukate</th>
+			<th>Varastossa</th>
+			<th>Myyty kpl</th>
+			<th>Hyllypaikka</th>
+		</tr>
 		</thead>
 
 		<tbody>
-		<?php foreach ( $products as $p ) : ?>
-			<tr><td><?= $p->id ?></td>
-				<td><?= $p->articleNo ?></td>
-				<td><?= $p->brandNo ?></td>
-				<td><?= $p->hinta_ilman_ALV ?></td>
-				<td><?= $p->ALV_kanta ?></td>
-				<td><?= $p->varastosaldo ?></td>
-				<td><?= $p->minimimyyntiera ?></td>
-				<td><?= $p->sisaanostohinta ?></td>
-				<td><?= $p->yhteensa_kpl ?></td>
-				<td><?= $p->keskiostohinta ?></td>
-				<td><?= $p->alennusera_kpl ?></td>
-				<td><?= $p->alennusera_prosentti ?></td>
-				<td><?= $p->aktiivinen ?></td></tr>
+		<?php foreach ( $tuotteet as $t ) : ?>
+			<tr data-id="<?= $t->id ?>">
+				<td><?= $t->brandNo ?></td>
+				<td><?= $t->articleNo ?></td>
+				<td><?= $t->nimi ?></td>
+				<td><?= $t->aHinta_toString() ?></td>
+				<td><?= $t->aHintaIlmanALV_toString() ?></td>
+				<td><?= $t->ostohinta ?></td>
+				<td><?= round(100*(($t->a_hinta_ilman_alv - $t->ostohinta)/$t->a_hinta_ilman_alv), 0)?>&nbsp;%</td>
+				<td><?= $t->varastosaldo ?></td>
+				<td><?= "" ?></td>
+				<td><?= $t->hyllypaikka ?></td>
 		<?php endforeach; ?>
 		</tbody>
 	</table>
@@ -211,12 +266,12 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 
 		if ( current_page === 1 ) { //Tarkistetaan taaksepäin-nappien käytettävyys
 			for ( i=0; i< backwards.length; i++ ) {
-				backwards[i].className += " disabled";
+				backwards[i].setAttribute("disabled","");
 			}
 		}
 		if ( current_page === total_pages ) { // Tarkistetaan eteenpäin-nappien käytettävyys
 			for ( i=0; i< forwards.length; i++ ) {
-				forwards[i].className += " disabled";
+				forwards[i].setAttribute("disabled","");
 			}
 		}
 
