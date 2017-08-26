@@ -204,22 +204,6 @@ $future = date('Y-m-d',strtotime('+6 months'));
 		a {     /* Käsittää vain ostoskori-linkin */
 			color: #2f5cad; /* Ostoskori-linkin väri ei muutu randomisti. Näyttää siistimmältä, eikä kiinnitä huomiota. */
 		}
-		.loading {
-			/*background-color: #6f6f6f;*/
-			border: 10px solid #f3f3f3; /* Light grey */
-			border-top: 10px solid #2f5cad; /* Blue */
-			border-bottom: 10px solid #2f5cad; /* Blue */
-			border-radius: 100%;
-			width: 50px;
-			height: 50px;
-			animation: spin 4s linear infinite;
-			margin: auto;
-		}
-
-		@keyframes spin {
-			0% { transform: rotate(0deg); }
-			100% { transform: rotate(360deg); }
-		}
 	</style>
 </head>
 <body>

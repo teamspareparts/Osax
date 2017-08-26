@@ -92,7 +92,6 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
  * @return array
  */
 function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
-	$catalog_products = $not_available_catalog_products = [];
 	if ( $tarkka_haku ) {
 		$search_pattern = $search_number;
 	} else {
@@ -123,6 +122,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
+	$catalog_products = $not_available_catalog_products = [];
 	foreach ($own_products as $tuote) {
 		$tuote->articleId = null;
 		$tuote->articleName = $tuote->nimi;
@@ -141,6 +141,87 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 		}
 	}
 	return [$catalog_products, $not_available_catalog_products];
+}
+
+/**
+ * Etsitään kannasta kaikki omat tuotteet, jotka ovat verrattavissa hakutuloksiin.
+ * @param DByhteys $db
+ * @param array $products
+ * @return array
+ */
+function search_comparable_products_from_database(  DByhteys $db, array $products ){
+
+	if ( !$products ) {
+		return [ [], [] ];
+	}
+
+	$values = [];
+	foreach ( $products as $product ) {
+		$values[] = str_replace(" ", "", $product->articleNo);
+		$values[] = $product->brandNo;
+	}
+	$questionmarks = implode( ',', array_fill( 0, count($products), 'ROW(?,?)' ) );
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                        LEAST(
+                        	COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
+                        	COALESCE(MIN(ostotilauskirja.oletettu_saapumispaiva), MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva)) 
+                        ) AS saapumispaiva,
+                        MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva) AS tilauskirja_arkisto_saapumispaiva,
+                        MIN(ostotilauskirja.oletettu_saapumispaiva) AS tilauskirja_saapumispaiva,
+                        toimittaja_tehdassaldo.tehdassaldo
+			FROM 	    tuote_linkitys
+			JOIN		tuote ON tuote_linkitys.tuote_id = tuote.id
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			LEFT JOIN   ostotilauskirja_tuote_arkisto ON tuote.id = ostotilauskirja_tuote_arkisto.tuote_id
+			LEFT JOIN   ostotilauskirja_arkisto
+						ON ostotilauskirja_tuote_arkisto.ostotilauskirja_id = ostotilauskirja_arkisto.id 
+			            AND ostotilauskirja_arkisto.hyvaksytty = 0
+			LEFT JOIN   ostotilauskirja_tuote ON tuote.id = ostotilauskirja_tuote.tuote_id
+			LEFT JOIN   ostotilauskirja ON ostotilauskirja_tuote.ostotilauskirja_id = ostotilauskirja.id
+			LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+			WHERE ROW(tuote_linkitys.articleNo, tuote_linkitys.brandNo) IN ( {$questionmarks} )
+			GROUP BY tuote.id";
+	$own_products = $db->query($sql, $values, FETCH_ALL);
+
+	if ( !$own_products ) {
+		$own_products = [];
+	}
+
+	$catalog_products = $not_available_catalog_products = [];
+	foreach ($own_products as $tuote) {
+		$tuote->articleId = null;
+		$tuote->articleName = $tuote->nimi;
+		$tuote->brandName = $tuote->valmistaja;
+		$infot = explode('|', $tuote->infot);
+		foreach ($infot as $index=>$info) {
+			$tuote->infos[$index] = new stdClass();
+			$tuote->infos[$index]->attrName = $info;
+		}
+		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
+		if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
+			$catalog_products[] = $tuote;
+		} else {
+			$not_available_catalog_products[] = $tuote;
+		}
+	}
+
+	return [$catalog_products, $not_available_catalog_products];
+}
+
+/**
+ * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
+ * @param DByhteys $db
+ * @param $search_number
+ * @return array|int|stdClass
+ */
+function get_comparable_number_for_own_product( DByhteys $db, /*string*/ $search_number ) {
+	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
+			FROM tuote
+			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
+			WHERE tuote.articleNo = ?
+			LIMIT 1";
+	return $db->query($sql, [$search_number]);
 }
 
 /**
@@ -176,6 +257,7 @@ function halkaise_hakunumero(&$number, &$etuliite){
 
 $haku = FALSE;
 $products = $catalog_products = $not_in_catalog = $not_available = [];
+$own_products = $own_comparable_products = [ [], [] ];
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -191,19 +273,37 @@ if ( !empty($_GET['haku']) ) {
 		case 'all':
             if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
+			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+			if ( $alternative_search_number ) {
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
+				$products = array_merge($products, $products2);
+			}
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'articleNo':
             if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'comparable':
             if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
-			$products1 = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
+			$products = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);	//tuote
 			$products2 = getArticleDirectSearchAllNumbersWithState($number, 3, $exact);	//vertailut
-			$products = array_merge($products1, $products2);
+			$products = array_merge($products, $products2);
+			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
+			if ( $alternative_search_number ) {
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
+				$products = array_merge($products, $products2);
+			}
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'oe':
 			$products = getArticleDirectSearchAllNumbersWithState($number, 1, $exact);
+			$own_comparable_products = search_comparable_products_from_database($db, $products);
 			break;
 		default:	//jos numerotyyppiä ei ole määritelty (= joku on ruvennut leikkimään GET parametrilla)
             $products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
@@ -212,12 +312,10 @@ if ( !empty($_GET['haku']) ) {
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	$catalog_products = $filtered_product_arrays[0];
-	$not_available = $filtered_product_arrays[1];
-	$not_in_catalog = $filtered_product_arrays[2];
 	$own_products = search_own_products_from_database( $db, $number, $exact );
-	$catalog_products = array_merge($catalog_products, $own_products[0]);
-	$not_available = array_merge($not_available, $own_products[1]);
+	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products[0], $own_comparable_products[0]), SORT_REGULAR);
+	$not_available = array_unique(array_merge($filtered_product_arrays[1], $own_products[1], $own_comparable_products[1]), SORT_REGULAR);
+	$not_in_catalog = $filtered_product_arrays[2];
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }

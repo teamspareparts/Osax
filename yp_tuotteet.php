@@ -329,7 +329,6 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 			$tuote->infos[$index]->attrName = $info;
 		}
 		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-		$catalog_products[] = $tuote;
 	}
 
 	return $own_products;
@@ -488,7 +487,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));  // Hakunumero
 	$etuliite = null;   // Mahdollinen etuliite
-	$products = $own_products = $own_comparable_products = $own_products = [];
+	$products = $own_products = $own_comparable_products = [];
 	//TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
 	//TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 

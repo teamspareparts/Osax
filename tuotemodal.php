@@ -96,11 +96,11 @@ require_once 'tecdoc_asetukset.php';?>
 
         // Spinning icon
         let cover = $("#cover");
-        cover.addClass("loading");
+        cover.addClass("loader");
 
         // Timeout
         setTimeout(function (){
-            cover.removeClass("loading");
+            cover.removeClass("loader");
             MODAL_OPEN = false;
         }, TIMEOUT);
 
@@ -419,7 +419,7 @@ require_once 'tecdoc_asetukset.php';?>
      */
     function showModal() {
         // Poistetaan cover
-        $('#cover').removeClass("loading");
+        $('#cover').removeClass("loader");
         // Avataan modal
         if ( MODAL_OPEN === false ) {
             return false;
@@ -500,7 +500,7 @@ require_once 'tecdoc_asetukset.php';?>
         tecdocToCatPort[functionName] (params,
 	        function (response) {
 
-	        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
+	        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loading small");
 	        for (let i=0; i<response.data.array.length ; i++) {
 	            let yearTo = "";
 	            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
@@ -542,7 +542,7 @@ require_once 'tecdoc_asetukset.php';?>
             //Haetaan autot, jos niitä ei ole vielä haettu
             if (manuf.attr("data-list-filled") === "false") {
                 manuf.attr("data-list-filled", "true");
-                car_dropdown.addClass("loader");
+                car_dropdown.addClass("loading small");
                 getLinkedVehicleIds(article_id, manuf_id);
             }
             //car_dropdown.show();

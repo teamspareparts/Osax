@@ -552,7 +552,7 @@ Tuotteen MODAL-ikkuna
 /*****************
 Loading-icon
 ******************/
-.loading {
+.loader {
 	position: fixed;
 	top: 0;
 	right: 0;
@@ -563,62 +563,31 @@ Loading-icon
 	background: url("http://www.aveva.com/Images/ajax-loader.gif") no-repeat scroll center center #b7b5b5;
 }
 
-
 /******************************
 Pieni spinning-icon
 ******************************/
-.loader {
-	font-size: 5px;
+.loading {
+	/*background-color: #6f6f6f;*/
+	border: 10px solid #f3f3f3; /* Light grey */
+	border-top: 10px solid #2f5cad; /* Blue */
+	border-bottom: 10px solid #2f5cad; /* Blue */
+	border-radius: 100%;
+	width: 50px;
+	height: 50px;
+	animation: spin 4s linear infinite;
+	margin: auto;
+}
+
+.loading.small {
+	width: 10px;
+	height: 10px;
 	margin: 0;
-	width: 4em;
-	height: 4em;
-	/*border-radius: 50%;*/
-	background: #000000;
-	background: -moz-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
-	background: -webkit-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
-	background: -o-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
-	background: -ms-linear-gradient(left, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
-	background: linear-gradient(to right, #ffffff 10%, rgba(255, 255, 255, 0) 42%);
-	position: relative;
-	-webkit-animation: load3 1.4s infinite linear;
-	animation: load3 1.4s infinite linear;
-	-webkit-transform: translateZ(0);
-	-ms-transform: translateZ(0);
-	transform: translateZ(0);
+	border-width: 6px;
 }
 
-.loader:before {
-	width: 50%;
-	height: 50%;
-	background: #000000;
-	border-radius: 100% 0 0 0;
-	position: absolute;
-	top: 0;
-	left: 0;
-	content: '';
-}
-
-
-@-webkit-keyframes load3 {
-	0% {
-		-webkit-transform: rotate(0deg);
-		transform: rotate(0deg);
-	}
-	100% {
-		-webkit-transform: rotate(360deg);
-		transform: rotate(360deg);
-	}
-}
-
-@keyframes load3 {
-	0% {
-		-webkit-transform: rotate(0deg);
-		transform: rotate(0deg);
-	}
-	100% {
-		-webkit-transform: rotate(360deg);
-		transform: rotate(360deg);
-	}
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 
 
