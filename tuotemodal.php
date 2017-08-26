@@ -37,7 +37,18 @@ require_once 'tecdoc_asetukset.php';?>
 						</div>
 					</div>
 					<div id="menu2" class="tab-pane fade text-center"></div>
-					<div id="menu3" class="tab-pane fade"></div>
+					<div id="menu3" class="tab-pane fade" style="white-space: nowrap">
+						<div class="inline-block" style="width: 50%; vertical-align: top">
+							<table class="vertailunumero_table" id="modal-oe">
+								<tr><th colspan="2" class="center">OE</th></tr>
+							</table>
+						</div>
+						<div class="inline-block" style="width: 50%; vertical-align: top">
+							<table class="vertailunumero_table" id="modal-comparable">
+								<tr><th colspan="2" class="center">Vertailunumerot</th></tr>
+							</table>
+						</div>
+					</div>
 					<div id="menu4" class="tab-pane fade">
 						<ul id="dd"></ul> <!-- Dropdown -->
 					</div>
@@ -108,6 +119,7 @@ require_once 'tecdoc_asetukset.php';?>
         };
         params = JSON.stringify(params).replace(/,/g, ", ");
         if ( !tuote_id ) {
+            // Jos tuote ei ole aktivoitu, ohitetaan tietokantahaku
             tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
         } else {
             // Haetaan tiedot tietokannasta ajaxilla
@@ -119,6 +131,7 @@ require_once 'tecdoc_asetukset.php';?>
                 },
                 function (tuote) {
                     // TODO: Modaliin hintatiedot yms
+	                //TODO: Vertailunumerot taulukkoon
                     if (tuote.tecdocissa) {
                         tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
                     } else {
@@ -318,20 +331,12 @@ require_once 'tecdoc_asetukset.php';?>
             let result = "";
             if (array.length !== 0) {
                 array = array.array;
-                result = "" +
-                    '<div style="display:inline-block; width:50%;">' +
-                    '	<table class="vertailunumero_table">' +
-                    '		<th colspan="2" class="center">OE</th>';
                 for (let i = 0; i < array.length; i++) {
-                    result += "<tr>";
-                    result += "" +
-                        "<td>" + array[i].brandName + "</td>" +
-                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on' style='color:black;'>" + array[i].oeNumber + "</a></td>";
-                    result += "</tr>";
+	                result += "<tr><td>" + array[i].brandName + "</td>" +
+                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on'>"
+		                + array[i].oeNumber + "</a></td></tr>";
                 }
-                result += "</table></div>";
             }
-
             return result;
         }
 
@@ -350,23 +355,20 @@ require_once 'tecdoc_asetukset.php';?>
             tecdocToCatPort[functionName](params,
 	            function(response){
 	                //Luodaan haetuista vertailunumeroista html-muotoinen taulu
-	                let comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
-	                    "<table class='vertailunumero_table'>" +
-	                    "<th colspan='2' class='center'>Vertailunumerot</th>";
+	                let comparableNumbers = "";
 
 	                if ( response.data ) {
 	                    response = response.data.array;
 	                    for (let i = 0; i < response.length; i++) {
 	                        if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
-	                            comparableNumbers += "<tr><td style='font-size:14px;'>" + response[i].brandName + "</td>" +
-	                                "<td style='font-size:14px;'><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>"
+	                            comparableNumbers += "<tr><td>" + response[i].brandName + "</td>" +
+	                                "<td><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
 	                                + response[i].articleNo + "</a></td></tr>";
 	                        }
 	                    }
 	                }
-	                comparableNumbers += "</table>";
 
-	                $("#menu3").append(comparableNumbers);
+	                $("#modal-comparable").append(comparableNumbers);
             });
         }
 
@@ -402,7 +404,9 @@ require_once 'tecdoc_asetukset.php';?>
         let OEtable = oesToHTML(response.oenNumbers);
 
         //Lisätään OE-taulukko modaliin
-        $("#menu3").empty().append(OEtable);
+	    let oe_table = $("#modal-oe");
+        oe_table.find("tr:gt(0)").remove();
+        oe_table.append(OEtable);
         // Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
         getComparableNumber(articleNo, genericArticleId);
         // Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
@@ -557,7 +561,8 @@ require_once 'tecdoc_asetukset.php';?>
         $( "#modal-product" ).empty();
         $( "#modal-infos" ).empty();
         $( "#menu2" ).empty();
-        $( "#menu3" ).empty();
+        $( "#modal-oe" ).find("tr:gt(0)").remove();
+        $( "#modal-comparable" ).find("tr:gt(0)").remove();
         $( "#dd" ).empty();
         MODAL_OPEN = false;
     });
