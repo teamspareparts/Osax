@@ -197,6 +197,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 		if (!in_array($product->articleId, $articleIds)) {
 			$articleIds[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
+			$product->id = $row ? $row[0]->id : null;
 			$all_products[] = $product;
 		}
 		if ( $row ) {
@@ -319,7 +320,7 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 	}
 
 	foreach ($own_products as $tuote) {
-		$tuote->articleId = 0;
+		$tuote->articleId = null;
 		$tuote->articleName = $tuote->nimi;
 		$tuote->brandName = $tuote->valmistaja;
 		$infot = explode('|', $tuote->infot);
@@ -668,7 +669,7 @@ require 'tuotemodal.php';
 					</thead>
 					<tbody>
 					<?php foreach ($catalog_products as $product) : ?>
-						<tr data-val="<?=$product->articleId?>">
+						<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 							<td class="clickable thumb">
 								<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 							<td class="clickable"><?=$product->tuotekoodi?></td>
@@ -728,7 +729,7 @@ require 'tuotemodal.php';
 					</thead>
 					<tbody>
 					<?php foreach ($all_products as $product) : ?>
-						<tr data-val="<?=$product->articleId?>">
+						<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 							<td class="clickable"><?=$product->articleNo?></td>
 							<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 							<td><button class="nappi" onclick="showAddDialog(
@@ -1090,10 +1091,12 @@ require 'tuotemodal.php';
             .css('cursor', 'pointer')
 			.click(function(){
 				//haetaan tuotteen id
-				let articleId = $(this).closest('tr').attr('data-val');
-                if ( articleId !== '0') {
-                    productModal(articleId); //haetaan tuotteen tiedot tecdocista
-                }
+				let tecdoc_id = $(this).closest('tr').attr('data-tecdoc_id');
+                let tuote_id = $(this).closest('tr').attr('data-tuote_id');
+                tecdoc_id = (!!tecdoc_id) ? tecdoc_id : null;
+                tuote_id = (!!tuote_id) ? tuote_id : null;
+
+                productModal(tuote_id, tecdoc_id);
 			});
 	});//doc.ready
 
@@ -1144,6 +1147,7 @@ require 'tuotemodal.php';
 			$("#hakutyyppi").val(exact);
 		}
 	}
+
 </script>
 </body>
 </html>

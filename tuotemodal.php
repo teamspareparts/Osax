@@ -26,11 +26,20 @@ require_once 'tecdoc_asetukset.php';?>
 
             <div class="modal-body">
 				<div class="tab-content">
-					<div id="menu1" class="tab-pane fade in active"></div>
+					<div id="menu1" class="tab-pane fade in active">
+						<div class="flex_row">
+							<div class="inline-block" id="modal-thumbnail"></div>
+							<div>
+								<div id="modal-product" style="font-size: 20px;"></div>
+								<!-- div hintatiedoille yms -->
+								<div id="modal-infos" style="font-size: 18px;"></div>
+							</div>
+						</div>
+					</div>
 					<div id="menu2" class="tab-pane fade text-center"></div>
 					<div id="menu3" class="tab-pane fade"></div>
 					<div id="menu4" class="tab-pane fade">
-						<div id="dd" class="car_dropdown"></div> <!-- Dropdown -->
+						<ul id="dd"></ul> <!-- Dropdown -->
 					</div>
 				</div>
 			</div>
@@ -60,13 +69,17 @@ require_once 'tecdoc_asetukset.php';?>
     let MODAL_OPEN = false; // Muuttuja ilmaisee pitäisikö modalin olla auki vai ei
 
     /**
-     * Tuoteikkuna
-     * @param id    Tuotteen articleId
+     * Tuoteikkuna omille tuotteille
+     * @param tuote_id  Tuotteen id tietokannassa
+     * @param tecdoc_id Tuotteen tecodc_id
      */
-    function productModal ( /*int*/id ) {
+    function productModal(/*int*/ tuote_id = null, /*int*/ tecdoc_id = null) {
+        if ( tuote_id === null && tecdoc_id === null) {
+            return false;
+        }
         // Tarkastetaan, onko modal jo auki
         if ( MODAL_OPEN ) {
-			return false;
+            return false;
         }
         MODAL_OPEN = true;
 
@@ -80,55 +93,46 @@ require_once 'tecdoc_asetukset.php';?>
             MODAL_OPEN = false;
         }, TIMEOUT);
 
-        //Haetaan tuotteen tiedot
         let functionName = "getDirectArticlesByIds6";
         let params = {
-            "articleCountry" : TECDOC_COUNTRY,
-            "lang" : TECDOC_LANGUAGE,
-            "provider" : TECDOC_MANDATOR,
-            "basicData" : true,
-            "articleId" : {"array" : id},
-            "thumbnails" : true,
-            "attributs" : true,
-            "eanNumbers" : true,
-            "oeNumbers" : true,
-            "documents" : true
+            "articleCountry": TECDOC_COUNTRY,
+            "lang": TECDOC_LANGUAGE,
+            "provider": TECDOC_MANDATOR,
+            "basicData": true,
+            "articleId": {"array": tecdoc_id},
+            "thumbnails": true,
+            "attributs": true,
+            "eanNumbers": true,
+            "oeNumbers": true,
+            "documents": true
         };
-        params = JSON.stringify(params).replace(/,/g,", ");
-        tecdocToCatPort[functionName] (params, createModal);
+        params = JSON.stringify(params).replace(/,/g, ", ");
+        if ( !tuote_id ) {
+            tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
+        } else {
+            // Haetaan tiedot tietokannasta ajaxilla
+            $.post(
+                "ajax_requests.php",
+                {
+                    tuote_modal_tiedot: true,
+                    tuote_id: tuote_id
+                },
+                function (tuote) {
+                    // TODO: Modaliin hintatiedot yms
+                    if (tuote.tecdocissa) {
+                        tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
+                    } else {
+                        createFirstPageForOwnProduct(tuote);
+                    }
+                });
+        }
     }
 
     /**
-     * Luodaan modalin sisältö ja näytetään modal
+     * Luodaan modalin pääsivu tecdoc-tuotteelle.
      * @param response
      */
-    function createModal( /*array*/response ) {
-
-        /**
-         * Luodaan html-muotoinen vertailunumerotaulukko
-         * @param array
-         * @returns {string}
-         */
-        function oesToHTML(array) {
-            let result = "";
-            if (array.length !== 0) {
-                array = array.array;
-                result = "" +
-                    '<div style="display:inline-block; width:50%;">' +
-                    '	<table class="vertailunumero_table">' +
-                    '		<th colspan="2" class="center">OE</th>';
-                for (let i = 0; i < array.length; i++) {
-                    result += "<tr>";
-                    result += "" +
-                        "<td>" + array[i].brandName + "</td>" +
-                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on' style='color:black;'>" + array[i].oeNumber + "</a></td>";
-                    result += "</tr>";
-                }
-                result += "</table>";
-            }
-
-            return result;
-        }
+    function  createFirstPageForTecdocProduct( response ) {
 
         /**
          * Luodaan peräkkäinen html-muotoinen lista, jossa kaikki löytyneet kuvat peräkkäin
@@ -200,16 +204,17 @@ require_once 'tecdoc_asetukset.php';?>
             let docTypeName, docName, doc;
             let documentlink = "";
 
-            if (response.articleDocuments !== "") {
+            if ( response.articleDocuments ) {
                 for (let i = 0; i < response.articleDocuments.array.length; i++) {
                     //Dokumentit
-                    if (response.articleDocuments.array[i].docTypeName !== "Valokuva" && response.articleDocuments.array[i].docTypeName !== "Kuva") {
+                    if ( response.articleDocuments.array[i].docTypeName !== "Valokuva" &&
+	                    response.articleDocuments.array[i].docTypeName !== "Kuva" ) {
                         doc = TECDOC_THUMB_URL + response.articleDocuments.array[i].docId;
                         docName = response.articleDocuments.array[i].docFileName;
                         docTypeName = response.articleDocuments.array[i].docTypeName;
 
-                        documentlink += '<img src="img/pdficon.png" style="margin-right:5px;margin-bottom:7px;">' +
-                            '<a href="' + doc + '" download="' + docName + '" id="asennusohje">' +
+                        documentlink += '<img src="./img/pdficon.png" style="margin-right:5px;margin-bottom:7px;">' +
+                            '<a href="' + doc + '" download="' + docName + '">' +
                             '' + docTypeName + ' (PDF)</a><br>';
                     }
                 }
@@ -218,11 +223,118 @@ require_once 'tecdoc_asetukset.php';?>
             return documentlink;
         }
 
-        /**
-         * Haetaan vertailunumerot
-         * @param articleNumber
-         * @param genericArticleId
-         */
+        let display_img, img;
+        let articleNo = response.data.array[0].directArticle.articleNo;
+        // Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
+        let imgs = imgsToHTML(response.data.array[0]);
+        let name = response.data.array[0].directArticle.articleName;
+        let brand = response.data.array[0].directArticle.brandName;
+        let infos = infosToHTML(response.data.array[0]);
+        let documents = getDocuments(response.data.array[0]);
+
+        // Display image
+        if (response.data.array[0].articleThumbnails.length === 0) {
+            display_img = "img/ei-kuvaa.png";
+            img = '<img src=' + display_img + ' border="1" id="display_img">'
+        } else {
+            display_img = TECDOC_THUMB_URL + response.data.array[0].articleThumbnails.array[0].thumbDocId + '/0/';
+            img = '<img src=' + display_img + ' border="1" id="display_img" class="kuva">'
+        }
+
+        //Lisätään modaliin sisältö
+        $("#modal-thumbnail").empty().append(img);
+        $("#modal-product").empty().append('<span style="font-weight:bold;">'+ name +'</span><br>'+ articleNo +'<br>'+ brand +'<br><br>');
+        $("#modal-infos").empty().append(infos + '<br><br>'+ documents);
+        $("#menu2").empty().append(imgs);
+        createRestOfTheModal(response);
+    }
+
+    /**
+     * Luodaan modalin pääsivu itseperustetulle tuotteelle.
+     * @param data
+     */
+    function createFirstPageForOwnProduct( data ){
+        let articleNo = data.articleNo;
+        let name = data.nimi;
+        let brand = data.valmistaja;
+        let img_url = (data.kuva_url) ? data.kuva_url :  './img/ei-kuvaa.png';
+        let img = '<img src=' + img_url + ' border="1" id="display_img" class="kuva">';
+        let imgs = '<img src=' + img_url + ' border="1" id="display_img" class="kuva">';
+        let infos = data.infot.split("|").join("<br>");
+
+        //Lisätään modaliin sisältö
+        $("#modal-thumbnail").empty().append(img);
+        $("#modal-product").empty().append('<span style="font-weight:bold;">'+ name +'</span><br>'+ articleNo +'<br>'+ brand +'<br><br>');
+        $("#modal-infos").empty().append(infos);
+        $("#menu2").empty().append(imgs);
+
+        // Jos tuotteelle ei ole linkitetty vertailutuotetta, näytetään modal
+        if ( !data.c_articleNo || !data.c_brandNo || !data.c_genericArticleId ) {
+            showModal();
+            return true;
+        }
+
+        // Haetaan tecdocista verrattavan tuotteen articleId
+	    let functionName = "getArticleDirectSearchAllNumbersWithState";
+	    let params = {
+		    "articleCountry": TECDOC_COUNTRY,
+		    "lang": TECDOC_LANGUAGE,
+		    "provider": TECDOC_MANDATOR,
+		    "articleNumber": data.c_articleNo,
+		    "brandId" : data.c_brandNo,
+		    "genericArticleId": data.c_genericArticleId,
+		    "numberType": 0,
+		    "searchExact": true
+	    };
+	    params = JSON.stringify(params).replace(/,/g,", ");
+	    tecdocToCatPort[functionName](params,
+		    function(response){
+	            // Haetaan vertailutuotteen tiedot
+	            let functionName = "getDirectArticlesByIds6";
+	            let params = {
+	                "articleCountry" : TECDOC_COUNTRY,
+	                "lang" : TECDOC_LANGUAGE,
+	                "provider" : TECDOC_MANDATOR,
+	                "basicData" : true,
+	                "articleId" : {"array" : response.data.array[0].articleId},
+	                "thumbnails" : true,
+	                "attributs" : true,
+	                "eanNumbers" : true,
+	                "oeNumbers" : true,
+	                "documents" : true
+	            };
+	            params = JSON.stringify(params).replace(/,/g,", ");
+	            tecdocToCatPort[functionName] (params, createRestOfTheModal);
+	    });
+    }
+
+    /**
+     * Luodaan loput modalista.
+     * @param response
+     */
+    function createRestOfTheModal(response){
+
+        function oesToHTML(array) {
+            let result = "";
+            if (array.length !== 0) {
+                array = array.array;
+                result = "" +
+                    '<div style="display:inline-block; width:50%;">' +
+                    '	<table class="vertailunumero_table">' +
+                    '		<th colspan="2" class="center">OE</th>';
+                for (let i = 0; i < array.length; i++) {
+                    result += "<tr>";
+                    result += "" +
+                        "<td>" + array[i].brandName + "</td>" +
+                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on' style='color:black;'>" + array[i].oeNumber + "</a></td>";
+                    result += "</tr>";
+                }
+                result += "</table></div>";
+            }
+
+            return result;
+        }
+
         function getComparableNumber( /*string*/articleNumber, /*int*/genericArticleId ) {
             let functionName = "getArticleDirectSearchAllNumbersWithState";
             let params = {
@@ -230,39 +342,32 @@ require_once 'tecdoc_asetukset.php';?>
                 "lang": TECDOC_LANGUAGE,
                 "provider": TECDOC_MANDATOR,
                 "articleNumber": articleNumber,
-	            "genericArticleId": genericArticleId,
+                "genericArticleId": genericArticleId,
                 "numberType": 10,
                 "searchExact": true
             };
             params = JSON.stringify(params).replace(/,/g,", ");
-            tecdocToCatPort[functionName](params, addComparableNumbersToModal);
-        }
+            tecdocToCatPort[functionName](params,
+	            function(response){
+	                //Luodaan haetuista vertailunumeroista html-muotoinen taulu
+	                let comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
+	                    "<table class='vertailunumero_table'>" +
+	                    "<th colspan='2' class='center'>Vertailunumerot</th>";
 
-        /**
-         * Lisätään vertailunumerotaulukko modaliin
-         * @param response
-         */
-        function addComparableNumbersToModal( /*array*/response ) {
-            let comparableNumbers;
+	                if ( response.data ) {
+	                    response = response.data.array;
+	                    for (let i = 0; i < response.length; i++) {
+	                        if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
+	                            comparableNumbers += "<tr><td style='font-size:14px;'>" + response[i].brandName + "</td>" +
+	                                "<td style='font-size:14px;'><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>"
+	                                + response[i].articleNo + "</a></td></tr>";
+	                        }
+	                    }
+	                }
+	                comparableNumbers += "</table>";
 
-            //Luodaan haetuista vertailunumeroista html-muotoinen taulu
-            comparableNumbers = "<div style='display:inline-block; width:49%; vertical-align:top;'>" +
-                "<table class='vertailunumero_table'>" +
-                "<th colspan='2' class='center'>Vertailunumerot</th>";
-
-            if ( response.data ) {
-                response = response.data.array;
-                for (let i = 0; i < response.length; i++) {
-                    if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
-                        comparableNumbers += "<tr><td style='font-size:14px;'>" + response[i].brandName + "</td>" +
-                            "<td style='font-size:14px;'><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on' style='color:black;'>"
-                            + response[i].articleNo + "</a></td></tr>";
-                    }
-                }
-            }
-            comparableNumbers += "</table>";
-
-            $("#menu3").append(comparableNumbers);
+	                $("#menu3").append(comparableNumbers);
+            });
         }
 
         /**
@@ -279,107 +384,48 @@ require_once 'tecdoc_asetukset.php';?>
             };
             params = JSON.stringify(params).replace(/,/g,", ");
             tecdocToCatPort[functionName](params, function (response) {
-                $('#dd').empty(); //Tyhjennetään modalin välilehti varmuuden varalta
+                let dropdown = $("#dd");
+                dropdown.empty(); //Tyhjennetään modalin välilehti varmuuden varalta
                 for (let i = 0; i < response.data.array.length; i++) {
-                    $(".car_dropdown").append("<span style='cursor:pointer; display:block;' onClick=\"showCars(this," + articleId + ")\" data-list-filled='false' data-manuId=" + response.data.array[i].manuId + ">" + response.data.array[i].manuName + "</span>" +
-                        "<div style='display:none' id=manufacturer-" + response.data.array[i].manuId + "></div>");
+	                dropdown.append("<li data-list-filled='false' data-articleId='"+articleId+"' data-manuId='" + response.data.array[i].manuId + "'>" +
+		                "<span style='cursor:pointer; display:block;'>" + response.data.array[i].manuName + "</span>" +
+		                "<div style='display:none' id=manufacturer-" + response.data.array[i].manuId + "></div></li>");
                 }
-            })
-        }
-
-
-        /**
-         * Avataan tuoteikkuna ja pysäytetään spinning icon
-         */
-        function showModal() {
-            // Poistetaan cover
-            $('#cover').removeClass("loading");
-            // Avataan modal
-	        if ( MODAL_OPEN === false ) {
-	            return false;
-            }
-            $("#myModal").modal({
-	            keyboard: true
             });
-            // Avataan "tuote" tabi ensin
-            $('#maintab').tab('show');
         }
 
-        let documents, infos, brand, articleNo, name, OEtable, imgs, articleId, display_img, display_img_id, img, genericArticleId;
         response = response.data.array[0];
-        articleId = response.directArticle.articleId;
-        articleNo = response.directArticle.articleNo;
-        genericArticleId = response.directArticle.genericArticleId;
 
-        // Luodaan kaikki html elementit valmiiksi, joita käytetään Modal ikkunassa
-        imgs = imgsToHTML(response);
-        OEtable = oesToHTML(response.oenNumbers);
-        name = response.directArticle.articleName;
-        brand = response.directArticle.brandName;
-        infos = infosToHTML(response);
-        documents = getDocuments(response);
+        let articleId = response.directArticle.articleId;
+        let articleNo = response.directArticle.articleNo;
+        let genericArticleId = response.directArticle.genericArticleId;
+        let OEtable = oesToHTML(response.oenNumbers);
 
-        // Display image
-        if (response.articleThumbnails.length === 0) {
-            display_img = "img/ei-kuvaa.png";
-            img = '<img src=' + display_img + ' border="1" id="display_img">'
-        } else {
-            display_img_id = response.articleThumbnails.array[0].thumbDocId;
-            display_img = TECDOC_THUMB_URL + display_img_id + '/0/';
-            img = '<img src=' + display_img + ' border="1" id="display_img" class="kuva">'
-        }
-
-        //Lisätään modaliin sisältö
-        $("#menu1").empty().append('\
-			<div class="flex_row">\
-			    <div style="display: inline-block;">\
-			        '+ img +'\
-			    </div>\
-			    <div>\
-			        <div style="font-size: 20px;">\
-			            <span style="font-weight:bold;">'+ name +'</span><br>'+ articleNo +'<br>'+ brand +'<br>\
-			        </div>\
-			        <div style="font-size: 18px;">\
-			            <br>'+ infos + '<br><br>'+ documents +'\
-			        </div>\
-			    </div>\
-			</div>\
-		');
-        $("#menu2").empty().append(imgs);
+        //Lisätään OE-taulukko modaliin
         $("#menu3").empty().append(OEtable);
-        $("#dd").empty();
-
         // Haetaan muiden valmistajien vastaavat tuotteet (vertailunumerot) ja lisätään modaliin
         getComparableNumber(articleNo, genericArticleId);
         // Haetaan tuotteeseen linkitetyt autot ja lisätään modaliin
         getLinkedManufacturers(articleId);
         showModal(); // Näytetään modal
-
     }
 
     /**
-     * Näytetään linkitetyt autot
-     * @param elmnt
-     * @param articleId
+     * Avataan tuoteikkuna ja pysäytetään spinning icon
      */
-	function showCars( elmnt, /*int*/articleId ){
-        //Valitaan DIV painetun elementin data-manuId:n avulla
-        let car_dropdown = $("#manufacturer-"+elmnt.getAttribute('data-manuId'));
-		//Haetaan autot, jos niitä ei ole vielä haettu
-		if (elmnt.getAttribute("data-list-filled") === "false") {
-			elmnt.setAttribute("data-list-filled", "true");
-			car_dropdown.addClass("loader");
-			getLinkedVehicleIds(articleId, elmnt.getAttribute("data-manuId"));
-		}
-		//car_dropdown.show();
-		if (car_dropdown.css("display") === "none") {
-			car_dropdown.show();
-		}
-		else {
-            car_dropdown.hide();
-
-		}
-	}
+    function showModal() {
+        // Poistetaan cover
+        $('#cover').removeClass("loading");
+        // Avataan modal
+        if ( MODAL_OPEN === false ) {
+            return false;
+        }
+        $("#myModal").modal({
+            keyboard: true
+        });
+        // Avataan "tuote" tabi ensin
+        $('#maintab').tab('show');
+    }
 
     /**
      * Haetaan linkitetyt autot artikkelinumeron ja valmistaja-id:n perusteella
@@ -419,11 +465,22 @@ require_once 'tecdoc_asetukset.php';?>
     }
 
     /**
-     * Haetaan linkitettyjen autojen tiedot
+     * Haetaan linkitettyjen autojen tiedot ja lisätään ne modaliin
      * @param articleId
      * @param articleIdPairs
      */
     function getLinkedVehicleInfos( /*int*/articleId, /*array*/articleIdPairs ) {
+
+        /**
+         * Apufunktio ajoneuvojen vuosimallien muotoiluun
+         * @param text
+         * @returns {string}
+         */
+        function addSlashes( /*string*/text ) {
+            text = String(text);
+            return (text.substr(0, 4) + "/" + text.substr(4));
+        }
+
         let functionName = "getArticleLinkedAllLinkingTargetsByIds3";
         let params = {
             "articleCountry" : TECDOC_COUNTRY,
@@ -436,37 +493,24 @@ require_once 'tecdoc_asetukset.php';?>
             }
         };
         params = JSON.stringify(params).replace(/,/g,", ");
-        tecdocToCatPort[functionName] (params, addLinkedVehiclesToModal);
+        tecdocToCatPort[functionName] (params,
+	        function (response) {
+
+	        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
+	        for (let i=0; i<response.data.array.length ; i++) {
+	            let yearTo = "";
+	            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
+	                yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
+	            }
+	            $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
+	                response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
+	                response.data.array[i].linkedVehicles.array[0].carDesc + " " +
+	                addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
+	                    yearTo + "</li>"));
+	        }
+        });
     }
 
-    /**
-     * Lisätään haetut autojen tiedot modaliin
-     * @param response
-     */
-    function addLinkedVehiclesToModal( /*array*/response ) {
-        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loader");
-        for (let i=0; i<response.data.array.length ; i++) {
-            let yearTo = "";
-            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
-                yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
-            }
-            $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
-                response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
-                response.data.array[i].linkedVehicles.array[0].carDesc + " " +
-                addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
-                    yearTo + "</li>"));
-        }
-    }
-
-    /**
-     * Apufunktio, jonka avulla voidaan muotoilla ajoneuvomallihaun vuosiluvut parempaan muotoon
-     * @param text
-     * @returns {string}
-     */
-    function addSlashes( /*string*/text ) {
-        text = String(text);
-        return (text.substr(0, 4) + "/" + text.substr(4));
-    }
 
     //avaa tuotteen kuvan uuteen modaliin
     $(document.body)
@@ -485,16 +529,33 @@ require_once 'tecdoc_asetukset.php';?>
 	            }
 	        }
 	    })
-        .on('mouseover', '#asennusohje', function(){
-            $(this).css("text-decoration", "underline");
-        })
-        .on('mouseout', '#asennusohje', function(){
-            $(this).css("text-decoration", "none");
-        });
+	    .on('click', '#dd > li > span', function(){
+			//Valitaan DIV painetun elementin data-manuId:n avulla
+            let manuf = $(this).parent();
+		    let manuf_id = manuf.attr("data-manuId");
+            let article_id = manuf.attr("data-articleId");
+            let car_dropdown = $("#manufacturer-"+ manuf.attr('data-manuId'));
+            //Haetaan autot, jos niitä ei ole vielä haettu
+            if (manuf.attr("data-list-filled") === "false") {
+                manuf.attr("data-list-filled", "true");
+                car_dropdown.addClass("loader");
+                getLinkedVehicleIds(article_id, manuf_id);
+            }
+            //car_dropdown.show();
+            if (car_dropdown.css("display") === "none") {
+                car_dropdown.show();
+            }
+            else {
+                car_dropdown.hide();
+
+            }
+	    });
 
     $("#myModal").on("hidden.bs.modal", function () {
         //Tyhjennetään modal
-        $( "#menu1" ).empty();
+        $( "#modal-thumbnail" ).empty();
+        $( "#modal-product" ).empty();
+        $( "#modal-infos" ).empty();
         $( "#menu2" ).empty();
         $( "#menu3" ).empty();
         $( "#dd" ).empty();

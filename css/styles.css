@@ -535,12 +535,6 @@ Tuotteen MODAL-ikkuna
 	margin-right: 20px;
 }
 
-#asennusohje {
-	text-decoration: none;
-	font-family: sans-serif;
-	color: black;
-}
-
 /* Vertailunumerot välilehti */
 .vertailunumero_table {
 	margin-left:auto;

@@ -124,7 +124,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
 	foreach ($own_products as $tuote) {
-		$tuote->articleId = 0;
+		$tuote->articleId = null;
 		$tuote->articleName = $tuote->nimi;
 		$tuote->brandName = $tuote->valmistaja;
 		$infot = explode('|', $tuote->infot);
@@ -330,7 +330,7 @@ require 'tuotemodal.php';
 			</thead>
 			<tbody>
 			<?php foreach ($catalog_products as $product) : ?>
-				<tr data-val="<?=$product->articleId?>">
+				<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 					<td class="clickable thumb">
 						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 					<td class="clickable"><?=$product->tuotekoodi?></td>
@@ -384,7 +384,7 @@ require 'tuotemodal.php';
 			</thead>
 			<tbody>
 			<?php foreach ($not_available as $product) : ?>
-				<tr data-val="<?=$product->articleId?>">
+				<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 					<td class="clickable thumb">
 						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 					<td class="clickable"><?=$product->tuotekoodi?></td>
@@ -454,7 +454,7 @@ require 'tuotemodal.php';
 			</thead>
 			<tbody>
 			<?php foreach ($not_in_catalog as $product) : ?>
-				<tr data-val="<?=$product->articleId?>">
+				<tr data-tecdoc_id="<?=$product->articleId?>">
 					<td class="clickable"><?=$product->articleNo?></td>
 					<td class="clickable"><?=$product->brandName?><br><?=$product->articleName?></td>
 					<td><button class="nappi grey" id="tuote_hnktpyynto_<?=$product->articleId?>"
@@ -654,11 +654,13 @@ require 'tuotemodal.php';
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){
-				let articleId = $(this).closest('tr').attr('data-val'); //haetaan tuotteen id
-				// Avataan vain, jos TecDocin articleId on määritelty
-				if ( articleId !== '0') {
-                    productModal(articleId); //haetaan tuotteen tiedot tecdocista
-                }
+                //haetaan tuotteen id
+                let tecdoc_id = $(this).closest('tr').attr('data-tecdoc_id');
+                let tuote_id = $(this).closest('tr').attr('data-tuote_id');
+                tecdoc_id = (!!tecdoc_id) ? tecdoc_id : null;
+                tuote_id = (!!tuote_id) ? tuote_id : null;
+
+                productModal(tuote_id, tecdoc_id);
 			});
 
 	});//doc.ready

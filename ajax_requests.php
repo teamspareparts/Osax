@@ -120,6 +120,24 @@ elseif ( isset( $_POST[ 'tuoteryhma_alennukset' ] ) ) {
 	$result = $db->query( $sql, array_values( $_POST ), FETCH_ALL );
 }
 
+/**
+ * Haetaan tuotteen tiedot kannasta tuotemodalia varten
+ */
+elseif ( isset( $_POST[ 'tuote_modal_tiedot' ] ) ) {
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
+                        toimittaja_tehdassaldo.tehdassaldo,
+                        tuote_linkitys.articleNo as c_articleNo, tuote_linkitys.brandNo as c_brandNo,
+                        tuote_linkitys.genericArticleId as c_genericArticleId
+			FROM 	    tuote
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			LEFT JOIN 	tuote_linkitys ON tuote_linkitys.tuote_id = tuote.id
+  			LEFT JOIN	toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
+			WHERE 	    tuote.id = ? AND tuote.aktiivinen = 1
+			LIMIT 1";
+	$result = $db->query( $sql, [$_POST['tuote_id']]);
+}
+
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();
