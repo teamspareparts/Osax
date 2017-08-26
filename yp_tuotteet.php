@@ -488,7 +488,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
 	$number = addslashes(str_replace(" ", "", $_GET['haku']));  // Hakunumero
 	$etuliite = null;   // Mahdollinen etuliite
-	$products = $own_products = $own_comparable_products = [];
+	$products = $own_products = $own_comparable_products = $own_products = [];
 	//TODO: Jos tuotenumerossa on neljäs merkki: -, tulee se jättää pois tai haku epäonnistuu
 	//TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 
@@ -501,6 +501,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	 *      hakutuloksia. (vain jos hakutyyppi "all" tai comparable)
 	 * 4: Karsitaan ne tuotteet, joita ei ole perustettu meidän järjestelmään.
 	 * 5: Etsitään kannasta ne omat tuotteet, jotka vastaavat suoraan hakunumeroa.
+	 *      (vain jos hakutyyppi ei ole "oe")
 	 */
 	$numerotyyppi = isset($_GET['numerotyyppi']) ? $_GET['numerotyyppi'] : null;	//numerotyyppi
 	$exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
@@ -515,10 +516,12 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'articleNo':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 0, $exact);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'comparable':
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
@@ -532,6 +535,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);
+			$own_products = search_own_products_from_database( $db, $number, $exact );
 			break;
 		case 'oe':
 			$products = getArticleDirectSearchAllNumbersWithState($number, 1, $exact);
@@ -544,8 +548,6 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 
 	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	// Etsitään omia tuotteita kannasta
-	$own_products = search_own_products_from_database( $db, $number, $exact );
 	// Yhdistetään kaikki tuotteet
 	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
 	$all_products = array_unique(array_merge($filtered_product_arrays[1], $own_products, $own_comparable_products), SORT_REGULAR);
