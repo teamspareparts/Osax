@@ -371,7 +371,7 @@ require 'tuotemodal.php';
 		</section>
 	</div>
 
-	<section class="white-bg" style="border-radius: 10px; border: 1px solid;">
+	<section class="white-bg" style="border-radius: 5px; border: 1px solid;">
 		<div class="tuotekoodihaku">
 			<form action="tuotehaku.php" method="get" class="haku">
                 <div class="inline-block">
