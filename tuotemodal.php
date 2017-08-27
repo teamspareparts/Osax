@@ -76,7 +76,7 @@ require_once 'tecdoc_asetukset.php';?>
     var TECDOC_LANGUAGE = <?= json_encode(TECDOC_LANGUAGE); ?>;
     var TECDOC_THUMB_URL = <?= json_encode(TECDOC_THUMB_URL); ?>;
 
-    const TIMEOUT = 7000; // Aika (ms), jonka jälkeen modalin avaus keskeytetään
+    const TIMEOUT = 8000; // Aika (ms), jonka jälkeen modalin avaus keskeytetään
     let MODAL_OPEN = false; // Muuttuja ilmaisee pitäisikö modalin olla auki vai ei
 
     /**
@@ -131,7 +131,6 @@ require_once 'tecdoc_asetukset.php';?>
                 },
                 function (tuote) {
                     // TODO: Modaliin hintatiedot yms
-	                //TODO: Vertailunumerot taulukkoon
                     if (tuote.tecdocissa) {
                         tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
                     } else {
@@ -153,12 +152,11 @@ require_once 'tecdoc_asetukset.php';?>
          * @returns {string}
          */
         function imgsToHTML( /*array*/response) {
-            let imgs, img_url, thumb_id;
+            let imgs, img_url;
             if (response.articleThumbnails.length !== 0) {
                 imgs = "";
                 for (let i = 0; i < response.articleThumbnails.array.length; i++) {
-                    thumb_id = response.articleThumbnails.array[i].thumbDocId;
-                    img_url = TECDOC_THUMB_URL + thumb_id + '/0/';
+                    img_url = TECDOC_THUMB_URL + response.articleThumbnails.array[i].thumbDocId + '/0/';
                     imgs += '<img src=' + img_url + ' border="1" class="tuote_img kuva"><br>';
                 }
             } else {
@@ -186,10 +184,9 @@ require_once 'tecdoc_asetukset.php';?>
             if (typeof response.directArticle.quantityPerPackingUnit !== 'undefined') {
                 infos += "Kpl/pakkaus: " + response.directArticle.quantityPerPackingUnit + "<br>";
             }
-
             infos += "<br>";
 
-            //infot
+            // Infot
             if (response.articleAttributes !== "") {
                 for (let i = 0; i < response.articleAttributes.array.length; i++) {
                     if (typeof response.articleAttributes.array[i].attrName !== 'undefined') {
@@ -209,7 +206,7 @@ require_once 'tecdoc_asetukset.php';?>
         }
 
         /**
-         * Tehdään dokumenttien latauslinkit html-muodossa.
+         * Luodaan dokumenttien latauslinkit html-muodossa.
          * @param response
          * @returns {string}
          */
@@ -273,7 +270,7 @@ require_once 'tecdoc_asetukset.php';?>
         let img_url = (data.kuva_url) ? data.kuva_url :  './img/ei-kuvaa.png';
         let img = '<img src=' + img_url + ' border="1" id="display_img" class="kuva">';
         let imgs = '<img src=' + img_url + ' border="1" id="display_img" class="kuva">';
-        let infos = data.infot.split("|").join("<br>");
+        let infos = (data.infot) ? data.infot.split("|").join("<br>") : "";
 
         //Lisätään modaliin sisältö
         $("#modal-thumbnail").empty().append(img);
@@ -327,6 +324,11 @@ require_once 'tecdoc_asetukset.php';?>
      */
     function createRestOfTheModal(response){
 
+        /**
+         * Luodaan OE-taulukon sisältö html-muodossa.
+         * @param array
+         * @returns {string}
+         */
         function oesToHTML(array) {
             let result = "";
             if (array.length !== 0) {
@@ -340,6 +342,11 @@ require_once 'tecdoc_asetukset.php';?>
             return result;
         }
 
+        /**
+         * Haetaan tecdocista vertailutuotteet ja lisätään ne vertailunumero-taulukkoon.
+         * @param articleNumber
+         * @param genericArticleId
+         */
         function getComparableNumber( /*string*/articleNumber, /*int*/genericArticleId ) {
             let functionName = "getArticleDirectSearchAllNumbersWithState";
             let params = {
@@ -356,6 +363,7 @@ require_once 'tecdoc_asetukset.php';?>
 	            function(response){
 	                //Luodaan haetuista vertailunumeroista html-muotoinen taulu
 	                let comparableNumbers = "";
+	                let sql_values = []; //ajax-pyyntöä varten
 
 	                if ( response.data ) {
 	                    response = response.data.array;
@@ -364,12 +372,39 @@ require_once 'tecdoc_asetukset.php';?>
 	                            comparableNumbers += "<tr><td>" + response[i].brandName + "</td>" +
 	                                "<td><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
 	                                + response[i].articleNo + "</a></td></tr>";
+
+	                            //Otetaan talteen tuotteen articleNo ja brandNo sql-kyselyä varten
+                                sql_values.push(response[i].articleNo.replace(/\s/g, ''));
+                                sql_values.push(response[i].brandNo);
 	                        }
 	                    }
 	                }
+	                let comparable_table = $("#modal-comparable");
+                    comparable_table.find("tr:gt(0)").remove();
+	                comparable_table.append(comparableNumbers);
 
-	                $("#modal-comparable").append(comparableNumbers);
-            });
+	                // Haetaan omat vertailutuotteet
+                    $.post(
+                        "ajax_requests.php",
+                        {
+                            tuote_modal_omat_vertailutuotteet: true,
+                            tuotteet: sql_values
+                        },
+                        function (tuotteet) {
+                            if ( tuotteet.length === 0 ) {
+                                return false;
+                            }
+                            console.log(tuotteet);
+                            comparableNumbers = "";
+                            for (let i = 0; i < tuotteet.length; i++) {
+	                            comparableNumbers += "<tr><td>" + tuotteet[i].valmistaja + "</td>" +
+		                            "<td><a href='?haku=" + tuotteet[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
+		                            + tuotteet[i].articleNo + "</a></td></tr>";
+                            }
+                            comparable_table.append(comparableNumbers);
+                        });
+
+                 });
         }
 
         /**

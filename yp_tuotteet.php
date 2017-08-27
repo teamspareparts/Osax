@@ -975,7 +975,6 @@ require 'tuotemodal.php';
                     }
                 }
                 response = response.data.array[0];
-                const generic_article_id = response.genericArticleId;
 
                 // thead
                 let header = table.createTHead();
@@ -1029,15 +1028,15 @@ require 'tuotemodal.php';
 				tuote_nimi: tuote_nimi,
 				tuote_valmistaja: tuote_valmistaja },
 			function( data ) {
-				ostotilauskirjat = JSON.parse(toJSON(data));
-				if(ostotilauskirjat.length === 0){
+				let ostotilauskirjat = JSON.parse(toJSON(data));
+				if ( ostotilauskirjat.length === 0 ) {
 					alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
 						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
 					return;
 				}
 				//Luodaan alasvetovalikko
 				let ostotilauskirja_lista = '<select name="ostotilauskirjat">';
-				for(let i=0; i < ostotilauskirjat.length; i++){
+				for (let i=0; i < ostotilauskirjat.length; i++) {
 					ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
 				}
 				ostotilauskirja_lista += '</select>';

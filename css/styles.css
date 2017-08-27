@@ -539,6 +539,7 @@ Tuotteen MODAL-ikkuna
 .vertailunumero_table {
 	margin-left:auto;
 	margin-right:auto;
+	min-width: 40%;
 }
 
 .vertailunumero_table td {
@@ -579,9 +580,9 @@ Pieni spinning-icon
 }
 
 .loading.small {
-	width: 10px;
-	height: 10px;
-	margin: 0;
+	width: 15px;
+	height: 15px;
+	margin: 0; /*align top left*/
 	border-width: 6px;
 }
 

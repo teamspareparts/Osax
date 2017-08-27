@@ -138,6 +138,23 @@ elseif ( isset( $_POST[ 'tuote_modal_tiedot' ] ) ) {
 	$result = $db->query( $sql, [$_POST['tuote_id']]);
 }
 
+/**
+ *
+ */
+elseif ( isset( $_POST[ 'tuote_modal_omat_vertailutuotteet' ] ) ) {
+	if ( $_POST['tuotteet'] ) {
+		$questionmarks = implode(',', array_fill(0, count($_POST['tuotteet'])/2, 'ROW(?,?)'));
+		$sql = "SELECT 	    tuote.articleNo, tuote.valmistaja
+				FROM 	    tuote
+				LEFT JOIN 	tuote_linkitys ON tuote_linkitys.tuote_id = tuote.id
+				WHERE 	    (tuote_linkitys.articleNo, tuote_linkitys.brandNo) IN ({$questionmarks})
+					AND		tuote.aktiivinen = 1
+					AND		tecdocissa = 0";
+		$result = $db->query($sql, $_POST['tuotteet'], FETCH_ALL);
+		$result = !empty($result) ? array_unique($result, SORT_REGULAR) : [];
+	}
+}
+
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();
