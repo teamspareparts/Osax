@@ -10,9 +10,9 @@ require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-	<div class="modal-dialog" role="document" style="top: 10%">
+	<div class="modal-dialog" role="document" style="top: 10%;">
 		<div class="modal-content">
-			<div class="modal-header" style="height: 30pt;">
+			<div class="modal-header" style="height: 70px;">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
 				<ul class="nav nav-pills modal-title" id="modalnav">
@@ -374,7 +374,7 @@ require_once 'tecdoc_asetukset.php';?>
 	                                + response[i].articleNo + "</a></td></tr>";
 
 	                            //Otetaan talteen tuotteen articleNo ja brandNo sql-kyselyä varten
-                                sql_values.push(response[i].articleNo.replace(/\s/g, ''));
+                                sql_values.push(response[i].articleNo.toString().replace(/ /g, ''));
                                 sql_values.push(response[i].brandNo);
 	                        }
 	                    }
@@ -394,7 +394,6 @@ require_once 'tecdoc_asetukset.php';?>
                             if ( tuotteet.length === 0 ) {
                                 return false;
                             }
-                            console.log(tuotteet);
                             comparableNumbers = "";
                             for (let i = 0; i < tuotteet.length; i++) {
 	                            comparableNumbers += "<tr><td>" + tuotteet[i].valmistaja + "</td>" +

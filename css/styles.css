@@ -587,8 +587,8 @@ Pieni spinning-icon
 }
 
 .loading.small {
-	width: 15px;
-	height: 15px;
+	width: 25px;
+	height: 25px;
 	margin: 0; /*align top left*/
 	border-width: 6px;
 }
