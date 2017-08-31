@@ -689,3 +689,15 @@ Toimittajien listaukseen
 .fp_content_form input[type=date] {
 	width: 15rem;
 }
+
+/******************************************
+	Bootstrap modal
+*******************************************/
+.modal-lg { /*Suuri modal*/
+	min-width: 600px;
+	max-width: 600px;
+}
+
+.modal-dialog {
+	top: 10%; /*Modalin sijainti*/
+}

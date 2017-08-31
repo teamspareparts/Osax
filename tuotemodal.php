@@ -9,26 +9,29 @@
 require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-	<div class="modal-dialog" role="document" style="top: 10%;">
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
-			<div class="modal-header" style="height: 70px;">
+
+			<!-- Modal header -->
+			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span></button>
-				<ul class="nav nav-pills modal-title" id="modalnav">
-					<li class="active"><a data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
-					<li><a data-toggle="tab" href="#menu2">Kuvat</a></li>
-					<li><a data-toggle="tab" href="#menu3">Vertailunumerot</a></li>
-					<li><a data-toggle="tab" href="#menu4">Autot</a></li>
+				<ul class="nav nav-pills modal-title" role="tablist">
+					<li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#menu1" id="maintab" role="tab">Tuote</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu2" role="tab">Kuvat</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu3" role="tab">Vertailunumerot</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu4" role="tab">Autot</a></li>
 				</ul>
 			</div>
 
-
+			<!-- Modal body -->
             <div class="modal-body">
+	            <!-- Tab panes -->
 				<div class="tab-content">
-					<div id="menu1" class="tab-pane fade in active">
+					<div id="menu1" class="tab-pane fade in active" role="tabpanel">
 						<div class="flex_row">
-							<div class="inline-block" id="modal-thumbnail"></div>
+							<div id="modal-thumbnail"></div>
 							<div>
 								<div id="modal-product" style="font-size: 20px;"></div>
 								<!-- div hintatiedoille yms -->
@@ -36,20 +39,22 @@ require_once 'tecdoc_asetukset.php';?>
 							</div>
 						</div>
 					</div>
-					<div id="menu2" class="tab-pane fade text-center"></div>
-					<div id="menu3" class="tab-pane fade" style="white-space: nowrap">
-						<div class="inline-block" style="width: 50%; vertical-align: top">
-							<table class="vertailunumero_table" id="modal-oe">
-								<tr><th colspan="2" class="center">OE</th></tr>
-							</table>
-						</div>
-						<div class="inline-block" style="width: 50%; vertical-align: top">
-							<table class="vertailunumero_table" id="modal-comparable">
-								<tr><th colspan="2" class="center">Vertailunumerot</th></tr>
-							</table>
+					<div id="menu2" class="tab-pane fade text-center" role="tabpanel"></div>
+					<div id="menu3" class="tab-pane fade" role="tabpanel">
+						<div class="flex_row" style="vertical-align: top;">
+							<div style="width: 50%;">
+								<table class="vertailunumero_table" id="modal-oe">
+									<tr><th colspan="2" class="center">OE</th></tr>
+								</table>
+							</div>
+							<div style="width: 50%;">
+								<table class="vertailunumero_table" id="modal-comparable">
+									<tr><th colspan="2" class="center">Vertailunumerot</th></tr>
+								</table>
+							</div>
 						</div>
 					</div>
-					<div id="menu4" class="tab-pane fade">
+					<div id="menu4" class="tab-pane fade" role="tabpanel">
 						<ul id="dd"></ul> <!-- Dropdown -->
 					</div>
 				</div>

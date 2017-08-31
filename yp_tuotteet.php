@@ -582,14 +582,13 @@ else if ( !empty($_GET["hyllypaikka"]) ) { // Hyllypaikallahaku
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <link rel="stylesheet" href="css/bootstrap.css">
-	<link rel="stylesheet" href="css/styles.css">
-	<link rel="stylesheet" href="css/jsmodal-light.css">
-    <link rel="stylesheet" href="css/image_modal.css">
-
+    <link rel="stylesheet" href="./css/bootstrap.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<link rel="stylesheet" href="./css/jsmodal-light.css">
+    <link rel="stylesheet" href="./css/image_modal.css">
+	<link rel="stylesheet" href="./css/styles.css">
 
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<!--<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>-->
 	<script src="./js/TecdocToCatDLB.jsonEndpoint"></script>
