@@ -247,4 +247,14 @@ class Tuote {
 			: number_format( $this->alennus_prosentti * 100, 0, ',', '.' )
 				. ($ilman_pros ? '' : '&nbsp;&#37;');
 	}
+
+	/**
+	 * @param bool $ilmanEuro [optional] default=false <p> Tulostetaanko ilman €-merkkiä.
+	 * @param int  $decCount  [optional] default=2 <p> Kuinka monta desimaalia
+	 * @return string
+	 */
+	function ostohinta_toString ( /*bool*/ $ilmanEuro = false, /*int*/ $decCount = 2 ) {
+		return number_format( $this->ostohinta, $decCount, ',', '.' )
+			. ($ilmanEuro ? '' : '&nbsp;&euro;');
+	}
 }

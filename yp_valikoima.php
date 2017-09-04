@@ -203,8 +203,8 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 			<th>Tuotekoodi</th>
 			<th>Nimi</th>
 			<th>Myyntihinta</th>
-			<th>ALV 0 %</th>
-			<th>Ostohinta ALV 0 %</th>
+			<th>ALV 0&nbsp;%</th>
+			<th>Ostohinta ALV 0&nbsp;%</th>
 			<th>Hinnoittelukate</th>
 			<th>Varastossa</th>
 			<th>Myyty kpl</th>
@@ -220,7 +220,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&ppp={$products_per_pag
 				<td><?= $t->nimi ?></td>
 				<td><?= $t->aHinta_toString() ?></td>
 				<td><?= $t->aHintaIlmanALV_toString() ?></td>
-				<td><?= $t->ostohinta ?></td>
+				<td><?= $t->ostohinta_toString() ?></td>
 				<td><?= round(100*(($t->a_hinta_ilman_alv - $t->ostohinta)/$t->a_hinta_ilman_alv), 0)?>&nbsp;%</td>
 				<td><?= $t->varastosaldo ?></td>
 				<td><?= "" ?></td>
