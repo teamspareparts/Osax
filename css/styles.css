@@ -2,20 +2,34 @@
 /********************************************
 	General application.
 *********************************************/
-html{ position:relative; min-height: 100%; width:100%; font-size: small; } /*Varmuuden varalle...*/
-html, body{ background-color: #ddd; }
-body{ font-family: Helvetica, 'Open Sans', sans-serif; margin: 3px; line-height: normal; font-size: medium; color:black }
+html {
+	position: relative;
+	min-height: 100%;
+	width: 100%;
+	font-size: small;
+	background-color: #ddd;
+}
+body {
+	font-family: Helvetica, 'Open Sans', sans-serif;
+	margin: 3px;
+	line-height: normal;
+	font-size: medium;
+	color: black;
+	background-color: #ddd;
+}
 
-input,
-select { padding: 3pt; } /* Näyttää siistimmältä */
+input, select { padding: 3pt; } /* Näyttää siistimmältä */
+
 select:disabled { color: grey; }
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
-main { display: block; } /* F*** IE */
-h1{font-size:1.6em;margin:0.67em 0} /**/
-
-fieldset {
-	background-color: whitesmoke !important; /* //TODO: korjaa pois tuo "important!" */
+main { display: block; } /* IE */
+h1 {
+	font-size: 1.6em;
+	margin: 0.67em 0; /* <top bottom> <right left> */
 }
+
+fieldset { background-color: whitesmoke !important; /* //TODO: korjaa pois tuo "important!" */ }
+
 label {
 	max-width: 100%;
 	font-weight: bold;
