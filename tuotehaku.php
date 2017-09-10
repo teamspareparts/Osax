@@ -753,8 +753,8 @@ require 'tuotemodal.php';
 			.css('cursor', 'pointer')
 			.click(function(){
                 //haetaan tuotteen id
-                let tecdoc_id = $(this).closest('tr').attr('data-tecdoc_id');
-                let tuote_id = $(this).closest('tr').attr('data-tuote_id');
+                let tecdoc_id = $(this).parent('tr').attr('data-tecdoc_id');
+                let tuote_id = $(this).parent('tr').attr('data-tuote_id');
                 tecdoc_id = (!!tecdoc_id) ? tecdoc_id : null;
                 tuote_id = (!!tuote_id) ? tuote_id : null;
 
