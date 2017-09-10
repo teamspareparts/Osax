@@ -45,20 +45,19 @@ function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
 	$len = count( $filtered_array ) - 1; // Sisältää jo osoite_id:n, jota ei tarvita pituudessa.
 
 	if ( $len >= 1 ) {    // Onko päivitettäviä tietoja? Ei turhia sql-hakuja.
-		$sql_query = "UPDATE toimitusosoite SET "; //Aloitusosa
-
+		$sql_set = "";
 		foreach ( $filtered_array as $key => $value ) {    // Täytetään hakuun päivitettävät arvot
 			$k = htmlspecialchars( $key );
 			if ( in_array( $k, $possible_fields ) ) {
-				$sql_query .= $k . " = ?";
+				$sql_set .= $k . " = ?";
 				if ( $i < $len ) {
-					$sql_query .= ', ';
+					$sql_set .= ', ';
 				} // Jos vielä arvoja, lisätään erotin
 				$i++;
 			}
 		}
 
-		$sql_query .= " WHERE osoite_id = ? AND kayttaja_id = ?"; //Loppuosa
+		$sql_query = "UPDATE toimitusosoite SET {$sql_set} WHERE osoite_id = ? AND kayttaja_id = ?";
 		$filtered_array[] = $user->id; // Lisätään käyttäjän ID arrayhin db->querya varten
 		return $db->query( $sql_query, array_values( $filtered_array ) );
 	}
@@ -288,32 +287,32 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	 */
 	function avaa_Modal_toimitusosoite_muokkaa( osoite_id ) {
 		Modal.open( {
-			content: `
-			<div>Muokkaa tietoja (Osoite ${osoite_id})</div>
-			<br>
-			<form action="#" method=post>
-				<label>Etunimi</label>
-					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen etunimi"><br>
-				<label>Sukunimi</label>
-					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen sukunimi"><br>
-				<label>Sähköposti</label>
-					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>
-				<label>Puhelin</label>
-					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="Edellinen puhelinumero"><br>
-				<label>Yritys</label>
-					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen yritys"><br>
-				<label>Katuosoite</label>
-					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen katuosoite"><br>
-				<label>Postinumero</label>
-					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="Edellinen postinumero"><br>
-				<label>Postitoimipaikka</label>
-					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Edellinen postitoimipaikka">
-				<br><br>
-				<input type="hidden" name="osoite_id" value="${osoite_id}">
-				<input class="nappi" type="submit" name="muokkaa_vanha_osoite" value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">
-				<br>
-			</form>
-			`,
+			content: '\
+			<div>Muokkaa tietoja (Osoite '+osoite_id+')</div>\
+			<br>\
+			<form action="#" method=post>\
+				<label>Etunimi</label>\
+					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen etunimi"><br>\
+				<label>Sukunimi</label>\
+					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Edellinen sukunimi"><br>\
+				<label>Sähköposti</label>\
+					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="Edellinen sähköposti"><br>\
+				<label>Puhelin</label>\
+					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="Edellinen puhelinumero"><br>\
+				<label>Yritys</label>\
+					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen yritys"><br>\
+				<label>Katuosoite</label>\
+					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Edellinen katuosoite"><br>\
+				<label>Postinumero</label>\
+					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="Edellinen postinumero"><br>\
+				<label>Postitoimipaikka</label>\
+					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{2,50}" placeholder="Edellinen postitoimipaikka">\
+				<br><br>\
+				<input type="hidden" name="osoite_id" value="'+ osoite_id +'">\
+				<input class="nappi" type="submit" name="muokkaa_vanha_osoite" value="Tallenna uudet tiedot (tyhjiä kenttiä ei oteta huomioon)">\
+				<br>\
+			</form>\
+			',
 			draggable: true
 		} );
 	}
@@ -323,34 +322,34 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	 */
 	function avaa_Modal_toimitusosoite_lisaa_uusi() {
 		Modal.open( {
-			content:  `
-			<div>Lisää uuden toimitusosoitteen tiedot</div>
-			<br>
-			<form action="#" method=post>
-				<label class="required">Etunimi</label>
-					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi" required><br>
-				<label class="required">Sukunimi</label>
-					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi" required><br>
-				<label class="required">Sähköposti</label>
-					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>
-				<label class="required">Puhelin</label>
-					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="000 1234 789" required><br>
-				<label>Yritys</label>
-					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Yritys Oy"><br>
-				<label class="required">Katuosoite</label>
-					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Katu 42" required><br>
-				<label class="required">Postinumero</label>
-					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>
-				<label class="required">Postitoimipaikka</label>
-					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="KAUPUNKI" required><br>
-				<label>Maa</label>
-					<input name="maa" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Maa">
-				<br><br>
-				<span class="small_note"><span class="required"></span> = pakollinen kenttä</span><br>
-				<input class="nappi" type="submit" name="tallenna_uusi_osoite" value="Tallenna uusi osoite">
-				<br>
-			</form>
-			`,
+			content:  '\
+			<div>Lisää uuden toimitusosoitteen tiedot</div>\
+			<br>\
+			<form action="#" method=post>\
+				<label class="required">Etunimi</label>\
+					<input name="etunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Etunimi" required><br>\
+				<label class="required">Sukunimi</label>\
+					<input name="sukunimi" type="text" pattern="[a-öA-Ö]{3,20}" placeholder="Sukunimi" required><br>\
+				<label class="required">Sähköposti</label>\
+					<input name="sahkoposti" type="email" pattern=".{3,50}" placeholder="yourname@email.com" required><br>\
+				<label class="required">Puhelin</label>\
+					<input name="puhelin" type="tel" pattern="((\\+|00)?\\d{3,5}|)((\\s|-)?\\d){3,10}" placeholder="000 1234 789" required><br>\
+				<label>Yritys</label>\
+					<input name="yritys" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Yritys Oy"><br>\
+				<label class="required">Katuosoite</label>\
+					<input name="katuosoite" type="text" pattern="[a-öA-Ö0-9\\s]{3,50}" placeholder="Katu 42" required><br>\
+				<label class="required">Postinumero</label>\
+					<input name="postinumero" type="text" pattern="[0-9]{3,10}" placeholder="00001" required><br>\
+				<label class="required">Postitoimipaikka</label>\
+					<input name="postitoimipaikka" type="text" pattern="[a-öA-Ö]{2,50}" placeholder="KAUPUNKI" required><br>\
+				<label>Maa</label>\
+					<input name="maa" type="text" pattern="[a-öA-Ö]{3,50}" placeholder="Maa">\
+				<br><br>\
+				<span class="small_note"><span class="required"></span> = pakollinen kenttä</span><br>\
+				<input class="nappi" type="submit" name="tallenna_uusi_osoite" value="Tallenna uusi osoite">\
+				<br>\
+			</form>\
+			',
 			draggable: true
 		} );
 	}

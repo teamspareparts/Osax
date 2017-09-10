@@ -53,52 +53,66 @@ $yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETC
 	</div>
 
 	<?= $feedback ?>
-	<table style="width: 100%;">
-		<thead>
-		<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Aktiiviset yritykset</th></tr>
-		<tr><th>Yritys</th>
-			<th>Y-tunnus</th>
-			<th>Osoite</th>
-			<th>Maa</th>
-			<th class="smaller_cell">Poista</th>
-			<th class=smaller_cell></th></tr>
-		</thead>
-		<tbody>
-		<?php foreach ($yritykset as $y) : ?>
-			<tr data-id="<?= $y->id ?>">
-				<td class="cell"><?= $y->nimi ?></td>
-				<td class="cell"><?= $y->y_tunnus ?></td>
-				<td class="cell"><?= $y->katuosoite . '<br>' . $y->postinumero . ' ' . $y->postitoimipaikka ?></td>
-				<td class="cell"><?= $y->maa ?></td>
-				<td class="smaller_cell">
-					<label>Valitse
-						<input form="deactivate_company" type="checkbox" name="ids[]" value="<?= $y->id ?>">
-					</label>
-				</td>
-				<td class="smaller_cell"><a href="yp_muokkaa_yritysta.php?id=<?= $y->id ?>"><span class="nappi">Muokkaa</span></a></td>
-			</tr>
-		<?php endforeach;?>
-		</tbody>
-	</table>
-	<section class="flex_row" style="margin:20px 40px; justify-content: flex-end;">
-		<form action="" method="post" id="deactivate_company">
+
+	<form action="" method="post" id="poista_yritys">
+		<table style="width: 100%;">
+			<thead>
+			<tr><th colspan="6" class="center" style="background-color:#1d7ae2;">Aktiiviset yritykset</th></tr>
+			<tr><th>Yritys</th>
+				<th>Y-tunnus</th>
+				<th>Osoite</th>
+				<th>Maa</th>
+				<th class="smaller_cell">Poista</th>
+				<th class=smaller_cell></th></tr>
+			</thead>
+			<tbody>
+			<?php foreach ($yritykset as $y) : ?>
+				<tr>
+					<td data-href="yp_asiakkaat.php?yritys_id=<?= $y->id ?>"><?= $y->nimi ?></td>
+					<td data-href="yp_asiakkaat.php?yritys_id=<?= $y->id ?>"><?= $y->y_tunnus ?></td>
+					<td data-href="yp_asiakkaat.php?yritys_id=<?= $y->id ?>"><?= $y->katuosoite . '<br>' . $y->postinumero . ' ' . $y->postitoimipaikka ?></td>
+					<td data-href="yp_asiakkaat.php?yritys_id=<?= $y->id ?>"><?= $y->maa ?></td>
+					<td class="smaller_cell">
+						<label>Valitse
+							<input type="checkbox" name="ids[]" value="<?=$y->id?>">
+						</label>
+					</td>
+					<td class="smaller_cell"><a href="yp_muokkaa_yritysta.php?id=<?= $y->id ?>"><span class="nappi">Muokkaa</span></a></td>
+				</tr>
+			<?php endforeach;?>
+			</tbody>
+		</table>
+		<div style="text-align:right; padding-top:10px;">
 			<input type="submit" name="poista" value="Poista valitut Yritykset" class="nappi red">
-		</form>
-	</section>
+		</div>
+	</form>
 </main>
 
 <?php require 'footer.php'; ?>
 
 <script type="text/javascript">
     $(document).ready(function(){
-        //painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
-        $('.cell').click(function(){
-            $('tr').click(function(){
-                let id = $(this).attr('data-id');
-                window.document.location = 'yp_asiakkaat.php?yritys_id='+id;
+        // Painettaessa taulun riviä ohjataan
+        $('*[data-href]')
+            .css('cursor', 'pointer')
+            .click(function(){
+                window.location = $(this).data('href');
+                return false;
             });
-        })
-        .css('cursor', 'pointer');
+
+        // Poistettaessa yritystä näytetään confirm-dialogi
+	    $('#poista_yritys').on('submit', function(e){
+	        if ( $('input[name="ids[]"]:checked').length === 0 ) {
+                e.preventDefault();
+                return false;
+            }
+	        let c = confirm("Tämä toiminto deaktivoi yrityksen ja kaikki siihen liitetyt käyttäjät." +
+		        "Haluatko varmasti jatkaa?");
+	        if ( c === false ) {
+                e.preventDefault();
+                return false;
+            }
+	    });
     });
 
 </script>

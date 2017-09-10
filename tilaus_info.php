@@ -115,7 +115,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	<div class="otsikko_container">
 		<section class="takaisin">
 			<?php if ( $user->isAdmin() ) : ?>
-				<a href="yp_tilaukset.php" class="nappi grey">
+				<a href="javascript:history.go(-1)" class="nappi grey">
 					<i class="material-icons">navigate_before</i>Takaisin</a>
 			<?php else : ?>
 				<a href="tilaushistoria.php" class="nappi grey">

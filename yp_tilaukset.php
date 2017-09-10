@@ -31,6 +31,13 @@ if ( isset($_POST['set_done']) ) {
 		$db->query("UPDATE tilaus SET kasitelty = 1 WHERE id = ?", [$id]);
 	}
 }
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if (!empty($_POST)) {
+	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
+	exit();
+}
+$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+unset($_SESSION["feedback"]);
 
 $tilaukset = hae_tilaukset( $db );
 ?>
@@ -60,32 +67,32 @@ $tilaukset = hae_tilaukset( $db );
 
 	<section>
 		<?php if ($tilaukset) : ?>
-			<table style="width:100%;">
-				<thead>
-				<tr><th colspan="5" class="center" style="background-color:#1d7ae2;">Tilaukset</th></tr>
-				<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Merkitse käsitellyksi</th></tr>
-				</thead>
-				<tbody>
-				<?php foreach ($tilaukset as $tilaus) : ?>
-					<tr>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
-						<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_number($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
-						<td <?=(!$tilaus->maksettu) ? "data-href='tilaus_info.php?id={$tilaus->id}'" : ''?>>
-							<?php if ( $tilaus->maksettu ) : ?>
-							<label>
-								Valitse <input form="done" type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
-							</label>
-							<?php else : ?>
-							<span class="small_note" style="color: darkred;">Odottaa maksua.</span>
-							<?php endif; ?>
-						</td>
-					</tr>
-				<?php endforeach; ?>
-				</tbody>
-			</table>
-			<form id="done" action="" method="post">
+			<form action="" method="post">
+				<table style="width:100%;">
+					<thead>
+					<tr><th colspan="5" class="center" style="background-color:#1d7ae2;">Tilaukset</th></tr>
+					<tr><th>Tilausnro.</th><th>Päivämäärä</th><th>Tilaaja</th><th>Summa</th><th>Merkitse käsitellyksi</th></tr>
+					</thead>
+					<tbody>
+					<?php foreach ($tilaukset as $tilaus) : ?>
+						<tr>
+							<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->id?></td>
+							<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= date("d.m.Y", strtotime($tilaus->paivamaara))?></td>
+							<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= $tilaus->etunimi . " " . $tilaus->sukunimi?></td>
+							<td data-href="tilaus_info.php?id=<?= $tilaus->id ?>"><?= format_number($tilaus->summa + $tilaus->pysyva_rahtimaksu)?></td>
+							<td <?=(!$tilaus->maksettu) ? "data-href='tilaus_info.php?id={$tilaus->id}'" : ''?>>
+								<?php if ( $tilaus->maksettu ) : ?>
+								<label>
+									Valitse <input type="checkbox" name="ids[]" value="<?= $tilaus->id?>">
+								</label>
+								<?php else : ?>
+								<span class="small_note" style="color: darkred;">Odottaa maksua.</span>
+								<?php endif; ?>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
 				<div style="text-align:right;padding-top:10px;">
 					<input name="set_done" type="submit" value="Merkitse valitut käsitellyiksi" class="nappi">
 				</div>

@@ -46,7 +46,8 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $bran
 }
 
 /**
- * Deaktivoi brändin ja brändin tuotteet sekä poistaa kaikki linkitykset
+ * Deaktivoi brändin ja brändin tuotteet sekä poistaa kaikki linkitykset.
+ * Mikäli
  * @param DByhteys $db
  * @param $brandi_id
  * @return array|int|stdClass
@@ -166,7 +167,7 @@ unset($_SESSION["feedback"]);
 
     <!-- Brändin yhteystiedot -->
     <?php if ( !empty($brandAddress) ) : ?>
-        <table style="float:left; padding-right: 80px;">
+        <table class="inline-block" style="padding-right: 80pt; vertical-align: top;">
             <thead>
             <tr><th colspan='2' class='text-center'>Yhteystiedot</th></tr>
             </thead>
@@ -188,7 +189,7 @@ unset($_SESSION["feedback"]);
 
     <!-- Hankintapaikkojen yhteystiedot -->
     <?php foreach( $hankintapaikat as $i=>$hankintapaikka ) : ?>
-        <table style="float:left; padding-right: 30pt;">
+        <table class="inline-block" style="padding-right: 30pt; vertical-align: top">
             <tr><th colspan='2' class='text-center'>Hankintapaikka <?=++$i?></th></tr>
             <tr><td>ID</td><td><?= $hankintapaikka->id?></td></tr>
             <tr><td>Yritys</td><td><?= $hankintapaikka->nimi?></td></tr>
@@ -355,7 +356,6 @@ unset($_SESSION["feedback"]);
 
     $(document).ready(function() {
         $(document.body)
-
 
             .on('submit', '#valitse_hankintapaikka', function(e){
 				//Estetään valitsemasta hankintapaikaksi labelia

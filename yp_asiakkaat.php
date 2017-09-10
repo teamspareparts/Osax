@@ -72,27 +72,27 @@ $asiakkaat = $rows = $db->query(
 		<a href="yp_muokkaa_yritysta.php?id=<?=$yritys->id?>" class="nappi">Muokkaa tietoja</a>
 	</section>
 
-	<table style="width: 100%;">
-		<thead>
-			<tr> <th>Nimi</th> <th>Puhelin</th> <th>Sähköposti</th> <th>Viim. kirj.</th>
-				<th class=smaller_cell>Poista</th> <th class=smaller_cell></th>
-			</tr>
-		</thead>
-		<tbody>
-		<?php foreach ( $asiakkaat as $asiakas ) : ?>
-			<tr data-val="<?=$asiakas->id?>">
-				<td class="cell"><?=$asiakas->kokoNimi()?></td>
-				<td class="cell"><?=$asiakas->puhelin?></td>
-				<td class="cell"><?=$asiakas->sahkoposti?></td>
-				<td class="cell"><?=$asiakas->viime_kirjautuminen?></td>
-				<td><label>Valitse<input form="poista_asiakas" type="checkbox" name="ids[]" value="<?=$asiakas->id?>">
-					</label></td>
-				<td><a href="yp_muokkaa_asiakasta.php?id=<?=$asiakas->id?>" class="nappi">Muokkaa</a></td>
-			</tr>
-		<?php endforeach; ?>
-		</tbody>
-	</table>
 	<form id="poista_asiakas" method="post">
+		<table style="width: 100%;">
+			<thead>
+				<tr> <th>Nimi</th> <th>Puhelin</th> <th>Sähköposti</th> <th>Viim. kirj.</th>
+					<th class=smaller_cell>Poista</th> <th class=smaller_cell></th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $asiakkaat as $asiakas ) : ?>
+				<tr>
+					<td data-href="tilaushistoria.php?id=<?= $asiakas->id ?>"><?=$asiakas->kokoNimi()?></td>
+					<td data-href="tilaushistoria.php?id=<?= $asiakas->id ?>"><?=$asiakas->puhelin?></td>
+					<td data-href="tilaushistoria.php?id=<?= $asiakas->id ?>"><?=$asiakas->sahkoposti?></td>
+					<td data-href="tilaushistoria.php?id=<?= $asiakas->id ?>"><?=$asiakas->viime_kirjautuminen?></td>
+					<td><label>Valitse<input type="checkbox" name="ids[]" value="<?=$asiakas->id?>">
+						</label></td>
+					<td><a href="yp_muokkaa_asiakasta.php?id=<?=$asiakas->id?>" class="nappi">Muokkaa</a></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
 		<div style="text-align:right;padding-top:10px;">
 			<input type="submit" name="poista" value="Poista valitut asiakkaat" class="nappi red">
 		</div>
@@ -105,14 +105,12 @@ $asiakkaat = $rows = $db->query(
 
 	$(document).ready(function(){
 		//painettaessa taulun riviä ohjataan asiakkaan tilaushistoriaan
-		$('.cell')
-			.css('cursor', 'pointer')
-			.click(function() {
-				$('tr').click(function(){
-					let id = $(this).attr('data-val');
-					window.document.location = 'tilaushistoria.php?id='+id;
-				});
-		});
+        $('*[data-href]')
+            .css('cursor', 'pointer')
+            .click(function(){
+                window.location = $(this).data('href');
+                return false;
+            });
 	});
 
 </script>
