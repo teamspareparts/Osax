@@ -18,43 +18,39 @@ body {
 	background-color: #ddd;
 }
 
-input, select { padding: 3pt; } /* Näyttää siistimmältä */
-
-select:disabled { color: grey; }
-a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 main { display: block; } /* IE */
+
+a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
+
+
 h1 {
 	font-size: 1.6em;
 	margin: 0.67em 0; /* <top bottom> <right left> */
 }
+h2 { font-size: 1.4em; }
 
 fieldset { background-color: whitesmoke !important; /* //TODO: korjaa pois tuo "important!" */ }
-
-label {
-	max-width: 100%;
-	font-weight: bold;
-}
-
 legend {
 	background-color: lightsteelblue;
 	border-radius: 10px;
 	padding: 3px 10px;
 }
 
+label {
+	max-width: 100%;
+	font-weight: bold;
+}
+input, select { padding: 3pt; } /* Näyttää siistimmältä */
+select:disabled { color: grey; }
+
 dialog {
 	background-color: whitesmoke; /* sama kuin <fieldset>-tagissa */
 	border-radius: 5px;
 	box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); /* kinda material design-ish */
-	height: fit-content;
-	height: -moz-fit-content;
-	height: -webkit-fit-content;
-	max-height: 90%; /* Ei mene footerin päälle */
-	width: fit-content;
-	width: -moz-fit-content;
-	width: -webkit-fit-content;
-	max-width: 50%;
+	max-height: 80%;
+	max-width: 80%;
 	overflow: auto; /* scrollbar automaattisesti tarvittaessa */
-	border: 0; /* Pois default border (paksu musta solid) */
+	border: 0;
 	position: fixed; /* change position to fixed if you want to prevent the dialog from scrolling away */
 	top: 0;
 	left: 0; /* Elementin keskittämiseen */
@@ -74,6 +70,26 @@ dialog + .backdrop /* polyfill */ {
 dialog .backdrop-close {
 	padding: 1em;
 	margin: -1em;
+}
+
+dl {
+	width: 100%;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
+}
+dt {
+	float: left;
+	width: 40%; /* <dt>:n ja <dd>:n width yhteensä pitää olla 100 % */
+	padding: 0;
+	margin: 0;
+	font-weight: bold;
+}
+dd {
+	float: left;
+	width: 60%; /* <dt>:n ja <dd>:n width yhteensä pitää olla 100 % */
+	padding: 0;
+	margin: 0;
 }
 /********************************************
 	Yleisesti pikku asioita koko sivulla
