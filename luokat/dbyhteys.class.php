@@ -51,7 +51,7 @@ class DByhteys {
 	 * @param string $iniFileName [optional], default = "./config/config.ini.php" <p>
 	 *                            Muuta, jos käytät tiedostoa jossain muussa kansiossa kuin ./root.
 	 */
-	public function __construct( array &$config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
+	public function __construct( array $config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
 		define( 'FETCH_ALL', true );
 		if ( $config === null ) {
 			$config = parse_ini_file( $iniFileName );

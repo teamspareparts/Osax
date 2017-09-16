@@ -4,7 +4,7 @@ print("<pre>");
 $config = parse_ini_file( "../config/config.ini.php", true);
 require '../luokat/dbyhteys.class.php';
 
-$db = new DByhteys( ['root','','tuoteluettelo_database','localhost'] );
+$db = new DByhteys( $config['Tietokanta'] );
 $f = file('./tietokanta.sql', FILE_IGNORE_NEW_LINES); // Tietokannan taulut
 
 // Poistetaan .sql-tiedoston kommentit
