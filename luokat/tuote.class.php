@@ -86,6 +86,8 @@ class Tuote {
 	}
 
 	/**
+	 * @deprecated Tämä funktio on käytössä vain ostoskorissa. Siirretty ostoskori luokkaan.
+	 *
 	 * @param DByhteys $db
 	 * @param int      $yritys_id
 	 */

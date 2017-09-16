@@ -131,7 +131,7 @@ class Ostoskori {
 				/** @var $row Tuote */
 				while ( $row = $db->get_next_row( null, 'Tuote' ) ) {
 					$row->haeTuoteryhmat( $db );
-					$row->haeAlennukset( $db, $this->yritys_id );
+					$this->haeAlennukset( $db, $this->yritys_id, $row );
 					$this->tuotteet[] = $row;
 					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
 					$this->montako_tuotetta += 1;
@@ -193,6 +193,57 @@ class Ostoskori {
 	 */
 	public function tyhjenna_kori( DByhteys $db ) {
 		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->ostoskori_id ] );
+	}
+
+	/**
+	 * @param DByhteys $db
+	 * @param int      $yritys_id
+	 * @param Tuote    $tuote
+	 */
+	function haeAlennukset ( DByhteys $db, /*int*/ $yritys_id, Tuote $tuote ) {
+		/*
+		 * Tuotteiden normaalit määräalennukset.
+		 */
+		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+				FROM tuote_erikoishinta
+				WHERE tuote_id = ?
+					AND (alkuPvm <= CURRENT_TIMESTAMP)
+					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+				ORDER BY maaraalennus_kpl";
+		$tuote_maaraalennukset = $db->query( $sql, [ $tuote->id ], FETCH_ALL );
+
+		/*
+		 * Yrityksekohtaiset määräalennukset (hakee eri taulusta).
+		 */
+		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+				FROM tuoteyritys_erikoishinta
+				WHERE tuote_id = ? AND yritys_id = ?
+					AND (alkuPvm <= CURRENT_TIMESTAMP)
+					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+				ORDER BY maaraalennus_kpl";
+		$yritys_maaraalennukset = $db->query( $sql, [ $tuote->id, $yritys_id ], FETCH_ALL );
+
+		/*
+		 * Tuoteryhmäkohtaiset määräalennukset (hakee kolmannesta taulusta).
+		 */
+		$ryhma_maaraalennukset = [];
+		if ( $tuote->tuoteryhmat ) {
+			$inQuery = implode(',', array_fill(0, count($tuote->tuoteryhmat), '?'));
+			$values = array_merge( [ $tuote->hankintapaikkaID, $yritys_id ], $tuote->tuoteryhmat );
+
+			$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+					FROM tuoteryhma_erikoishinta
+					WHERE hankintapaikka_id = ?
+						AND (alkuPvm <= CURRENT_TIMESTAMP)
+						AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
+						AND (yritys_id = 0 OR yritys_id = ?)
+						AND tuoteryhma_id IN ( {$inQuery} )
+					ORDER BY maaraalennus_kpl";
+			$ryhma_maaraalennukset = $db->query( $sql, $values, FETCH_ALL );
+		}
+
+		$tuote->maaraalennukset = array_merge( $tuote_maaraalennukset, $yritys_maaraalennukset, $ryhma_maaraalennukset );
+		asort( $tuote->maaraalennukset ); // Järjestää ne kpl-määrän mukaan, joten niiden läpikäynti helpompaa.
 	}
 
 	/**
