@@ -222,13 +222,19 @@ $future = date('Y-m-d',strtotime('+6 months'));
 
 	<section class="flex_row" style="flex-wrap: wrap-reverse;">
 		<section class="white-bg" style="width:510px; margin-right:30px; white-space:nowrap; border: 1px solid; border-radius:5px;">
+			<div class="otsikko_container blue">
+				<section class="otsikko">
+					<h3>Ryhmät</h3>
+					<span id="alennus_box_otsikko"></span>
+				</section>
+			</div>
 			<?php tulosta_puu( $tree ); ?>
 		</section>
 
 		<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
 			<div class="otsikko_container blue">
 				<section class="otsikko">
-					<h1>Alennukset</h1>
+					<h3>Alennukset</h3>
 					<span id="alennus_box_otsikko"></span>
 				</section>
 			</div>

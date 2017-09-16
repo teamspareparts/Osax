@@ -130,7 +130,7 @@ $css_version = filemtime( 'css/styles.css' );
 				<?php if ( $_SESSION['indev'] or $user->isAdmin() ) : ?>
 					<div class="otsikko_container blue">
 						<section class="otsikko">
-							<h1><?=$column[0]->col_loc?></h1>
+							<p><?=$column[0]->col_loc?></p>
 						</section>
 					</div>
 				<?php endif; ?>
@@ -139,7 +139,7 @@ $css_version = filemtime( 'css/styles.css' );
 						<li>
 							<h4 class="news_headline">
 								<?=$uutinen->otsikko?>
-								<?=($uutinen->uusi) ? "<span style='color: red;'>NEW!</span>" : ''?>
+								<?=($uutinen->uusi) ? "<span style='color: red;'>Uusi!</span>" : ''?>
 							</h4>
 
 							<?php if ( !empty($uutinen->details) ) : ?>
