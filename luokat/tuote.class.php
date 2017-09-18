@@ -91,11 +91,11 @@ class Tuote {
 	 * @param DByhteys $db
 	 * @param int      $yritys_id
 	 */
-	function haeAlennukset ( DByhteys $db, /*int*/ $yritys_id ) {
+	function haeAlennukset ( DByhteys $db ) {
 		/*
 		 * Tuotteiden normaalit määräalennukset.
 		 */
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+		$sql = "SELECT 1 AS alennusTyyppi, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuote_erikoishinta
 				WHERE tuote_id = ?
 					AND (alkuPvm <= CURRENT_TIMESTAMP)
@@ -106,13 +106,15 @@ class Tuote {
 		/*
 		 * Yrityksekohtaiset määräalennukset (hakee eri taulusta).
 		 */
-		$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+		$sql = "SELECT 2 AS alennusTyyppi, yritys_id, yritys.nimi, maaraalennus_kpl,
+					tuoteyritys_erikoishinta.alennus_prosentti, alkuPvm, loppuPvm
 				FROM tuoteyritys_erikoishinta
-				WHERE tuote_id = ? AND yritys_id = ?
+				JOIN yritys ON yritys.id = tuoteyritys_erikoishinta.yritys_id
+				WHERE tuote_id = ?
 					AND (alkuPvm <= CURRENT_TIMESTAMP)
 					AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
 				ORDER BY maaraalennus_kpl";
-		$yritys_maaraalennukset = $db->query( $sql, [ $this->id, $yritys_id ], FETCH_ALL );
+		$yritys_maaraalennukset = $db->query( $sql, [ $this->id ], FETCH_ALL );
 
 		/*
 		 * Tuoteryhmäkohtaiset määräalennukset (hakee kolmannesta taulusta).
@@ -120,14 +122,13 @@ class Tuote {
 		$ryhma_maaraalennukset = [];
 		if ( $this->tuoteryhmat ) {
 			$inQuery = implode(',', array_fill(0, count($this->tuoteryhmat), '?'));
-			$values = array_merge( [ $this->hankintapaikkaID, $yritys_id ], $this->tuoteryhmat );
+			$values = array_merge( [ $this->hankintapaikkaID ], $this->tuoteryhmat );
 
-			$sql = "SELECT maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
+			$sql = "SELECT 3 AS alennusTyyppi, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
 					FROM tuoteryhma_erikoishinta
 					WHERE hankintapaikka_id = ?
 						AND (alkuPvm <= CURRENT_TIMESTAMP)
 						AND (loppuPvm >= CURRENT_TIMESTAMP OR loppuPvm IS NULL)
-						AND (yritys_id = 0 OR yritys_id = ?)
 						AND tuoteryhma_id IN ( {$inQuery} )
 					ORDER BY maaraalennus_kpl";
 			$ryhma_maaraalennukset = $db->query( $sql, $values, FETCH_ALL );
