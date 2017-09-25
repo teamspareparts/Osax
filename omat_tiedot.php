@@ -180,15 +180,13 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 	<form method="post" accept-charset="utf-8">
 		<fieldset><legend>Nykyiset tiedot</legend>
-			<label class="required">Sähköposti</label> <span><?= $user->sahkoposti ?></span>
-			<?php if ( $user->demo ) : ?>
-				<br><br>
-				<label>Voimassa</label>
-				<p style="display: inline; font-size: 16px;">
-					<?= (new DateTime($user->voimassaolopvm))->format("d.m.Y H:i:s") ?>
-				</p>
-			<?php endif; ?>
-			<br><br>
+			<dl>
+				<dt class="required">Sähköposti</dt> <dd><?= $user->sahkoposti ?></dd>
+				<?php if ( $user->demo ) : ?>
+				<dt>Voimassa</dt> <dd><?= (new DateTime($user->voimassaolopvm))->format("d.m.Y") ?></dd>
+				<?php endif; ?>
+			</dl>
+			<br>
 			<label for="enimi">Etunimi</label>
 			<input type="text" name="etunimi" value="<?= $user->etunimi ?>" id="enimi" pattern="[a-öA-Ö]{3,20}" >
 			<br><br>
@@ -224,7 +222,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<input type="password" name="vahv_uusi_salasana" pattern=".{8,}" placeholder="Pituus min 8 merkkiä"
 				   id="vahv_uusi_salasana" required>
 			<br>
-			<span id="check"></span> <!-- Js tarkistaa ovatko ss:t samat reaaliajassa -->
+			<span id="check"></span> <!-- Javascript tarkistaa ovatko ss:t samat reaaliajassa -->
 			<br>
 			<span class="small_note"><span class="required"></span> = pakollinen kenttä</span>
 			<div class="center">
@@ -236,17 +234,19 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 	<br><br>
 
-	<fieldset class="muut_tiedot"><Legend>Osoitekirja</legend>
+	<fieldset class="muut_tiedot"> <Legend>Osoitekirja</legend>
 		<?php foreach ( $user->toimitusosoitteet as $key => $row ) : ?>
-			<div> Osoite <?= $row->osoite_id ?><br>
+			<div> <h3 style="margin: 0;">Osoite <?= $row->osoite_id ?></h3>
+				<dl>
+					<dt>Nimi</dt> <dd><?= "{$row->etunimi} {$row->sukunimi}" ?></dd>
+					<dt>Sähköposti</dt> <dd><?= $row->sahkoposti ?></dd>
+					<dt>Puhelin</dt> <dd><?=$row->puhelin ?></dd>
+					<dt>Yritys</dt> <dd><?= $row->yritys ?></dd>
+					<dt>Katuosoite</dt> <dd><?= $row->katuosoite ?></dd>
+					<dt>Postinumero</dt> <dd><?= $row->postinumero ?></dd>
+					<dt>Postitoimipaikka</dt> <dd><?= $row->postitoimipaikka ?></dd>
+				</dl>
 				<br>
-				<label>Nimi</label><?= "{$row->etunimi} {$row->sukunimi}" ?><br>
-				<label>Sähköposti</label><?= $row->sahkoposti ?><br>
-				<label>Puhelin</label><?= $row->puhelin ?><br>
-				<label>Yritys</label><?= $row->yritys ?><br>
-				<label>Katuosoite</label><?= $row->katuosoite ?><br>
-				<label>Postinumero</label><?= $row->postinumero ?><br>
-				<label>Postitoimipaikka</label><?= $row->postitoimipaikka ?><br><br>
 
 				<input class="nappi" type="button" value="Muokkaa"
 					   onClick="avaa_Modal_toimitusosoite_muokkaa(<?= $row->osoite_id ?>);">
@@ -266,13 +266,16 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
     <br><br>
     <fieldset class="muut_tiedot"><legend>Yritys</legend>
-        <label>Nimi</label><?=$yritys->nimi?><br>
-        <label>Sähköposti</label><?=$yritys->sahkoposti?><br>
-        <label>Puhelin</label><?=$yritys->puhelin?><br>
-        <label>Katuosoite</label><?=$yritys->katuosoite?><br>
-        <label>Postinumero</label><?=$yritys->postinumero?><br>
-        <label>Postitoimipaikka</label><?=$yritys->postitoimipaikka?><br>
-        <label>Maa</label><?=$yritys->maa?><br><br>
+	    <dl>
+		    <dt>Nimi</dt> <dd><?=$yritys->nimi?></dd>
+		    <dt>Sähköposti</dt> <dd><?=$yritys->sahkoposti?></dd>
+		    <dt>Puhelin</dt> <dd><?=$yritys->puhelin?></dd>
+		    <dt>Katuosoite</dt> <dd><?=$yritys->katuosoite?></dd>
+		    <dt>Postinumero</dt> <dd><?=$yritys->postinumero?></dd>
+		    <dt>Postitoimipaikka</dt> <dd><?=$yritys->postitoimipaikka?></dd>
+		    <dt>Maa</dt> <dd><?=$yritys->maa?></dd>
+	    </dl>
+	    <br>
 	    <span class="small_note">Vain ylläpitäjä voi muuttaa yritystietoja.</span>
     </fieldset>
 </main>

@@ -77,20 +77,19 @@ dl {
 	overflow: hidden;
 	padding: 0;
 	margin: 0;
+	clear: both;
 }
+
+dd,
 dt {
 	float: left;
-	width: 40%; /* <dt>:n ja <dd>:n width yhteensä pitää olla 100 % */
-	padding: 0;
+	padding: 2pt;
 	margin: 0;
-	font-weight: bold;
+	min-width: 40%;
+	display: inline-block;
 }
-dd {
-	float: left;
-	width: 60%; /* <dt>:n ja <dd>:n width yhteensä pitää olla 100 % */
-	padding: 0;
-	margin: 0;
-}
+dt { font-weight: bold; }
+dd {  }
 /********************************************
 	Yleisesti pikku asioita koko sivulla
 *********************************************/
@@ -411,6 +410,10 @@ dd {
 	padding: 3pt; /* Keskitetty samalla linjalla inputin kanssa. */
 }
 
+.lomake dt {
+	width: 220px;
+}
+
 .required:after { /* Lisää punaisen asteriskin vaadittujen kenttien kohdalle */
 	content:" *";
 	color: red;
@@ -617,9 +620,9 @@ Tuotteen MODAL-ikkuna
 	font-size: 14px;
 }
 
-.vertailunumero_table a { color: black }
+.vertailunumero_table a { color: black; }
 
-.vertailunumero_table a:hover { text-decoration: underline }
+.vertailunumero_table a:hover { text-decoration: underline; }
 
 /*****************
 Loading-icon
