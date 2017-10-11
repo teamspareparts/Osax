@@ -27,9 +27,11 @@ $sql = "  SELECT 	tuote.tilauskoodi, tuote.articleNo, tuote.valmistaja,
 $tuotteet = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 
 // Luodaan raportti
-$raportti = "Tuotenumero;Valmistaja;KPL\r\n";
+$raportti = "";
 foreach ($tuotteet as $tuote) {
-	$raportti .= "{$tuote->articleNo};{$tuote->valmistaja};{$tuote->kpl}\r\n";
+	// Mikäli tilauskoodi on jostain syystä tyhjä, käytetään artikkelinumeroa.
+	$tilauskoodi = !empty($tuote->tilauskoodi) ? $tuote->tilauskoodi : $tuote->articleNo;
+	$raportti .= "{$tilauskoodi};{$tuote->kpl}\r\n";
 }
 
 // Ladataan tiedosto suoraan selaimeen
