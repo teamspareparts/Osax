@@ -175,6 +175,7 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
+// Haetaan ostotilauskirjalla olevat tuotteet
 $sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
  			tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
 		SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita
@@ -182,18 +183,20 @@ $sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
         INNER JOIN tuote
         	ON ostotilauskirja_tuote.tuote_id = tuote.id
         LEFT JOIN tuote t2
-        	ON tuote.hyllypaikka = t2.hyllypaikka AND tuote.id != t2.id AND t2.aktiivinen = 1
+        	ON tuote.hyllypaikka = t2.hyllypaikka AND t2.hyllypaikka <> ''
+        		AND tuote.id != t2.id AND t2.aktiivinen = 1
         WHERE ostotilauskirja_id = ?
         GROUP BY tuote_id, automaatti";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
-$sql = "  SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
-          FROM ostotilauskirja_tuote 
-          LEFT JOIN tuote
-            ON ostotilauskirja_tuote.tuote_id = tuote.id 
-          WHERE ostotilauskirja_id = ?
-          GROUP BY ostotilauskirja_id";
+// Haetaan tuotteiden yhteishinta ja kappalemäärä
+$sql = "SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
+        FROM ostotilauskirja_tuote 
+        LEFT JOIN tuote
+        	ON ostotilauskirja_tuote.tuote_id = tuote.id 
+        WHERE ostotilauskirja_id = ?
+        GROUP BY ostotilauskirja_id";
 $yht = $db->query($sql, [$ostotilauskirja_id]);
 $yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
