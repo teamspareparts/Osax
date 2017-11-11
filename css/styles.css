@@ -425,7 +425,9 @@ dd {  }
 	//=sekalaisia.... Pitäisi järjestää loogisesti.
 	//Teen myöhemmin.
 **************************************************/
-.haku input[type=text], #hakutyyppi, #numerotyyppi{
+.haku input[type=text],
+#hakutyyppi,
+#numerotyyppi{
 	padding: 5pt;
 	font-size: 100%;
 	border: 1px solid #1d7ae2;
@@ -443,38 +445,32 @@ table {
 	border-collapse: separate;
 }
 
-tr:nth-child(odd) {
-	background: #eee;
-}
+tr:nth-child(odd) { background: #eee; }
+tr:nth-child(even) { background: #fff; }
 
-tr:nth-child(even) {
-	background: #fff;
-}
+tbody tr:nth-child(odd) th { background: #e7f3ff; }
+tbody tr:nth-child(even) th { background: #f1f8ff; }
 
-tr .rivi {
-	max-height: 1em;
-}
+tr .rivi { max-height: 1em; }
 
-tr.border_top td { /* Taulukon alin "yhteensä"-rivi */
-	border-top: 1px solid black;
-}
+/* Taulukon alin "yhteensä"-rivi */
+tr.border_top td { border-top: 1px solid black; }
 
-th, td {
+th,
+td {
 	padding: 6pt 10pt;
 	margin: 0;
 	text-align: left;
 }
 
-td.toiminnot {
-	padding-left: 0.5em;
-}
+td.toiminnot { padding-left: 0.5em; }
 
 td .nappi {
 	padding: 4pt 5pt;
 	font-size: 75%;
 }
 
-th {
+thead th {
 	font-size: 100%;
 	font-weight: normal;
 	text-shadow: 0 1px 0 #368;
@@ -535,7 +531,8 @@ th {
 	margin-left: 1em;
 }
 
-.kpl, .eur {
+.kpl,
+.eur {
 	width: 4em;
 }
 

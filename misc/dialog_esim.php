@@ -1,5 +1,5 @@
 <?php
-require'../luokat/dbyhteys.class.php';$db=new DByhteys( '../config/config.ini.php' );
+require'../luokat/dbyhteys.class.php';$db=new DByhteys( null,'../config/config.ini.php' );
 function debug($var,$var_dump=false){
 	echo"<br><pre>Print_r ::<br>";print_r($var);echo"</pre>";
 	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
