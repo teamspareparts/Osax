@@ -1,27 +1,30 @@
-<?php
+<?php declare(strict_types=1);
+
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
  * @param mixed $var
  * @param bool  $var_dump
+ * @return string
  */
-function debug($var,$var_dump=false){
+function debug($var,bool$var_dump=false):string{
 	echo"<br><pre>Print_r ::<br>";print_r($var);echo"</pre>";
 	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
 }
 
 /**
  * Tulostaa numeron muodossa 1.000[,00 [€]]
- * @param float|int $number     <p> Tulostettava numero/luku/hinta
- * @param int       $dec_count  [optional] default=2 <p> Kuinka monta desimaalia. Jos nolla, ei €-merkkiä.
- * @param bool      $ilman_euro [optional] default=FALSE <p> Tulostetaanko float-arvo ilman €-merkkiä
+ * @param mixed $number     <p> Tulostettava numero/luku/hinta
+ * @param int   $dec_count  [optional] default=2 <p> Kuinka monta desimaalia. Jos nolla, ei €-merkkiä.
+ * @param bool  $ilman_euro [optional] default=FALSE <p> Tulostetaanko float-arvo ilman €-merkkiä
  * @return string
  */
-function format_number( /*mixed*/$number, /*int*/ $dec_count = 2, /*bool*/$ilman_euro = false ) {
+function format_number( $number, int $dec_count = 2, bool $ilman_euro = false ) : string {
 	if ( $dec_count == 0 ) {
 		return number_format( $number, 0, ',', '.' );
 	} else {
 		return number_format( $number, $dec_count, ',', '.' )
-			. ( $ilman_euro ? '' : '&nbsp;&euro;' ); }
+			. ( $ilman_euro ? '' : '&nbsp;&euro;' );
+	}
 }
 
 /*
@@ -31,14 +34,9 @@ function format_number( /*mixed*/$number, /*int*/ $dec_count = 2, /*bool*/$ilman
 session_start();
 
 /*
- * Ladataan sivuston käyttöön tarkoitetut luokat.
- * Joitakin näistä ei käytetä joka sivulla, mutta ihan varmuuden vuoksi ne ladataan kuitenkin tässä.
+ * Luokat ladataan jatkossa tarpeen mukaan. PHP etsii tarvittavan luokan automaattisesti luokat-kansiosta
  */
-require "luokat/dbyhteys.class.php";
-require "luokat/user.class.php";
-require "luokat/yritys.class.php";
-require "luokat/ostoskori.class.php";
-require "luokat/tuote.class.php";
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 
 /*
  * Luodaan tarvittava oliot
