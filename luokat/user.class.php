@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Class User
  * @version 2017-03-12 <p> eula_hyväksytty korvattu eulaHyvaksytty-metodilla
@@ -18,10 +18,10 @@ class User {
 	public $aktiivinen = null;
 	public $yllapitaja = false;
 	public $demo = false;
+	public $voimassaolopvm = null;
 	public $vahvista_eula = true;
 
 	public $salasana_vaihdettu;
-	public $voimassaolopvm = null;
 	public $salasana_uusittava = null;
 
 	/** @var stdClass[] */
@@ -41,7 +41,7 @@ class User {
 	 * @param DByhteys $db      [optional]
 	 * @param int      $user_id [optional]
 	 */
-	function __construct( DByhteys $db = null, /*int*/ $user_id = null ) {
+	function __construct( DByhteys $db = null, int $user_id = null ) {
 		if ( $user_id !== null ) { // Varmistetaan parametrin oikeellisuus
 			$sql = "SELECT kayttaja.id, kayttaja.yritys_id, kayttaja.sahkoposti, etunimi, sukunimi, 
 						kayttaja.puhelin, yllapitaja, demo, kayttaja.voimassaolopvm, salasana_uusittava,
@@ -66,7 +66,7 @@ class User {
 	 * Palauttaa TRUE jos käyttäjä on ylläpitäjä, ja false muussa tapauksessa.
 	 * @return bool <p> Ylläpitäjä-arvon tarkistuksen tulos
 	 */
-	public function isAdmin() {
+	public function isAdmin() : bool {
 		return ($this->yllapitaja === 1);
 	}
 
@@ -74,7 +74,7 @@ class User {
 	 * Palauttaa TRUE jos käyttäjä on hyväksynyt käyttöehtosopimuksen, ja FALSE muussa tapauksessa.
 	 * @return bool <p> Onko EULA hyväksytty.
 	 */
-	public function eulaHyvaksytty() {
+	public function eulaHyvaksytty() : bool {
 		return ($this->vahvista_eula === 0);
 	}
 
@@ -84,11 +84,12 @@ class User {
 	 * E. Eeeeeeeeeeeeeeeeeeeeeeee...
 	 * @return string
 	 */
-	public function kokoNimi() {
+	public function kokoNimi() : string {
 		// Tarkistetaan etunimen pituus (jos liian pitkä, lyhennetään E.), ja lisätään sukunimi perään.
 		$str = ((strlen( $this->etunimi ) > 15)
 					? (substr( $this->etunimi, 0, 1 ) . ".")
-					: $this->etunimi) . " {$this->sukunimi}";
+					: $this->etunimi)
+			. " {$this->sukunimi}";
 
 		if ( strlen( $str ) > 30 ) {
 			$str = substr( $str, 0, 26 ) . "...";
@@ -108,7 +109,7 @@ class User {
 	 * @param bool     $omat_tiedot <p> TEMP TODO: Korjaa kunnolla. Tämä on vain väliaikainen ratkaisu siihen,
 	 *                              että tilaus käyttää assoc_arrayta, ja omat_tiedot objektia.
 	 */
-	public function haeToimitusosoitteet( DByhteys $db, /*int*/ $to_id = -1, $omat_tiedot = false ) {
+	public function haeToimitusosoitteet( DByhteys $db, int $to_id = -1, $omat_tiedot = false ) {
 		if ( $omat_tiedot ) {
 			$retType = PDO::FETCH_OBJ;
 		}
@@ -146,12 +147,15 @@ class User {
 	 * @param string   $uusi_salasana <p> Hajauttamaton uusi salasana, vähintään 8 merkkiä pitkä.
 	 * @return bool <p> Palauttaa true, jos salasana > 8 ja vaihtaminen onnistui. Muuten false.
 	 */
-	public function vaihdaSalasana( DByhteys $db, /*string*/ $uusi_salasana ) {
+	public function vaihdaSalasana( DByhteys $db, string $uusi_salasana ) : bool {
 		if ( strlen( $uusi_salasana ) >= 8 ) {
 			$hajautettu_uusi_salasana = password_hash( $uusi_salasana, PASSWORD_DEFAULT );
-
-			return $db->query( "UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
+			/**
+			 * @var bool $result
+			 */
+			$result = $db->query( "UPDATE kayttaja SET salasana_hajautus = ? WHERE id = ?",
 							   [ $hajautettu_uusi_salasana, $this->id ] );
+			return $result;
 		}
 		else {
 			return false;
@@ -162,7 +166,7 @@ class User {
 	 * Palauttaa, onko olio käytettävissä (ei NULL).
 	 * @return bool
 	 */
-	public function isValid() {
+	public function isValid() : bool {
 		return ($this->id !== null);
 	}
 
@@ -170,7 +174,7 @@ class User {
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
 	 */
-	function rahtimaksu_toString( /*bool*/ $ilman_euro = false ) {
+	function rahtimaksu_toString( bool $ilman_euro = false ) : string {
 		return number_format( (float)$this->rahtimaksu, 2, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}
 
@@ -178,7 +182,7 @@ class User {
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
 	 */
-	function ilmToimRaja_toString( /*bool*/ $ilman_euro = false ) {
+	function ilmToimRaja_toString( bool $ilman_euro = false ) : string {
 		return number_format( (float)$this->ilm_toim_sum_raja, 2, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}
 }

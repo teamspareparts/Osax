@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Class Ostoskori <p>
  * Sivuston yrityksen yhteisen ostoskorin toiminnan hallintaa varten.
@@ -54,7 +54,7 @@ class Ostoskori {
 	 *                            <li> 1 : Hae kaikkien tuotteiden ID:t ja kpl-määrät
 	 *                            </ul>
 	 */
-	function __construct ( DByhteys $db, /*int*/ $yritys_id, /*int*/ $cart_mode = 0 ) {
+	function __construct ( DByhteys $db, int $yritys_id, int $cart_mode = 0 ) {
 		if ( $yritys_id !== null ) {
 			$this->yritys_id = $yritys_id;
 			$this->hae_cart_id( $db, $yritys_id );
@@ -80,7 +80,7 @@ class Ostoskori {
 	 * @param DByhteys $db
 	 * @param int      $yritys_id <p> Ostoskorin omistaja
 	 */
-	private function hae_cart_id ( DByhteys $db, /*int*/ $yritys_id ) {
+	private function hae_cart_id ( DByhteys $db, int $yritys_id ) {
 		$this->ostoskori_id = $db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [ $yritys_id ] )->id;
 	}
 
@@ -91,8 +91,8 @@ class Ostoskori {
 	 *                                vai vain montako eri tuotetta ostoskorissa on ja kpl-määrä yhteensä.
 	 * @param bool     $tuote_luokka  [optional]<p> Haetaanko tuotteet Tuote-luokkaan. Hitaampi vaihtoehto.
 	 */
-	public function hae_ostoskorin_sisalto( DByhteys $db, /*bool*/ $kaikki_tiedot = false,
-											/*bool*/ $tuote_luokka = false ) {
+	public function hae_ostoskorin_sisalto( DByhteys $db, bool $kaikki_tiedot = false,
+											bool $tuote_luokka = false ) {
 		$this->montako_tuotetta_kpl_maara_yhteensa = 0; // Varmuuden vuoksi nollataan
 		$this->montako_tuotetta = 0; // Ditto
 		$this->tuotteet = array();
@@ -149,7 +149,7 @@ class Ostoskori {
 	 * @param int      $kpl_maara <p> Montako tuotetta
 	 * @return bool <p> Onnistuiko lisäys
 	 */
-	public function lisaa_tuote( DByhteys $db, /*int*/ $tuote_id, /*int*/ $kpl_maara ) {
+	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara ) : bool {
 		// Tarkistetaan kpl_maara == 0 varalle.
 		if ( $kpl_maara <= 0 ) {
 			return $this->poista_tuote( $db, $tuote_id ); // Oletetaan, että poistaminen oli tarkoitus.
@@ -174,7 +174,7 @@ class Ostoskori {
 	 * @param int      $tuote_id <p> Poistettava tuote
 	 * @return bool <p> Onnistuiko poisto
 	 */
-	public function poista_tuote( DByhteys $db, /*int*/ $tuote_id) {
+	public function poista_tuote( DByhteys $db, int $tuote_id) : bool {
 		$sql = "DELETE FROM ostoskori_tuote
   				WHERE ostoskori_id = ? AND tuote_id = ? ";
 		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id ] );
@@ -191,7 +191,7 @@ class Ostoskori {
 	 * @param DByhteys $db
 	 * @return bool <p> Onnistuiko tyhjennys
 	 */
-	public function tyhjenna_kori( DByhteys $db ) {
+	public function tyhjenna_kori( DByhteys $db ) : bool {
 		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->ostoskori_id ] );
 	}
 
@@ -200,7 +200,7 @@ class Ostoskori {
 	 * @param int      $yritys_id
 	 * @param Tuote    $tuote
 	 */
-	function haeAlennukset ( DByhteys $db, /*int*/ $yritys_id, Tuote $tuote ) {
+	function haeAlennukset ( DByhteys $db, int $yritys_id, Tuote $tuote ) {
 		/*
 		 * Tuotteiden normaalit määräalennukset.
 		 */
@@ -250,7 +250,7 @@ class Ostoskori {
 	 * Palauttaa, onko olio käytettävissä, eikä NULL.
 	 * @return bool
 	 */
-	public function isValid() {
+	public function isValid() : bool {
 		return ($this->ostoskori_id !== null);
 	}
 
@@ -259,7 +259,7 @@ class Ostoskori {
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
 	 */
-	function summa_toString ( /*bool*/ $ilman_euro = false ) {
+	function summa_toString ( bool $ilman_euro = false ) : string {
 		return number_format( (double)$this->summa_yhteensa, 2, ',', '.' ) . ($ilman_euro ? '' : ' &euro;');
 	}
 }

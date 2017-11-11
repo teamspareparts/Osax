@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1); //
 /**
  * Luokka Tietokannan yhteyden käsittelyä varten PDO:n avulla.
  *
@@ -12,7 +12,7 @@ class DByhteys {
 	 *    "mysql:host={$host};dbname={$database};charset={$charset}"
 	 * @var string
 	 */
-	protected $pdo_dsn = '';        //PDO:n yhdistämistä varten
+	protected $pdo_dsn = '';
 	/**
 	 * Optional options for the PDO connection, given at new PDO(...).
 	 * ATTR_* : attribuutti<br>
@@ -21,7 +21,7 @@ class DByhteys {
 	 *    _EMUL_PREP : {@link https://phpdelusions.net/pdo#emulation}
 	 * @var array
 	 */
-	protected $pdo_options = [        //PDO:n DB driver specific options
+	protected $pdo_options = [
 		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
 		PDO::ATTR_EMULATE_PREPARES => false,
@@ -30,7 +30,7 @@ class DByhteys {
 	 * Säilyttää yhdeyten, jota kaikki metodit käyttävät
 	 * @var PDO object
 	 */
-	protected $connection = null; //PDO connection
+	protected $connection = null;
 	/**
 	 * PDO statement, prepared statementien käyttöä varten.
 	 * Tämä muuttuja on käytössä prepare_stmt(), run_prepared_stmt(),
@@ -38,7 +38,7 @@ class DByhteys {
 	 * Qquery() metodit käyttävät erillistä objektia.
 	 * @var PDOStatement object
 	 */
-	protected $prepared_stmt = null; //Tallennettu prepared statement
+	protected $prepared_stmt = null;
 
 	const FETCH_ALL = true;
 
@@ -51,7 +51,7 @@ class DByhteys {
 	 * @param string $iniFileName [optional], default = "./config/config.ini.php" <p>
 	 *                            Muuta, jos käytät tiedostoa jossain muussa kansiossa kuin ./root.
 	 */
-	public function __construct( array $config = null, /*string*/$iniFileName = './config/config.ini.php' ) {
+	public function __construct( array $config = null, string $iniFileName = './config/config.ini.php' ) {
 		define( 'FETCH_ALL', true );
 		if ( $config === null ) {
 			$config = parse_ini_file( $iniFileName );
@@ -83,13 +83,13 @@ class DByhteys {
 	 *                               Huom: $returnType ei tarvitse olla määritelty.<p>
 	 *                               Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 *
-	 * @return array|int|stdClass <p> Palauttaa stdClass[], jos SELECT ja FETCH_ALL==true.
+	 * @return array|int|bool|stdClass <p> Palauttaa stdClass[], jos SELECT ja FETCH_ALL==true.
 	 *                               Palauttaa stdClass-objektin, jos haetaan vain yksi.<br>
 	 *                               Palauttaa <code>$stmt->rowCount</code> (muutettujen rivien määrä), jos esim.
 	 *                               INSERT tai DELETE.<br>
 	 */
-	public function query( /*string*/ $query, array $values = null, /*bool*/ $fetchAllRows = false,
-						   /*int*/ $returnType = null, /*string*/ $className = null ) {
+	public function query( string $query, array $values = [], bool $fetchAllRows = false,
+						   int $returnType = null, string $className = '' ) {
 		// Katsotaan mikä hakutyyppi kyseessä, jotta voidaan palauttaa hyödyllinen vastaus tyypin mukaan.
 		$q_type = substr( ltrim( $query ), 0, 6 ); // Kaikki haku-tyypit ovat 6 merkkiä pitkiä. Todella käytännöllistä.
 
@@ -99,7 +99,7 @@ class DByhteys {
 		if ( $q_type === "SELECT" ) {
 			if ( $fetchAllRows ) {
 				if ( empty( $className ) ) {
-					return $stmt->fetchAll( $returnType );
+					return $stmt->fetchAll( $returnType ?? PDO::FETCH_OBJ );
 				}
 				else { // Palautetaan tietyn luokan olioina
 					return $stmt->fetchAll( PDO::FETCH_CLASS, $className );
@@ -107,7 +107,7 @@ class DByhteys {
 			}
 			else { // Haetaan vain yksi rivi
 				if ( empty( $className ) ) {
-					return $stmt->fetch( $returnType );
+					return $stmt->fetch( $returnType ?? PDO::FETCH_LAZY );
 				}
 				else { // Palautetaan tietyn luokan oliona.
 					return $stmt->fetchObject( $className );
@@ -123,7 +123,7 @@ class DByhteys {
 	 * Valmistelee erillisen haun, jota voi sitten käyttää {@see run_prep_stmt()}-metodilla.
 	 * @param string $query
 	 */
-	public function prepare_stmt( /*string*/ $query ) {
+	public function prepare_stmt( string $query ) {
 		$this->prepared_stmt = $this->connection->prepare( $query );
 	}
 
@@ -134,7 +134,7 @@ class DByhteys {
 	 *                      queryyn upotettavat arvot
 	 * @return bool
 	 */
-	public function run_prepared_stmt( array $values = null ) {
+	public function run_prepared_stmt( array $values = [] ) : bool {
 		return $this->prepared_stmt->execute( $values );
 	}
 
@@ -149,9 +149,9 @@ class DByhteys {
 	 *                           Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
 	 * @return mixed|stdClass
 	 */
-	public function get_next_row( /*int*/ $returnType = null, /*string*/ $className = '' ) {
+	public function get_next_row( int $returnType = null, string $className = '' ) {
 		return (empty( $className ))
-			? $this->prepared_stmt->fetch( $returnType )
+			? $this->prepared_stmt->fetch( $returnType ?? PDO::FETCH_LAZY )
 			: $this->prepared_stmt->fetchObject( $className ) ;
 	}
 
@@ -159,7 +159,7 @@ class DByhteys {
 	 * Palauttaa PDO-yhteyden manuaalia käyttöä varten.
 	 * @return PDO connection
 	 */
-	public function getConnection () {
+	public function getConnection () : PDO {
 		return $this->connection;
 	}
 }
