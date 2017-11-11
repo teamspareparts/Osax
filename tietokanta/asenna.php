@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 print("<pre>");
 
 $config = parse_ini_file( "../config/config.ini.php", true);
@@ -25,7 +25,6 @@ if ( $db->query( "SELECT 1 FROM kayttaja LIMIT 1" ) ) {
 	die('Tietokanta on jo alustettu!');
 }
 
-
 $db->prepare_stmt( "INSERT INTO kayttaja (sahkoposti, salasana_hajautus, yllapitaja, yritys_id) 
 		VALUES (?, ?, 1, 1)");
 for ( $i=0; $i<count( $config['Admin']['kayttajatunnus']); $i++ ) {
@@ -50,7 +49,8 @@ $db->query(
 $db->query( "INSERT INTO ostoskori (yritys_id) VALUES (?)",	[1]);
 
 $db->query( "INSERT INTO laskunumero (laskunro) VALUES (?)", [1]);
-for( $i=0; $i<=5; $i++ ) {
-	$db->query("INSERT INTO alv_kanta (kanta, prosentti) VALUES (?,?)", [$i, 0.00]);
-}
+
+$db->query( "INSERT INTO `alv_kanta` (`kanta`,`prosentti`) 
+	VALUES (0,'0'),(1,'0.24'), (2,'0.17'), (3,'0.10'), (4,'0'), (5,'0')");
+
 echo 'Tietokannan asennus on nyt suoritettu.<br>Poista tämä tiedosto (<i>asenna.php</i>) palvelimelta.';

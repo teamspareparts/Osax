@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 //TODO: PhpDoc
@@ -47,7 +47,7 @@ $sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%d.%
 		FROM etusivu_uutinen
 		WHERE aktiivinen = 1 AND loppu_pvm > CURDATE()
 		ORDER BY pvm DESC";
-$news = $db->query( $sql, null, FETCH_ALL );
+$news = $db->query( $sql, [], FETCH_ALL );
 jaottele_uutiset( $news );
 
 // Varmistetaan vielä lopuksi, että uusin CSS-tiedosto on käytössä. (See: CSS cache-busting)
@@ -67,14 +67,8 @@ $css_version = filemtime( 'css/styles.css' );
 <?php require 'header.php'; ?>
 <main class="main_body_container">
 	<div class="otsikko_container">
-		<section class="takaisin">
-			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
-		</section>
 		<section class="otsikko">
 			<h1>Etusivu</h1>
-		</section>
-		<section class="napit">
-			<!--<button class="nappi">Lisää uusi</button>-->
 		</section>
 	</div>
 

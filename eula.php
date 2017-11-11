@@ -1,11 +1,12 @@
-<?php
+<?php declare(strict_types=1);
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
+
 session_start();
 if ( empty( $_SESSION[ 'id' ] ) ) {
 	header( 'Location: index.php?redir=4' );
 	exit;
 }
 
-require "luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
 if ( !empty( $_POST[ 'hyvaksy_eula' ] ) ) {
