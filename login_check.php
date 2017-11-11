@@ -1,11 +1,6 @@
-<?php
-/**
- * Tämä sivu on puhtaasti PHP:tä, ei yhtään tulostusta käyttäjälle. Tarkoitus on tarkistaa
- * kirjautumisen kaikki vaiheet, ja lähettää eteenpäin seuraavalle sivulle.
- */
-require 'luokat/dbyhteys.class.php';
-require 'luokat/email.class.php';
-require 'luokat/remoteaddress.class.php';
+<?php declare(strict_types=1);
+
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 require 'tecdoc.php';
 
 /**
@@ -16,7 +11,7 @@ require 'tecdoc.php';
  * @param bool     $skip_pw_check [optional] <p> jos pw_reset, niin salasanaa ei tarvitse tarkistaa.
  *                                Huom. jos TRUE, ei tarkista salasanaa!
  */
-function beginning_user_checks( stdClass $user, /*string*/ $user_password, /*bool*/ $skip_pw_check = false ) {
+function beginning_user_checks( User $user, string $user_password, bool $skip_pw_check = false ) {
 	if ( !password_verify( $user_password, $user->salasana_hajautus ) && !$skip_pw_check ) {
 		header( "Location:index.php?redir=2" );
 		exit; //Salasana väärin
@@ -41,7 +36,7 @@ function beginning_user_checks( stdClass $user, /*string*/ $user_password, /*boo
  * @param DByhteys $db
  * @param stdClass $user <p> Käyttää viime_sijainti-muuttujaa.
  */
-function check_IP_address( DByhteys $db, stdClass $user ) {
+function check_IP_address( DByhteys $db, User $user ) {
 	$ip = RemoteAddress::getIpAddress(); //Haetaan asiakkaan IP-osoite
 	$details = json_decode( file_get_contents( "http://ipinfo.io/{$ip}" ) );
 	//Haetaan kaupunki lähettämällä asiakkaan ip ipinfo.io serverille
@@ -68,7 +63,7 @@ function check_IP_address( DByhteys $db, stdClass $user ) {
  * @param stdClass $user       <p> Käyttää id-, sahkoposti-muuttujia.
  * @param string   $reset_mode <p> onko kyseessä 'reset' vai 'expired'. Eka lähettää linkin, toka ohjaa suoraan.
  */
-function password_reset( DByhteys $db, stdClass $user, /*string*/ $reset_mode ) {
+function password_reset( DByhteys $db, User $user, string $reset_mode ) {
 	$key = GUID();
 	$key_hashed = sha1( $key );
 
@@ -120,8 +115,7 @@ $db = new DByhteys();
 $mode = $_POST[ "mode" ];
 $email = isset( $_POST[ "email" ] ) ? trim( $_POST[ "email" ] ) : null;
 $password = (isset( $_POST[ "password" ] ) && strlen( $_POST[ "password" ] ) < 300)
-	? trim( $_POST[ "password" ] )
-	: null;
+	? trim( $_POST[ "password" ] ) : null;
 $salasanan_voimassaoloaika = 180;
 
 date_default_timezone_set( "Europe/Helsinki" );
@@ -137,7 +131,7 @@ if ( $mode === "login" ) {
 	$sql = "SELECT id, yritys_id, sahkoposti, salasana_hajautus, vahvista_eula, aktiivinen, demo,
 				voimassaolopvm,	viime_sijainti, salasana_vaihdettu, salasana_uusittava
 			FROM kayttaja WHERE sahkoposti = ?";
-	$login_user = $db->query( $sql, [ $email ] );
+	$login_user = $db->query( $sql, [ $email ], false, null, 'User' );
 
 	if ( $login_user ) {
 		beginning_user_checks( $login_user, $password ); //Tarkistetaan salasana, aktiivisuus, ja demo-tilanne
