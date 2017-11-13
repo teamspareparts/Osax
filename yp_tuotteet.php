@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -71,7 +71,7 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
  */
 function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
     $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
-    $rows = $db->query( $sql, NULL, FETCH_ALL );
+    $rows = $db->query( $sql, [], FETCH_ALL );
 
     $return_string = '<select name="alv_lista" id="alv_lista">';
     foreach ( $rows as $alv ) {
@@ -90,7 +90,7 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
  */
 function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
 	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
-	$rows = $db->query( $sql, NULL, FETCH_ALL );
+	$rows = $db->query( $sql, [], FETCH_ALL );
 
 	$return_string = '<select name="yritys_id">
 		<option value="">- Tyhjä -</option>';
@@ -111,7 +111,7 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
  */
 function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) {
 	$sql = "SELECT id, nimi, oma_taso FROM tuoteryhma ORDER BY oma_taso ASC";
-	$rows = $db->query( $sql, NULL, FETCH_ALL );
+	$rows = $db->query( $sql, [], FETCH_ALL );
 
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';

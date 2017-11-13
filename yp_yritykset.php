@@ -26,7 +26,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
     unset($_SESSION["feedback"]);
 }
 
-$yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", NULL, FETCH_ALL ); //TODO: Voisi olla tehokkaampi
+$yritykset = $db->query( "SELECT * FROM yritys WHERE aktiivinen = 1", [], FETCH_ALL ); //TODO: Voisi olla tehokkaampi
 ?>
 <!DOCTYPE html>
 <html lang="fi">
