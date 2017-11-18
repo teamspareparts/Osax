@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 /**
@@ -7,7 +7,7 @@ require '_start.php'; global $db, $user, $cart;
  * @param array    $variables
  * @return string <p> for _SESSION['feedback']
  */
-function vaihda_salasana( DByhteys $db, User $user, array $variables ) {
+function vaihda_salasana( DByhteys $db, User $user, array $variables ) : string {
 	$row = $db->query( "SELECT salasana_hajautus FROM kayttaja WHERE id = ?", [$user->id] );
 	if ( !password_verify( $variables[ 'vanha_salasana' ], $row->salasana_hajautus ) ) {
 		return "<p class='error'>Vanha salasana ei ole oikein.</p>";
@@ -36,7 +36,7 @@ function vaihda_salasana( DByhteys $db, User $user, array $variables ) {
  * @param array    $variables
  * @return bool
  */
-function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
+function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) : bool {
 	$possible_fields =
 		[ 'etunimi', 'sukunimi', 'sahkoposti', 'puhelin', 'yritys', 'katuosoite', 'postinumero', 'postitoimipaikka' ];
 	$i = 1;
@@ -59,7 +59,8 @@ function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
 
 		$sql_query = "UPDATE toimitusosoite SET {$sql_set} WHERE osoite_id = ? AND kayttaja_id = ?";
 		$filtered_array[] = $user->id; // Lisätään käyttäjän ID arrayhin db->querya varten
-		return $db->query( $sql_query, array_values( $filtered_array ) );
+
+		return (bool) $db->query( $sql_query, array_values( $filtered_array ) );
 	}
 
 	return false; //Jos ei yhtään päivitettävää osaa
@@ -71,7 +72,7 @@ function muokkaa_uudet_tiedot( DByhteys $db, User $user, array $variables ) {
  * @param $variables
  * @return bool
  */
-function lisaa_uusi_osoite( DByhteys $db, User $user, array $variables ) {
+function lisaa_uusi_osoite( DByhteys $db, User $user, array $variables ) : bool {
 	unset( $variables['tallenna_uusi_osoite'] ); //Poistetaan turha array-index.
 	$variables[] = $user->id;
 	$variables[] = count($user->toimitusosoitteet) + 1; //Lisätään osoite-ID (viimeinen indeksi +1).
@@ -81,7 +82,7 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, array $variables ) {
 				 postinumero, postitoimipaikka, maa, kayttaja_id, osoite_id)
 			VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
 
-	return $db->query( $sql, array_values($variables) );
+	return (bool) $db->query( $sql, array_values($variables) );
 }
 
 /**
@@ -90,17 +91,13 @@ function lisaa_uusi_osoite( DByhteys $db, User $user, array $variables ) {
  * @param $osoite_id
  * @return bool
  */
-function poista_osoite( DByhteys $db, User $user, /*int*/ $osoite_id ) {
+function poista_osoite( DByhteys $db, User $user, int $osoite_id ) : bool {
 	$osoite_id_viimeinen = count($user->toimitusosoitteet);
 	$sql = "DELETE FROM toimitusosoite WHERE kayttaja_id = ? AND osoite_id = ?";
-	$stmt = $db->getConnection()->prepare( $sql ); //Tarvitaan rowCount-metodia, joten hieman manuaalia PDO:ta.
-	$stmt->execute( [$user->id, $osoite_id] );
-	// TODO: Päivitä takaisin normaaliin luokan käyttöön
-	if ( $stmt->rowCount() > 0 ) {
-		$sql = "UPDATE	toimitusosoite
-				SET		osoite_id = ?
-				WHERE	kayttaja_id = ? AND osoite_id = ?";
-		return $db->query( $sql, [$osoite_id, $user->id, $osoite_id_viimeinen] );
+
+	if ( $db->query( $sql, [$user->id, $osoite_id] ) ) {
+		$sql = "UPDATE toimitusosoite SET osoite_id = ? WHERE kayttaja_id = ? AND osoite_id = ?";
+		return (bool) $db->query( $sql, [$osoite_id, $user->id, $osoite_id_viimeinen] );
 	}
 
 	else return false;
@@ -129,7 +126,7 @@ elseif ( !empty( $_POST[ "tallenna_uusi_osoite" ] ) ) {
 	lisaa_uusi_osoite( $db, $user, $_POST );
 }
 elseif ( !empty( $_POST[ "poista_osoite" ] ) ) {
-	poista_osoite( $db, $user, $_POST[ "poista_osoite" ] );
+	poista_osoite( $db, $user, (int)$_POST[ "poista_osoite" ] );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -150,29 +147,14 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<link rel="stylesheet" href="css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="js/jsmodal-1.0d.min.js"></script>
-	<style>
-		fieldset.muut_tiedot label {
-			float: left;
-			width: 220px;
-			font-weight: bold;
-			white-space: nowrap;
-			padding: 0;
-		}
-	</style>
 </head>
 <body>
 <?php require "header.php"; ?>
 
 <main class="main_body_container lomake">
 	<div class="otsikko_container">
-		<section class="takaisin">
-			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
-		</section>
 		<section class="otsikko">
 			<h1>Omat tiedot</h1>
-		</section>
-		<section class="napit">
-			<!--<button class="nappi">Lisää uusi</button>-->
 		</section>
 	</div>
 
@@ -236,7 +218,8 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 	<fieldset class="muut_tiedot"> <Legend>Osoitekirja</legend>
 		<?php foreach ( $user->toimitusosoitteet as $key => $row ) : ?>
-			<div> <h3 style="margin: 0;">Osoite <?= $row->osoite_id ?></h3>
+			<div>
+				<h3 style="margin: 0;">Osoite <?= $row->osoite_id ?></h3>
 				<dl>
 					<dt>Nimi</dt> <dd><?= "{$row->etunimi} {$row->sukunimi}" ?></dd>
 					<dt>Sähköposti</dt> <dd><?= $row->sahkoposti ?></dd>
@@ -245,6 +228,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 					<dt>Katuosoite</dt> <dd><?= $row->katuosoite ?></dd>
 					<dt>Postinumero</dt> <dd><?= $row->postinumero ?></dd>
 					<dt>Postitoimipaikka</dt> <dd><?= $row->postitoimipaikka ?></dd>
+					<dt>Maa</dt> <dd><?= $row->maa ?></dd>
 				</dl>
 				<br>
 

@@ -1,4 +1,4 @@
-﻿<?php declare(strict_types=1);
+﻿<?php
 session_start();
 $config = parse_ini_file( "./config/config.ini.php" );
 
