@@ -1,8 +1,8 @@
-<?php
+<?php declare(strict_types=1);
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
-require './luokat/dbyhteys.class.php';
 $db = new DByhteys();
 
 $ohita_otsikkorivi = true;
@@ -30,7 +30,7 @@ if ( !empty( $temp_handle ) ) {
 	while ( ($data = fgetcsv( $temp_handle, 200, ";" )) !== false ) {
 		$values[] = (int)$hankintapaikka_id; // hkp-ID
 		$values[] = utf8_encode( str_replace( " ", "", $data[ 0 ] ) );  // tuote artikkeli-nro
-		$values[] = ($data[ 1 ] === "0") ? 0 : 1; // tehdassaldo
+		$values[] = ($data[ 1 ] === "0") ? 0 : 1; // tehdassaldo // arvo tiedostossa on joko 0 tai 'OK'
 	}
 
 	$sql = "INSERT INTO toimittaja_tehdassaldo (hankintapaikka_id, tuote_articleNo, tehdassaldo) VALUES (?,?,?)
