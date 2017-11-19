@@ -1,7 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
 /**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
@@ -13,16 +12,16 @@ require 'apufunktiot.php';
  * 		[0]: tuotteet, jotka löytyvät catalogista;
  * 		[1]: tuotteet, jotka eivät löydy catalogista
  */
-function filter_catalog_products ( DByhteys $db, array $products ) {
+function filter_catalog_products ( DByhteys $db, array $products ) : array {
 
 	/**
 	 * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
 	 * @param DByhteys $db
 	 * @param string   $articleNo
 	 * @param int      $brandNo
-	 * @return array|int|stdClass
+	 * @return array
 	 */
-    function get_tecdoc_product_from_database( DByhteys $db, /*string*/$articleNo, /*int*/$brandNo ){
+    function get_tecdoc_product_from_database( DByhteys $db, string $articleNo, int $brandNo ){
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
 	                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
@@ -112,11 +111,11 @@ function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $pro
 /**
  * Etsii kannasta itse perustetut tuotteet.
  * @param DByhteys $db
- * @param $search_number
- * @param bool $tarkka_haku
+ * @param string   $search_number
+ * @param bool     $tarkka_haku
  * @return array
  */
-function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
+function search_own_products_from_database( DByhteys $db, string $search_number, bool $tarkka_haku = true ) : array {
 	if ( $tarkka_haku ) {
 		$search_pattern = $search_number;
 	} else {
@@ -157,10 +156,10 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 /**
  * Etsitään kannasta kaikki omat tuotteet, jotka ovat verrattavissa hakutuloksiin.
  * @param DByhteys $db
- * @param array $products
+ * @param array    $products
  * @return array
  */
-function search_comparable_products_from_database(  DByhteys $db, array $products ){
+function search_comparable_products_from_database(  DByhteys $db, array $products ) : array {
 
 	if ( !$products ) {
 		return [];
@@ -268,10 +267,10 @@ function merge_products_with_eoltas_data( array $products, array $eoltas_product
 /**
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
- * @param $search_number
- * @return array|int|stdClass
+ * @param string   $search_number
+ * @return array
  */
-function get_comparable_number_for_own_product( DByhteys $db, /*string*/ $search_number ) {
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array {
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
 			FROM tuote
 			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
@@ -284,7 +283,7 @@ function get_comparable_number_for_own_product( DByhteys $db, /*string*/ $search
  * Järjestää tuotteet hinnan mukaan
  * @param $catalog_products
  */
-function sortProductsByPrice( &$catalog_products ){
+function sortProductsByPrice( &$catalog_products ) {
 	usort($catalog_products, function ($a, $b){return ($a->hinta > $b->hinta);});
 }
 
@@ -293,12 +292,15 @@ function sortProductsByPrice( &$catalog_products ){
  * @param $number
  * @return bool
  */
-function tarkasta_etuliite(/*String*/ $number){
-    if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
-        return true;
-    } else {
-		return false;
-	}
+function tarkasta_etuliite( string $number ) : bool {
+	return strlen($number) > 4
+		&& $number[3] === "-"
+		&& is_numeric(substr($number, 0, 3));
+	//if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
+     //   return true;
+	//} else {
+	//	return false;
+	//}
 }
 
 /**
@@ -306,7 +308,7 @@ function tarkasta_etuliite(/*String*/ $number){
  * @param int $number reference
  * @param int $etuliite reference
  */
-function halkaise_hakunumero(&$number, &$etuliite){
+function halkaise_hakunumero( &$number, &$etuliite ) {
     $etuliite = substr($number, 0, 3);
     $number = substr($number, 4);
 }
@@ -323,7 +325,7 @@ if ( !empty($_GET['haku']) ) {
     //TODO: sillä ei voida tietää kuuluuko etuliite tuotenumeroon vai kertooko se hankintapaikan (Esim 200-149)
 
 
-	$numerotyyppi = isset($_GET['numerotyyppi']) ? $_GET['numerotyyppi'] : null;	//numerotyyppi
+	$numerotyyppi = $_GET['numerotyyppi'] ?? null;	//numerotyyppi
     $exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
 	switch ($numerotyyppi) {
 		case 'all':
@@ -416,6 +418,7 @@ if ( !empty($_GET["manuf"]) ) {
 <html lang="fi">
 <head>
     <meta charset="utf-8">
+	<title>Tuotehaku</title>
 
     <link rel="stylesheet" type="text/css" href="./css/bootstrap.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -428,8 +431,6 @@ if ( !empty($_GET["manuf"]) ) {
     <!--<script src="http://webservicepilot.tecdoc.net/pegasus-3-0/services/TecdocToCatDLB.jsonEndpoint?js"></script>-->
 	<script src="./js/TecdocToCatDLB.jsonEndpoint"></script>
 	<script src="./js/jsmodal-1.0d.min.js"></script>
-
-    <title>Tuotehaku</title>
 </head>
 <body>
 <?php
@@ -438,14 +439,8 @@ require 'tuotemodal.php';
 ?>
 <main class="main_body_container">
 	<div class="otsikko_container">
-		<section class="takaisin">
-			<!--<button class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>-->
-		</section>
 		<section class="otsikko">
 			<h1>Tuotehaku</h1>
-		</section>
-		<section class="napit">
-			<!--<button class="nappi">Lisää uusi</button>-->
 		</section>
 	</div>
 
