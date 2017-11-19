@@ -22,6 +22,13 @@ notify_osoite = "https://localhost.osax.fi/payment_notify.php"
 merch_id = "13466"
 merch_auth = "6pKF4jkv97zmqBJ3ZL8gUw5DfT2NMQ"
 
+[Eoltas Webservice]
+eoltas_oxid = ""
+eoltas_user = ""
+eoltas_token = ""
+eoltas_juridical_id = ""
+eoltas_contract_id = ""
+
 [Misc]
 indev = "1"
 indev_txt = "<p>Osaxin inDev kehityspuoli."
