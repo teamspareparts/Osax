@@ -245,6 +245,27 @@ function divide_products_by_availability( array $products ) {
 }
 
 /**
+ * Yhdistetään Eoltaksen webserviceltä saatu data tuotteisiin.
+ * @param array $products
+ * @param array $eoltas_products
+ * @return array
+ */
+function merge_products_with_eoltas_data( array $products, array $eoltas_products ) {
+	foreach ( $products as $tuote) {
+		foreach ( $eoltas_products as $eoltas_product) {
+			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
+			$tuote->articleNo = str_replace(" ", "", $tuote->articleNo);
+			if ( $tuote->articleNo == $eoltas_product->supplierCode &&
+				$tuote->brandNo == $eoltas_product->brandId ) {
+				$tuote->tehdassaldo = $eoltas_product->stock;
+				break;
+			}
+		}
+	}
+	return $products;
+}
+
+/**
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
  * @param $search_number
@@ -345,6 +366,7 @@ if ( !empty($_GET['haku']) ) {
 			break;
 	}
 
+	//TODO: Eoltas toiminnallisuus vielä kesken
 	// Tehdään Eoltaksen webservicelle kysely annetulla hakunumerolla
 	//$eoltas_data = EoltasWebservice::searchProduct($number);
 	//$eoltas_products = filter_catalog_products_from_eoltas_products($db, $eoltas_data->response->products);
@@ -360,6 +382,9 @@ if ( !empty($_GET['haku']) ) {
 	$catalog_products = $found_catalog_products[0];
 	$not_available = $found_catalog_products[1];
 	$not_in_catalog = $filtered_product_arrays[1];
+
+	// Merge eoltas data
+	//$not_available = merge_products_with_eoltas_data($not_available, $eoltas_data->response->products);
 
 	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);

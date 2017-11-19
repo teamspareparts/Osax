@@ -13,7 +13,7 @@ $sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, DATE_FORM
 		JOIN yritys ON yritys.id = yritys_id
 		WHERE kasitelty IS NULL 
 		ORDER BY pvm ASC";
-$hankintapyynnot = $db->query( $sql, null, FETCH_ALL );
+$hankintapyynnot = $db->query( $sql, [], FETCH_ALL );
 
 $sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted, tuote.nimi AS tuote_nimi,
  			tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, yritys.nimi AS yritys_nimi, kayttaja.sukunimi,
@@ -25,7 +25,7 @@ $sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-
 		LEFT JOIN ostotilauskirja_tuote ON ostotilauskirja_tuote.tuote_id = tuote.id
 		WHERE kasitelty IS NULL
 		ORDER BY pvm ASC";
-$ostopyynnot = $db->query( $sql, null, FETCH_ALL );
+$ostopyynnot = $db->query( $sql, [], FETCH_ALL );
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen

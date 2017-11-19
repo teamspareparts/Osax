@@ -144,7 +144,7 @@ $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 						<label for="id=<?=$brand->id?>">Hinnastossa käytetty id:</label>
 						<input type="text" name="brands[<?=$brand->id?>][optional_id]"
 						       value="<?= !empty($brand->brandi_kaytetty_id) ? $brand->brandi_kaytetty_id : $brand->id ?>"
-						       id="brand_input-<?=$brand->id?>"
+						       id="brand_input-<?=$brand->id?>" style="width: 50px;"
 						       placeholder="ID" required disabled>
 					</div>
 				</div>
