@@ -147,7 +147,7 @@ class Ostoskori {
 	 * @param DByhteys $db
 	 * @param int      $tuote_id  <p> Lisättävän tuotteen ID tietokannassa
 	 * @param int      $kpl_maara <p> Montako tuotetta
-	 * @return int <p> Onnistuiko lisäys
+	 * @return int <p> Montako tuotetta lisätty tietokantaan (pitäisi olla yksi)
 	 */
 	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara ) : int {
 		// Tarkistetaan kpl_maara == 0 varalle.
@@ -165,14 +165,14 @@ class Ostoskori {
 			$this->tuotteet[ $tuote_id ][ 1 ] = $kpl_maara; // Päivitetään lokaali kpl-määrä
 		}
 
-		return (bool)$result;
+		return $result;
 	}
 
 	/**
 	 * Poistaa tuotteen ostoskorista. Poistaa lisäksi paikallisesta arrayista.
 	 * @param DByhteys $db
 	 * @param int      $tuote_id <p> Poistettava tuote
-	 * @return int <p> Onnistuiko poisto
+	 * @return int <p> Montako tuotetta poistettu tietokannasta (pitäisi olla yksi)
 	 */
 	public function poista_tuote( DByhteys $db, int $tuote_id) : int {
 		$sql = "DELETE FROM ostoskori_tuote
@@ -189,7 +189,7 @@ class Ostoskori {
 	/**
 	 * Tyhjentaa ostoskorin.
 	 * @param DByhteys $db
-	 * @return int <p> Onnistuiko tyhjennys
+	 * @return int <p> Montako tuotetta poistettu tietokannasta (pitäisi olla kaikki)
 	 */
 	public function tyhjenna_kori( DByhteys $db ) : int {
 		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->ostoskori_id ] );
