@@ -133,6 +133,7 @@ if ( $mode === "login" ) {
 	$sql = "SELECT id, yritys_id, sahkoposti, salasana_hajautus, vahvista_eula, aktiivinen, demo,
 				voimassaolopvm,	viime_sijainti, salasana_vaihdettu, salasana_uusittava
 			FROM kayttaja WHERE sahkoposti = ?";
+	/** @var User $login_user */
 	$login_user = $db->query( $sql, [ $email ], false, null, 'User' );
 
 	if ( $login_user ) {
@@ -172,13 +173,13 @@ if ( $mode === "login" ) {
 		// Näin voimme seurata mitä selaimia sivustolla käytetään.
 		file_put_contents("./config/log.txt", $login_user->id . '::' . $_SERVER['HTTP_USER_AGENT'] . '<br>\r\n', FILE_APPEND | LOCK_EX);
 
-		$_SESSION[ 'id' ] = $login_user->id;
-		$_SESSION[ 'yritys_id' ] = $login_user->yritys_id;
+		$_SESSION[ 'id' ] = (int)$login_user->id;
+		$_SESSION[ 'yritys_id' ] = (int)$login_user->yritys_id;
 		$_SESSION[ 'email' ] = $login_user->sahkoposti;
 
 		$config = parse_ini_file( "./config/config.ini.php" );
-		$_SESSION['indev'] = $config['indev'];
-		$_SESSION['header_tervehdys'] = $config['header_tervehdys'];
+		$_SESSION['indev'] = (bool)$config['indev'];
+		$_SESSION['header_tervehdys'] = (string)$config['header_tervehdys'];
 
 		addDynamicAddress();
 
