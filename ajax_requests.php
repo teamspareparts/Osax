@@ -1,4 +1,5 @@
-﻿<?php
+﻿<?php //declare(strict_types=1);
+
 /**
  * @param DByhteys $db
  * @param int      $tuote_id
@@ -6,10 +7,12 @@
  * @param string   $valmistaja
  * @return int
  */
-function tallenna_nimi_ja_valmistaja( DByhteys $db, /*int*/ $tuote_id, /*string*/ $nimi, /*string*/ $valmistaja ) {
+function tallenna_nimi_ja_valmistaja( DByhteys $db, int $tuote_id, string $nimi, string $valmistaja ) : int {
 	return $db->query( 'UPDATE tuote SET nimi = ?, valmistaja = ? WHERE id = ? LIMIT 1',
 					   [ $nimi, $valmistaja, $tuote_id ] );
 }
+
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 
 session_start();
 
@@ -18,10 +21,9 @@ if ( empty( $_SESSION[ 'id' ] ) ) {
 	exit;
 }
 
-require "luokat/dbyhteys.class.php";
 $db = new DByhteys();
 /**
- * @var Mixed <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
+ * @var mixed <p> Tuloksen palauttamista JSON-muodossa. Jokaisessa requestissa haluttu
  * tulos laitetaan tähän muuttujaan, joka sitten tulostetaan JSON-muodossa takaisin vastauksena.
  */
 $result = null;
@@ -30,10 +32,9 @@ $result = null;
  * Ostoskorin toimintaa varten
  */
 if ( isset( $_POST[ 'ostoskori_toiminto' ] ) ) {
-	tallenna_nimi_ja_valmistaja( $db, $_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
-	require "luokat/ostoskori.class.php";
-	$cart = new Ostoskori( $db, $_SESSION[ 'yritys_id' ], 0 );
-	$result = $cart->lisaa_tuote( $db, $_POST[ 'tuote_id' ], $_POST[ 'kpl_maara' ] );
+	tallenna_nimi_ja_valmistaja( $db, (int)$_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
+	$cart = new Ostoskori( $db, (int)$_SESSION[ 'yritys_id' ], 0 );
+	$result = $cart->lisaa_tuote( $db, (int)$_POST[ 'tuote_id' ], (int)$_POST[ 'kpl_maara' ] );
 	if ( $result ) {
 		$result = [ 'success' => true,
 			'tuotteet_kpl' => $cart->montako_tuotetta,
@@ -46,7 +47,7 @@ if ( isset( $_POST[ 'ostoskori_toiminto' ] ) ) {
  */
 elseif ( !empty( $_POST[ 'tuote_ostopyynto' ] ) ) {
 	$sql = "INSERT INTO tuote_ostopyynto (tuote_id, kayttaja_id ) VALUES ( ?, ? )";
-	$result = $db->query( $sql, [ $_POST[ 'tuote_ostopyynto' ], $_SESSION[ 'id' ] ] );
+	$result = $db->query( $sql, [ (int)$_POST[ 'tuote_ostopyynto' ], (int)$_SESSION[ 'id' ] ] );
 }
 
 /**
@@ -64,7 +65,7 @@ elseif ( !empty( $_POST[ 'tuote_hankintapyynto' ] ) ) {
  * Haetaan tuotteen hankintapaikan ostotilauskirjat
  */
 elseif ( !empty( $_POST[ 'hankintapaikan_ostotilauskirjat' ] ) ) {
-	tallenna_nimi_ja_valmistaja( $db, $_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
+	tallenna_nimi_ja_valmistaja( $db, (int)$_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
 	$sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";
 	$result = $db->query( $sql, [ $_POST[ 'hankintapaikka_id' ] ], FETCH_ALL );
 }
