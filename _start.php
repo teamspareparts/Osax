@@ -4,9 +4,8 @@
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
  * @param mixed $var
  * @param bool  $var_dump
- * @return string
  */
-function debug($var,bool$var_dump=false):string{
+function debug($var,bool$var_dump=false){
 	echo"<br><pre>Print_r ::<br>";print_r($var);echo"</pre>";
 	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
 }
