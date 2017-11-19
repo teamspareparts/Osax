@@ -147,9 +147,9 @@ class Ostoskori {
 	 * @param DByhteys $db
 	 * @param int      $tuote_id  <p> Lisättävän tuotteen ID tietokannassa
 	 * @param int      $kpl_maara <p> Montako tuotetta
-	 * @return bool <p> Onnistuiko lisäys
+	 * @return int <p> Onnistuiko lisäys
 	 */
-	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara ) : bool {
+	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara ) : int {
 		// Tarkistetaan kpl_maara == 0 varalle.
 		if ( $kpl_maara <= 0 ) {
 			return $this->poista_tuote( $db, $tuote_id ); // Oletetaan, että poistaminen oli tarkoitus.
@@ -172,9 +172,9 @@ class Ostoskori {
 	 * Poistaa tuotteen ostoskorista. Poistaa lisäksi paikallisesta arrayista.
 	 * @param DByhteys $db
 	 * @param int      $tuote_id <p> Poistettava tuote
-	 * @return bool <p> Onnistuiko poisto
+	 * @return int <p> Onnistuiko poisto
 	 */
-	public function poista_tuote( DByhteys $db, int $tuote_id) : bool {
+	public function poista_tuote( DByhteys $db, int $tuote_id) : int {
 		$sql = "DELETE FROM ostoskori_tuote
   				WHERE ostoskori_id = ? AND tuote_id = ? ";
 		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id ] );
@@ -189,9 +189,9 @@ class Ostoskori {
 	/**
 	 * Tyhjentaa ostoskorin.
 	 * @param DByhteys $db
-	 * @return bool <p> Onnistuiko tyhjennys
+	 * @return int <p> Onnistuiko tyhjennys
 	 */
-	public function tyhjenna_kori( DByhteys $db ) : bool {
+	public function tyhjenna_kori( DByhteys $db ) : int {
 		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->ostoskori_id ] );
 	}
 

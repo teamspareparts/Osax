@@ -85,7 +85,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a href="javascript:history.go(-1)" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+			<a href="yp_yritykset.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
 			<span>Yrityksen muokkaus &nbsp;&nbsp;</span>
@@ -164,7 +164,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<br><br>
 	<form name="muuta_maksutapa" method="post">
 		<fieldset><legend>Maksutavan valinta</legend>
-			<span>Käyttäjä voi silti valita maksaa Paytraililla.<br>
+			<span>Käyttäjä voi silti valita maksaa Paytraililla.</span><br>
 			<br>
 			<!-- //TODO: Tämän voisi tehdä paremmin. Näytä valittu arvo. Vaatisi joko js:ää tai PHP:ta. -->
 			<label for="mt" class="special_snowflake"> Maksutapa: </label>

@@ -18,7 +18,7 @@ $sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rah
 		LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id=tilaus.id
 		GROUP BY tilaus.id
 		ORDER BY tilaus.id DESC";
-$tilaukset = $db->query( $sql, NULL, FETCH_ALL );
+$tilaukset = $db->query( $sql,  [], FETCH_ALL );
 ?>
 <!DOCTYPE html>
 <html lang="fi">

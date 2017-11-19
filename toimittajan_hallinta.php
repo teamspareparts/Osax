@@ -103,7 +103,7 @@ if ( !($brand) ) {
 // Haetaan brändin yhteystiedot ja logon URL
 $brandAddress = getAmBrandAddress($brand->id);
 $hankintapaikat = hae_hankintapaikat($db, $brand->id);
-$brand->logo_src = !empty($brandAddress) ? TECDOC_THUMB_URL . $brandAddress->logoDocId . "/" : "";
+$brand_logo_src = !empty($brandAddress) ? TECDOC_THUMB_URL . $brandAddress->logoDocId . "/" : "";
 
 // Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
 $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
@@ -150,7 +150,7 @@ unset($_SESSION["feedback"]);
 			<a href="toimittajat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<img src="<?= $brand->logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;">
+			<img src="<?=$brand_logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;">
 			<h1 style="display:inline-block; vertical-align:middle;"><?= $brand->nimi?></h1>
 		</section>
 		<section class="napit">

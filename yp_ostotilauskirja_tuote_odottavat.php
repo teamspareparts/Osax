@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -135,8 +135,8 @@ $sql = "  SELECT SUM(ostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kp
           WHERE ostotilauskirja_id = ?
           GROUP BY ostotilauskirja_id";
 $yht = $db->query($sql, [$ostotilauskirja_id]);
-$yht->hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
-$yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
+$yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
+$yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 ?>
 
@@ -163,8 +163,7 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<a class="nappi grey" href="yp_ostotilauskirja_odottavat.php">Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Varastoon saapuminen</span>
-			<h1><?=$otk->tunniste?></h1>
+			<h1>Varastoon saapuminen</h1>
 		</section>
 		<section class="napit">
 			<?php if( !isset($_GET["tarkista"]) ) : ?>
@@ -238,9 +237,9 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<!-- Yhteensä -->
 			<tr class="border_top"><td>YHTEENSÄ</td>
 				<td colspan="2"></td>
-				<td class="number"><?= format_number($yht->kpl,0)?></td>
+				<td class="number"><?= format_number($yht_kpl,0)?></td>
 	            <td></td>
-				<td class="number"><?=format_number($yht->hinta)?></td>
+				<td class="number"><?=format_number($yht_hinta)?></td>
 				<td colspan="3"></td>
 	        </tr>
 			</tbody>
@@ -297,9 +296,9 @@ $yht->kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<!-- Yhteensä -->
 				<tr class="border_top"><td>YHTEENSÄ</td>
 					<td colspan="2"></td>
-					<td class="number"><?= format_number($yht->kpl,0)?></td>
+					<td class="number"><?= format_number($yht_kpl,0)?></td>
 					<td></td>
-					<td class="number"><?=format_number($yht->hinta)?></td>
+					<td class="number"><?=format_number($yht_hinta)?></td>
 					<td colspan="2"></td>
 				</tr>
 				</tbody>

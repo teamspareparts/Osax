@@ -88,7 +88,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
  */
 function hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db ) {
 	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
-	$rows = $db->query( $sql, NULL, FETCH_ALL );
+	$rows = $db->query( $sql, [], FETCH_ALL );
 
 	$return_string = '<select name="yritys_id"> <option name="yritys"  value="0">- Tyhjä -</option>';
 	foreach ( $rows as $yritys ) {
@@ -106,7 +106,7 @@ function hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db ) {
  */
 function hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( $db ) {
 	$sql = "SELECT id, nimi FROM hankintapaikka ORDER BY nimi ASC";
-	$rows = $db->query( $sql, NULL, FETCH_ALL );
+	$rows = $db->query( $sql, [], FETCH_ALL );
 
 	$return_string = '<select name="hkp_id" required> <option disabled>- Tyhjä -</option>';
 	foreach ( $rows as $hkp ) {
@@ -175,7 +175,7 @@ else {
 }
 
 $sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin FROM tuoteryhma";
-$rows = $db->query( $sql, null, true, null, 'Tuoteryhma' );
+$rows = $db->query( $sql, [], true, null, 'Tuoteryhma' );
 $tree = rakenna_puu( $rows );
 
 $yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db );
