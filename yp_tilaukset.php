@@ -22,7 +22,7 @@ function hae_tilaukset( DByhteys $db ) {
 			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id = tilaus.id
 			WHERE tilaus.kasitelty = 0
 			GROUP BY tilaus.id";
-	return $db->query($sql, NULL, FETCH_ALL);
+	return $db->query($sql, [], FETCH_ALL);
 }
 
 /** Merkitään tilaukset käsitellyiksi */

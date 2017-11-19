@@ -24,6 +24,8 @@ class EoltasWebservice {
 		curl_setopt($ch, CURLOPT_POSTFIELDS,  http_build_query($postfields));
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1 );
 		curl_setopt($ch, CURLOPT_HEADER, 0);
+		// Salaus
+		curl_setopt( $ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2 );
 		// Timeout
 		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,0);
 		curl_setopt($ch, CURLOPT_TIMEOUT, self::$timeout);
@@ -35,7 +37,7 @@ class EoltasWebservice {
 		return json_decode($response);
 	}
 
-	static function searchProduct(string $query, string $manufacturers = '') {
+	static function searchProduct(/*string*/ $query, /*string*/ $manufacturers = '') {
 		$fields = array(
 			'action' => 'searchProduct',
 			'query' => $query,
