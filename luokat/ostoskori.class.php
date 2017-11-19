@@ -165,7 +165,7 @@ class Ostoskori {
 			$this->tuotteet[ $tuote_id ][ 1 ] = $kpl_maara; // Päivitetään lokaali kpl-määrä
 		}
 
-		return $result;
+		return (bool)$result;
 	}
 
 	/**
