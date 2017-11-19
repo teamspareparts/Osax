@@ -159,14 +159,13 @@ function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) 
 /**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
- * Lopuksi lisää liittää TecDoc-tiedot valikoiman tuotteisiin.
+ * Lopuksi lisätään TecDoc-tiedot valikoiman tuotteisiin.
  *
  * @param DByhteys $db <p> Tietokantayhteys
  * @param array $products <p> Tuote-array, josta etsitään aktivoidut tuotteet.
- * @return array <p> Kolme arrayta:
- * 		[0]: saatavilla olevat tuotteet, jotka löytyvät catalogista;
- *      [1]: ei saatavilla olevat tuotteet;
- * 		[2]: tuotteet, jotka eivät löydy catalogista
+ * @return array <p> Kaksi arrayta:
+ * 		[0]: tuotteet, jotka löytyvät catalogista;
+ * 		[1]: tuotteet, jotka eivät löydy catalogista
  */
 function filter_catalog_products ( DByhteys $db, array $products ) {
 
@@ -188,22 +187,22 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 		return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL );
 	}
 
-	$catalog_products = $all_products = array();
-	$ids = $articleIds = array();	//duplikaattien tarkistusta varten
+	$catalog_products = $all_products = [];
+	$ids = $article_ids = [];	//duplikaattien tarkistusta varten
 
 	//Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
 		$row = get_product_from_database($db, $product);
-		if (!in_array($product->articleId, $articleIds)) {
-			$articleIds[] = $product->articleId;
+		if (!in_array($product->articleId, $article_ids)) {
+			$article_ids[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$product->id = $row ? $row[0]->id : null;
 			$all_products[] = $product;
 		}
 		if ( $row ) {
 			//Kaikki löytyneet tuotteet (eri hankintapaikat)
-			foreach ($row as $tuote) {
-				if (!in_array($tuote->id, $ids)){
+			foreach ( $row as $tuote ) {
+				if ( !in_array($tuote->id, $ids) ) {
 					$ids[] = $tuote->id;
 					$tuote->articleId = $product->articleId;
 					$tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
@@ -226,7 +225,6 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
  * @return array
  */
 function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
-	$catalog_products = [];
 	if ( $tarkka_haku ) {
 		$search_pattern = $search_number;
 	} else {
@@ -257,22 +255,12 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
-	// Attribuutit samaan muotoon kuin tecdoc-tuotteet
-	foreach ($own_products as $tuote) {
-		$tuote->articleId = 0;
-		$tuote->articleName = $tuote->nimi;
-		$tuote->brandName = $tuote->valmistaja;
-		$infot = explode('|', $tuote->infot);
-		foreach ($infot as $index=>$info) {
-			$tuote->infos[$index] = new stdClass();
-			$tuote->infos[$index]->attrName = $info;
-		}
-		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-		$catalog_products[] = $tuote;
+	if ( !$own_products ) {
+		$own_products = [];
 	}
-	return $catalog_products;
-}
 
+	return merge_tecdoc_product_variables_to_catalog_products($own_products);
+}
 
 /**
  * Etsitään kannasta kaikki omat tuotteet, jotka ovat verrattavissa hakutuloksiin.
@@ -283,7 +271,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 function search_comparable_products_from_database(  DByhteys $db, array $products ){
 
 	if ( !$products ) {
-		return array();
+		return [];
 	}
 
 	$values = [];
@@ -319,7 +307,18 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 		$own_products = [];
 	}
 
-	foreach ($own_products as $tuote) {
+	return merge_tecdoc_product_variables_to_catalog_products($own_products);
+}
+
+/**
+ * Alustetaan omasta tietokannasta löytyneille tuotteille saman
+ * nimiset muuttujat kuin TecDoc-tuotteille. Jaetaan tuotteet kahteen
+ * listaan tuotteen saatavuuden mukaan.
+ * @param array $products
+ * @return array
+ */
+function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
+	foreach ($products as $tuote) {
 		$tuote->articleId = null;
 		$tuote->articleName = $tuote->nimi;
 		$tuote->brandName = $tuote->valmistaja;
@@ -331,7 +330,7 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
 	}
 
-	return $own_products;
+	return $products;
 }
 
 /**
@@ -545,7 +544,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 			break;
 	}
 
-	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
+	// Filtteröidään catalogin tuotteet kahteen listaan: valikoimasta löytyvät ja tuotteet, jotka ei ole valikoimassa.
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	// Yhdistetään kaikki tuotteet
 	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
@@ -553,17 +552,21 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
 }
+
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
-	$selectCar = $_GET["car"];
-	$selectPartType = $_GET["osat_alalaji"];
+	$car = $_GET["car"];
+	$part_type = $_GET["osat_alalaji"];
 
-	$products = getArticleIdsWithState($selectCar, $selectPartType);
+	$products = getArticleIdsWithState($car, $part_type);
+	$own_comparable_products = search_comparable_products_from_database($db, $products);
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	$catalog_products = $filtered_product_arrays[0];
-	$all_products = $filtered_product_arrays[1];
+
+	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_comparable_products), SORT_REGULAR);
+	$all_products = array_unique(array_merge($filtered_product_arrays[1], $own_comparable_products), SORT_REGULAR);
 	sortProductsByPrice($catalog_products);
 }
+
 else if ( !empty($_GET["hyllypaikka"]) ) { // Hyllypaikallahaku
 	$haku = TRUE;
 	$hyllypaikka = str_replace(" ", "", $_GET["hyllypaikka"]);

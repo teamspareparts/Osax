@@ -5,14 +5,13 @@ require 'apufunktiot.php';
 /**
  * Jakaa tecdocista löytyvät tuotteet kahteen ryhmään: niihin, jotka löytyvät
  * valikoimasta ja niihin, jotka eivät löydy.
- * Lopuksi lisää liittää TecDoc-tiedot valikoiman tuotteisiin.
+ * Lopuksi lisätään TecDoc-tiedot valikoiman tuotteisiin.
  *
  * @param DByhteys $db <p> Tietokantayhteys
  * @param array $products <p> Tuote-array, josta etsitään aktivoidut tuotteet.
  * @return array <p> Kolme arrayta:
- * 		[0]: saatavilla olevat tuotteet, jotka löytyvät catalogista;
- *      [1]: ei saatavilla olevat tuotteet;
- * 		[2]: tuotteet, jotka eivät löydy catalogista
+ * 		[0]: tuotteet, jotka löytyvät catalogista;
+ * 		[1]: tuotteet, jotka eivät löydy catalogista
  */
 function filter_catalog_products ( DByhteys $db, array $products ) {
 
@@ -48,40 +47,66 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
         return $db->query($sql, [$articleNo, $brandNo], FETCH_ALL);
     }
 
-	$catalog_products = $not_available_catalog_products = $not_in_catalog = array();
-	$ids = $articleIds = array(); // Duplikaattien tarkistusta varten
+	$catalog_products = $not_in_catalog = [];
+	$ids = $article_ids = []; // Duplikaattien tarkistusta varten
 
     // Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
 		$product->articleNo = str_replace(" ", "", $product->articleNo);
         $row = get_tecdoc_product_from_database($db, $product->articleNo, $product->brandNo);
-		if ( !$row && !in_array($product->articleId, $articleIds)) {
-			$articleIds[] = $product->articleId;
+		if ( !$row && !in_array($product->articleId, $article_ids)) {
+			$article_ids[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
 			$not_in_catalog[] = $product;
 		}
 		if ( $row ) {
 		    // Kaikki löytyneet tuotteet (eri hankintapaikat)
-            foreach ($row as $tuote) {
-                if (!in_array($tuote->id, $ids)){
+            foreach ( $row as $tuote ) {
+                if ( !in_array($tuote->id, $ids) ) {
                     $ids[] = $tuote->id;
                     $tuote->articleId = $product->articleId;
                     $tuote->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
                     $tuote->brandName = $product->brandName;
-
-					if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
-                    	$catalog_products[] = $tuote;
-                    } else {
-                    	$not_available_catalog_products[] = $tuote;
-                    }
+                    $catalog_products[] = $tuote;
                 }
             }
 		}
 	}
 	merge_products_with_optional_data( $catalog_products );
-	merge_products_with_optional_data( $not_available_catalog_products );
 
-	return [$catalog_products, $not_available_catalog_products, $not_in_catalog];
+	return [$catalog_products, $not_in_catalog];
+}
+
+/**
+ * Etsii kannasta tuotteita eoltaksen webservice-vastauksen perusteella.
+ * @param DByhteys $db
+ * @param array $products
+ * @return array
+ */
+function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $products ) {
+
+	$eoltas_hankintapaikka_id = 100;
+	$values = [];
+	foreach ($products as $product) {
+		$values[] = str_replace(" ", "", $product->supplierCode);
+	}
+	$values[] = $eoltas_hankintapaikka_id;
+	$questionmarks = implode( ',', array_fill( 0, count($products), '?' ) );
+	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
+			FROM 	    tuote
+			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+			WHERE 	    tuote.articleNo IN ($questionmarks)
+						AND tuote.aktiivinen = 1
+						AND tuote.hankintapaikka_id = ?
+			GROUP BY    tuote.id
+			LIMIT 10";
+	$own_products = $db->query($sql, $values, FETCH_ALL);
+
+	if ( !$own_products ) {
+		$own_products = [];
+	}
+
+	return merge_tecdoc_product_variables_to_catalog_products($own_products);
 }
 
 /**
@@ -122,25 +147,11 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 			LIMIT 10";
 	$own_products = $db->query($sql, [$search_pattern], FETCH_ALL);
 
-	$catalog_products = $not_available_catalog_products = [];
-	foreach ($own_products as $tuote) {
-		$tuote->articleId = null;
-		$tuote->articleName = $tuote->nimi;
-		$tuote->brandName = $tuote->valmistaja;
-		$infot = explode('|', $tuote->infot);
-		foreach ($infot as $index=>$info) {
-			$tuote->infos[$index] = new stdClass();
-			$tuote->infos[$index]->attrName = $info;
-		}
-		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-
-		if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
-			$catalog_products[] = $tuote;
-		} else {
-			$not_available_catalog_products[] = $tuote;
-		}
+	if ( !$own_products ) {
+		$own_products = [];
 	}
-	return [$catalog_products, $not_available_catalog_products];
+
+	return merge_tecdoc_product_variables_to_catalog_products($own_products);
 }
 
 /**
@@ -152,7 +163,7 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 function search_comparable_products_from_database(  DByhteys $db, array $products ){
 
 	if ( !$products ) {
-		return [ [], [] ];
+		return [];
 	}
 
 	$values = [];
@@ -188,8 +199,18 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 		$own_products = [];
 	}
 
-	$catalog_products = $not_available_catalog_products = [];
-	foreach ($own_products as $tuote) {
+	return merge_tecdoc_product_variables_to_catalog_products($own_products);
+}
+
+/**
+ * Alustetaan omasta tietokannasta löytyneille tuotteille saman
+ * nimiset muuttujat kuin TecDoc-tuotteille. Jaetaan tuotteet kahteen
+ * listaan tuotteen saatavuuden mukaan.
+ * @param array $products
+ * @return array
+ */
+function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
+	foreach ($products as $tuote) {
 		$tuote->articleId = null;
 		$tuote->articleName = $tuote->nimi;
 		$tuote->brandName = $tuote->valmistaja;
@@ -199,14 +220,28 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 			$tuote->infos[$index]->attrName = $info;
 		}
 		$tuote->thumburl = !empty($tuote->kuva_url) ? $tuote->kuva_url : 'img/ei-kuvaa.png';
-		if ( ($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera) ) {
-			$catalog_products[] = $tuote;
-		} else {
-			$not_available_catalog_products[] = $tuote;
-		}
 	}
 
-	return [$catalog_products, $not_available_catalog_products];
+	return $products;
+}
+
+/**
+ *  Jaetaan omasta kannasta löytyneet tuotteet kahteen listaan
+ * sen perusteella, onko tuotetta varastossa.
+ * @param array $products
+ * @return array
+ */
+function divide_products_by_availability( array $products ) {
+	$available = [];
+	$not_available = [];
+	foreach ($products as $tuote) {
+		if (($tuote->varastosaldo != 0) and ($tuote->varastosaldo >= $tuote->minimimyyntiera)) {
+			$available[] = $tuote;
+		} else {
+			$not_available[] = $tuote;
+		}
+	}
+	return [$available, $not_available];
 }
 
 /**
@@ -310,26 +345,44 @@ if ( !empty($_GET['haku']) ) {
 			break;
 	}
 
-	// Filtteröidään catalogin tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
+	// Tehdään Eoltaksen webservicelle kysely annetulla hakunumerolla
+	//$eoltas_data = EoltasWebservice::searchProduct($number);
+	//$eoltas_products = filter_catalog_products_from_eoltas_products($db, $eoltas_data->response->products);
+
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$own_products = search_own_products_from_database( $db, $number, $exact );
-	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products[0], $own_comparable_products[0]), SORT_REGULAR);
-	$not_available = array_unique(array_merge($filtered_product_arrays[1], $own_products[1], $own_comparable_products[1]), SORT_REGULAR);
-	$not_in_catalog = $filtered_product_arrays[2];
+
+	// Kaikki tuotteet, jotka löytyy omasta kannasta
+	$found_catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
+	$found_catalog_products = divide_products_by_availability($found_catalog_products);
+
+	// Jaetaan tuotteet kolmeen listaan: saatavilla, ei saatavilla ja tuotteet, jotka ei ole valikoimassa.
+	$catalog_products = $found_catalog_products[0];
+	$not_available = $found_catalog_products[1];
+	$not_in_catalog = $filtered_product_arrays[1];
+
+	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
 
 if ( !empty($_GET["manuf"]) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
-	$selectCar = $_GET["car"];
-	$selectPartType = $_GET["osat_alalaji"];
+	$car = $_GET["car"];
+	$part_type = $_GET["osat_alalaji"];
 
-	$products = getArticleIdsWithState($selectCar, $selectPartType);
+	$products = getArticleIdsWithState($car, $part_type);
+	$own_comparable_products = search_comparable_products_from_database($db, $products);
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	$catalog_products = $filtered_product_arrays[0];
-	$not_available = $filtered_product_arrays[1];
-	$not_in_catalog = $filtered_product_arrays[2];
+
+	// Kaikki tuotteet, jotka löytyy omasta kannasta
+	$found_catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_comparable_products), SORT_REGULAR);
+	$found_catalog_products = divide_products_by_availability($found_catalog_products);
+
+	$catalog_products = $found_catalog_products[0];
+	$not_available = $found_catalog_products[1];
+	$not_in_catalog = $filtered_product_arrays[1];
+
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
