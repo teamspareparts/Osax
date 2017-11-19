@@ -12,9 +12,11 @@ require 'tecdoc.php';
  *                                Huom. jos TRUE, ei tarkista salasanaa!
  */
 function beginning_user_checks( User $user, string $user_password, bool $skip_pw_check = false ) {
-	if ( !password_verify( $user_password, $user->salasana_hajautus ) && !$skip_pw_check ) {
-		header( "Location:index.php?redir=2" );
-		exit; //Salasana väärin
+	if ( !$skip_pw_check  ) {
+		if ( !password_verify($user_password, $user->salasana_hajautus) ) {
+			header("Location:index.php?redir=2");
+			exit; //Salasana väärin
+		}
 	}
 	if ( !$user->aktiivinen ) { // Tarkistetaan käyttäjän aktiivisuus
 		header( "Location:index.php?redir=3" );
@@ -204,10 +206,10 @@ elseif ( $mode === "password_reset" ) {
 
 	$sql = "SELECT id, sahkoposti, aktiivinen, demo, voimassaolopvm
 			FROM kayttaja WHERE sahkoposti = ?";
-	$login_user = $db->query( $sql, [ $email ] );
+	$login_user = $db->query( $sql, [ $email ], false, null, 'User'  );
 
 	if ( $login_user ) {
-		beginning_user_checks( $login_user, null, true );
+		beginning_user_checks( $login_user, '', true );
 		password_reset( $db, $login_user, 'reset' );
 	}
 	else {
