@@ -268,9 +268,9 @@ function merge_products_with_eoltas_data( array $products, array $eoltas_product
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
  * @param string   $search_number
- * @return array
+ * @return \stdClass
  */
-function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array {
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) {
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
 			FROM tuote
 			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
