@@ -1,7 +1,5 @@
-<?php
-/**
- * Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten.
- */
+<?php declare(strict_types=1);
+/** Tämä tiedosto sisältää funktioita ostoskorin ja tilaus-sivun toimintaa varten. */
 
 /**
  * Tarkistaa ostoskorin tuotteiden hinnat alennuksien varalta. Tarkistaa lisäksi rahtimaksun tuotteiden jälkeen.
@@ -86,7 +84,7 @@ function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
  * @param int $osoitekirja_pituus
  * @return string <p> HTML-nappi
  */
-function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /*int*/ $osoitekirja_pituus ) {
+function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( int $osoitekirja_pituus ) {
 	$nappi_html_toimiva = '
 		<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
 	$nappi_html_disabled = '
@@ -99,78 +97,41 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( /*int*
 }
 
 /**
- * //TODO: funktio ei ole enää käytössä, korjaa pois, tai muuta paremmaksi --JJ 170305
- * Palauttaa huomautuksen tuotteen kohdalle, jos sopivaa.
- * Mahdollisia huomautuksia: määräalennus | minimimyyntierä | --- (tyhjä)
- * @param stdClass $product
- * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
- * @return string <p> palauttaa huomautuksen
- * 		TODO: Pitäisiko olla väritystä huomautuksissa?
- */
-function laske_era_alennus_palauta_huomautus ( stdClass $product, /*bool*/ $ostoskori = TRUE ) {
-	if ( $product->cartCount >= $product->minimimyyntiera ) { //Tarkistetaan, onko tuotetta tilattu tarpeeksi
-
-		if ( $product->alennusera_kpl > 0 && $product->alennusera_prosentti > 0 ) {
-			$jakotulos =  $product->cartCount / $product->alennusera_kpl; // Miten paljon tuotteuta alennuserään?
-
-			$tulosta_huomautus = // "Tilaa #kpl saadaksesi alennuksen!"
-				$jakotulos >= 0.75 && $jakotulos < 1; // Kpl-määrä 75% alennuserän kpl-rajasta, mutta alle 100%
-
-			$tulosta_alennus = $jakotulos >= 1; // Kpl-määrä yli 100%. // "Alennus asetettu"
-		} else { $tulosta_alennus = FALSE; $tulosta_huomautus = FALSE; }
-
-		if ( $tulosta_huomautus && $ostoskori ) {
-			$puuttuva_kpl_maara = $product->alennusera_kpl - $product->cartCount;
-			$alennus_prosentti = round( (float)$product->alennusera_prosentti * 100 );
-			return "Lisää {$puuttuva_kpl_maara} kpl saadaksesi {$alennus_prosentti} % alennusta!";
-
-		} elseif ( $tulosta_alennus ) {
-			$alennus_prosentti = round((float)$product->alennusera_prosentti * 100 );
-			return "Eräalennus ({$alennus_prosentti} %) asetettu.";
-
-		} else { return "---"; }
-	} else { return "<span style='color:red;'>Minimyyntierä: {$product->minimimyyntiera} kpl</span>"; }
-}
-
-/**
  * Tarkistaa pystyykö tilauksen tekemään, ja tulostaa tilaus-napin sen mukaan.
  * Syitä, miksi ei: <br> ostoskori tyhjä | tuotetta ei varastossa | minimimyyntierä alitettu | ei toimitusosoitetta.<br>
  * Tulostaa lisäksi selityksen napin mukana, jos disabled.
  * @param Ostoskori $cart
- * @param User $user
- * @param bool $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
+ * @param User      $user
+ * @param bool      $ostoskori [optional] default = TRUE <p> onko ostoskori, vai tilauksen vahvistus
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		Ostoskori $cart, User $user, /*bool*/ $ostoskori = TRUE ) {
-	$enough_in_stock = TRUE;
-	$enough_ordered = TRUE;
-	$tuotteita_ostoskorissa = TRUE;
-	$tmo_valittu = TRUE;
+		Ostoskori $cart, User $user, bool $ostoskori = true ) {
+	$tilaaminen_mahdollista = true;
 	$huomautus = '';
 
 	if ( count($user->toimitusosoitteet) < 1 ) {
-		$tmo_valittu = false;
+		$tilaaminen_mahdollista = false;
 		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
 	}
 
 	if ( $cart->tuotteet ) {
 		foreach ( $cart->tuotteet as $tuote) {
 			if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
-				$enough_in_stock = false;
+				$tilaaminen_mahdollista = false;
 				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei ole tarpeeksi varastossa.<br>";
 			}
 			if ( $tuote->kpl_maara < $tuote->minimimyyntiera ) {
-				$enough_ordered = false;
+				$tilaaminen_mahdollista = false;
 				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:n minimimyyntierää ei ole ylitetty.<br>";
 			}
 		}
 	} else {
-		$tuotteita_ostoskorissa = false;
+		$tilaaminen_mahdollista = false;
 		$huomautus .= "Ostoskori tyhjä.<br>";
 	}
 
-	if ( $tuotteita_ostoskorissa && $enough_in_stock && $enough_ordered && $tmo_valittu ) {
+	if ( $tilaaminen_mahdollista ) {
 		if ( !$ostoskori ) {
 			return "
 				<form action='#' method=post>
