@@ -1,17 +1,18 @@
-<?php
+<?php declare(strict_types=1);
+
 require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
 
 if ( !empty($_POST['ostoskori_tuote']) ) {
-	$tuote_id = $_POST['ostoskori_tuote'];
-	$tuote_kpl = isset($_POST['ostoskori_maara']) ? $_POST['ostoskori_maara'] : 0;
+	$tuote_id = (int)$_POST['ostoskori_tuote'];
+	$tuote_kpl = (int)$_POST['ostoskori_maara'] ?? 0;
 	if ( $tuote_kpl > 0 ) {
 		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
 			$_SESSION["feedback"] = '<p class="success">Ostoskori päivitetty.</p>';
 		} else {
 			$_SESSION["feedback"] = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
 		}
-	} elseif ( $tuote_kpl == 0 ) { //TODO: Tarkista miten tämä käyttäytyy NULLin kanssa
+	} elseif ( $tuote_kpl == 0 ) {
 		if ( $cart->poista_tuote( $db, $tuote_id ) ) {
 			$_SESSION["feedback"] = '<p class="success">Tuote poistettu ostoskorista.</p>';
 		} else {
@@ -24,13 +25,13 @@ if ( !empty($_POST['ostoskori_tuote']) ) {
 if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']); exit();
 } else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	$feedback = $_SESSION['feedback'] ?? "";
 	unset($_SESSION["feedback"]);
 }
 
 // Tarkistetaan $feedback ennen näitä, koska nämä hakevat juttuja tietokannasta HTML-osuutta varten.
 $user->haeToimitusosoitteet( $db, -2 ); // Tilaus-nappia varten; ei anneta edetä, jos ei toimitusosoitteita.
-$cart->hae_ostoskorin_sisalto( $db, TRUE, TRUE );
+$cart->hae_ostoskorin_sisalto( $db, true, true );
 check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja rahtimaksu.
 ?>
 <!DOCTYPE html>
@@ -57,8 +58,6 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		<section class="otsikko">
 			<h1>Ostoskori</h1>
 		</section>
-		<section class="napit">
-		</section>
 	</div>
 
 	<?= $feedback ?>
@@ -77,8 +76,8 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 				<td><?= $tuote->nimi?></td> <!-- Tuotteen nimi -->
 				<td><?= $tuote->valmistaja?></td> <!-- Tuotteen valmistaja -->
 				<td class="number"><?= $tuote->summa_toString() ?></td> <!-- Hinta yhteensä (sis. ALV) -->
-				<td class="number"><?= $tuote->a_hinta_toString() ?></td> <!-- Kpl-hinta (sis. ALV) -->
-				<td class="number" style="padding-top: 0; padding-bottom: 0;"><!-- TODO: Tarkista mika tarkoitus style-säännöllä. -->
+				<td class="number"><?= $tuote->aHintaAlennettu_toString() ?></td> <!-- Kpl-hinta (sis. ALV) -->
+				<td class="number">
 					<input id="maara_<?= $tuote->id ?>" name="maara_<?= $tuote->id ?>"
 					       class="maara number" type="number" value="<?= $tuote->kpl_maara ?>"
 					       min="0" title="Kappalemäärä"> <!-- Kpl-määrä (käyttäjän muokattavissa) -->
