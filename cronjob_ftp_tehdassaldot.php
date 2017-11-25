@@ -27,10 +27,23 @@ if ( !empty( $temp_handle ) ) {
 	}
 
 	$values = array();
+	$check_number = 0;
 	while ( ($data = fgetcsv( $temp_handle, 200, ";" )) !== false ) {
 		$values[] = (int)$hankintapaikka_id; // hkp-ID
 		$values[] = utf8_encode( str_replace( " ", "", $data[ 0 ] ) );  // tuote artikkeli-nro
-		$values[] = ($data[ 1 ] === "0") ? 0 : 1; // tehdassaldo // arvo tiedostossa on joko 0 tai 'OK'
+		// Jostain syystä valittaa, että 1-indeksiä ei ole olemassa. Tarkistetaan varmuuden vuoksi.
+		if ( isset( $data[ 1 ] ) ) {
+			$values[] = ($data[ 1 ] === "0") ? 0 : 1; // tehdassaldo // arvo tiedostossa on joko 0 tai 'OK'
+		}
+		else {
+			$values[] = 0; // Oletetaan, että tehdassaldo on nolla siinä tapauksessa että 1-indeksiä ei ole.
+			++$check_number;
+			var_dump($data);
+		}
+	}
+
+	if ( $check_number > 0 ) {
+		echo "1-index error check: number of rows: " . $check_number . "<br>" . PHP_EOL;
 	}
 
 	$sql = "INSERT INTO toimittaja_tehdassaldo (hankintapaikka_id, tuote_articleNo, tehdassaldo) VALUES (?,?,?)
