@@ -1,4 +1,4 @@
-<?php //declare(strict_types=1);
+<?php declare(strict_types=1);
 spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
@@ -22,14 +22,25 @@ while (false !== ($file_name = $kansio->read())) {
 
 $parser = new EmailParser( file_get_contents($latest_filepath) );
 
-print_r( $parser );
+/**
+ * Tarkistetaan, että meillä on oikea sähköposti hallussa.
+ * fileemtime() olisi pitänyt toimia, mutta jostain syystä se saattaa lukea väärän emailin.
+ */
+if ($parser->getHeader('from') !== "oradb@werner-metzger.de") {
+	echo "Väärä sähköposti!" . "<br>" . PHP_EOL;
+	echo $parser->getHeader('subject') . "<br>" . PHP_EOL;
+	echo $parser->getHeader('date') . "<br>" . PHP_EOL;
+	echo "File emtime: " . $latest_emtime . "<br>" . PHP_EOL;
+	echo "Filepath: " . $latest_filepath . "<br>" . PHP_EOL;
+	exit();
+}
 
 $csv_array = array_map(
 	function($val) { return explode(';', $val); },
 	explode(PHP_EOL, str_replace(array("\r\n","\n\r","\r"),PHP_EOL, $parser->getAttachments()[0]['body']))
 );
 
-array_shift( $csv_array ); //TODO: slow for big arrays, find better way.
+array_shift( $csv_array ); //TODO: slow for big arrays, find better way. --JJ 251217
 
 if ( !empty( $csv_array ) ) {
 
@@ -44,8 +55,6 @@ if ( !empty( $csv_array ) ) {
 
 	$values = array_chunk( $csv_array, $rows_in_query_at_one_time );
 
-	echo count( $values ) . PHP_EOL . "<br>";
-
 	foreach ( $values as $values_chunk ) {
 		$db->query(
 			str_replace("(?,?,?)",
@@ -53,10 +62,6 @@ if ( !empty( $csv_array ) ) {
 						$sql),
 			iterator_to_array(new RecursiveIteratorIterator(new RecursiveArrayIterator($values_chunk)),false)
 		);
-		echo count($values_chunk) . " -1" . PHP_EOL . "<br>";
-		echo str_replace("(?,?,?)",
-						 str_repeat('(?, ?, ?),', (count($values_chunk)-1)/10) . "(?, ?, ?)",
-						 $sql) . PHP_EOL . "<br>";
 	}
 
 	$db->query( "UPDATE hankintapaikka SET tehdassaldo_viim_paivitys = NOW() WHERE id = ?",
