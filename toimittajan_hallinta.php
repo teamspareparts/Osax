@@ -101,9 +101,9 @@ if ( !($brand) ) {
 }
 
 // Haetaan brändin yhteystiedot ja logon URL
-$brandAddress = getAmBrandAddress($brand->id);
+$brand_address = getAmbrandAddress($brand->id)[0];
 $hankintapaikat = hae_hankintapaikat($db, $brand->id);
-$brand_logo_src = !empty($brandAddress) ? TECDOC_THUMB_URL . $brandAddress->logoDocId . "/" : "";
+$brand_logo_src = !empty($brand_address) ? TECDOC_THUMB_URL . $brand_address->logoDocId . "/" : "";
 
 // Haetaan kaikki hankintapaikat valmiiksi hankintapaikka -modalia varten varten
 $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
@@ -166,21 +166,21 @@ unset($_SESSION["feedback"]);
 	<?=$feedback?>
 
     <!-- Brändin yhteystiedot -->
-    <?php if ( !empty($brandAddress) ) : ?>
+    <?php if ( !empty($brand_address) ) : ?>
         <table class="inline-block" style="padding-right: 80pt; vertical-align: top;">
             <thead>
             <tr><th colspan='2' class='text-center'>Yhteystiedot</th></tr>
             </thead>
             <tbody>
-            <tr><td>Yritys</td><td><?=$brandAddress->name?></td></tr>
-            <tr><td>Osoite</td><td><?=$brandAddress->street?><br><?=$brandAddress->zip?> <?=strtoupper($brandAddress->city)?></td></tr>
-            <tr><td>Puh</td><td><?=$brandAddress->phone?></td></tr>
-            <?php if (isset($brandAddress->fax)) : ?>
-                <tr><td>Fax</td><td><?$brandAddress->fax?></td></tr>
-            <?php endif; if(isset($brandAddress->email)) : ?>
-                <tr><td>Email</td><td><?=$brandAddress->email?></td></tr>
+            <tr><td>Yritys</td><td><?=$brand_address->name?></td></tr>
+            <tr><td>Osoite</td><td><?=$brand_address->street?><br><?=$brand_address->zip?> <?=strtoupper($brand_address->city)?></td></tr>
+            <tr><td>Puh</td><td><?=$brand_address->phone?></td></tr>
+            <?php if (isset($brand_address->fax)) : ?>
+                <tr><td>Fax</td><td><?$brand_address->fax?></td></tr>
+            <?php endif; if(isset($brand_address->email)) : ?>
+                <tr><td>Email</td><td><?=$brand_address->email?></td></tr>
             <?php endif; ?>
-            <tr><td>URL</td><td><?=$brandAddress->wwwURL?></td></tr>
+            <tr><td>URL</td><td><?=$brand_address->wwwURL?></td></tr>
             <tr><td colspan="2">&nbsp;</td></tr>
             <tr><td>TecDoc ID</td><td><?=$brand->id?></td></tr>
             </tbody>
