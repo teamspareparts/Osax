@@ -1,6 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 /**
- * @version 2017-04-16
+ * PaymentAPI-luokka
+ * @author Juhani J
  */
 class PaymentAPI {
 
@@ -93,7 +94,7 @@ class PaymentAPI {
 	 * @param int   $tilaus_id <p> Tilauksen ID
 	 * @param float $summa     <p> Tilauksen maksettava summa
 	 */
-	public static function preparePaymentFormInfo( /*int*/ $tilaus_id, /*float*/ $summa ) {
+	public static function preparePaymentFormInfo( int $tilaus_id, float $summa ) {
 		// Tarkistetaan, että tarvittavat tiedot on haettu config.ini:stä.
 		if ( PaymentAPI::$merchant_id === null ) {
 			PaymentAPI::haeConfigTiedot();
@@ -106,7 +107,7 @@ class PaymentAPI {
 	/**
 	 * @param string $formType [optional] <p> default = 'S1'
 	 */
-	private static function calculateAuthCode( /*string*/ $formType = 'S1' ) {
+	private static function calculateAuthCode( string $formType = 'S1' ) {
 		if ( $formType === 'S1' ) {
 			PaymentAPI::$auth_code = PaymentAPI::$merchant_auth_hash . '|' . PaymentAPI::$merchant_id . '|' .
 				PaymentAPI::$amount . '|' . PaymentAPI::$order_id . '|' . PaymentAPI::$reference_number . '|' .
@@ -123,7 +124,7 @@ class PaymentAPI {
 	 * @param bool  $isCancel     [otional] <p> Onko maksun peruutus?
 	 * @return bool
 	 */
-	public static function checkReturnAuthCode( array $getVariables, /*bool*/ $isCancel = false ) {
+	public static function checkReturnAuthCode( array $getVariables, bool $isCancel = false ) : bool {
 		// Tarkistetaan, että tarvittavat tiedot on haettu config.ini:stä.
 		if ( PaymentAPI::$merchant_id === null ) {
 			PaymentAPI::haeConfigTiedot();
@@ -154,8 +155,8 @@ class PaymentAPI {
 	 * @param int      $ostoskoriID
 	 * @return bool
 	 */
-	public static function peruutaTilausPalautaTuotteet( DByhteys $db, User $user,
-			/*int*/ $tilausID, /*int*/ $ostoskoriID ) {
+	public static function peruutaTilausPalautaTuotteet( DByhteys $db, User $user, int $tilausID,
+														 int $ostoskoriID ) : bool {
 		$conn = $db->getConnection();
 		$conn->beginTransaction();
 
