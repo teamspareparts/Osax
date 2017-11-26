@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 require 'apufunktiot.php';
@@ -8,10 +8,10 @@ require 'apufunktiot.php';
  * Jos tuote on jo tietokannassa, päivittää uudet tiedot, ja asettaa aktiiviseksi.
  * //TODO: Mitä tehdään keskiostohinnalle ja yhteensa_kpl, kun ON DUPLICATE KEY ?
  * @param DByhteys $db
- * @param array $val
+ * @param array    $val
  * @return bool <p> onnistuiko lisäys. Tosin, jos jotain menee pieleen niin se heittää exceptionin.
  */
-function add_product_to_catalog( DByhteys $db, array $val ) {
+function add_product_to_catalog( DByhteys $db, array $val ) : bool {
 	$result = $db->query("SELECT aktiivinen FROM tuote WHERE articleNo = ? AND brandNo = ? AND hankintapaikka_id = ?",
 		[ $val[0], $val[1], $val[2] ]);
 
@@ -28,7 +28,10 @@ function add_product_to_catalog( DByhteys $db, array $val ) {
 					minimimyyntiera=VALUES(minimimyyntiera), hyllypaikka=VALUES(hyllypaikka), nimi=VALUES(nimi),
 					valmistaja=VALUES(valmistaja), tilauskoodi=VALUES(tilauskoodi),
 					ensimmaisen_kerran_varastossa = now(), aktiivinen = 1";
-		return $db->query($sql, $val);
+		$result = $db->query($sql, $val);
+		if ( $result ) {
+			return true;
+		}
 	}
 
 	return false;
@@ -37,22 +40,26 @@ function add_product_to_catalog( DByhteys $db, array $val ) {
 /**
  * Poistaa tuotteen tietokannasta, asettamalla 'aktiivinen'-kentän -> 0:ksi.
  * @param DByhteys $db
- * @param int $id
+ * @param int      $id
  * @return bool <p> onnistuiko poisto. Tosin, jos jotain menee pieleen, niin DByhteys heittää exceptionin.
  */
-function remove_product_from_catalog( DByhteys $db, /*int*/ $id) {
+function remove_product_from_catalog( DByhteys $db, int $id) : bool {
     $db->query( "DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ?", [$id] );
-	return $db->query( "UPDATE tuote SET aktiivinen = 0 WHERE id = ?", [$id] );
+	$result =  $db->query( "UPDATE tuote SET aktiivinen = 0 WHERE id = ?", [$id] );
+	if ( $result ) {
+		return true;
+	}
+	return false;
 }
 
 /**
  * Muokkaa aktivoitua tuotetta tietokannassa.
  * Parametrina annetut tiedot tallennetaan tietokantaan.
  * @param DByhteys $db
- * @param array $val
+ * @param array    $val
  * @return bool <p> onnistuiko muutos. Tosin heittää exceptionin, jos jotain menee vikaan haussa.
  */
-function modify_product_in_catalog( DByhteys $db, array $val ) {
+function modify_product_in_catalog( DByhteys $db, array $val ) : bool {
 	$sql = "UPDATE tuote 
 			SET keskiostohinta = IFNULL((keskiostohinta * yhteensa_kpl + sisaanostohinta * (?-varastosaldo)) / (yhteensa_kpl - varastosaldo + ?),0),
 				yhteensa_kpl = yhteensa_kpl + ? - varastosaldo,
@@ -60,8 +67,12 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
 				minimimyyntiera = ?, hyllypaikka = ?, paivitettava = 1
 		  	WHERE id = ?";
 
-	return $db->query( $sql,
+	$result = $db->query( $sql,
 		[ $val[3],$val[3],$val[3],$val[0],$val[1],$val[2],$val[3],$val[4],$val[5],$val[6],$val[7] ] );
+	if ( $result ) {
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -69,7 +80,7 @@ function modify_product_in_catalog( DByhteys $db, array $val ) {
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
+function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) : string {
     $sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
     $rows = $db->query( $sql, [], FETCH_ALL );
 
@@ -84,11 +95,12 @@ function hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
 }
 
 /**
- * //TODO: Väliaikainen ratkaisu
+ * //TODO: Väliaikainen ratkaisuc
+ * Hakee kaikki yritykset, tekee niistä dropdown-valikon, ja palauttaa HTML-koodin.
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
+function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( DByhteys $db ) : string {
 	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
 	$rows = $db->query( $sql, [], FETCH_ALL );
 
@@ -106,10 +118,11 @@ function hae_kaikki_yritykset_ja_lisaa_alasvetovalikko ( DByhteys $db ) {
  * //TODO: Väliaikainen ratkaisu.
  * //TODO MIKSI TÄMÄ ON VÄLIAIKAINEN RATKAISU?! MITÄ MINÄ OIKEIN AJATTELIN? --jj170705
  * //TODO: KOSKA https://stackoverflow.com/questions/23740548/how-to-pass-variables-and-data-from-php-to-javascript --SL170720
+ * Hakee kaikki tuoteryhmät, tekee niistä dropdown-valikon, ja palauttaa HTML-koodin.
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) {
+function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) : string {
 	$sql = "SELECT id, nimi, oma_taso FROM tuoteryhma ORDER BY oma_taso ASC";
 	$rows = $db->query( $sql, [], FETCH_ALL );
 
@@ -130,11 +143,11 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) {
 
 /**
  * @param DByhteys $db
- * @param array $values
- * @param bool $yrityskohtainen
- * @return int
+ * @param array    $values
+ * @param bool     $yrityskohtainen
+ * @return bool
  */
-function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) {
+function lisaa_alennus( DByhteys $db, array $values, bool $yrityskohtainen ) : bool {
 	// Yrityskohtaisille alennuksille on oma taulu.
 	if ( $yrityskohtainen ) {
 		$sql = "INSERT INTO tuoteyritys_erikoishinta
@@ -146,6 +159,7 @@ function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) 
 	}
 	// Vain tuotekohtainen alennus
 	else {
+		array_pop($values); // Poistetaan yritys_id listasta
 		$sql = "INSERT INTO tuote_erikoishinta (tuote_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm)
 				VALUES (?, ?, ?, ?, ?)
 				ON DUPLICATE KEY UPDATE
@@ -153,7 +167,11 @@ function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) 
 					alkuPvm=VALUES(alkuPvm), loppuPvm=VALUES(loppuPvm)";
 	}
 
-	return $db->query( $sql, $values );
+	$result = $db->query( $sql, $values );
+	if ( $result ) {
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -167,7 +185,7 @@ function lisaa_alennus( DByhteys $db, array $values, /*bool*/$yrityskohtainen ) 
  * 		[0]: tuotteet, jotka löytyvät catalogista;
  * 		[1]: tuotteet, jotka eivät löydy catalogista
  */
-function filter_catalog_products ( DByhteys $db, array $products ) {
+function filter_catalog_products ( DByhteys $db, array $products ) : array {
 
 	/**
 	 * Haetaan tuote tietokannasta artikkelinumeron ja brandinumeron perusteella.
@@ -175,7 +193,8 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 	 * @param stdClass $product
 	 * @return array|bool|stdClass
 	 */
-	function get_product_from_database(DByhteys $db, stdClass $product){
+	function get_product_from_database( DByhteys $db, stdClass $product ) : array {
+		$product->articleNo = str_replace(" ", "", $product->articleNo);
 		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 					toimittaja_tehdassaldo.tehdassaldo
 				FROM 	tuote 
@@ -184,7 +203,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
 				WHERE 	tuote.articleNo = ? AND tuote.brandNo = ? AND tuote.aktiivinen = 1 ";
 
-		return $db->query($sql, [str_replace(" ", "", $product->articleNo), $product->brandNo], FETCH_ALL );
+		return $db->query($sql, [$product->articleNo, $product->brandNo], FETCH_ALL );
 	}
 
 	$catalog_products = $all_products = [];
@@ -192,16 +211,16 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 
 	//Lajitellaan tuotteet sen mukaan, löytyikö tietokannasta vai ei.
 	foreach ( $products as $product ) {
-		$row = get_product_from_database($db, $product);
+		$db_tuotteet = get_product_from_database($db, $product);
 		if (!in_array($product->articleId, $article_ids)) {
 			$article_ids[] = $product->articleId;
 			$product->articleName = isset($product->articleName) ? $product->articleName : $product->genericArticleName;
-			$product->id = $row ? $row[0]->id : null;
+			$product->id = $db_tuotteet ? $db_tuotteet[0]->id : null;
 			$all_products[] = $product;
 		}
-		if ( $row ) {
+		if ( $db_tuotteet ) {
 			//Kaikki löytyneet tuotteet (eri hankintapaikat)
-			foreach ( $row as $tuote ) {
+			foreach ( $db_tuotteet as $tuote ) {
 				if ( !in_array($tuote->id, $ids) ) {
 					$ids[] = $tuote->id;
 					$tuote->articleId = $product->articleId;
@@ -220,11 +239,11 @@ function filter_catalog_products ( DByhteys $db, array $products ) {
 /**
  * Etsii kannasta itse perustetut tuotteet.
  * @param DByhteys $db
- * @param $search_number
- * @param bool $tarkka_haku
+ * @param string   $search_number
+ * @param bool     $tarkka_haku
  * @return array
  */
-function search_own_products_from_database( DByhteys $db, /*string*/$search_number, /*bool*/$tarkka_haku=true ) {
+function search_own_products_from_database( DByhteys $db, string $search_number, bool $tarkka_haku=true ) : array {
 	if ( $tarkka_haku ) {
 		$search_pattern = $search_number;
 	} else {
@@ -265,10 +284,10 @@ function search_own_products_from_database( DByhteys $db, /*string*/$search_numb
 /**
  * Etsitään kannasta kaikki omat tuotteet, jotka ovat verrattavissa hakutuloksiin.
  * @param DByhteys $db
- * @param array $products
+ * @param array    $products
  * @return array
  */
-function search_comparable_products_from_database(  DByhteys $db, array $products ){
+function search_comparable_products_from_database(  DByhteys $db, array $products ) : array {
 
 	if ( !$products ) {
 		return [];
@@ -312,16 +331,16 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 
 /**
  * Alustetaan omasta tietokannasta löytyneille tuotteille saman
- * nimiset muuttujat kuin TecDoc-tuotteille. Jaetaan tuotteet kahteen
- * listaan tuotteen saatavuuden mukaan.
- * @param array $products
+ * nimiset muuttujat kuin TecDoc-tuotteille.
+ * @param array     $products
  * @return array
  */
-function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
+function merge_tecdoc_product_variables_to_catalog_products( array $products ) : array {
 	foreach ($products as $tuote) {
 		$tuote->articleId = null;
-		$tuote->articleName = $tuote->nimi;
-		$tuote->brandName = $tuote->valmistaja;
+		$tuote->articleName = (string)$tuote->nimi;
+		$tuote->brandName = (string)$tuote->valmistaja;
+		$tuote->infot = (string)$tuote->infot;
 		$infot = explode('|', $tuote->infot);
 		foreach ($infot as $index=>$info) {
 			$tuote->infos[$index] = new stdClass();
@@ -336,16 +355,23 @@ function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
 /**
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
- * @param $search_number
- * @return array|int|stdClass
+ * @param string   $search_number
+ * @return array
  */
-function get_comparable_number_for_own_product( DByhteys $db, /*string*/ $search_number ) {
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array
+{
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
 			FROM tuote
 			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
 			WHERE tuote.articleNo = ?
 			LIMIT 1";
-	return $db->query($sql, [$search_number]);
+	$comparable_product = $db->query($sql, [$search_number], false, PDO::FETCH_ASSOC);
+
+	if ( !$comparable_product ) {
+		return [];
+	}
+
+	return $comparable_product;
 }
 
 /**
@@ -358,15 +384,13 @@ function sortProductsByPrice( &$catalog_products ){
 
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
- * @param $number
+ * @param string $number
  * @return bool
  */
-function tarkasta_etuliite( /*string*/ $number ) {
-	if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
-		return true;
-	} else {
-		return false;
-	}
+function tarkasta_etuliite( string $number ) : bool {
+	return strlen($number) > 4
+		&& $number[3] === "-"
+		&& is_numeric(substr($number, 0, 3));
 }
 
 /**
@@ -408,7 +432,8 @@ if ( !empty($_POST['lisaa']) ) {
 
 }
 elseif ( !empty($_POST['poista']) ) {
-    if ( remove_product_from_catalog( $db, $_POST['id'] ) ) {
+	$id = (int)$_POST['id'];
+    if ( remove_product_from_catalog( $db, $id ) ) {
 		$_SESSION["feedback"] = '<p class="success">Tuote poistettu!</p>';
     } else { $_SESSION["feedback"] = '<p class="error">Tuotteen poisto epäonnistui!</p>'; }
 
@@ -452,7 +477,7 @@ elseif ( !empty($_POST['tuote_linkitys']) ) {
 	// Etsitään tuote vielä tecdocista
 	$tecdoc_tuote = getArticleDirectSearchAllNumbersWithState($_POST['tecdoctuote']['article'],
 		0, true, $_POST['tecdoctuote']['brand']);
-	if ( count($tecdoc_tuote) === 1 ) {
+	if ( count($tecdoc_tuote) > 0 ) {
 		$tecdoc_tuote[0]->articleNo = str_replace(" ", "", $tecdoc_tuote[0]->articleNo);
 		// Lisätään vertailu
 		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo, genericArticleId) VALUES (?,?,?,?)
@@ -508,9 +533,9 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 			if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
 			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
-			if ( $alternative_search_number ) {
-				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
-					10, $exact, null, $alternative_search_number->genericArticleId);
+			if ( !empty($alternative_search_number) ) {
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number['articleNo'],
+					10, $exact, null, $alternative_search_number['genericArticleId']);
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);
@@ -549,6 +574,7 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	// Yhdistetään kaikki tuotteet
 	$catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
 	$all_products = array_unique(array_merge($filtered_product_arrays[1], $own_products, $own_comparable_products), SORT_REGULAR);
+
 	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
 }
