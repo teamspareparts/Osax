@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'luokat/paymentAPI.class.php';
 
@@ -10,8 +10,8 @@ set_time_limit( 300 ); // 5 minutes
  */
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET ) ) {
-		$tilaus_id = $_GET[ 'ORDER_NUMBER' ];
-		$maksutapa = 0; // Maksutapaa ei voi ottaa user:sta, koska siellä on määritelty ylin mahdollinen mt.
+		$tilaus_id = (int)$_GET[ 'ORDER_NUMBER' ];
+		$maksutapa = 0; // Maksutapaa ei voi ottaa $user:sta, koska siellä on määritelty ylin mahdollinen mt.
 	}
 }
 
@@ -19,15 +19,15 @@ if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
  * Käyttäjä valinnut laskulla maksamisen
  */
 elseif ( !empty( $_POST[ 'tilaus_id' ] ) ) {
-	$tilaus_id = $_POST[ 'tilaus_id' ];
-	$maksutapa = $_POST[ 'maksutapa' ];
+	$tilaus_id = (int)$_POST[ 'tilaus_id' ];
+	$maksutapa = (int)$_POST[ 'maksutapa' ];
 }
 
 /**
  * Käyttäjä peruuttanut maksamisen
  */
 elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
-	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_POST[ 'peruuta_id' ], $cart->ostoskori_id ) ) {
+	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_POST[ 'peruuta_id' ], $cart->ostoskori_id ) ) {
 		$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
 	}
 	else {
@@ -76,7 +76,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] );
 	exit();
 } else {
-	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
+	$feedback = $_SESSION['feedback'] ?? "";
 	unset( $_SESSION[ "feedback" ] );
 }
 ?>
