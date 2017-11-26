@@ -1,4 +1,4 @@
-﻿<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -42,7 +42,7 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
     <meta charset="UTF-8">
     <title>EULA</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="./css/styles.css">
     <style type="text/css">
         #eula_tiedosto {
             border: 1px dashed;
@@ -58,7 +58,7 @@ if ( !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
 
 <!-- Tiedoston latausta varten -->
 <form id="download_form" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="eula/eula.txt">
+    <input type="hidden" name="filepath" value="./eula/eula.txt">
 </form>
 
 <?php require 'header.php'; ?>

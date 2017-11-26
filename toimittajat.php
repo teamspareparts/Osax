@@ -90,19 +90,14 @@ unset($_SESSION["feedback"]);
 <html lang="fi">
 <head>
 	<meta charset="UTF-8">
-    <link rel="stylesheet" href="css/jsmodal-light.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="./css/jsmodal-light.css">
+    <link rel="stylesheet" href="./css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="js/jsmodal-1.0d.min.js"></script>
+    <script src="./js/jsmodal-1.0d.min.js"></script>
     <title>Toimittajat</title>
 </head>
 <body>
-
-<!-- Form tecdocin tietojen päivittämiseen -->
-<form action="" method="post" id="paivita_tecdoc">
-    <input type="hidden" name="paivita">
-</form>
 
 <?php require 'header.php'; ?>
 

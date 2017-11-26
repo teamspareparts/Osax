@@ -1,7 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
-$yritys = new Yritys( $db, (!empty($_GET['yritys_id']) ? $_GET['yritys_id'] : null) );
+$yritys = new Yritys( $db, (isset($_GET['yritys_id']) ? (int)$_GET['yritys_id'] : null) );
 if ( !$user->isAdmin() || !$yritys->isValid() ) {
 	header("Location:etusivu.php");	exit();
 }
@@ -39,7 +39,7 @@ $asiakkaat = $rows = $db->query(
 	<meta charset="UTF-8">
 	<title>Asiakkaat</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="css/styles.css">
+	<link rel="stylesheet" href="./css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>

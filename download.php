@@ -14,7 +14,7 @@ $filepath = isset($_POST['filepath']) ? $_POST['filepath'] : null;
 $path_parts = isset($filepath) ? pathinfo($filepath) : null;
 // Rajoitukset
 $allowed_extensions = ["pdf", "txt"];
-$allowed_folders = ["tilaukset", "hinnasto"];
+$allowed_folders = ["tilaukset", "hinnasto", "eula"];
 $allowed_filename_patterns = ["/^lasku-\d+-{$user->id}$/", "/^hinnasto$/"]; //Regex
 
 if ( !isset($filepath) ) {
