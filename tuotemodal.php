@@ -430,9 +430,9 @@ require_once 'tecdoc_asetukset.php';?>
                 let dropdown = $("#dd");
                 dropdown.empty(); //Tyhjennetään modalin välilehti varmuuden varalta
                 for (let i = 0; i < response.data.array.length; i++) {
-	                dropdown.append("<li data-list-filled='false' data-articleId='"+articleId+"' data-manuId='" + response.data.array[i].manuId + "'>" +
-		                "<span style='cursor:pointer; display:block;'>" + response.data.array[i].manuName + "</span>" +
-		                "<div style='display:none' id=manufacturer-" + response.data.array[i].manuId + "></div></li>");
+	                dropdown.append("<li data-list-filled='false' data-articleId='"+articleId+"' data-manuId='" + response.data.array[i].manuId + "' " +
+		                "style='cursor: pointer'>" + response.data.array[i].manuName + "</li>" +
+		                "<div style='display:none' id=manufacturer-" + response.data.array[i].manuId + "></div>");
                 }
             });
         }
@@ -574,9 +574,9 @@ require_once 'tecdoc_asetukset.php';?>
 	            }
 	        }
 	    })
-	    .on('click', '#dd > li > span', function(){
-			//Valitaan DIV painetun elementin data-manuId:n avulla
-            let manuf = $(this).parent();
+	    .on('click', '#dd > li', function(){
+			//Valitaan oikea lista data-manuId:n avulla
+		    let manuf = $(this);
 		    let manuf_id = manuf.attr("data-manuId");
             let article_id = manuf.attr("data-articleId");
             let car_dropdown = $("#manufacturer-"+ manuf.attr('data-manuId'));

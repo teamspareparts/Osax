@@ -32,10 +32,7 @@ require_once 'tecdoc_asetukset.php';
     </form>
 </div>
 
-<!-- Jos mietit mitä nuo kaksi juttua tuossa alhaalla tekee: ensimmäinen poistaa valitukset jokaisesta
- 		tecdocin metodista; toinen poistaa jokaisen varoituksen siitä kun asettaa parametrin arvon
- 		heti funktion alussa. //TODO: Pitäisikö tämä korjata? -->
-<!--suppress JSUnresolvedVariable, AssignmentToFunctionParameterJS -->
+<!--suppress JSUnresolvedVariable -->
 <script type="text/javascript">
     var TECDOC_MANDATOR = <?= json_encode(TECDOC_PROVIDER); ?>;
     var TECDOC_COUNTRY = <?= json_encode(TECDOC_COUNTRY); ?>;
@@ -151,16 +148,16 @@ require_once 'tecdoc_asetukset.php';
     // Päivittää alasvetolistaan uudet tiedot
     function updateManufacturerList( response ) {
         let manufacturer_select, manufacturer_option;
-        response = response.data;
+        let manufacturers = response.data.array;
 
         //uudet tiedot listaan
         manufacturer_select = document.getElementById("manufacturer");
 
-        if (response.array){
-            for (let i = 0; i < response.array.length; i++) {
+        if ( manufacturers ){
+            for (let i = 0; i < manufacturers.length; i++) {
                 manufacturer_option = document.createElement("option");
-                manufacturer_option.text = response.array[i].manuName;
-                manufacturer_option.value = response.array[i].manuId;
+                manufacturer_option.text = manufacturers[i].manuName;
+                manufacturer_option.value = manufacturers[i].manuId;
                 manufacturer_select.options.add(manufacturer_option);
             }
         }
@@ -171,19 +168,19 @@ require_once 'tecdoc_asetukset.php';
     // Päivittää alasvetolistaan uudet tiedot
     function updateModelList( response ) {
         let model_select, model_option;
-        response = response.data;
+        let models = response.data.array;
 
         //uudet tiedot listaan
         model_select = document.getElementById("model");
 
-        if (response.array){
-            for (let i = 0; i < response.array.length; i++) {
+        if ( models ){
+            for (let i = 0; i < models.length; i++) {
                 model_option = document.createElement("option");
-                model_option.text = response.array[i].modelname
+                model_option.text = models[i].modelname
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
-                    + "Year: " + addSlash(response.array[i].yearOfConstrFrom)
-                    + " -> " + addSlash(response.array[i].yearOfConstrTo);
-                model_option.value = response.array[i].modelId;
+                    + "Year: " + addSlash(models[i].yearOfConstrFrom)
+                    + " -> " + addSlash(models[i].yearOfConstrTo);
+                model_option.value = models[i].modelId;
                 model_select.options.add(model_option);
             }
         }
@@ -194,22 +191,22 @@ require_once 'tecdoc_asetukset.php';
     // Päivittää alasvetolistaan uudet tiedot
     function updateCarList( response ) {
         let car_select, car_option;
-        response = response.data;
+        let cars = response.data.array;
 
         //uudet tiedot listaan
         car_select = document.getElementById("car");
 
-        if (response.array){
-            for (let i = 0; i < response.array.length; i++) {
+        if ( cars ){
+            for (let i = 0; i < cars.length; i++) {
                 car_option = document.createElement("option");
-                car_option.text = text = response.array[i].vehicleDetails.typeName
+                car_option.text = cars[i].vehicleDetails.typeName
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
-                    + "Year: " + addSlash(response.array[i].vehicleDetails.yearOfConstrFrom)
-                    + " -> " + addSlash(response.array[i].vehicleDetails.yearOfConstrTo)
+                    + "Year: " + addSlash(cars[i].vehicleDetails.yearOfConstrFrom)
+                    + " -> " + addSlash(cars[i].vehicleDetails.yearOfConstrTo)
                     + "\xa0\xa0\xa0\xa0\xa0\xa0"
-                    + response.array[i].vehicleDetails.powerKwFrom + "KW"
-                    + " (" +response.array[i].vehicleDetails.powerHpFrom + "hp)";
-                car_option.value = response.array[i].carId;
+                    + cars[i].vehicleDetails.powerKwFrom + "KW"
+                    + " (" +cars[i].vehicleDetails.powerHpFrom + "hp)";
+                car_option.value = cars[i].carId;
 	            car_select.options.add(car_option);
             }
         }
@@ -219,39 +216,39 @@ require_once 'tecdoc_asetukset.php';
 	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartTypeList( response ) {
-        let osat_ylalaji_select, osat_ylalaji_option;
-        response = response.data;
+        let part_type_select, part_type_option;
+        let part_types = response.data.array;
 
         //uudet tiedot listaan
-        osat_ylalaji_select = document.getElementById("osat_ylalaji");
-        if (response.array){
-            for (let i = 0; i < response.array.length; i++) {
-                osat_ylalaji_option = document.createElement("option");
-                osat_ylalaji_option.text = response.array[i].assemblyGroupName;
-                osat_ylalaji_option.value = response.array[i].assemblyGroupNodeId;
-                osat_ylalaji_select.options.add(osat_ylalaji_option);
+        part_type_select = document.getElementById("osat_ylalaji");
+        if ( part_types ){
+            for (let i = 0; i < part_types.length; i++) {
+                part_type_option = document.createElement("option");
+                part_type_option.text = part_types[i].assemblyGroupName;
+                part_type_option.value = part_types[i].assemblyGroupNodeId;
+                part_type_select.options.add(part_type_option);
             }
         }
-        osat_ylalaji_select.removeAttribute('disabled');
+        part_type_select.removeAttribute('disabled');
     }
 
 	// Callback function to do something with the response:
     // Päivittää alasvetolistaan uudet tiedot
     function updatePartSubTypeList( response ) {
-        let osat_alalaji_select, osat_alalaji_option;
-        response = response.data;
+        let part_sub_type_select, part_sub_type_option;
+        let part_sub_types = response.data.array;
 
         //uudet tiedot listaan
-        osat_alalaji_select = document.getElementById("osat_alalaji");
-        if ( response.array ){
-            for (let i = 0; i < response.array.length; i++) {
-                osat_alalaji_option = document.createElement("option");
-                osat_alalaji_option.text = response.array[i].assemblyGroupName;
-                osat_alalaji_option.value = response.array[i].assemblyGroupNodeId;
-                osat_alalaji_select.options.add(osat_alalaji_option);
+        part_sub_type_select = document.getElementById("osat_alalaji");
+        if ( part_sub_types ){
+            for (let i = 0; i < part_sub_types.length; i++) {
+                part_sub_type_option = document.createElement("option");
+                part_sub_type_option.text = part_sub_types[i].assemblyGroupName;
+                part_sub_type_option.value = part_sub_types[i].assemblyGroupNodeId;
+                part_sub_type_select.options.add(part_sub_type_option);
             }
         }
-        osat_alalaji_select.removeAttribute('disabled');
+        part_sub_type_select.removeAttribute('disabled');
     }
 
 
@@ -261,10 +258,10 @@ require_once 'tecdoc_asetukset.php';
      * @returns {string}
      */
 	function addSlash(text) {
-	    if (typeof text === 'number' || typeof text === 'number') {
-            text = text.toString();
-            if (text.length === 6) {
-                return text.substr(0, 4) + "/" + text.substr(4);
+	    if (typeof text === 'number' || typeof text === 'string') {
+            let new_text = text.toString();
+            if (new_text.length === 6) {
+                return new_text.substr(0, 4) + "/" + new_text.substr(4);
             }
         }
         return "";
