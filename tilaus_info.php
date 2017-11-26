@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 /**
@@ -9,7 +9,7 @@ require '_start.php'; global $db, $user, $cart;
  * @param int      $tilaus_id
  * @return stdClass <p> tilauksen tiedot, pois lukien tuotteet
  */
-function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
+function hae_tilauksen_tiedot ( DByhteys $db, int $tilaus_id ) {
 	$sql = "SELECT tilaus.id, tilaus.kayttaja_id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
 				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys, tilaus.maksettu,
 				tilaus.laskunro,
@@ -26,7 +26,8 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
 			LEFT JOIN tuote ON tuote.id=tilaus_tuote.tuote_id
 			LEFT JOIN tilaus_toimitusosoite AS tmo ON tmo.tilaus_id = tilaus.id
 			LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
-			WHERE tilaus.id = ?";
+			WHERE tilaus.id = ?
+			GROUP BY tilaus.id";
 
 	return $db->query( $sql, [ $tilaus_id ] );
 }
@@ -37,7 +38,7 @@ function hae_tilauksen_tiedot ( DByhteys $db, /*int*/ $tilaus_id ) {
  * @param int      $tilaus_id
  * @return Tuote[] <p> Tiedot tilatuista tuotteista.
  */
-function hae_tilauksen_tuotteet( DByhteys $db, /*int*/ $tilaus_id ) {
+function hae_tilauksen_tuotteet( DByhteys $db, int $tilaus_id ) : array {
 	$sql = "SELECT tuote_id AS id, pysyva_hinta AS a_hinta_ilman_alv, pysyva_alv AS alv_prosentti,
 				pysyva_alennus AS alennus_prosentti, kpl AS kpl_maara, tuotteen_nimi AS nimi, tilaus_tuote.valmistaja,
   				(pysyva_hinta * (1+pysyva_alv)) AS a_hinta, 
@@ -61,23 +62,22 @@ if ( !empty($_POST['peruuta_id']) ) {
 	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
 
-if ( empty( $_GET[ 'id' ] ) ) {
+if ( !isset( $_GET[ 'id' ] ) ) {
 	header( "Location:tilaushistoria.php?id={$user->id}" );
 	exit();
 }
 
-$tilaus_tiedot = hae_tilauksen_tiedot( $db, $_GET[ 'id' ] );
+$tilaus_tiedot = hae_tilauksen_tiedot( $db, (int)$_GET[ 'id' ] );
 
-// Löytyikö tilauksen tiedot ID:llä. Tarkistus NULL:lla, eikä empty():lla,
-//  koska haku palauttaa ei-tyhjää aina jostain syystä (LEFT JOIN).
-if ( $tilaus_tiedot->id === null ) {
+// Löytyikö tilauksen tiedot ID:llä.
+if ( !$tilaus_tiedot ) {
 	header( "Location:tilaushistoria.php" );
 	exit();
 }
 
 // Tarkistetaan onko tilaus sen hetkisen käyttäjän tekemä, tai onko käyttäjä admin.
 // Lähetään pois, jos ei kumpaankin.
-elseif ( !($tilaus_tiedot->sahkoposti == $user->sahkoposti) && !$user->isAdmin() ) {
+elseif ( !($tilaus_tiedot->kayttaja_id == $user->id) && !$user->isAdmin() ) {
 	header( "Location:tilaushistoria.php" );
 	exit();
 }
@@ -90,8 +90,7 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus_tiedot->laskunro)."
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
-	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] );
-	exit();
+	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] ); exit();
 } else {
 	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
 	unset( $_SESSION[ "feedback" ] );
@@ -213,11 +212,11 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<td>---</td>
 				<td>Rahtimaksu</td>
 				<td></td>
-				<td class="number"></td>
+				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
+				<td></td>
 				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
 				<td class="number">24 %</td>
 				<td class="number"><?= ($tilaus_tiedot->pysyva_rahtimaksu==0) ? "Ilmainen toimitus" : "---" ?></td>
-				<td class="number">---</td>
 			</tr>
 		</tbody>
 	</table>
