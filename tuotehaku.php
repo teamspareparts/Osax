@@ -21,7 +21,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) : array {
 	 * @param int      $brandNo
 	 * @return array
 	 */
-    function get_tecdoc_product_from_database( DByhteys $db, string $articleNo, int $brandNo ){
+    function get_tecdoc_product_from_database( DByhteys $db, string $articleNo, int $brandNo ) : array {
 		$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta, 
                             LEAST( 
 	                            COALESCE(MIN(ostotilauskirja_arkisto.oletettu_saapumispaiva), MIN(ostotilauskirja.oletettu_saapumispaiva)), 
@@ -82,7 +82,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) : array {
  * @param array $products
  * @return array
  */
-function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $products ) {
+function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $products ) : array {
 
 	$eoltas_hankintapaikka_id = 100;
 	$values = [];
@@ -203,16 +203,16 @@ function search_comparable_products_from_database(  DByhteys $db, array $product
 
 /**
  * Alustetaan omasta tietokannasta löytyneille tuotteille saman
- * nimiset muuttujat kuin TecDoc-tuotteille. Jaetaan tuotteet kahteen
- * listaan tuotteen saatavuuden mukaan.
+ * nimiset muuttujat kuin TecDoc-tuotteille.
  * @param array $products
  * @return array
  */
-function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
+function merge_tecdoc_product_variables_to_catalog_products( array $products ) : array {
 	foreach ($products as $tuote) {
 		$tuote->articleId = null;
-		$tuote->articleName = $tuote->nimi;
-		$tuote->brandName = $tuote->valmistaja;
+		$tuote->articleName = (string)$tuote->nimi;
+		$tuote->brandName = (string)$tuote->valmistaja;
+		$tuote->infot = (string)$tuote->infot;
 		$infot = explode('|', $tuote->infot);
 		foreach ($infot as $index=>$info) {
 			$tuote->infos[$index] = new stdClass();
@@ -225,12 +225,12 @@ function merge_tecdoc_product_variables_to_catalog_products( array $products ) {
 }
 
 /**
- *  Jaetaan omasta kannasta löytyneet tuotteet kahteen listaan
+ * Jaetaan omasta kannasta löytyneet tuotteet kahteen listaan
  * sen perusteella, onko tuotetta varastossa.
  * @param array $products
  * @return array
  */
-function divide_products_by_availability( array $products ) {
+function divide_products_by_availability( array $products ) : array {
 	$available = [];
 	$not_available = [];
 	foreach ($products as $tuote) {
@@ -249,7 +249,7 @@ function divide_products_by_availability( array $products ) {
  * @param array $eoltas_products
  * @return array
  */
-function merge_products_with_eoltas_data( array $products, array $eoltas_products ) {
+function merge_products_with_eoltas_data( array $products, array $eoltas_products ) : array {
 	foreach ( $products as $tuote) {
 		foreach ( $eoltas_products as $eoltas_product) {
 			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
@@ -268,19 +268,26 @@ function merge_products_with_eoltas_data( array $products, array $eoltas_product
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
  * @param string   $search_number
- * @return \stdClass
+ * @return array
  */
-function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) {
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array
+{
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
 			FROM tuote
 			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
 			WHERE tuote.articleNo = ?
 			LIMIT 1";
-	return $db->query($sql, [$search_number]);
+	$comparable_product = $db->query($sql, [$search_number], false, PDO::FETCH_ASSOC);
+
+	if ( !$comparable_product ) {
+		return [];
+	}
+
+	return $comparable_product;
 }
 
 /**
- * Järjestää tuotteet hinnan mukaan
+ * Järjestää tuotteet hinnan mukaan.
  * @param $catalog_products
  */
 function sortProductsByPrice( &$catalog_products ) {
@@ -289,18 +296,13 @@ function sortProductsByPrice( &$catalog_products ) {
 
 /**
  * Tarkastaa onko numerossa hankintapaikkaan viittaavaa etuliitettä.
- * @param $number
+ * @param string $number
  * @return bool
  */
 function tarkasta_etuliite( string $number ) : bool {
 	return strlen($number) > 4
 		&& $number[3] === "-"
 		&& is_numeric(substr($number, 0, 3));
-	//if ( strlen($number)>4 && $number[3]==="-" && is_numeric(substr($number, 0, 3)) ){
-     //   return true;
-	//} else {
-	//	return false;
-	//}
 }
 
 /**
@@ -327,14 +329,14 @@ if ( !empty($_GET['haku']) ) {
 
 	$numerotyyppi = $_GET['numerotyyppi'] ?? null;	//numerotyyppi
     $exact = (isset($_GET['exact']) && $_GET['exact'] === 'false') ? false : true;	//tarkka haku
-	switch ($numerotyyppi) {
+	switch ( $numerotyyppi ) {
 		case 'all':
             if(tarkasta_etuliite($number)) halkaise_hakunumero($number, $etuliite);
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
 			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
 			if ( $alternative_search_number ) {
-				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
-					10, $exact, null, $alternative_search_number->genericArticleId);
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number['articleNo'],
+					10, $exact, null, $alternative_search_number['genericArticleId']);
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);
@@ -351,7 +353,7 @@ if ( !empty($_GET['haku']) ) {
 			$products2 = getArticleDirectSearchAllNumbersWithState($number, 3, $exact);	//vertailut
 			$products = array_merge($products, $products2);
 			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
-			if ( $alternative_search_number ) {
+			if ( !empty($alternative_search_number) ) {
 				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
 					10, $exact, null, $alternative_search_number->genericArticleId);
 				$products = array_merge($products, $products2);
@@ -370,8 +372,13 @@ if ( !empty($_GET['haku']) ) {
 
 	//TODO: Eoltas toiminnallisuus vielä kesken
 	// Tehdään Eoltaksen webservicelle kysely annetulla hakunumerolla
-	//$eoltas_data = EoltasWebservice::searchProduct($number);
-	//$eoltas_products = filter_catalog_products_from_eoltas_products($db, $eoltas_data->response->products);
+	$eoltas_data = EoltasWebservice::searchProduct($number);
+	$eoltas_products = [];
+	if ( $eoltas_data && $eoltas_data->acknowledge ) {
+		$eoltas_products = filter_catalog_products_from_eoltas_products($db, $eoltas_data->response->products);
+	} else {
+		trigger_error('Cannot connect to Eoltas webservice.');
+	}
 
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
 	$own_products = search_own_products_from_database( $db, $number, $exact );
@@ -386,7 +393,9 @@ if ( !empty($_GET['haku']) ) {
 	$not_in_catalog = $filtered_product_arrays[1];
 
 	// Merge eoltas data
-	//$not_available = merge_products_with_eoltas_data($not_available, $eoltas_data->response->products);
+	if ( $eoltas_data && $eoltas_data->acknowledge ) {
+		$not_available = merge_products_with_eoltas_data($not_available, $eoltas_data->response->products);
+	}
 
 	// Järjestetään hinnan mukaan
 	sortProductsByPrice($catalog_products);
@@ -590,11 +599,11 @@ require 'tuotemodal.php';
                         <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>
 					<?php endif; ?>
                     <td>
-                        <?php if ( date('Ymd') <= date('Ymd', strtotime($product->saapumispaiva)) ) : ?>
+                        <?php if ( isset($product->saapumispaiva) && time() <= strtotime($product->saapumispaiva) ) : ?>
                             <?=date("j.n.Y", strtotime($product->saapumispaiva))?>
-                        <?php elseif (isset($product->tilauskirja_arkisto_saapumispaiva)) : ?>
+                        <?php elseif ( isset($product->tilauskirja_arkisto_saapumispaiva) ) : ?>
 	                        <span>Odottaa varastoon purkua.</span>
-	                    <?php elseif (isset($product->tilauskirja->saapumispaiva)) : ?>
+	                    <?php elseif ( isset($product->tilauskirja->saapumispaiva) ) : ?>
 		                    <span>Odottaa tilauskirjan lähetystä...</span>
 		                 <?php endif; ?>
                     </td>

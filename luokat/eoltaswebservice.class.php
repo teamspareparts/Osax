@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Staattinen luokka Eoltaksen webservicen käyttöön.
  */
@@ -8,7 +8,12 @@ class EoltasWebservice {
 	private static $config_path = './config/config.ini.php';
 	private static $timeout = 3; //sekuntia
 
-	private static function sendRequest(array $action_fields) {
+	/**
+	 * Curl pyynnön lähetys Eoltakselle.
+	 * @param array $action_fields
+	 * @return stdClass
+	 */
+	private static function sendRequest( array $action_fields ) : stdClass {
 		$config = parse_ini_file( self::$config_path );
 		$postfields = array(
 			'oxid' => $config['eoltas_oxid'],
@@ -37,7 +42,13 @@ class EoltasWebservice {
 		return json_decode($response);
 	}
 
-	static function searchProduct(/*string*/ $query, /*string*/ $manufacturers = '') {
+	/**
+	 * Etsii tuotteita webservicestä annetun hakunumeron ja/tai valmistajien perusteella.
+	 * @param string $query
+	 * @param string $manufacturers
+	 * @return stdClass
+	 */
+	static function searchProduct( string $query, string $manufacturers = '') : stdClass {
 		$fields = array(
 			'action' => 'searchProduct',
 			'query' => $query,
