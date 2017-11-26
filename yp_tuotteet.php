@@ -356,22 +356,15 @@ function merge_tecdoc_product_variables_to_catalog_products( array $products ) :
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
  * @param string   $search_number
- * @return array
+ * @return stdClass
  */
-function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array
-{
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) {
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
-			FROM tuote
-			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
+			FROM tuote_linkitys
+			LEFT JOIN tuote ON tuote.id = tuote_linkitys.tuote_id
 			WHERE tuote.articleNo = ?
 			LIMIT 1";
-	$comparable_product = $db->query($sql, [$search_number], false, PDO::FETCH_ASSOC);
-
-	if ( !$comparable_product ) {
-		return [];
-	}
-
-	return $comparable_product;
+	return $db->query($sql, [$search_number], false, PDO::FETCH_OBJ);
 }
 
 /**
@@ -534,8 +527,8 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
 			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
 			if ( !empty($alternative_search_number) ) {
-				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number['articleNo'],
-					10, $exact, null, $alternative_search_number['genericArticleId']);
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);

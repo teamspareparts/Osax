@@ -83,6 +83,9 @@ function filter_catalog_products ( DByhteys $db, array $products ) : array {
  * @return array
  */
 function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $products ) : array {
+	if ( !$products ) {
+		return [];
+	}
 
 	$eoltas_hankintapaikka_id = 100;
 	$values = [];
@@ -268,22 +271,15 @@ function merge_products_with_eoltas_data( array $products, array $eoltas_product
  * Jos hakunumerona on oma tuote, haetaan kannasta vertailutuote ja tehdään haku sillä.
  * @param DByhteys $db
  * @param string   $search_number
- * @return array
+ * @return stdClass
  */
-function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) : array
-{
+function get_comparable_number_for_own_product( DByhteys $db, string $search_number ) {
 	$sql = "SELECT tuote_linkitys.articleNo, tuote_linkitys.genericArticleId
-			FROM tuote
-			LEFT JOIN tuote_linkitys ON tuote.id = tuote_linkitys.tuote_id
+			FROM tuote_linkitys
+			LEFT JOIN tuote ON tuote.id = tuote_linkitys.tuote_id
 			WHERE tuote.articleNo = ?
 			LIMIT 1";
-	$comparable_product = $db->query($sql, [$search_number], false, PDO::FETCH_ASSOC);
-
-	if ( !$comparable_product ) {
-		return [];
-	}
-
-	return $comparable_product;
+	return $db->query($sql, [$search_number], false, PDO::FETCH_OBJ);
 }
 
 /**
@@ -317,7 +313,7 @@ function halkaise_hakunumero( &$number, &$etuliite ) {
 
 $haku = FALSE;
 $products = $catalog_products = $not_in_catalog = $not_available = [];
-$own_products = $own_comparable_products = [ [], [] ];
+$own_products = $own_comparable_products = [];
 
 if ( !empty($_GET['haku']) ) {
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -335,8 +331,8 @@ if ( !empty($_GET['haku']) ) {
 			$products = getArticleDirectSearchAllNumbersWithState($number, 10, $exact);
 			$alternative_search_number = get_comparable_number_for_own_product($db, $number);
 			if ( $alternative_search_number ) {
-				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number['articleNo'],
-					10, $exact, null, $alternative_search_number['genericArticleId']);
+				$products2 = getArticleDirectSearchAllNumbersWithState($alternative_search_number->articleNo,
+					10, $exact, null, $alternative_search_number->genericArticleId);
 				$products = array_merge($products, $products2);
 			}
 			$own_comparable_products = search_comparable_products_from_database($db, $products);
@@ -370,7 +366,7 @@ if ( !empty($_GET['haku']) ) {
 			break;
 	}
 
-	//TODO: Eoltas toiminnallisuus vielä kesken
+	//TODO: Eoltas toiminnallisuus vielä kesken.
 	// Tehdään Eoltaksen webservicelle kysely annetulla hakunumerolla
 	$eoltas_data = EoltasWebservice::searchProduct($number);
 	$eoltas_products = [];
@@ -381,7 +377,6 @@ if ( !empty($_GET['haku']) ) {
 	}
 
 	$filtered_product_arrays = filter_catalog_products( $db, $products );
-	$own_products = search_own_products_from_database( $db, $number, $exact );
 
 	// Kaikki tuotteet, jotka löytyy omasta kannasta
 	$found_catalog_products = array_unique(array_merge($filtered_product_arrays[0], $own_products, $own_comparable_products), SORT_REGULAR);
