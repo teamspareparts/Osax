@@ -58,7 +58,7 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
  * @param stdClass[] $osoitekirja_array
  * @return string
  */
-function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
+function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) : string {
 	$s = '';
 	foreach ( $osoitekirja_array as $index => $osoite ) {
 		$s .= "<div><br> \\";
@@ -84,7 +84,7 @@ function toimitusosoitteiden_Modal_tulostus ( array $osoitekirja_array ) {
  * @param int $osoitekirja_pituus
  * @return string <p> HTML-nappi
  */
-function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( int $osoitekirja_pituus ) {
+function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( int $osoitekirja_pituus ) : string {
 	$nappi_html_toimiva = '
 		<a class="nappi" type="button" onClick="avaa_Modal_valitse_toimitusosoite();">Valitse<br>toimitusosoite</a>';
 	$nappi_html_disabled = '

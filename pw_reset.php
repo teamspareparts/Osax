@@ -1,51 +1,51 @@
-<?php
+<?php declare(strict_types=1);
 require 'luokat/dbyhteys.class.php';
 session_start();
 
+
 /**
- * Tarkistetaan onko avain validi ja onko se vanhentunut
+ * Palautetaan löytyneet tiedot salasanan uusimisesta avaimen perusteella.
  * @param DByhteys $db
  * @param string $reset_key_hash <p> Hajautettu reset-avain, jota verrataan tietokannassa olevaan.
- * @return object|false <p> Palauttaa joko löydetyn pw_reset objektin, tai
- * 		FALSE:n tapauksessa heittää takaisin kirjautumissivulle.
+ * @return array|bool|stdClass <p> Palauttaa löydetyn pw_reset objektin tai false
  */
-function tarkista_pw_reset_key_ja_aika ( DByhteys $db, /*string*/ $reset_key_hash ) {
-	$expiration_time = 1; //aika, jonka jälkeen avain vanhenee  (1 tunti)
-	date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
-
+function get_pw_reset_tiedot( DByhteys $db, string $reset_key_hash ) {
 	$sql = "SELECT kayttaja_id, reset_exp_aika, kaytetty
 			FROM pw_reset
-			WHERE reset_key_hash = ? ";
-	$pw_reset_tiedot = $db->query( $sql, [$reset_key_hash] );
+			WHERE reset_key_hash = ? AND kaytetty = 0
+			LIMIT 1";
+	return $db->query( $sql, [$reset_key_hash], false, PDO::FETCH_OBJ);
+}
 
-	if ( !$pw_reset_tiedot ) {
-		header("location:index.php"); exit();
-	}
+/**
+ * Tarkistetaan onko avain vanhentunut.
+ * @param string $expiration_time
+ * @return bool
+ */
+function tarkista_pw_reset_aika ( string $expiration_time ) : bool {
+	$expiration_hours = 1; //aika, jonka jälkeen avain vanhenee  (1 tunti)
+	date_default_timezone_set('Europe/Helsinki'); //Ajan tarkistusta varten
 
-	$time_then 	= new DateTime( $pw_reset_tiedot->reset_exp_aika ); // Muunnettuna DateTime-muotoon
+	$time_then 	= new DateTime( $expiration_time ); // Muunnettuna DateTime-muotoon
 	$time_now	= new DateTime( 'now' );
 	$interval = $time_now->diff($time_then); //Kahden ajan välinen ero
 	$difference = $interval->y + $interval->m + $interval->d + $interval->h; // Lasketaan aikojen erotus
-	if ( $difference > ($expiration_time - 1) ) {
-		header("location:index.php?redir=7"); exit();
+	if ( $difference >= $expiration_hours ) {
+		return false;
 	}
 
-	return $pw_reset_tiedot;
+	return true;
 }
 
 /**
  * Haetaan käyttäjän perustiedot
  * @param DByhteys $db
- * @param stdClass $pw_reset
+ * @param int $kayttaja_id
  * @return array|bool|stdClass
  */
-function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
-	$row = $db->query( "SELECT id, sahkoposti FROM kayttaja WHERE id = ? LIMIT 1",
-		[$pw_reset->kayttaja_id] );
-
-	if ( !$row ) { header("location:index.php?redir=98"); exit(); }
-
-	return $row;
+function hae_kayttaja ( DByhteys $db, int $kayttaja_id ) {
+	$sql = "SELECT id, sahkoposti FROM kayttaja WHERE id = ? LIMIT 1";
+	return $db->query( $sql, [$kayttaja_id], false, PDO::FETCH_OBJ);
 }
 
 /**
@@ -55,14 +55,18 @@ function hae_kayttaja ( DByhteys $db, stdClass $pw_reset ) {
  * @param string $uusi_salasana
  * @param string $reset_key
  */
-function db_vaihda_salasana ( DByhteys $db, stdClass $user, /*string*/ $uusi_salasana, $reset_key ) {
+function db_vaihda_salasana ( DByhteys $db, stdClass $user, string $uusi_salasana, string $reset_key ) {
 	$hajautettu_uusi_salasana = password_hash($uusi_salasana, PASSWORD_DEFAULT);
+	//Merkataan salasana vaihdetuksi ja vaihdetaan salasana
 	$sql = "UPDATE kayttaja SET salasana_hajautus = ?, salasana_vaihdettu=NOW(), salasana_uusittava = 0 WHERE id = ?";
-	$db->query( $sql, [$hajautettu_uusi_salasana, $user->id] );
-
+	$result1 = $db->query( $sql, [$hajautettu_uusi_salasana, $user->id] );
 	//Merkataan avain käytetyksi
 	$sql = "UPDATE pw_reset SET kaytetty = 1 WHERE kayttaja_id = ? AND reset_key_hash = ?";
-	$db->query( $sql, [$user->id, $reset_key] );
+	$result2 = $db->query( $sql, [$user->id, $reset_key] );
+	if ( !$result1 || !$result2 ) {
+		return false;
+	}
+	return true;
 }
 
 if ( empty($_GET['id']) ) {
@@ -71,10 +75,18 @@ if ( empty($_GET['id']) ) {
 }
 
 $db = new DByhteys();
-$error = FALSE;
 $reset_id_hash = sha1( $_GET['id'] );
-$pw_reset = tarkista_pw_reset_key_ja_aika( $db, $reset_id_hash ); // Tässä kohtaa heitetään ulos, jos FALSE.
-$reset_user = hae_kayttaja( $db, $pw_reset );
+$pw_reset = get_pw_reset_tiedot($db, $reset_id_hash);
+if ( !$pw_reset ) {
+	header("location:index.php"); exit;
+}
+if ( !tarkista_pw_reset_aika($pw_reset->reset_exp_aika) ) {
+	header("location:index.php?redir=7"); exit();
+}
+$reset_user = hae_kayttaja($db, $pw_reset->kayttaja_id);
+if ( !$reset_user ) {
+	header("location:index.php?redir=98"); exit();
+}
 
 if ( !empty($_POST['reset']) ) {
 	if ( $_POST['new_password'] !== $_POST['confirm_new_password'] ) {
