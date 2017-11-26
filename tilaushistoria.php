@@ -1,14 +1,14 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
 /**
  * Hakee käyttäjän kaikkien tilausten tiedot
  * @param DByhteys $db
- * @param User $user
- * @return stdClass[]
+ * @param int $user_id
+ * @return array
  */
-function hae_tilaukset ( DByhteys $db, User $user ) {
+function hae_tilaukset ( DByhteys $db, int $user_id ) : array {
 	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.kasitelty,
 				SUM(tilaus_tuote.kpl) AS kpl,
 				SUM( tilaus_tuote.kpl * ( (tilaus_tuote.pysyva_hinta*(1+tilaus_tuote.pysyva_alv))
@@ -18,16 +18,19 @@ function hae_tilaukset ( DByhteys $db, User $user ) {
 			WHERE kayttaja_id = ?
 			GROUP BY tilaus.id";
 
-	return $db->query( $sql, [$user->id], FETCH_ALL );
+	return $db->query( $sql, [$user_id], FETCH_ALL );
 }
 
 // Jos käyttäjä on admin, ja tarkoitus hakea asiakkaan tilaukset
-if ( $user->isAdmin() && !empty($_GET['id']) ) {
-	$asiakas = new User( $db, $_GET['id'] );
-	$tilaukset = hae_tilaukset( $db, $asiakas );
+if ( $user->isAdmin() && isset($_GET['id']) ) {
+	$user_id = (int)$_GET['id'];
+	$asiakas = new User( $db, $user_id );
 } else {
-	$tilaukset = hae_tilaukset( $db, $user ); //Muuten haetaan vain sis.kirj. käyttäjän tilaukset
+	// Muuten haetaan vain sis.kirj. käyttäjän tilaukset
+	$user_id = $user->id;
 }
+$tilaukset = hae_tilaukset( $db, $user_id );
+
 ?>
 <!DOCTYPE html>
 <html lang="fi">
@@ -50,8 +53,7 @@ if ( $user->isAdmin() && !empty($_GET['id']) ) {
 		<section class="otsikko">
 			<h1>Tilaushistoria</h1>
 			<?php if ( $user->isAdmin() ) : ?>
-				<span style="color: black;">&nbsp;&nbsp;Tilaaja:
-					<?=$asiakas->kokoNimi()?>, <?=$asiakas->yrityksen_nimi?></span>
+				<span> &nbsp;Tilaaja: <?=$asiakas->kokoNimi()?>, <?=$asiakas->yrityksen_nimi?></span>
 			<?php endif; ?>
 		</section>
 		<section class="napit">

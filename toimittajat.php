@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 if ( !$user->isAdmin() ) {
@@ -8,9 +8,9 @@ if ( !$user->isAdmin() ) {
 /**
  * Päivitetään tecdocista löytyvät brändit omaan tietokantaan.
  * @param DByhteys $db
- * @return array|int|stdClass
+ * @return bool
  */
-function paivita_tecdocin_brandit_kantaan( DByhteys $db ){
+function paivita_tecdocin_brandit_kantaan( DByhteys $db ) : bool {
 	$brands = getAmBrands();
 	$placeholders = [];
 	foreach ( $brands as $brand ) {
@@ -22,19 +22,23 @@ function paivita_tecdocin_brandit_kantaan( DByhteys $db ){
 	$sql = "INSERT INTO brandi (id, nimi, url)
             VALUES {$questionmarks}
             ON DUPLICATE KEY
-            UPDATE id = VALUES(id), nimi = VALUES(nimi), 
-              url = VALUES(url)";
-	return $db->query($sql, $placeholders);
+            UPDATE nimi = VALUES(nimi), url = VALUES(url)";
+	$result = $db->query($sql, $placeholders);
+	if ( !$result ) {
+		return false;
+	}
+	return true;
 }
 
 
 /**
- * Lisätään oma brändi.
+ * Oman brändin luomiseen.
  * @param DByhteys $db
- * @param $values
- * @return array|int|stdClass
+ * @param string $nimi
+ * @param string $kuva_url
+ * @return bool
  */
-function lisaa_brandi( DByhteys $db, /*string*/$nimi, /*string*/$kuva_url ) {
+function lisaa_brandi( DByhteys $db, string $nimi, string $kuva_url ) : bool {
 	// Lasketaan oma (tecdoc) id. Omien brändien id:t lähtee 100 000:sta.
 	$sql = "SELECT MAX(id) AS max FROM brandi WHERE oma_brandi IS TRUE";
 	$max = $db->query($sql, [])->max;
@@ -44,22 +48,33 @@ function lisaa_brandi( DByhteys $db, /*string*/$nimi, /*string*/$kuva_url ) {
             VALUES( ?, ?, ?, 1 )
             ON DUPLICATE KEY
             UPDATE nimi = VALUES(nimi), url = VALUES(url), aktiivinen = 1";
-	return $db->query($sql, [$vapaa_id, $nimi, $kuva_url]);
+	$result = $db->query($sql, [$vapaa_id, $nimi, $kuva_url]);
+	if ( !$result ) {
+		return false;
+	}
+	return true;
 }
 
-//Haetaan kaikki brändit
-$sql = "SELECT brandi.*, MAX(hinnaston_sisaanajo_pvm) AS hinnaston_pvm FROM brandi 
-		LEFT JOIN brandin_linkitys
-			ON brandi.id = brandin_linkitys.brandi_id
-		WHERE aktiivinen = 1
-		GROUP BY brandi.id
-		ORDER BY nimi ASC";
-$brands = $db->query($sql, [], FETCH_ALL);
-
-if ( isset($_POST['paivita']) ) {
-    paivita_tecdocin_brandit_kantaan( $db );
+/**
+ * Hakee kaikki brändit kannasta.
+ * @param DByhteys $db
+ * @return array
+ */
+function hae_brandit( DByhteys $db ) : array {
+	$sql = "SELECT brandi.*, MAX(hinnaston_sisaanajo_pvm) AS hinnaston_pvm FROM brandi 
+			LEFT JOIN brandin_linkitys
+				ON brandi.id = brandin_linkitys.brandi_id
+			WHERE aktiivinen = 1
+			GROUP BY brandi.id
+			ORDER BY nimi ASC";
+	return $db->query($sql, [], FETCH_ALL);
 }
-elseif ( isset($_POST['lisaa']) ) {
+
+// Päivitetään tecdocin tiedot kantaan, sillä ne voi muuttua
+paivita_tecdocin_brandit_kantaan($db);
+$brands = hae_brandit($db);
+
+if ( isset($_POST['lisaa']) ) {
 	lisaa_brandi( $db, $_POST['nimi'], $_POST['kuva_url'] );
 }
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
@@ -99,7 +114,6 @@ unset($_SESSION["feedback"]);
 			<h1>Brändit</h1>
 		</section>
 		<section class="napit">
-			<button class="nappi" onclick="document.getElementById('paivita_tecdoc').submit();">Päivitä TecDoc</button>
 			<button class="nappi" onclick="avaa_modal_uusi_brandi();">Lisää oma brändi</button>
 		</section>
 	</div>

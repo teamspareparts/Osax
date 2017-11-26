@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 if ( !$user->isAdmin() ) {
@@ -8,9 +8,9 @@ if ( !$user->isAdmin() ) {
 /**
  * Hakee kaikki hankintapaikat.
  * @param DByhteys $db
- * @return array|bool|stdClass	Palauttaa hankintapaikkojen nimet, jos löytyi. Muuten false.
+ * @return array <p> Palauttaa hankintapaikkojen nimet, jos löytyi. Muuten false.
  */
-function hae_kaikki_hankintapaikat( DByhteys $db ) {
+function hae_kaikki_hankintapaikat( DByhteys $db ) : array{
 	$sql = "SELECT id, nimi, LPAD(`id`,3,'0') AS hankintapaikka_id FROM hankintapaikka";
 	return $db->query($sql, [], FETCH_ALL);
 }
@@ -22,65 +22,62 @@ function hae_kaikki_hankintapaikat( DByhteys $db ) {
  * @param int $brandId
  * @return bool
  */
-function poista_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brand_id){
-	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
+function poista_linkitys( DByhteys $db, int $hankintapaikka_id, int $brand_id) : bool {
+	// Deaktivoidaan tuotteet
 	$sql = "UPDATE tuote SET aktiivinen = 0 WHERE hankintapaikka_id = ? AND brandNo = ?";
-	$db->query($sql, [$hankintapaikka_id, $brand_id]);
+	$result1 = $db->query($sql, [$hankintapaikka_id, $brand_id]);
+	// Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ? ";
-	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
-}
-
-/**
- * Linkitetään valmistaja hankintapaikkaan
- * @param DByhteys $db
- * @param int $brandId
- * @param int $hankintapaikkaId
- * @param String $brandName
- * @return array|bool|stdClass
- */
-function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, /*int*/ $brand_id ) {
-	$sql = "  INSERT IGNORE INTO brandin_linkitys
-			  (brandi_id, hankintapaikka_id)
-			  VALUES ( ?, ? )";
-	return $db->query($sql, [$brand_id, $hankintapaikka_id]);
+	$result2 = $db->query($sql, [$hankintapaikka_id, $brand_id]);
+	if ( !$result1 || !$result2 ) {
+		return false;
+	}
+	return true;
 }
 
 /**
  * Deaktivoi brändin ja brändin tuotteet sekä poistaa kaikki linkitykset.
- * Mikäli
  * @param DByhteys $db
- * @param $brandi_id
- * @return array|int|stdClass
+ * @param int $brandi_id
+ * @return bool
  */
-function poista_brandi( DByhteys $db, /*int*/ $brandi_id ) {
+function poista_brandi( DByhteys $db, int $brandi_id ) : bool {
     $sql = "DELETE FROM brandin_linkitys WHERE brandi_id = ?";
-    $db->query($sql, [$brandi_id]);
+    $result1 = $db->query($sql, [$brandi_id]);
     $sql = "UPDATE tuote SET aktiivinen = 0 WHERE brandNo = ?";
-    $db->query($sql, [$brandi_id]);
+	$result2 = $db->query($sql, [$brandi_id]);
     $sql = "UPDATE brandi SET aktiivinen = 0 WHERE id = ?";
-    return $db->query($sql, [$brandi_id]);
-
+    $result3 =  $db->query($sql, [$brandi_id]);
+	if ( !$result1 || !$result2 || !$result3 ) {
+		return false;
+	}
+	return true;
 }
 
 /**
- * Brändin tietojen muokkaamiseen
+ * Muokkaa brändin tietoja.
  * @param DByhteys $db
- * @param $brand_id
- * @param $nimi
- * @param $url
+ * @param int $brand_id
+ * @param string $nimi
+ * @param string $url
+ * @return bool
  */
-function muokkaa_brandi( DByhteys $db, /*int*/ $brand_id, /*string*/ $nimi, /*string*/ $url ) {
+function muokkaa_brandi( DByhteys $db, int $brand_id, string $nimi, string $url ) : bool {
 	$sql = "UPDATE brandi SET nimi = ?, url = ? WHERE id = ?";
-	$db->query($sql, [$nimi, $url, $brand_id]);
+	$result = $db->query($sql, [$nimi, $url, $brand_id]);
+	if ( !$result ) {
+		return false;
+	}
+	return true;
 }
 
 /**
  * Hakee hankintapaikat
  * @param DByhteys $db
- * @param $brand_id
- * @return array|int|stdClass
+ * @param int $brand_id
+ * @return array
  */
-function hae_hankintapaikat( DByhteys $db, /* int */ $brand_id) {
+function hae_hankintapaikat( DByhteys $db, int $brand_id) : array {
 
 	//tarkastetaan onko valmistajaan linkitetty hankintapaikka
 	$sql = "	SELECT *, LPAD(`id`,3,'0') AS hankintapaikka_id FROM brandin_linkitys
@@ -91,17 +88,17 @@ function hae_hankintapaikat( DByhteys $db, /* int */ $brand_id) {
 }
 
 // GET-parametri
-$brand_id = isset($_GET['brandId']) ? $_GET['brandId'] : null;
+$brand_id = isset($_GET['brandId']) ? (int)$_GET['brandId'] : null;
 
 // Tarkastetaan GET-parametrin oikeellisuus
 $brand = $db->query("SELECT * FROM brandi WHERE id = ? AND aktiivinen = 1 LIMIT 1", [$brand_id]);
-if ( !($brand) ) {
-	header("Location:toimittajat.php");
-	exit();
+if ( !$brand ) {
+	header("Location:toimittajat.php"); exit();
 }
 
 // Haetaan brändin yhteystiedot ja logon URL
-$brand_address = getAmbrandAddress($brand->id)[0];
+$brand_address = getAmbrandAddress($brand->id);
+$brand_address = !empty($brand_address) ? $brand_address[0] : null;
 $hankintapaikat = hae_hankintapaikat($db, $brand->id);
 $brand_logo_src = !empty($brand_address) ? TECDOC_THUMB_URL . $brand_address->logoDocId . "/" : "";
 
@@ -109,16 +106,13 @@ $brand_logo_src = !empty($brand_address) ? TECDOC_THUMB_URL . $brand_address->lo
 $kaikki_hankintapaikat = hae_kaikki_hankintapaikat( $db );
 
 if ( isset($_POST['poista_linkitys']) ) {
-	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_id']);
-}
-elseif( isset($_POST['lisaa_linkitys']) ) {
-	lisaa_linkitys($db, $_POST['hankintapaikka'], $_POST['brand_id']);
+	poista_linkitys($db, (int)$_POST['hankintapaikka_id'], (int)$_POST['brand_id']);
 }
 elseif (isset($_POST['muokkaa'])) {
-    muokkaa_brandi($db, $_POST['brand_id'], $_POST['nimi'], $_POST['url']);
+    muokkaa_brandi($db, (int)$_POST['brand_id'], $_POST['nimi'], $_POST['url']);
 }
 elseif (isset($_POST['poista'])) {
-    poista_brandi($db, $_POST['brand_id']);
+    poista_brandi($db, (int)$_POST['brand_id']);
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
