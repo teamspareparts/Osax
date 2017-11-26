@@ -24,7 +24,7 @@ class Ostoskori {
 	 */
 	public $montako_tuotetta_kpl_maara_yhteensa = 0;
 	/**
-	 * @var int $summa_yhteensa <p> Kaikkien tuotteiden yhteenlaskettu summa. Vain käytössä ostoskori-sivulla..
+	 * @var float $summa_yhteensa <p> Kaikkien tuotteiden yhteenlaskettu summa. Vain käytössä ostoskori-sivulla.
 	 */
 	public $summa_yhteensa = 0;
 	/**
@@ -81,7 +81,7 @@ class Ostoskori {
 	 * @param int      $yritys_id <p> Ostoskorin omistaja
 	 */
 	private function hae_cart_id ( DByhteys $db, int $yritys_id ) {
-		$this->ostoskori_id = $db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [ $yritys_id ] )->id;
+		$this->ostoskori_id = (int)$db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [ $yritys_id ] )->id;
 	}
 
 	/**
@@ -101,8 +101,8 @@ class Ostoskori {
 			$sql = "SELECT COUNT(tuote_id) AS count, IFNULL(SUM(kpl_maara), 0) AS kpl_maara 
 					FROM ostoskori_tuote WHERE ostoskori_id = ?";
 			$row = $db->query( $sql, [ $this->ostoskori_id ] );
-			$this->montako_tuotetta = $row->count;
-			$this->montako_tuotetta_kpl_maara_yhteensa = $row->kpl_maara;
+			$this->montako_tuotetta = (int)$row->count;
+			$this->montako_tuotetta_kpl_maara_yhteensa = (int)$row->kpl_maara;
 		}
 		else { // Hae kaikki tiedot
 			if ( !$tuote_luokka ) {
@@ -112,7 +112,7 @@ class Ostoskori {
 				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
 				while ( $row = $db->get_next_row() ) {
 					$this->tuotteet[ $row->tuote_id ] = $row;
-					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
+					$this->montako_tuotetta_kpl_maara_yhteensa += (int)$row->kpl_maara;
 				}
 				$this->montako_tuotetta = count( $this->tuotteet );
 				$this->cart_mode = 1;
@@ -133,7 +133,7 @@ class Ostoskori {
 					$row->haeTuoteryhmat( $db );
 					$this->haeAlennukset( $db, $this->yritys_id, $row );
 					$this->tuotteet[] = $row;
-					$this->montako_tuotetta_kpl_maara_yhteensa += $row->kpl_maara;
+					$this->montako_tuotetta_kpl_maara_yhteensa += (int)$row->kpl_maara;
 					$this->montako_tuotetta += 1;
 				}
 			}
@@ -255,7 +255,6 @@ class Ostoskori {
 	}
 
 	/**
-	 * @param boolean $ilman_alv  [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
 	 */

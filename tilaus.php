@@ -1,7 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'ostoskori_tilaus_funktiot.php';
-require 'luokat/email.class.php';
 
 ignore_user_abort( true ); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
 set_time_limit( 100 );
@@ -9,10 +8,12 @@ set_time_limit( 100 );
 $user->haeToimitusosoitteet( $db, -1 ); // Toimitusosoitteen valintaa varten haetaan kaikki toimitusosoitteet.
 
 $cart->hae_ostoskorin_sisalto( $db, true, true );
+
 if ( $cart->montako_tuotetta == 0 ) {
 	header( "location:ostoskori.php" );
 	exit;
 }
+
 check_products_in_shopping_cart( $cart, $user );
 
 /*
@@ -27,14 +28,14 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 	 */
 	$conn = $db->getConnection();
 	$conn->beginTransaction();
-	$toimitusosoite_id = $_POST[ 'toimitusosoite_id' ];
+	$toimitusosoite_id = (int)$_POST[ 'toimitusosoite_id' ];
 
 	try {
 		// Tallennetaan tilauksen tiedot tietokantaan
 		$stmt = $conn->prepare( 'INSERT INTO tilaus (kayttaja_id, pysyva_rahtimaksu) VALUES (?, ?)' );
 		$stmt->execute( [ $user->id, $_POST[ 'rahtimaksu' ] ] );
 
-		$tilaus_id = $conn->lastInsertId(); // Haetaan tilaus-ID, sitä tarvitaan vielä.
+		$tilaus_id = (int)$conn->lastInsertId(); // Haetaan tilaus-ID, sitä tarvitaan vielä.
 
 		/*
 		 * Prep.stmt. tuotteiden lisäys tietokantaan. Lisätään kaikki tuotteet kerralla.
@@ -52,8 +53,7 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		$values_varastosaldot = [];
 
 		$sql = "INSERT INTO tuote (id, varastosaldo) VALUES {$questionmarks2}
-		        ON DUPLICATE KEY 
-		        UPDATE varastosaldo = VALUES(varastosaldo), paivitettava = 1";
+		        ON DUPLICATE KEY UPDATE varastosaldo = VALUES(varastosaldo), paivitettava = 1";
 		$stmt_varastosaldot = $conn->prepare( $sql);
 
 		foreach ( $cart->tuotteet as $tuote ) {
@@ -109,7 +109,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	header("Location: " . $_SERVER['REQUEST_URI']);
 	exit();
 } else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	$feedback = $_SESSION['feedback'] ?? "";
 	unset($_SESSION["feedback"]);
 }
 ?>
@@ -138,9 +138,6 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		<section class="otsikko">
 			<h1>Tilauksen vahvistus</h1>
 		</section>
-		<section class="napit">
-		</section>
-		<br>
 	</div>
 
 	<?= $feedback ?>
@@ -157,7 +154,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 				<td><?= $tuote->nimi ?></td><!-- Tuotteen nimi -->
 				<td><?= $tuote->valmistaja ?></td><!-- Tuotteen valmistaja -->
 				<td class="number"><?= $tuote->summa_toString() ?></td><!-- Hinta yhteensä -->
-				<td class="number"><?= $tuote->a_hinta_toString() ?></td><!-- Kpl-hinta (sis. ALV) -->
+				<td class="number"><?= $tuote->aHintaAlennettu_toString() ?></td><!-- Kpl-hinta (sis. ALV) -->
 				<td class="number"><?= $tuote->kpl_maara ?></td><!-- Kpl-määrä -->
 				<td style="padding-top: 0; padding-bottom: 0;"><?= $tuote->alennus_huomautus ?></td><!-- Info -->
 			</tr>
