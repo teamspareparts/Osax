@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'luokat/paymentAPI.class.php';
 
 /*
  * Jos maksua ei hyväksytä, tai käyttäjä peruuttaa maksun, hänet suunnataan tälle sivulle.
@@ -10,7 +9,7 @@ require 'luokat/paymentAPI.class.php';
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 
-		if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_GET['ORDER_NUMBER'], $cart->ostoskori_id ) ) {
+		if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_GET['ORDER_NUMBER'], $cart->ostoskori_id ) ) {
 			$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
 		}
 		else {

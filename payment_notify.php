@@ -1,8 +1,5 @@
 <?php
-require "luokat/dbyhteys.class.php";
-require "luokat/user.class.php";
-require "luokat/ostoskori.class.php"; // Tuotteiden palauttamista ostoskoriin varten.
-require 'luokat/paymentAPI.class.php';
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 
 if ( empty( $_GET[ 'ORDER_NUMBER' ] ) ) {
 	header( 'Location: etusivu.php' );
@@ -54,8 +51,6 @@ switch ( $get_count ) {
 			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
 
 			if ( $result ) {
-				require './luokat/laskutiedot.class.php';
-				require './luokat/email.class.php';
 				require './mpdf/mpdf.php';
 
 				$config = parse_ini_file( "./config/config.ini.php" );

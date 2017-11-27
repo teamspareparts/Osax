@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'luokat/paymentAPI.class.php';
 
 ignore_user_abort( true ); //Tilaus tehdään aina loppuun saakka riippumatta käyttäjästä
 set_time_limit( 300 ); // 5 minutes
