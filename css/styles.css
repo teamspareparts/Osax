@@ -72,24 +72,32 @@ dialog .backdrop-close {
 	margin: -1em;
 }
 
-dl {
-	width: 100%;
+dl { /* From: https://stackoverflow.com/q/12744164 */
 	overflow: hidden;
+	vertical-align: top;
 	padding: 0;
 	margin: 0;
-	clear: both;
 }
-
 dd,
 dt {
-	float: left;
-	padding: 2pt;
-	margin: 0;
-	min-width: 40%;
-	display: inline-block;
+	padding: 3pt;
+	margin: 2pt;
+	min-height: 20px;
 }
-dt { font-weight: bold; }
-dd {  }
+dt {
+	min-width: 11em;
+	float: left;
+	clear: left;
+	font-weight: bold;
+	margin-left: 0;
+}
+dd {
+	overflow: hidden;
+}
+dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
+	margin-top: 4pt; /* 2x dd->margin == 8 */
+}
+
 /********************************************
 	Yleisesti pikku asioita koko sivulla
 *********************************************/
