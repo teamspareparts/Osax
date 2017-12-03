@@ -1,8 +1,6 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
-
 
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
@@ -18,14 +16,6 @@ if ( $otk_id ) {
  * Tässä tiedostossa listataan kaikki toimittajille lähetetyt ostotilauskirjat, jotka voi merkata saapuneeksi.
  * Tietoja voi vielä muuttaa, mikäli saapunut erä ei vastaa ostotilauskirjaa.
  */
-
-
-if ( !empty($_POST) ){
-	header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-	exit();
-}
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-unset($_SESSION["feedback"]);
 
 $sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauskirja_arkisto
  		LEFT JOIN ostotilauskirja_tuote_arkisto
@@ -43,7 +33,6 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 	<link rel="stylesheet" href="css/jsmodal-light.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="js/jsmodal-1.0d.min.js"></script> <!-- TODO: Mitä tämä tekee -->
 	<title>Ostotilauskirjat</title>
 </head>
 <body>
@@ -59,8 +48,6 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 		<section class="napit">
 		</section>
 	</div>
-
-	<?= $feedback?>
 
 	<?php if ( $ostotilauskirjat ) : ?>
 		<table>
@@ -86,9 +73,9 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
 						<?= $otk->kpl?></td>
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
-						<?= format_euros($otk->hinta)?></td>
+						<?= format_number($otk->hinta)?></td>
 					<td data-href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>">
-						<?= format_euros($otk->rahti)?></td>
+						<?= format_number($otk->rahti)?></td>
                     <td><a href="yp_luo_ostotilauskirjatiedosto.php?id=<?=$otk->id?>" class="nappi">
                             Lataa</a></td>
 				</tr>

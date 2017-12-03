@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 //Vain ylläpitäjälle
@@ -24,7 +24,7 @@ if ( !$user->isAdmin() ) {
 
 <!-- Tiedoston latausta varten -->
 <form id="download_hinnasto_yp" method="post" action="download.php">
-    <input type="hidden" name="filepath" value="hinnasto/hinnasto.txt">
+    <input type="hidden" name="filepath" value="./hinnasto/hinnasto.txt">
 </form>
 
 <?php include("header.php");?>

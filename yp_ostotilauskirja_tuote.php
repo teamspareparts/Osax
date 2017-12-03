@@ -1,7 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
+
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
@@ -13,12 +13,12 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
 }
 
 /**
- * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
+ * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika.
  * @param DByhteys $db
  * @param int $hankintapaikka_id
- * @return float|int
+ * @return int
  */
-function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
+function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : int {
     $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
     //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
     $sql = "	SELECT lahetetty, saapumispaiva 
@@ -43,11 +43,11 @@ function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
 /**
  * Ostotilauskirjan lähetys
  * @param DByhteys $db
- * @param User $user
- * @param $ostotilauskirja_id
- * @return bool Palauttaa false tai arkistoidun ostotilauskirjan id:n.
+ * @param int $user_id
+ * @param int $ostotilauskirja_id
+ * @return int <p> Palauttaa 0 tai arkistoidun ostotilauskirjan id:n.
  */
-function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_id){
+function laheta_ostotilauskirja(DByhteys $db, int $user_id, int $ostotilauskirja_id){
 
     //Haetaan ostotilauskirjan tuotteet
     $sql = "SELECT * FROM ostotilauskirja_tuote
@@ -55,7 +55,7 @@ function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_
  			  ON ostotilauskirja_tuote.tuote_id = tuote.id
  			WHERE ostotilauskirja_id = ?";
     if( !$products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL) ) {
-        return false;
+        return 0;
     }
 
     //Haetaan hankintapaikan keskimääräinen toimitusaika
@@ -71,7 +71,7 @@ function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_
             SELECT hankintapaikka_id, tunniste, rahti, rahti, NOW() + INTERVAL ? DAY , NOW(), ?, id FROM ostotilauskirja
             WHERE id = ? ";
 	if (!$db->query($sql, [$toimitusaika, $user_id, $ostotilauskirja_id])) {
-	    return false;
+	    return 0;
 	}
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
@@ -90,7 +90,7 @@ function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_
 
     $result = $db->query($sql, $sql_insert_values);
 	if( !$result ) {
-		return false;
+		return 0;
 	}
 
 
@@ -105,17 +105,18 @@ function laheta_ostotilauskirja(DByhteys $db, /*int*/$user_id, $ostotilauskirja_
 	//Tyhjennetään alkuperäinen ostotilauskirja
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
 	if( !$db->query($sql, [$ostotilauskirja_id]) ) {
-	    return false;
+	    return 0;
     }
 
 	return $uusi_otk_id->last_id;
 }
 
-/** Järjestetään tuotteet artikkelinumeron mukaan
- * @param $catalog_products
+/**
+ * Järjestetään tuotteet artikkelinumeron mukaan.
+ * @param array $products
  * @return array <p> Sama array sortattuna
  */
-function sortProductsByName( $products ){
+function sortProductsByName( array $products ) : array {
 	//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
 	//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
 	usort($products, function ($a, $b) {
@@ -125,7 +126,6 @@ function sortProductsByName( $products ){
 }
 
 if ( isset($_POST['muokkaa']) ) {
-    unset($_POST['muokkaa']);
     if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
         $_POST['selite'] = "AUTOMAATTI";
     }
@@ -141,7 +141,6 @@ if ( isset($_POST['muokkaa']) ) {
     }
 }
 else if( isset($_POST['poista']) ) {
-    unset($_POST['poista']);
     if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ? ",
                     [$_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Tuote poistettu ostotilauskirjalta.</p>";
@@ -157,8 +156,8 @@ else if( isset($_POST['poista_kaikki']) ) {
 	}
 }
 else if( isset($_POST['laheta']) ) {
-    unset($_POST['laheta']);
-    if ( $id = laheta_ostotilauskirja($db, $user->id, $_POST['id']) ) {
+	$id = laheta_ostotilauskirja($db, (int)$user->id, (int)$_POST['id']);
+    if ( $id ) {
         $_SESSION["download"] = $id;
 		header("Location: yp_ostotilauskirja_odottavat.php");
 		exit();

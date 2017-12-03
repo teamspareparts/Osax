@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'apufunktiot.php';
 
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
@@ -9,9 +8,9 @@ if ( !$user->isAdmin() ) {
 /**
  * Hakee kaikki aktiiviset hankintapaikat
  * @param DByhteys $db
- * @return array|int|stdClass
+ * @return array
  */
-function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
+function hae_aktiiviset_hankintapaikat( DByhteys $db ) : array {
 	$sql = "SELECT LPAD(hankintapaikka.id,3,'0') AS id, hankintapaikka.nimi, GROUP_CONCAT(brandi.nimi) AS brandit
             FROM hankintapaikka
             INNER JOIN brandin_linkitys
@@ -27,14 +26,14 @@ function hae_aktiiviset_hankintapaikat( DByhteys $db ) {
  * @param DByhteys $db
  * @param array $hankintapaikat
  */
-function hae_hankintapaikkojen_ostotilauskirjat( DByhteys $db, array $hankintapaikat ) {
+function hae_hankintapaikkojen_ostotilauskirjat( DByhteys $db, array &$hankintapaikat ) {
 	$sql = "SELECT *, ostotilauskirja.id AS id, IFNULL(SUM(kpl*tuote.sisaanostohinta),0) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
- 		LEFT JOIN ostotilauskirja_tuote
- 			ON ostotilauskirja.id = ostotilauskirja_tuote.ostotilauskirja_id
- 		LEFT JOIN tuote
- 		    ON ostotilauskirja_tuote.tuote_id = tuote.id
- 		WHERE ostotilauskirja.hankintapaikka_id = ?
- 		GROUP BY ostotilauskirja.id";
+ 			LEFT JOIN ostotilauskirja_tuote
+ 				ON ostotilauskirja.id = ostotilauskirja_tuote.ostotilauskirja_id
+ 			LEFT JOIN tuote
+ 		    	ON ostotilauskirja_tuote.tuote_id = tuote.id
+ 			WHERE ostotilauskirja.hankintapaikka_id = ?
+ 			GROUP BY ostotilauskirja.id";
 	foreach ($hankintapaikat as $hp) {
 		$hp->ostotilauskirjat = $db->query($sql, [$hp->id], FETCH_ALL);
 	}
@@ -96,7 +95,7 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
                 </td>
 				<td>
 					<?php foreach ($hp->ostotilauskirjat as $otk) : ?>
-						<?= $otk->tunniste?> - <?= $otk->kpl?> - <?= format_euros($otk->hinta)?><br>
+						<?= $otk->tunniste?> - <?= $otk->kpl?> - <?= format_number($otk->hinta)?><br>
 					<?php endforeach; ?>
 				</td>
             </tr>

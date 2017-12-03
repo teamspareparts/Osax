@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'apufunktiot.php';
 
@@ -10,9 +10,9 @@ if ( !$user->isAdmin() ) {
 /**
  * Hakee tilaukset
  * @param DByhteys $db
- * @return stdClass[]
+ * @return array
  */
-function hae_tilaukset( DByhteys $db ) {
+function hae_tilaukset( DByhteys $db ) : array {
 	$sql = "SELECT tilaus.id, tilaus.paivamaara, tilaus.pysyva_rahtimaksu, tilaus.maksettu, kayttaja.etunimi, kayttaja.sukunimi,
 				SUM( tilaus_tuote.kpl * 
 			        (tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv) * (1-tilaus_tuote.pysyva_alennus)) )

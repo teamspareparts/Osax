@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -16,8 +16,8 @@ if ( !$user->isAdmin() ) {
  * @param string   $order_direction   <p> ASC vai DESC järjestys?
  * @return array <p> [0] = row count, [1] tuotteet
  */
-function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id, /*int*/ $ppp, /*int*/ $offset,
-		/*string*/ $order_by = "tuotekoodi", /*string*/ $order_direction = "DESC" ) {
+function haeTuotteet( DByhteys $db, int $brandNo, int $hankintapaikka_id, int $ppp, int $offset,
+		string $order_by = "tuotekoodi", string $order_direction = "DESC" ) : array {
 
 	$orders = array( ["nimi", "tuotekoodi", "varastosaldo"], ["ASC","DESC"] );
 	$col_name = $orders[0][ array_search( $order_by, $orders[0] ) ];
@@ -95,8 +95,8 @@ function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id
 	return [$row_count, $results];
 }
 
-$brand_id = !empty( $_GET[ 'brand' ] ) ? (int)$_GET[ 'brand' ] : "";
-$hankintapaikka_id = !empty( $_GET[ 'hkp' ] ) ? (int)$_GET[ 'hkp' ] : "";
+$brand_id = !empty( $_GET[ 'brand' ] ) ? (int)$_GET[ 'brand' ] : 0;
+$hankintapaikka_id = !empty( $_GET[ 'hkp' ] ) ? (int)$_GET[ 'hkp' ] : 0;
 $page = !empty( $_GET[ 'page' ] ) ? (int)$_GET[ 'page' ] : 1; // Mikä sivu tuotelistauksessa
 $products_per_page = !empty( $_GET[ 'ppp' ] ) ? (int)$_GET[ 'ppp' ] : 20; // Miten monta tuotetta per sivu näytetään.
 
