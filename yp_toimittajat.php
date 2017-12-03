@@ -47,12 +47,8 @@ function lisaa_brandi( DByhteys $db, string $nimi, string $kuva_url ) : bool {
     $sql = "INSERT INTO brandi (id, nimi, url, oma_brandi)
             VALUES( ?, ?, ?, 1 )
             ON DUPLICATE KEY
-            UPDATE nimi = VALUES(nimi), url = VALUES(url), aktiivinen = 1";
-	$result = $db->query($sql, [$vapaa_id, $nimi, $kuva_url]);
-	if ( !$result ) {
-		return false;
-	}
-	return true;
+            UPDATE url = VALUES(url), aktiivinen = 1";
+	return $db->query($sql, [$vapaa_id, $nimi, $kuva_url]) ? true : false;
 }
 
 /**

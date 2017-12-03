@@ -469,7 +469,7 @@ elseif ( !empty($_POST['tuote_linkitys']) ) {
 	$result = false;
 	// Etsitään tuote vielä tecdocista
 	$tecdoc_tuote = getArticleDirectSearchAllNumbersWithState($_POST['tecdoctuote']['article'],
-		0, true, $_POST['tecdoctuote']['brand']);
+		0, true, (int)$_POST['tecdoctuote']['brand']);
 	if ( count($tecdoc_tuote) > 0 ) {
 		$tecdoc_tuote[0]->articleNo = str_replace(" ", "", $tecdoc_tuote[0]->articleNo);
 		// Lisätään vertailu
