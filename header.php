@@ -52,7 +52,7 @@
                         <li><a href="yp_hallitse_eula.php">EULA</a></li>
                         <li><a href="yp_hankintapyynnot.php">Hankintapyynnöt</a></li>
                         <li><a href="yp_muokkaa_alv.php">ALV-muokkaus</a></li>
-                        <li><a href='toimittajat.php'>Toimittajat</a></li>
+                        <li><a href='yp_toimittajat.php'>Toimittajat</a></li>
                         <li><a href='yp_hankintapaikat.php'>Hankintapaikat</a></li>
                         <li><a href='yp_raportit.php'>Raportit</a></li>
 	                    <li><a href='yp_tuoteryhmat.php'>Tuoteryhmät</a></li>
@@ -89,9 +89,9 @@
 			case "tilaus_info.php":
 				pgurl = "yp_tilaukset.php";
 				break;
-			case "toimittajan_hallinta.php":
+			case "yp_toimittajan_hallinta.php":
 			case "yp_valikoima.php":
-				pgurl = "toimittajat.php";
+				pgurl = "yp_toimittajat.php";
 				break;
 			case "yp_ostotilauskirja.php":
 			case "yp_ostotilauskirja_tuote.php":
@@ -100,8 +100,10 @@
 			case "yp_ostotilauskirja_tuote_odottavat.php":
 				pgurl = "yp_ostotilauskirja_odottavat.php";
 				break;
-			case "yp_varastolistausraportti.php":
-			case "yp_myyntiraportti.php":
+			case "yp_raportti_varastolistaus.php":
+			case "yp_raportti_myyntiraportti.php":
+			case "yp_raportti_myyntitapahtumalistaus.php":
+			case "yp_raportti_tuotekohtainen_myynti.php":
 				pgurl = "yp_raportit.php";
 				break;
 			case "yp_hankintapaikka.php":

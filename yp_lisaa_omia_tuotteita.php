@@ -297,7 +297,7 @@ $sql = "SELECT brandin_linkitys.brandi_id, brandin_linkitys.brandi_kaytetty_id,
 $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 if ( !$brands ) {
-	header("Location:toimittajat.php");
+	header("Location:yp_toimittajat.php");
 	exit();
 }
 if ( isset($_FILES['tuotteet']['name']) ) {

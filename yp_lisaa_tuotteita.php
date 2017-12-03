@@ -179,12 +179,12 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 }
 
 // GET-parametri
-$hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : '';
+$hankintapaikka_id = isset($_GET['hankintapaikka']) ? $_GET['hankintapaikka'] : 0;
 
 // Varmistetaan GET-parametrien oikeellisuus
 $sql = "SELECT * FROM brandin_linkitys WHERE hankintapaikka_id = ? LIMIT 1";
 if ( !$db->query($sql, [$hankintapaikka_id]) ) {
-	header("Location:toimittajat.php");
+	header("Location:yp_toimittajat.php");
 	exit();
 }
 
