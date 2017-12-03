@@ -1,21 +1,20 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Class Tuote
- *
- * @version 2017-03-12 <p> a_hinta_toString metodin bugikorjaus, ja alennus_toString lisäys.
  */
 class Tuote {
-	/** @var int|NULL $id <p> Tuotteen ID meidän tietokannassa */ public $id = null;
+	/** @var int $id <p> Tuotteen ID meidän tietokannassa */ public $id = null;
 	/** @var string $articleNo <p> Tunnus TecDocista */ public $articleNo = null;
 	/** @var string $brandNo <p> Valmistajan tunnus TecDocista */ public $brandNo = null;
 	/** @var int $hankintapaikkaID <p> Hankintapaikan ID, meidän tietokannasta */ public $hankintapaikkaID = 0;
 	/** @var string $tuotekoodi <p> Tuotteen koodi, TecDocista */ public $tuotekoodi = null;
 	/** @var string $tilauskoodi <p> Koodi tilauskirjaa varten */ public $tilauskoodi = null;
-	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
+
 	/** @var string $hyllypaikka <p> */ public $hyllypaikka = null;
 	/** @var int $varastosaldo <p> */ public $varastosaldo = 0;
 	/** @var int $tehdassaldo <p> */ public $tehdassaldo = 0;
 	/** @var int $minimimyyntiera <p> */ public $minimimyyntiera = 0;
+
 
 	/** @var string $nimi <p> */ public $nimi = null;
 	/** @var string $valmistaja <p> */ public $valmistaja = null;
@@ -33,6 +32,17 @@ class Tuote {
 	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
 	/** @var float $summa <p> */ public $summa = 0.00;
 
+	// Yp_valikoima sivulla käytössä olevat muuttujat
+	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
+	/** @var int $vuosimyynti <p> */ public $vuosimyynti = 0;
+	/** @var string $ensimmaisenKerranVarastossa <p> timestamp */ public $ensimmaisenKerranVarastossa = null;
+	/** @var bool $paivitettava <p> */ public $paivitettava = null;
+	/** @var bool $tecdocissa <p> */ public $tecdocissa = null;
+	/** @var bool $aktiivinen <p> */ public $aktiivinen = null;
+	/** @var string $kuvaURL <p> */ public $kuvaURL = null;
+	/** @var string $infot <p> */ public $infot = null;
+	/** @var string $hankintapaikkaNimi <p> */ public $hankintapaikkaNimi = null;
+
 	/**
 	 * <code>
 	 * Array [
@@ -49,7 +59,7 @@ class Tuote {
 	 * @param DByhteys $db [optional]
 	 * @param int      $id [optional] <p> Halutun tuotteen ID tietokannassa
 	 */
-	function __construct ( DByhteys $db = null, /*int*/ $id = null ) {
+	function __construct ( DByhteys $db = null, int $id = 0 ) {
 		if ( $db === null or $id === null ) return;
 
 		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
@@ -139,45 +149,11 @@ class Tuote {
 	}
 
 	/**
-	 * @deprecated Käytä yksittäisiä <code>*_toString</code> metodeja.<p>
-	 * Palauttaa hinnan valittujen parametrien mukaan. Defaultina tulostaa verollisen alennetun hinnan.
-	 * @param boolean $ilman_alv     [optional] default=false <p> Tulostetaanko hinta ilman ALV:ta.
-	 * @param boolean $ilman_euro    [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
-	 * @param bool    $ilman_alennus [optional] default=false <p> Tulostetaanko hinta ilman alennusta.
-	 * @param int     $dec_count     [optional] default=2 <p> Kuinka monta desimaalia.
-	 * @return string
-	 */
-	function a_hinta_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false,
-			/*bool*/ $ilman_alennus = false, /*int*/ $dec_count = 2 ) {
-
-		// Hinta ilman ALV:ta ja alennusta
-		if ( $ilman_alv && $ilman_alennus ) {
-			return number_format( (float)$this->a_hinta_ilman_alv, $dec_count, ',', '.' )
-				. ($ilman_euro ? '' : '&nbsp;&euro;');
-		}
-		// Hinta ALV:n kanssa, mutta ilman alennusta
-		elseif ( !$ilman_alv && $ilman_alennus ) {
-			return number_format( (float)$this->a_hinta, $dec_count, ',', '.' )
-				. ($ilman_euro ? '' : '&nbsp;&euro;');
-		}
-		// Hinta ilman ALV:ta, mutta alennuksen kanssa
-		elseif ( $ilman_alv && !$ilman_alennus ) {
-			return number_format( (float)$this->a_hinta_alennettu_ilman_alv, $dec_count, ',', '.' )
-				. ($ilman_euro ? '' : '&nbsp;&euro;');
-		}
-		// Hinta ALV:n ja alennuksen kanssa
-		else {
-			return number_format( (float)$this->a_hinta_alennettu, $dec_count, ',', '.' )
-				. ($ilman_euro ? '' : '&nbsp;&euro;');
-		}
-	}
-
-	/**
 	 * @param boolean $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function aHinta_toString ( /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
+	function aHinta_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
 		return number_format( $this->a_hinta, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
@@ -187,7 +163,7 @@ class Tuote {
 	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function aHintaIlmanALV_toString ( /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
+	function aHintaIlmanALV_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
 		return number_format( $this->a_hinta_ilman_alv, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
@@ -197,7 +173,7 @@ class Tuote {
 	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function aHintaAlennettu_toString ( /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
+	function aHintaAlennettu_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
 		return number_format( $this->a_hinta_alennettu, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
@@ -207,7 +183,7 @@ class Tuote {
 	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function aHintaAlennettuIlmanALV_toString ( /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
+	function aHintaAlennettuIlmanALV_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
 		return number_format( $this->a_hinta_alennettu_ilman_alv, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
@@ -218,7 +194,7 @@ class Tuote {
 	 * @param int     $dec_count  [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function summa_toString ( /*bool*/ $ilman_alv = false, /*bool*/ $ilman_euro = false, /*int*/ $dec_count = 2 ) {
+	function summa_toString ( bool $ilman_alv = false, bool $ilman_euro = false, int $dec_count = 2 ) {
 		$summa = ($ilman_alv)
 			? ($this->a_hinta_alennettu_ilman_alv * $this->kpl_maara)
 			: $this->summa;
@@ -232,7 +208,7 @@ class Tuote {
 	 * @param int  $decCount   [optional] default=0 <p> Montako desimaalia (0 == kokonaislukuna).
 	 * @return string
 	 */
-	function alv_toString ( /*bool*/ $ilman_pros = false, /*int*/ $decCount = 0 ) {
+	function alv_toString ( bool $ilman_pros = false, int $decCount = 0 ) {
 		return ($decCount)
 			? number_format( $this->alv_prosentti, $decCount, ',', '.' )
 			: number_format( $this->alv_prosentti * 100, 0, ',', '.' )
@@ -244,7 +220,7 @@ class Tuote {
 	 * @param int  $decCount   [optional] default=0 <p> Tulostetaanko ALV decimaalina (vai kokonaislukuna).
 	 * @return string
 	 */
-	function alennus_toString ( /*bool*/ $ilman_pros = false, /*int*/ $decCount = 0 ) {
+	function alennus_toString ( bool $ilman_pros = false, int $decCount = 0 ) {
 		return ($decCount)
 			? number_format( $this->alennus_prosentti, $decCount, ',', '.' )
 			: number_format( $this->alennus_prosentti * 100, 0, ',', '.' )
@@ -256,7 +232,7 @@ class Tuote {
 	 * @param int  $decCount  [optional] default=2 <p> Kuinka monta desimaalia
 	 * @return string
 	 */
-	function ostohinta_toString ( /*bool*/ $ilmanEuro = false, /*int*/ $decCount = 2 ) {
+	function ostohinta_toString ( bool $ilmanEuro = false, int $decCount = 2 ) {
 		return number_format( $this->ostohinta, $decCount, ',', '.' )
 			. ($ilmanEuro ? '' : '&nbsp;&euro;');
 	}
