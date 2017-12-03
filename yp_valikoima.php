@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -8,78 +8,63 @@ if ( !$user->isAdmin() ) {
 
 /**
  * @param DByhteys $db
- * @param int      $brandNo           <p> Minkä brändin tuotteet haetaan. Jos tyhjä, hakee kaikki.
- * @param int      $hankintapaikka_id <p> Jos tyhjä, hakee kaikki.
- * @param int      $ppp               <p> Montako tuotetta kerralla ruudussa.
- * @param int      $offset            <p> Mistä tuotteesta aloitetaan palautus.
- * @param string   $order_by          <p> Minkä kolumnin mukaan järjestetään?
- * @param string   $order_direction   <p> ASC vai DESC järjestys?
+ * @param int[]    $tuote_tiedot <p> [BrandNo, HankintapaikkaID]. Jos nolla, hakee kaikki.
+ * @param int[]    $pagination <p> [ppp, offset]. Products Per Page, ja monennestako tuotteesta aloitetaan palautus.
+ * @param int[]    $ordering <p> [kolumni, ASC|DESC]. 1. int on kolumnin järjestys taulukossa. 2. 0=ASC, 1=DESC
  * @return array <p> [0] = row count, [1] tuotteet
  */
-function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id, /*int*/ $ppp, /*int*/ $offset,
-		/*string*/ $order_by = "tuotekoodi", /*string*/ $order_direction = "DESC" ) {
+function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $pagination = [20,0], array $ordering = [1, 1] ) {
 
-	$orders = array( ["nimi", "tuotekoodi", "varastosaldo"], ["ASC","DESC"] );
-	$col_name = $orders[0][ array_search( $order_by, $orders[0] ) ];
-	$order_dir = $orders[1][ array_search( $order_direction, $orders[1] ) ];
+	$brandNo = $tuote_tiedot[0];
+	$hankintapaikka_id = $tuote_tiedot[1];
 
-	if ( $brandNo and $hankintapaikka_id ) {
-		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
-					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
+	$ppp = $pagination[0];
+	$offset = $pagination[1];
+
+	$orders = array(
+		["brandNo", "tuotekoodi", "a_hinta", "hinta_ilman_alv", "sisaanostohinta", "hinnoittelukate", "varastosaldo", "hyllypaikka"],
+		["ASC","DESC"]
+	);
+	$ordering = "{$orders[0][$ordering[0]]} {$orders[1][$ordering[1]]}";
+
+
+	$sql_start = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
+					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, tuote.nimi,
 					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
 					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
-					toimittaja_tehdassaldo.tehdassaldo
+					toimittaja_tehdassaldo.tehdassaldo, paivitettava, tecdocissa, aktiivinen, vuosimyynti,
+					ensimmaisen_kerran_varastossa as ensimmaisenKerranVarastossa,
+					hankintapaikka.nimi as hankintapaikkaNimi
 				FROM tuote
 				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 				LEFT JOIN toimittaja_tehdassaldo 
 					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
 						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
-				WHERE brandNo = ? AND tuote.hankintapaikka_id = ?
-				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
-		$results = $db->query( $sql, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
+				LEFT JOIN hankintapaikka ON tuote.hankintapaikka_id = hankintapaikka.id ";
+
+	if ( $brandNo and $hankintapaikka_id ) {
+		$sql_end = "WHERE brandNo = ? AND tuote.hankintapaikka_id = ?
+					ORDER BY {$ordering} LIMIT ? OFFSET ?";
+		$results = $db->query( $sql_start.$sql_end, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
 		                      FETCH_ALL, null, "Tuote" );
 
 		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote WHERE brandNo = ? AND hankintapaikka_id = ?",
 		                   [$brandNo, $hankintapaikka_id])->row_count;
 	}
 	elseif ( $brandNo or $hankintapaikka_id ) {
-		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
-					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
-					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
-					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
-					toimittaja_tehdassaldo.tehdassaldo
-				FROM tuote
-				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				LEFT JOIN toimittaja_tehdassaldo 
-					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
-						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
-				WHERE tuote.brandNo = ? OR tuote.hankintapaikka_id = ?
-				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
-		$results = $db->query( $sql, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
+		$sql_end = "WHERE tuote.brandNo = ? OR tuote.hankintapaikka_id = ?
+					ORDER BY {$ordering} LIMIT ? OFFSET ?";
+		$results = $db->query( $sql_start.$sql_end, [ $brandNo, $hankintapaikka_id, $ppp, $offset ],
 		                      FETCH_ALL, null, "Tuote" );
 
 		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote WHERE brandNo = ? OR hankintapaikka_id = ?",
 						   [$brandNo, $hankintapaikka_id])->row_count;
 	}
 	else {
-		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
-					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
-					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
-					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
-					toimittaja_tehdassaldo.tehdassaldo
-				FROM tuote
-				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-				LEFT JOIN toimittaja_tehdassaldo 
-					ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
-						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
-				ORDER BY {$col_name} {$order_dir} LIMIT ? OFFSET ?";
-		$results = $db->query( $sql, [ $ppp, $offset ], FETCH_ALL, null, "Tuote" );
+		$sql_end = "ORDER BY {$ordering} LIMIT ? OFFSET ?";
+		$results = $db->query( $sql_start.$sql_end, [ $ppp, $offset ], FETCH_ALL, null, "Tuote" );
 		$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote")->row_count;
 	}
 
@@ -95,23 +80,47 @@ function haeTuotteet( DByhteys $db, /*int*/ $brandNo, /*int*/ $hankintapaikka_id
 	return [$row_count, $results];
 }
 
-$brand_id = !empty( $_GET[ 'brand' ] ) ? (int)$_GET[ 'brand' ] : "";
-$hankintapaikka_id = !empty( $_GET[ 'hkp' ] ) ? (int)$_GET[ 'hkp' ] : "";
-$page = !empty( $_GET[ 'page' ] ) ? (int)$_GET[ 'page' ] : 1; // Mikä sivu tuotelistauksessa
-$products_per_page = !empty( $_GET[ 'ppp' ] ) ? (int)$_GET[ 'ppp' ] : 20; // Miten monta tuotetta per sivu näytetään.
+/**
+ * Kaikki brändit, kaikki hankintapaikat
+ * Kaikki brändit, [hankintapaikka]
+ * [Brändi], kaikki hankintapaikat
+ * [Brändi], [hankintapaikka]
+ * @param int    $brand_id
+ * @param int    $hankintapaikka_id
+ * @param \Tuote $tuote
+ * @return string
+ */
+function luo_otsikon_tulostus ( int $brand_id, int $hankintapaikka_id, Tuote $tuote ) {
+	if ( $brand_id != 0 ) {
+		$echo = $tuote->valmistaja . ', ';
+	} else $echo = 'Kaikki brändit, ';
+
+	if ( $hankintapaikka_id != 0 ) {
+		$echo .= $tuote->hankintapaikkaNimi;
+	} else $echo .= 'kaikki hankintapaikat';
+
+	return $echo;
+}
+
+$brand_id = (int)($_GET[ 'brand' ] ?? 0);
+$hankintapaikka_id = (int)($_GET[ 'hkp' ] ?? 0);
+$page = (int)($_GET[ 'page' ] ?? 1); // Mikä sivu tuotelistauksessa
+$products_per_page = (int)($_GET[ 'ppp' ] ?? 20); // Miten monta tuotetta per sivu näytetään.
 
 if ( $page < 1 ) { $page = 1; }
 if ( $products_per_page < 1 || $products_per_page > 5000 ) { $products_per_page = 20; }
-
 $offset = ($page - 1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
 
-$results = haeTuotteet( $db, $brand_id, $hankintapaikka_id, $products_per_page, $offset );
+$results = hae_tuotteet( $db, [$brand_id, $hankintapaikka_id], [$products_per_page, $offset] );
 
 $total_products = $results[0];
 /**
  * @var Tuote[] $tuotteet
  */
 $tuotteet = $results[1];
+
+$otsikko_tulostus = luo_otsikon_tulostus($brand_id, $hankintapaikka_id, $tuotteet[0]);
+
 
 if ( $total_products < $products_per_page ) {
 	$products_per_page = $total_products;
@@ -151,6 +160,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 	<div class="otsikko_container">
 		<section class="otsikko">
 			<h1>Valikoima</h1>
+			<span><?= $otsikko_tulostus ?></span>
 		</section>
 	</div>
 
@@ -203,8 +213,8 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 	<table>
 		<thead>
 		<tr><th colspan="11" class="center" style="background-color:#1d7ae2;">Tuotteet</th></tr>
-		<tr><th>Brändi</th>
-			<th>Tuotekoodi</th>
+		<tr><th>Valmistaja</th>
+			<th>Tuote</th>
 			<th>Nimi</th>
 			<th>Myyntihinta</th>
 			<th>ALV 0&nbsp;%</th>
@@ -220,7 +230,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 		<tbody>
 		<?php foreach ( $tuotteet as $t ) : ?>
 			<tr data-id="<?= $t->id ?>">
-				<td><?= $t->brandNo ?></td>
+				<td><?= $t->valmistaja ?></td>
 				<td><?= $t->articleNo ?></td>
 				<td><?= $t->nimi ?></td>
 				<td><?= $t->aHinta_toString() ?></td>
@@ -233,41 +243,61 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 
 				<td><button class="nappi show" data-dialog-id="#dialog_<?=$t->id?>">Muokkaa</button>
 
-					<dialog id="dialog_<?=$t->id?>">
+					<dialog id="dialog_<?=$t->id?>" style="width: 500px;">
 
 						<div class="otsikko_container blue">
 							<section class="otsikko">
-								<h2>Dialog</h2>
-								<button class="close" data-dialog-id="#dialog_<?=$t->id?>" style="margin-left: 50px;">
-									Close X</button>
+								<h2>Tuotteen tiedot</h2>
+								<button class="close" data-dialog-id="#dialog_<?=$t->id?>"
+								        style="margin-left:50px; padding: 4px; color:black; background-color:white;">
+									Sulje X</button>
 							</section>
 						</div>
 
 						<dl>
 							<dt>ID</dt> <dd> <?= $t->id ?> </dd>
-							<dt>articleNo</dt> <dd> <?= $t->articleNo ?> </dd>
-							<dt>brandNo</dt> <dd> <?= $t->brandNo  . "&nbsp;" ?></dd>
-							<dt>hankintapaikka_id</dt> <dd> <?= $t->hankintapaikkaID ?> </dd>
-							<dt>tuotekoodi</dt> <dd><?= $t->tuotekoodi ?></dd>
-							<dt>tilauskoodi</dt> <dd><?= $t->tilauskoodi . "&nbsp;" ?></dd>
-							<dt>nimi</dt> <dd><?= $t->nimi ?></dd>
-							<dt>valmistaja</dt> <dd><?= $t->valmistaja ?></dd>
-							<dt>kuva_url</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>infot</dt> <dd><?= "&nbsp;Lorem ipsum dolor sit amet,<br>consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." ?></dd>
-							<dt>hinta_ilman_ALV</dt> <dd><?= $t->a_hinta_ilman_alv ?></dd>
-							<dt>ALV_kanta</dt> <dd><?= $t->alv_toString() ?></dd>
-							<dt>varastosaldo</dt> <dd><?= $t->varastosaldo ?></dd>
-							<dt>minimimyyntiera</dt> <dd><?= $t->minimimyyntiera ?></dd>
-							<dt>yhteensa_kpl</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>keskiostohinta</dt> <dd><?= $t->ostohinta_toString() ?></dd>
-							<dt>hyllypaikka</dt> <dd><?= $t->hyllypaikka . "&nbsp;" ?></dd>
-							<dt>vuosimyynti</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>ensimmaisen_kerran_varastossa</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>paivitettava</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>tecdocissa</dt> <dd><?= "&nbsp;" ?></dd>
-							<dt>aktiivinen</dt> <dd><?= "&nbsp;" ?></dd>
+							<dt>Artikkeli Nro</dt> <dd> <?= $t->articleNo ?> </dd>
+							<dt>Brandi Nro</dt> <dd> <?= $t->brandNo ?></dd>
+							<dt>Hankintapaikka ID</dt> <dd> <?= $t->hankintapaikkaID ?> </dd>
+							<dt>Tuotekoodi</dt> <dd><?= $t->tuotekoodi ?></dd>
+							<dt>Tilauskoodi</dt> <dd><?= $t->tilauskoodi ?></dd>
 						</dl>
 						<hr>
+						<dl>
+							<dt>Nimi</dt> <dd><?= $t->nimi ?></dd>
+							<dt>Valmistaja</dt> <dd><?= $t->valmistaja ?></dd>
+							<dt>Hankintapaikka</dt> <dd><?= $t->hankintapaikkaNimi ?></dd>
+							<dt>hyllypaikka</dt> <dd><?= $t->hyllypaikka ?></dd>
+							<dt>Tuoteryhmät</dt>
+								<dd><?php foreach( $t->tuoteryhmat as $tr ) :
+										echo $tr . "<br>";
+									endforeach; ?>
+								</dd>
+							<dt>Kuvan URL</dt> <dd><?= $t->kuvaURL ?? "---" ?></dd>
+							<dt>Infot</dt> <dd><?= $t->infot ?? "---" ?></dd>
+						</dl>
+						<hr>
+						<dl>
+							<dt>Hinta (ALV 0 %)</dt> <dd><?= $t->aHintaIlmanALV_toString() ?></dd>
+							<dt>ALV_kanta</dt> <dd><?= $t->alv_toString() ?></dd>
+							<dt>keskimyyntihinta</dt> <dd><?= '' ?></dd>
+							<dt>Ostohinta</dt> <dd><?= $t->ostohinta_toString() ?></dd>
+							<dt>keskiostohinta</dt> <dd><?= '' ?></dd>
+						</dl>
+						<hr>
+						<dl>
+							<dt>varastosaldo</dt> <dd><?= $t->varastosaldo ?></dd>
+							<dt>minimimyyntiera</dt> <dd><?= $t->minimimyyntiera ?></dd>
+							<dt>vuosimyynti</dt> <dd><?= "" ?></dd>
+							<dt>1. kerran varastossa</dt> <dd><?= $t->ensimmaisenKerranVarastossa ?></dd>
+							<dt>yhteensa_kpl</dt> <dd><?= "" ?></dd>
+						</dl>
+						<hr>
+						<dl>
+							<dt>Päivitettava</dt> <dd><?= $t->paivitettava ? 'Kyllä' : 'Ei' ?></dd>
+							<dt>Tecdocissa</dt> <dd><?= $t->tecdocissa ? "Kyllä" : "Ei" ?></dd>
+							<dt>Aktiivinen</dt> <dd><?= $t->aktiivinen ? "Kyllä" : "Ei" ?></dd>
+						</dl>
 
 						<?php foreach( $t->maaraalennukset as $alennus ) :
 							debug( $alennus );
