@@ -1,6 +1,7 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
+
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
@@ -12,14 +13,14 @@ if ( !$user->isAdmin() ) {
  * @param DByhteys $db
  * @param int $hankintapaikka_id
  * @param array $brands
- * @return array|bool|stdClass
+ * @return bool
  */
-function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands ) {
-	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ?";
-	$db->query($sql, [$hankintapaikka_id]);
+function lisaa_linkitys( DByhteys $db, int $hankintapaikka_id, array $brands ) : bool {
 	if ( !$brands ) {
 		return false;
 	}
+	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ?";
+	$db->query($sql, [$hankintapaikka_id]);
 	$values = [];
 	foreach ( $brands as $brand ) {
 		$values[] = $hankintapaikka_id;
@@ -32,7 +33,7 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands
 			VALUES {$questionmarks}
 			ON DUPLICATE KEY
 			UPDATE brandi_kaytetty_id = VALUES(brandi_kaytetty_id)";
-	return $db->query($sql, $values);
+	return $db->query($sql, $values) ? true : false;
 }
 
 /**
@@ -41,7 +42,7 @@ function lisaa_linkitys( DByhteys $db, /*int*/ $hankintapaikka_id, array $brands
  * @param array $brands
  * @return array|int|stdClass
  */
-function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands ){
+function poista_tuote_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands ){
 	$values = [];
 	if ( $brands ) {
 		$questionmarks = "(" . implode(',', array_fill(0, count($brands), '?')) . ")";
@@ -60,11 +61,10 @@ function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands
 }
 
 if ( isset($_POST['lisaa_linkitys']) ) {
-	unset($_POST['lisaa_linkitys']);
 	$brands = isset($_POST['brands']) ? $_POST['brands'] : [];
-	$hankintapaikka_id = isset($_POST['hankintapaikka_id']) ? $_POST['hankintapaikka_id'] : 0;
+	$hankintapaikka_id = isset($_POST['hankintapaikka_id']) ? (int)$_POST['hankintapaikka_id'] : 0;
 	lisaa_linkitys($db, $hankintapaikka_id, $brands);
-	poista_linkitys($db, $hankintapaikka_id, $brands);
+	poista_tuote_linkitys($db, $hankintapaikka_id, $brands);
 	header("Location: yp_hankintapaikka.php?hankintapaikka_id={$_POST['hankintapaikka_id']}");
 	exit();
 }
@@ -150,7 +150,7 @@ $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 				</div>
 			<?php endforeach;?>
 			<input type="hidden" name="hankintapaikka_id" value="<?=$hankintapaikka->id?>">
-			<input type="submit" name="lisaa_linkitys" id="submit_button" hidden>
+			<input type="hidden" name="lisaa_linkitys">
 		</form>
 	</div>
 </main>
@@ -172,7 +172,7 @@ $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         if (c === false) {
             return false;
         }
-        document.getElementById("submit_button").click();
+        document.getElementById("linkitys_form").submit();
         return true;
     }
 
@@ -192,15 +192,15 @@ $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 	// Sivun latautuessa merkataan checkboxit
     let brands = <?php echo json_encode($brands); ?>;
-    brands.forEach(function (brand) {
-        if ( brand.brandi_kaytetty_id ) {
-            let box = $('#brand_box-'+brand.id);
-            let input = $('#brand_input-'+brand.id);
-            let checkbox = $('#brand_checkbox-'+brand.id);
+    for ( let i=0; i<brands.length; i++ ) {
+        if (brands[i].brandi_kaytetty_id) {
+            let box = $('#brand_box-' + brands[i].id);
+            let input = $('#brand_input-' + brands[i].id);
+            let checkbox = $('#brand_checkbox-' + brands[i].id);
             box.show();
             input.prop('disabled', false);
             checkbox.prop('checked', 'true');
         }
-    });
+    }
 
 </script>

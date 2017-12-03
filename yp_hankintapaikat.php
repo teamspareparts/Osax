@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -8,29 +8,36 @@ if ( !$user->isAdmin() ) {
 /**
  * Tallentaa uuden hankintapaikan tietokantaan.
  * @param DByhteys $db
- * @param array $arr
+ * @param array $values
+ * @return bool
  */
-function tallenna_uusi_hankintapaikka(DByhteys $db, array $arr){
+function tallenna_uusi_hankintapaikka( DByhteys $db, array $values ) : bool {
 	$query = "  INSERT IGNORE INTO hankintapaikka (id, nimi, katuosoite, postinumero, 
 				                          kaupunki, maa, puhelin, fax, www_url, yhteyshenkilo_nimi, 
 										  yhteyshenkilo_puhelin, yhteyshenkilo_email, tilaustapa)
 				VALUES ( ?, ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ?, ? )";
-	return $db->query( $query, $arr );
+	return $db->query( $query, $values ) ? true : false;
 }
 
 /**
  * Muokkaa hankintapaikan tietoja.
  * @param DByhteys $db
- * @param array $arr
+ * @param array $values
+ * @return bool
  */
-function muokkaa_hankintapaikkaa(DByhteys $db, array $arr){
-	$query = "	UPDATE  IGNORE hankintapaikka 
-				SET 	nimi = ?, katuosoite = ?, postinumero = ?, 
-			  			kaupunki = ? , maa = ?, puhelin = ?, fax = ?, www_url = ?,
-			  			yhteyshenkilo_nimi = ?, yhteyshenkilo_puhelin = ?,
-			  			yhteyshenkilo_email = ?, tilaustapa = ?
-				WHERE 	id = ?";
-	$db->query( $query, $arr );
+function muokkaa_hankintapaikkaa( DByhteys $db, array $values ) : bool {
+	// Tarkistetaan onko nimi varattu
+	$sql = "SELECT id FROM hankintapaikka WHERE nimi = ? AND id <> ?";
+	if ( $db->query($sql, [$values[0], $values[11]] ) ) {
+		return false;
+	}
+	$sql = "UPDATE  hankintapaikka
+			SET 	nimi = ?, katuosoite = ?, postinumero = ?, 
+			  		kaupunki = ? , maa = ?, puhelin = ?, fax = ?, www_url = ?,
+			  		yhteyshenkilo_nimi = ?, yhteyshenkilo_puhelin = ?,
+			  		yhteyshenkilo_email = ?, tilaustapa = ?
+			WHERE 	id = ?";
+	return $db->query( $sql, $values ) ? true : false;
 }
 
 
@@ -38,13 +45,12 @@ function muokkaa_hankintapaikkaa(DByhteys $db, array $arr){
  * Poistaa hankintapaikan ja linkitykset brändeihin.
  * @param DByhteys $db
  * @param int $hankintapaikka_id
- * @return array|bool
+ * @return bool
  */
-function poista_hankintapaikka( DByhteys $db, /*int*/ $hankintapaikka_id){
+function poista_hankintapaikka( DByhteys $db, int $hankintapaikka_id ) : bool {
 	//Tarkastetaan onko linkityksiä tuotteisiin...
-	$query = "SELECT id FROM tuote where hankintapaikka_id = ? ";
-	$linkitykset = $db->query($query, [$hankintapaikka_id]);
-	if ( $linkitykset ) {
+	$sql = "SELECT id FROM tuote WHERE hankintapaikka_id = ? ";
+	if ( $db->query($sql, [$hankintapaikka_id]) ) {
 		return false;
 	}
 	//Poistetaan brändien linkitykset hankintapaikkaan
@@ -53,8 +59,7 @@ function poista_hankintapaikka( DByhteys $db, /*int*/ $hankintapaikka_id){
 
 	//Poistetaan hankintapaikka
 	$query = "DELETE FROM hankintapaikka WHERE id = ? ";
-	$db->query($query, [$hankintapaikka_id]);
-	return true;
+	return $db->query($query, [$hankintapaikka_id]) ? true : false;
 }
 
 
@@ -72,7 +77,7 @@ $hankintapaikat = $db->query($sql, [], FETCH_ALL);
 
 if ( isset($_POST['lisaa']) ) {
 	$arr = [
-		$_POST['hankintapaikka_id'],
+		(int)$_POST['hankintapaikka_id'],
 		$_POST['nimi'],
 		$_POST['katuosoite'],
 		$_POST['postinumero'],
@@ -106,13 +111,17 @@ elseif( isset($_POST['muokkaa']) ) {
 		$_POST['yhteyshenkilo_puhelin'],
 		$_POST['yhteyshenkilo_email'],
 		$_POST['tilaustapa'],
-		$_POST['hankintapaikka_id'],
+		(int)$_POST['hankintapaikka_id'],
 	];
-	muokkaa_hankintapaikkaa($db, $arr);
+	if ( muokkaa_hankintapaikkaa($db, $arr) ) {
+		$_SESSION['feedback'] = "<p class='success'>Muokkaus onnistui.</p>";
+	} else {
+		$_SESSION['feedback'] = "<p class='error'>ID tai tunniste varattu.</p>";
+	}
 
 }
-elseif( isset($_POST['poista'])){
-	if ( poista_hankintapaikka($db, $_POST['hankintapaikka_id']) ) {
+elseif( isset($_POST['poista']) ) {
+	if ( poista_hankintapaikka($db, (int)$_POST['hankintapaikka_id']) ) {
 		$_SESSION["feedback"] = "<p class='success'>Hankintapaikka poistettu.</p>";
 	} else {
 		$_SESSION["feedback"] = "<p class='error'>Hankintapaikkaa ei voitu poistaa, koska siihen on linkitetty tuotteita!</p>";
@@ -173,7 +182,7 @@ unset($_SESSION["feedback"]);
 			<tbody>
 			<?php if ( isset($hankintapaikat) ) : ?>
 			<?php foreach( $hankintapaikat as $hankintapaikka ) :
-					$hankintapaikka->brandit = explode(',', $hankintapaikka->brandit)?>
+					$hankintapaikka->brandit = explode(',', (string)$hankintapaikka->brandit)?>
 				<tr>
 					<td data-href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>">
 						<?= $hankintapaikka->hankintapaikka_id?></td>
@@ -377,19 +386,19 @@ unset($_SESSION["feedback"]);
 	    $(document.body)
         //Estetään valitsemasta jo olemassa olevaa hankintapikka ID:tä ja nimeä
             .on('submit', '#uusi_hankintapaikka', function(e) {
-                let id, nimi, i, hankintapaikat;
+                let id, nimi, hankintapaikat;
                 hankintapaikat = <?php echo json_encode($hankintapaikat); ?>
                 //Tarkastetaan onko ID tai nimi varattu
                 id = +document.getElementById("uusi_hankintapaikka").elements["hankintapaikka_id"].value;
                 nimi = document.getElementById("uusi_hankintapaikka").elements["nimi"].value;
                 if (hankintapaikat.length > 0) {
-                    for (i = 0; i < hankintapaikat.length; i++) {
+                    for (let i = 0; i < hankintapaikat.length; i++) {
                         if ( hankintapaikat[i].id === id ) {
                             alert("ID on varattu.");
                             e.preventDefault();
                             return false;
                         }
-                        if ( hankintapaikat[i].nimi.toUpperCase() === nimi.toUpperCase()) {
+                        if ( hankintapaikat[i].nimi.toUpperCase() === nimi.toUpperCase() ) {
                             alert("Nimi on varattu.");
                             e.preventDefault();
                             return false;

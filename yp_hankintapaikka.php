@@ -1,27 +1,28 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
+
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php");
 	exit();
 }
 
 /**
+ * Poistaa linkitykset brändin ja hankintapaikan väliltä.
  * @param DByhteys $db
  * @param $hankintapaikka_id
  * @param $brand_id
- * @return array|int|stdClass
+ * @return bool
  */
-function poista_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, /*int*/$brand_id){
-	//Poistetaan linkitykset hankintapaikan ja yrityksen välillä.
+function poista_linkitys( DByhteys $db, int $hankintapaikka_id, int $brand_id ) : bool {
 	$sql = "UPDATE tuote SET tuote.aktiivinen = 0 WHERE hankintapaikka_id = ? AND brandNo = ?";
 	$db->query($sql, [$hankintapaikka_id, $brand_id]);
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ?";
-	return $db->query($sql, [$hankintapaikka_id, $brand_id]);
+	return $db->query($sql, [$hankintapaikka_id, $brand_id]) ? true : false;
 
 }
 
 if ( isset($_POST['poista_linkitys']) ) {
-	poista_linkitys($db, $_POST['hankintapaikka_id'], $_POST['brand_id']);
+	poista_linkitys($db, (int)$_POST['hankintapaikka_id'], (int)$_POST['brand_id']);
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -36,7 +37,8 @@ unset($_SESSION["feedback"]);
 $hankintapaikka_id = isset($_GET['hankintapaikka_id']) ? $_GET['hankintapaikka_id'] : null;
 
 // Hankintapaikan tiedot
-$hankintapaikka = $db->query("SELECT *, LPAD(id, 3, '0') AS hankintapaikka_id FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
+$sql = "SELECT *, LPAD(id, 3, '0') AS hankintapaikka_id FROM hankintapaikka WHERE id = ?";
+$hankintapaikka = $db->query($sql, [$hankintapaikka_id]);
 
 // Tarkistetaan GET-parametrien oikeellisuus
 if ( !$hankintapaikka ) {
