@@ -4,7 +4,7 @@
  */
 
 class EoltasWebservice {
-	private static $request_url = "https://b2b.eoltas.lt/index.php?cl=nfqwebservicemainview";
+	private static $request_url = 'https://b2b.eoltas.lt/index.php?cl=nfqwebservicemainview';
 	private static $config_path = './config/config.ini.php';
 	private static $timeout = 3; //sekuntia
 
