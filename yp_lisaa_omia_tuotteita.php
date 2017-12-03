@@ -1,4 +1,4 @@
-﻿<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 // Huom. upload_max_filesize = 5M
@@ -14,7 +14,7 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * @param int $hankintapaikka_id
  * @return array
  */
-function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
+function lue_hinnasto_tietokantaan( DByhteys $db, int $hankintapaikka_id) : array {
 	// Asetukset
 	$inserts_per_query = 4000; // Kantaan kerralla ajettavien tuotteiden määrä
 
@@ -114,7 +114,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 				$tilauskoodi = $data[11];
 				break;
 		}
-		$tuotekoodi = str_pad($hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . $articleNo; //esim: 100-QTB249
+		$tuotekoodi = str_pad((string)$hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . $articleNo; //esim: 100-QTB249
 
 		// Tarkastetaan csv:n solujen oikeellisuus
 		if ( !($brandId && $brandName && $hankintapaikka_id && $ostohinta &&
@@ -196,7 +196,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
  * @param $hankintapaikka_id
  * @return array
  */
-function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id ) {
+function lue_linkitykset_tietokantaan( DByhteys $db, int $hankintapaikka_id ) : array {
 	// Alustukset
 	$otsikkorivi = isset($_POST['otsikkorivi']) ? true : false;
 	$row = 0;
@@ -229,13 +229,11 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 			continue;
 		}
 
-		$successful_inserts++;
-
 		// Vertailujen lisäys
 		$sql = "INSERT INTO tuote_linkitys (tuote_id, brandNo, articleNo) 
 				SELECT tuote.id, ?, ?
 				FROM tuote
-				WHERE tuote.tecdocissa = 0 
+				WHERE tuote.tecdocissa = 0
 					AND tuote.brandNo = ?
 					AND tuote.articleNo = ?
 					AND tuote.hankintapaikka_id = ?
@@ -248,6 +246,7 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
 			$failed_inserts[] = "{$row} - Itse perustettua tuotetta ei löytynyt kannasta.";
 			continue;
 		}
+		$successful_inserts++;
 	}
 	return array($successful_inserts, $failed_inserts);
 }
@@ -258,7 +257,7 @@ function lue_linkitykset_tietokantaan( DByhteys $db, /*int*/$hankintapaikka_id )
  * @param $values
  * @return bool
  */
-function perusta_oma_tuote( DByhteys $db, array $values ) {
+function perusta_oma_tuote( DByhteys $db, array $values ) : bool {
 	$sql = "INSERT INTO tuote (articleNo, sisaanostohinta, keskiostohinta, hinta_ilman_ALV, ALV_kanta, 
 				minimimyyntiera, varastosaldo, yhteensa_kpl, brandNo, hankintapaikka_id, tuotekoodi, tilauskoodi,
 			  	valmistaja, nimi, kuva_url, infot, tecdocissa) 
@@ -297,7 +296,7 @@ $sql = "SELECT brandin_linkitys.brandi_id, brandin_linkitys.brandi_kaytetty_id,
 $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 if ( !$brands ) {
-	header("Location:toimittajat.php");
+	header("Location:yp_toimittajat.php");
 	exit();
 }
 if ( isset($_FILES['tuotteet']['name']) ) {

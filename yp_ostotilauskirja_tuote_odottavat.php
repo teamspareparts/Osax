@@ -1,17 +1,16 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
 
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
 
-/** Järjestetään tuotteet artikkelinumeron mukaan
- * @param $products
+/** Järjestetään tuotteet artikkelinumeron mukaan.
+ * @param array $products
  * @return array <p> Sama array sortattuna
  */
-function sortProductsByName( $products ){
+function sortProductsByName( array $products ) : array {
 	//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
 	//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
 	usort($products, function ($a, $b) {
@@ -34,7 +33,6 @@ if ( !$otk ) {
 }
 
 if( isset($_POST['vastaanotettu']) ) {
-	unset($_POST['vastaanotettu']);
 	if ( $db->query("UPDATE ostotilauskirja_arkisto SET saapumispaiva = NOW(), hyvaksytty = 1, vastaanottaja = ?
   					WHERE id = ? ", [$user->id, $_POST['id']]) ) {
 

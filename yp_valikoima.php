@@ -13,7 +13,7 @@ if ( !$user->isAdmin() ) {
  * @param int[]    $ordering <p> [kolumni, ASC|DESC]. 1. int on kolumnin järjestys taulukossa. 2. 0=ASC, 1=DESC
  * @return array <p> [0] = row count, [1] tuotteet
  */
-function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $pagination = [20,0], array $ordering = [1, 1] ) {
+function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $pagination=[20,0], array $ordering=[1,1] ) : array {
 
 	$brandNo = $tuote_tiedot[0];
 	$hankintapaikka_id = $tuote_tiedot[1];

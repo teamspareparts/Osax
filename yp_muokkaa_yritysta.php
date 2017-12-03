@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 $yritys = new Yritys( $db, (!empty($_GET['id']) ? (int)$_GET['id'] : null));

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require './_start.php'; global $db, $user, $cart;
 require './luokat/tuoteryhma.class.php';
 
@@ -12,14 +12,14 @@ require './luokat/tuoteryhma.class.php';
  * @param int          $maxDepth <p> Max syvyys. To prevent endless loops.
  * @return array <p> Palauttaa k-ary puun. K == lasten määrä.
  */
-function rakenna_puu( array &$elements, $parentId = 0, /*int*/$depth = 0, /*int*/$maxDepth = 5 ) {
+function rakenna_puu( array &$elements, int $parentId = 0, int $depth = 0, int $maxDepth = 5 ) : array {
 	if ( ++$depth > $maxDepth ) {
 		return array();
 	}
 	$branch = array();
 	foreach ( $elements as &$element ) {
 		if ( $element->parentID == $parentId ) {
-			$children = rakenna_puu( $elements, $element->id, $depth );
+			$children = rakenna_puu( $elements, (int)$element->id, $depth );
 			if ( $children ) {
 				$element->children = $children;
 			}
@@ -39,7 +39,7 @@ function rakenna_puu( array &$elements, $parentId = 0, /*int*/$depth = 0, /*int*
  * @param int          $depth    <p> Syvyys rekursiossa. Pidetään lukua varmuuden vuoksi.
  * @param int          $maxDepth <p> Max syvyys. To prevent endless loops.
  */
-function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = "", /*int*/$depth = 0, /*int*/$maxDepth = 3 ) {
+function tulosta_puu( array &$elements, int $par_ID = 0, string $par_oT = "", int $depth = 0, int $maxDepth = 3 ) {
 	if ( ++$depth > $maxDepth ) {
 		return;
 	}
@@ -62,7 +62,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
 					</a> |
 					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
 				</summary>";
-			tulosta_puu( $el->children, $el->id, $new_oT, $depth );
+			tulosta_puu( $el->children, (int)$el->id, $new_oT, $depth );
 			echo '</details>';
 		}
 		else {
@@ -86,7 +86,7 @@ function tulosta_puu( array &$elements, /*int*/$par_ID = 0, /*string*/$par_oT = 
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db ) {
+function hae_kaikki_yritykset_ja_luo_alasvetovalikko( DByhteys $db ) : string {
 	$sql = "SELECT id, nimi FROM yritys WHERE aktiivinen = 1 ORDER BY nimi ASC";
 	$rows = $db->query( $sql, [], FETCH_ALL );
 
@@ -104,7 +104,7 @@ function hae_kaikki_yritykset_ja_luo_alasvetovalikko( $db ) {
  * @param DByhteys $db
  * @return String <p> HTML-koodia. Dropdown-valikko.
  */
-function hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( $db ) {
+function hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( DByhteys $db ) : string {
 	$sql = "SELECT id, nimi FROM hankintapaikka ORDER BY nimi ASC";
 	$rows = $db->query( $sql, [], FETCH_ALL );
 

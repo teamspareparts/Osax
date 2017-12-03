@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Tällä sivulla luodaan hinnasto.txt tiedosto.
  * Tiedosto ajetaan cronjobilla kerran päivässä.
@@ -6,15 +6,15 @@
 
 //Määritellään työskentelykansio cronjobia varten
 chdir(dirname(__FILE__));
-require 'luokat/dbyhteys.class.php';
+require './luokat/dbyhteys.class.php';
 $db = new DByhteys();
 
 
 set_time_limit(180);
 
 //Debuggaukseen
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 
@@ -29,7 +29,7 @@ if ( !file_exists("./{$path}") ) { // Tarkistetaan, että kansio on olemassa.
 $fetchCount = 10000;
 
 /** Hinnastotiedoston tallentaminen serverille */
-$hinnastotiedosto = fopen($path.$tiedoston_nimi, "w") or die("Tiedostoa ei voi avata!");
+$hinnastotiedosto = fopen($path.$tiedoston_nimi, 'w') or die("Tiedostoa ei voi avata!");
 //fwrite($hinnastotiedosto, chr(0xEF).chr(0xBB).chr(0xBF)); //UTF-8 BOM
 $offset = 0;
 $products = true;
@@ -72,6 +72,11 @@ while( $products ) {  //Haetaan fetchCount verran tuotteita kerrallaan
 	    }
     }
 }
+// Viimeinen tuote hinnastoon
+$row = str_pad($edellinen_tuote->tuotekoodi, 20, " ") .
+	str_pad(number_format((1 + $edellinen_tuote->prosentti) * $edellinen_tuote->hinta_ilman_ALV, 2, ',', ''), 10, " ", STR_PAD_LEFT) .
+	str_pad(mb_convert_encoding($edellinen_tuote->nimi, "windows-1252", "UTF-8"), 40, " ") . "\r\n";
+fwrite($hinnastotiedosto, $row);
 
 //Poistetaan tiedostosta viimeinen newline
 $stat = fstat($hinnastotiedosto);

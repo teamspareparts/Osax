@@ -129,8 +129,10 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) : string
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
 	foreach ( $rows as $tr ) {
-		$taso = strlen( $tr->oma_taso ) / 3; // Monesko taso, 11 merkkiä / 3 = 3[,6666]
-		$taso = str_repeat( "-", $taso-1 ); // Montako viivaa == monesko taso
+		//TODO: Pahoittelut, jos hajotin jotain. :(
+		//TODO: Muutin hieman koodia, että pääsen php errorista eroon.
+		$taso = $tr->oma_taso; // Monesko taso, 11 merkkiä / 3 = 3[,6666]
+		$taso = str_repeat( "-", (int)$taso-1 ); // Montako viivaa == monesko taso
 		if ( $taso == '' ) {
 			$return_string .= "<option disabled>--------------------------</option>";
 		}
@@ -469,7 +471,7 @@ elseif ( !empty($_POST['tuote_linkitys']) ) {
 	$result = false;
 	// Etsitään tuote vielä tecdocista
 	$tecdoc_tuote = getArticleDirectSearchAllNumbersWithState($_POST['tecdoctuote']['article'],
-		0, true, $_POST['tecdoctuote']['brand']);
+		0, true, (int)$_POST['tecdoctuote']['brand']);
 	if ( count($tecdoc_tuote) > 0 ) {
 		$tecdoc_tuote[0]->articleNo = str_replace(" ", "", $tecdoc_tuote[0]->articleNo);
 		// Lisätään vertailu

@@ -1,4 +1,4 @@
-﻿<?php
+<?php declare(strict_types=1);
 /**
  * Ostoautomaatio. Listään tarpeen mukaan tuotteita ostotilauskirjoille.
  */
@@ -20,9 +20,9 @@ $sql_insert_values = [];
  * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika
  * @param DByhteys $db
  * @param int $hankintapaikka_id
- * @return float|int
+ * @return int
  */
-function get_toimitusaika(DByhteys $db, /*int*/ $hankintapaikka_id) {
+function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : float {
     $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
     //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
     $sql = "	SELECT lahetetty, saapumispaiva 

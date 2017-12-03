@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
@@ -16,7 +16,7 @@ $db = new DByhteys( $config );
 
 // Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
 $sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
-$rows = $db->query( $sql, null, FETCH_ALL );
+$rows = $db->query( $sql, [], FETCH_ALL );
 
 if ( $rows ) {
 

@@ -16,7 +16,7 @@ function paivita_tecdocin_brandit_kantaan( DByhteys $db ) : bool {
 	foreach ( $brands as $brand ) {
 	    $placeholders[] = $brand->brandId;
 		$placeholders[] = $brand->brandName;
-		$placeholders[] = TECDOC_THUMB_URL . $brand->brandLogoID . "/";
+		$placeholders[] = isset($brand->brandLogoID) ? TECDOC_THUMB_URL . $brand->brandLogoID . "/" : "";
     }
 	$questionmarks = implode(',', array_fill( 0, count($brands), '( ?, ?, ? )'));
 	$sql = "INSERT INTO brandi (id, nimi, url)
@@ -47,12 +47,8 @@ function lisaa_brandi( DByhteys $db, string $nimi, string $kuva_url ) : bool {
     $sql = "INSERT INTO brandi (id, nimi, url, oma_brandi)
             VALUES( ?, ?, ?, 1 )
             ON DUPLICATE KEY
-            UPDATE nimi = VALUES(nimi), url = VALUES(url), aktiivinen = 1";
-	$result = $db->query($sql, [$vapaa_id, $nimi, $kuva_url]);
-	if ( !$result ) {
-		return false;
-	}
-	return true;
+            UPDATE url = VALUES(url), aktiivinen = 1";
+	return $db->query($sql, [$vapaa_id, $nimi, $kuva_url]) ? true : false;
 }
 
 /**
@@ -162,7 +158,7 @@ unset($_SESSION["feedback"]);
     $(document).ready(function(){
         $('.clickable').click(function(){
             let brandId = $(this).attr('data-brandId');
-            window.document.location = 'toimittajan_hallinta.php?brandId='+brandId;
+            window.document.location = 'yp_toimittajan_hallinta.php?brandId='+brandId;
         })
         .css('cursor', 'pointer');
     });

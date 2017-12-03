@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  *	Haetaan itse perustetuille tuotteille lisää vertailunumeroita.
  * 	Tiedosto ajetaan automaattisesti cronjobin avulla, aina 3 min välein.
@@ -14,8 +14,8 @@ $db = new DByhteys();
  * For debugging.
  */
 set_time_limit(60);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting( E_ALL );
 
 /*

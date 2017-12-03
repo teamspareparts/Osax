@@ -93,7 +93,7 @@ $brand_id = isset($_GET['brandId']) ? (int)$_GET['brandId'] : null;
 // Tarkastetaan GET-parametrin oikeellisuus
 $brand = $db->query("SELECT * FROM brandi WHERE id = ? AND aktiivinen = 1 LIMIT 1", [$brand_id]);
 if ( !$brand ) {
-	header("Location:toimittajat.php"); exit();
+	header("Location:yp_toimittajat.php"); exit();
 }
 
 // Haetaan brändin yhteystiedot ja logon URL
@@ -141,7 +141,7 @@ unset($_SESSION["feedback"]);
 
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a href="toimittajat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+			<a href="yp_toimittajat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
 			<img src="<?=$brand_logo_src?>" style="vertical-align: middle; padding-right: 20px; display:inline-block;">

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require "./_start.php";
 require "./luokat/laskutiedot.class.php";
 global $db, $user;
