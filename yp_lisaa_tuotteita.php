@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
 
@@ -15,7 +15,7 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * @param int $hankintapaikka_id
  * @return array
  */
-function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
+function lue_hinnasto_tietokantaan( DByhteys $db, int $hankintapaikka_id) : array {
 	// Asetukset
 	$inserts_per_query = 5000; // Kantaan kerralla ajettavien tuotteiden määrä
 
@@ -109,7 +109,7 @@ function lue_hinnasto_tietokantaan( DByhteys $db, /*int*/ $hankintapaikka_id) {
 				$tilauskoodi = $data[8];
 				break;
 		}
-		$tuotekoodi = str_pad($hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . $articleNo; //esim: 100-QTB249
+		$tuotekoodi = str_pad((string)$hankintapaikka_id, 3, "0", STR_PAD_LEFT) . "-" . $articleNo; //esim: 100-QTB249
 
         // Tarkastetaan csv:n solujen oikeellisuus
         if ( !($brandId && $brandName && $hankintapaikka_id && $ostohinta &&
@@ -212,8 +212,8 @@ if ( isset($_FILES['tuotteet']['name']) ) {
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) || !empty($_FILES) ) { //Estetään formin uudelleenlähetyksen
-	//header("Location: " . $_SERVER['REQUEST_URI']);
-	//exit();
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
 }
 $feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : '';
 unset($_SESSION["feedback"]);

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) {
@@ -123,10 +123,10 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 			<input name="demo_user" type="hidden" value="false"><!-- Tarvitaan, jos checkbox ei ole valittu -->
 			<input name="demo_user" type="checkbox" title="Asiakas aktiivinen vain määräajan." id="demo">
 
-            <div id="paivat" style="padding-left: 20px;font-weight: bold; display: inline-block">
+            <div id="paivat" style="padding-left: 20px; display: inline-block">
 			    <label>Päivät:</label>
 			    <input name="paivat" type="number" value="7" min="1" maxlength="4"
-				   title="Kuinka monta päivää aktiivinen" style="width: 50px;">
+				   title="Kuinka monta päivää aktiivinen." style="width: 50px;">
             </div>
 
 			<input name="yritys_id" type="hidden" value="<?=$yritys_id?>" >
