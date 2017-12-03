@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * Tiedosto luo myyntitapahtumalistauksen.
  * Raportti lähetetään sähköpostilla kirjanpitoon, jos tiedosto ajetaan cmd:llä.
@@ -58,8 +58,8 @@ $raportti .= "Myyntitapahtumat " . date('d.m.Y', strtotime($pvm_from)) .
 foreach ( $tilaukset as $tilaus ) {
 	$tilaus->tilauspvm = date('d.m.Y', strtotime($tilaus->paivamaara));
 	$tilaus->laskunro = isset($tilaus->laskunro) ? $tilaus->laskunro : "NULL";
-	$tilaus->summa_alvillinen_string = number_format($tilaus->summa_alvillinen, 2, ".", "") . "€";
-	$tilaus->summa_alviton_string = number_format($tilaus->summa_alviton, 2, ".", "") . "€";
+	$tilaus->summa_alvillinen_string = number_format((float)$tilaus->summa_alvillinen, 2, ".", "") . "€";
+	$tilaus->summa_alviton_string = number_format((float)$tilaus->summa_alviton, 2, ".", "") . "€";
 	//Määritellään maksutapa ja lasketaan tilausten yhteisarvoa
 	$tilaus->maksutapa_string = null;
 	switch ( $tilaus->maksutapa ) {

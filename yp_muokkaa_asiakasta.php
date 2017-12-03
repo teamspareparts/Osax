@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
@@ -34,7 +34,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	unset($_SESSION["feedback"]);
 }
 
-$asiakas = new User( $db, (!empty($_GET['id']) ? $_GET['id'] : NULL) );
+$asiakas = new User( $db, (!empty($_GET['id']) ? (int)$_GET['id'] : NULL) );
 if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 	header("Location:yp_asiakkaat.php"); exit();
 }

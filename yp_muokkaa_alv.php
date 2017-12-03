@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
 if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
@@ -9,9 +9,9 @@ if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
  * Hakee kaikki ALV-kannat tietokannasta. Lisäksi täyttää kantojen arrayin, jos siinä ei ole viisi elementtiä,
  *  koska olen päättänyt yksimielisesti, että meillä on nyt viisi ALV-kantaa + nolla.
  * @param DByhteys $db
- * @return stdClass[]
+ * @return array
  */
-function hae_kaikki_ALV_kannat( DByhteys $db ) {
+function hae_kaikki_ALV_kannat( DByhteys $db ) : array {
 	$sql = "SELECT kanta, prosentti FROM ALV_kanta ORDER BY kanta ASC";
 	$rows = $db->query( $sql, [], FETCH_ALL );
 
@@ -73,7 +73,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 		<fieldset><legend>Muokkaa ALV-kantoja</legend>
 			Kokonaislukuina, kiitos.<br><br>
 
-			<label disabled style="color: #6f6f6f;">ALV-kanta 0:
+			<label style="color: #6f6f6f;">ALV-kanta 0:
 				<input type='hidden' name='kanta[]' value="0"><input type='hidden' name='pros[]' value="0">
 				<input type='number' value="0" disabled>
 			</label>
