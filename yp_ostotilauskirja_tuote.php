@@ -16,9 +16,9 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
  * Lasketaan halutun hankintapaikan keskimääräinen toimitusaika.
  * @param DByhteys $db
  * @param int $hankintapaikka_id
- * @return int
+ * @return float
  */
-function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : int {
+function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : float {
     $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
     //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
     $sql = "	SELECT lahetetty, saapumispaiva 
