@@ -154,7 +154,7 @@ class Tuote {
 	 * @return string
 	 */
 	function aHinta_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
-		return number_format( $this->a_hinta, $dec_count, ',', '.' )
+		return number_format( (float)$this->a_hinta, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
 
@@ -164,7 +164,7 @@ class Tuote {
 	 * @return string
 	 */
 	function aHintaIlmanALV_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
-		return number_format( $this->a_hinta_ilman_alv, $dec_count, ',', '.' )
+		return number_format( (float)$this->a_hinta_ilman_alv, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
 
@@ -174,7 +174,7 @@ class Tuote {
 	 * @return string
 	 */
 	function aHintaAlennettu_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
-		return number_format( $this->a_hinta_alennettu, $dec_count, ',', '.' )
+		return number_format( (float)$this->a_hinta_alennettu, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
 
@@ -184,7 +184,7 @@ class Tuote {
 	 * @return string
 	 */
 	function aHintaAlennettuIlmanALV_toString ( bool $ilman_euro = false, int $dec_count = 2 ) {
-		return number_format( $this->a_hinta_alennettu_ilman_alv, $dec_count, ',', '.' )
+		return number_format( (float)$this->a_hinta_alennettu_ilman_alv, $dec_count, ',', '.' )
 			. ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
 
@@ -196,8 +196,8 @@ class Tuote {
 	 */
 	function summa_toString ( bool $ilman_alv = false, bool $ilman_euro = false, int $dec_count = 2 ) {
 		$summa = ($ilman_alv)
-			? ($this->a_hinta_alennettu_ilman_alv * $this->kpl_maara)
-			: $this->summa;
+			? ((float)$this->a_hinta_alennettu_ilman_alv * (int)$this->kpl_maara)
+			: (float)$this->summa;
 
 		return number_format( $summa, $dec_count, ',', '.' ) . ($ilman_euro ? '' : '&nbsp;&euro;');
 	}
@@ -210,8 +210,8 @@ class Tuote {
 	 */
 	function alv_toString ( bool $ilman_pros = false, int $decCount = 0 ) {
 		return ($decCount)
-			? number_format( $this->alv_prosentti, $decCount, ',', '.' )
-			: number_format( $this->alv_prosentti * 100, 0, ',', '.' )
+			? number_format( (float)$this->alv_prosentti, $decCount, ',', '.' )
+			: number_format( (float)$this->alv_prosentti * 100, 0, ',', '.' )
 				. ($ilman_pros ? '' : '&nbsp;&#37;');
 	}
 
@@ -222,8 +222,8 @@ class Tuote {
 	 */
 	function alennus_toString ( bool $ilman_pros = false, int $decCount = 0 ) {
 		return ($decCount)
-			? number_format( $this->alennus_prosentti, $decCount, ',', '.' )
-			: number_format( $this->alennus_prosentti * 100, 0, ',', '.' )
+			? number_format( (float)$this->alennus_prosentti, $decCount, ',', '.' )
+			: number_format( (float)$this->alennus_prosentti * 100, 0, ',', '.' )
 				. ($ilman_pros ? '' : '&nbsp;&#37;');
 	}
 
@@ -233,7 +233,7 @@ class Tuote {
 	 * @return string
 	 */
 	function ostohinta_toString ( bool $ilmanEuro = false, int $decCount = 2 ) {
-		return number_format( $this->ostohinta, $decCount, ',', '.' )
+		return number_format( (float)$this->ostohinta, $decCount, ',', '.' )
 			. ($ilmanEuro ? '' : '&nbsp;&euro;');
 	}
 }
