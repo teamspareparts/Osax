@@ -2,15 +2,11 @@
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 
-require '../luokat/laskutiedot.class.php';
-require '../luokat/dbyhteys.class.php'; // Laskutiedot-luokkaa varten
-require '../luokat/yritys.class.php'; // Laskutiedot-luokkaa varten
-require '../luokat/tuote.class.php'; // Laskutiedot-luokkaa varten
-require '../luokat/email.class.php';
-require '../luokat/user.class.php'; // Laskutiedot-luokkaa ja sähköpostia varten
-require '../mpdf/mpdf.php';
+spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 
-$config = parse_ini_file( "../config/config.ini.php" ); // Jannen sähköpostin tarkistusta varten
+require './mpdf/mpdf.php';
+
+$config = parse_ini_file( "./config/config.ini.php" ); // Jannen sähköpostin tarkistusta varten
 
 $db = new DByhteys( $config );
 
@@ -40,11 +36,9 @@ if ( $rows ) {
 	echo "---<br>\r\n";
 	echo "Luodaan laskut ja sähköpostit:<br>\r\n";
 
-	if ( !file_exists('../tilaukset') ) {
-		mkdir( '../tilaukset' );
+	if ( !file_exists('./tilaukset') ) {
+		mkdir( './tilaukset' );
 	}
-
-	Email::muutaConfigPath("../config/config.ini.php");
 
 	foreach ( $rows as $tilaus ) {
 
@@ -53,8 +47,8 @@ if ( $rows ) {
 		$user = new User( $db, $tilaus->kayttaja_id );
 		$lasku = new Laskutiedot( $db, $tilaus->id, $user, $config['indev'] );
 
-		require './lasku_html.php';     // HTML-tiedostot vaativat $lasku-objektia, joten siksi nämä ei alussa.
-		require './noutolista_html.php';
+		require './misc/lasku_html.php';     // HTML-tiedostot vaativat $lasku-objektia, joten siksi nämä ei alussa.
+		require './misc/noutolista_html.php';
 
 		/********************
 		 * Laskun luonti
@@ -63,10 +57,10 @@ if ( $rows ) {
 		$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
 		$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
 		$mpdf->WriteHTML( $pdf_lasku_html_body );
-		$lasku_nimi = "../tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
 		$mpdf->Output( $lasku_nimi, 'F' );
 
-		if ( file_exists("../tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
+		if ( file_exists("./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
 			echo " Lasku: OK -";
 		}
 
@@ -77,10 +71,10 @@ if ( $rows ) {
 		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 		$mpdf->WriteHTML( $pdf_noutolista_html_body );
-		$noutolista_nimi = "../tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
 		$mpdf->Output( $noutolista_nimi, 'F' );
 
-		if ( file_exists("../tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
+		if ( file_exists("./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
 			echo " Noutolista: OK";
 		}
 
