@@ -180,6 +180,11 @@ class Email {
 		Email::sendMail( $config );
 	}
 
+	/**
+	 * Jos config-path on jokin muu kuin default ('./config/config.ini.php').
+	 *
+	 * @param string $path
+	 */
 	static function muutaConfigPath( string $path ) {
 		Email::$config_path = $path;
 	}
