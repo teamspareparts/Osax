@@ -1,5 +1,7 @@
 <?php
-spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
+set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
+spl_autoload_extensions('.class.php');
+spl_autoload_register();
 
 if ( empty( $_GET[ 'ORDER_NUMBER' ] ) ) {
 	header( 'Location: etusivu.php' );

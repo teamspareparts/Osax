@@ -12,7 +12,9 @@ function tallenna_nimi_ja_valmistaja( DByhteys $db, int $tuote_id, string $nimi,
 					   [ $nimi, $valmistaja, $tuote_id ] );
 }
 
-spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
+set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
+spl_autoload_extensions('.class.php');
+spl_autoload_register();
 
 session_start();
 
