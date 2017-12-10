@@ -84,7 +84,7 @@ class Email {
 		foreach ( $lasku->tuotteet as $tuote ) {
 			$productTable .= "
 			<tr><td>{$tuote->tuotekoodi}</td><td>{$tuote->valmistaja} {$tuote->nimi}</td>
-				<td style='text-align:right;'>{$tuote->a_hinta_toString()}</td>
+				<td style='text-align:right;'>{$tuote->aHinta_toString()}</td>
 				<td style='text-align:right;'>{$tuote->kpl_maara}</td></tr>";
 		}
 

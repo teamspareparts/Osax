@@ -576,8 +576,8 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
-	$car = $_GET["car"];
-	$part_type = $_GET["osat_alalaji"];
+	$car = (int)$_GET["car"];
+	$part_type = (int)$_GET["osat_alalaji"];
 
 	$products = getArticleIdsWithState($car, $part_type);
 	$own_comparable_products = search_comparable_products_from_database($db, $products);
