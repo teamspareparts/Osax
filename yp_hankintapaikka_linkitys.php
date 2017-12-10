@@ -38,11 +38,11 @@ function lisaa_linkitys( DByhteys $db, int $hankintapaikka_id, array $brands ) :
 
 /**
  * @param DByhteys $db
- * @param $hankintapaikka_id
+ * @param int $hankintapaikka_id
  * @param array $brands
  * @return array|int|stdClass
  */
-function poista_tuote_linkitys( DByhteys $db, /*int*/$hankintapaikka_id, array $brands ){
+function poista_tuote_linkitys( DByhteys $db, int $hankintapaikka_id, array $brands ) {
 	$values = [];
 	if ( $brands ) {
 		$questionmarks = "(" . implode(',', array_fill(0, count($brands), '?')) . ")";

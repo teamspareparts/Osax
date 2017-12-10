@@ -14,11 +14,23 @@ if ( !$user->isAdmin() ) {
  * @return bool
  */
 function poista_linkitys( DByhteys $db, int $hankintapaikka_id, int $brand_id ) : bool {
+	// Deaktivoidaan tuote
 	$sql = "UPDATE tuote SET tuote.aktiivinen = 0 WHERE hankintapaikka_id = ? AND brandNo = ?";
 	$db->query($sql, [$hankintapaikka_id, $brand_id]);
+	// Poistetaan linkitys
 	$sql = "DELETE FROM brandin_linkitys WHERE hankintapaikka_id = ? AND brandi_id = ?";
-	return $db->query($sql, [$hankintapaikka_id, $brand_id]) ? true : false;
-
+	$result = $db->query($sql, [$hankintapaikka_id, $brand_id]);
+	// Poista brändin tuotteet tilauskirjalta
+	$sql = "SELECT id FROM ostotilauskirja WHERE hankintapaikka_id = ?";
+	$otks = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+	foreach ( $otks as $otk ) {
+		$sql = "DELETE otk FROM ostotilauskirja_tuote otk
+				INNER JOIN tuote t
+					ON otk.tuote_id = t.id AND t.brandNo = ?
+				WHERE ostotilauskirja_id = ?";
+		$db->query($sql, [$brand_id, $otk->id]);
+	}
+	return $result ? true : false;
 }
 
 if ( isset($_POST['poista_linkitys']) ) {
