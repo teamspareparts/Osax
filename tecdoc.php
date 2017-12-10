@@ -15,11 +15,11 @@ function _send_json( array $request ) : stdClass {
 	$context = stream_context_create($params);
 
 	if (($file = @fopen(TECDOC_SERVICE_URL, 'rb', false, $context)) === false) {
-		throw new Exception( "Problem with TecDoc, $php_errormsg" );
+		trigger_error( "Problem with TecDoc, $php_errormsg" );
 	}
 
 	if (($json_response = @stream_get_contents($file)) === false) {
-		throw new Exception( "Problem reading data from TecDoc, $php_errormsg" );
+		trigger_error( "Problem reading data from TecDoc, $php_errormsg" );
 	}
 
 	$response = json_decode($json_response);
@@ -117,7 +117,8 @@ function getAmBrandAddress( int $brandNo ) : array {
  * @param string $number <p> Haettava artikkelinumero
  * @param int $search_type <p> Haun tyyppi
  * @param boolean $exact <p> Tarkka haku
- * @param int $brandNo [optional], default = NULL <p>
+ * @param int|NULL $brandNo [optional], default = NULL <p>
+ * @param int|NULL $genericArticleId [optional] <p> Osan tyypin (esim. hammashihna tai jarrulevy), jos tiedossa.
  * @return array
  */
 function getArticleDirectSearchAllNumbersWithState( string $number, int $search_type,
@@ -240,7 +241,7 @@ function getOptionalData( int $article_id ) : array {
  */
 function get_basic_product_info( array $catalog_products ) {
     foreach ( $catalog_products as $catalog_product ) {
-        $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, $catalog_product->brandNo);
+        $response = getArticleDirectSearchAllNumbersWithState($catalog_product->articleNo, 0, true, (int)$catalog_product->brandNo);
 
         $catalog_product->articleId = $response ? $response[0]->articleId : false;
         $catalog_product->brandName = $response ? $response[0]->brandName : "";
@@ -255,6 +256,9 @@ function get_basic_product_info( array $catalog_products ) {
  */
 function merge_products_with_optional_data( array $products ) {
 	foreach ($products as $product){
+		if ( !$product->articleId ) {
+			continue;
+		}
 		$response = getOptionalData($product->articleId);
 		$product->thumburl = get_thumbnail_url($response[0]);
 		$product->infos = get_infos($response[0]);
