@@ -21,15 +21,17 @@ while (false !== ($file_name = $kansio->read())) {
 }
 
 $parser = new EmailParser( file_get_contents($latest_filepath) );
+echo "From: " . $parser->getHeader('from') . "<br>" . PHP_EOL;
 
 /**
  * Tarkistetaan, että meillä on oikea sähköposti hallussa.
  * fileemtime() olisi pitänyt toimia, mutta jostain syystä se saattaa lukea väärän emailin.
  */
-if ($parser->getHeader('from') !== "oradb@werner-metzger.de") {
+if (strpos($parser->getHeader('from'), "oradb@werner-metzger.de") === false ) {
 	echo "Väärä sähköposti!" . "<br>" . PHP_EOL;
-	echo $parser->getHeader('subject') . "<br>" . PHP_EOL;
-	echo $parser->getHeader('date') . "<br>" . PHP_EOL;
+	echo "From: " . $parser->getHeader('from') . "<br>" . PHP_EOL;
+	echo "Subject: " . $parser->getHeader('subject') . "<br>" . PHP_EOL;
+	echo "Date: " . $parser->getHeader('date') . "<br>" . PHP_EOL;
 	echo "File emtime: " . $latest_emtime . "<br>" . PHP_EOL;
 	echo "Filepath: " . $latest_filepath . "<br>" . PHP_EOL;
 	exit();
