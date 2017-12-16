@@ -576,8 +576,8 @@ if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 
 else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten. Ei tarvitse joka kerta tarkistaa isset()
-	$car = $_GET["car"];
-	$part_type = $_GET["osat_alalaji"];
+	$car = (int)$_GET["car"];
+	$part_type = (int)$_GET["osat_alalaji"];
 
 	$products = getArticleIdsWithState($car, $part_type);
 	$own_comparable_products = search_comparable_products_from_database($db, $products);
@@ -591,13 +591,32 @@ else if ( !empty($_GET["manuf"]) ) { // Ajoneuvomallillahaku
 else if ( !empty($_GET["hyllypaikka"]) ) { // Hyllypaikallahaku
 	$haku = TRUE;
 	$hyllypaikka = str_replace(" ", "", $_GET["hyllypaikka"]);
-	$sql = "SELECT  *, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta 
+	$sql = "SELECT  *, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+					toimittaja_tehdassaldo.tehdassaldo
             FROM    tuote
             JOIN    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
+            LEFT JOIN toimittaja_tehdassaldo ON tuote.hankintapaikka_id = toimittaja_tehdassaldo.hankintapaikka_id
+						AND tuote.articleNo = toimittaja_tehdassaldo.tuote_articleNo
             WHERE   hyllypaikka = ? AND aktiivinen = 1";
-    $catalog_products = $db->query($sql, [$hyllypaikka], FETCH_ALL);
-    get_basic_product_info( $catalog_products );
-    merge_products_with_optional_data( $catalog_products );
+    $products = $db->query($sql, [$hyllypaikka], FETCH_ALL);
+    $tecdoc_products = [];
+    $catalog_products = [];
+    foreach ( $products as $product ) {
+    	if ( $product->tecdocissa ) {
+			$tecdoc_products[] = $product;
+	    } else {
+			$catalog_products[] = $product;
+	    }
+    }
+    // Tecdoc tuotteille etsitään data tecdocista
+    get_basic_product_info( $tecdoc_products );
+    merge_products_with_optional_data( $tecdoc_products );
+    // Itse perustetuille tuotteille lisätään tecdoc-attribuutit
+    merge_tecdoc_product_variables_to_catalog_products( $catalog_products );
+    $catalog_products = array_merge($catalog_products, $tecdoc_products);
+	// Järjestetään hinnan mukaan
+	sortProductsByPrice($catalog_products);
+
 }
 ?>
 <!DOCTYPE html>

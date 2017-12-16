@@ -156,7 +156,7 @@ class PaymentAPI {
 	 * @return bool
 	 */
 	public static function peruutaTilausPalautaTuotteet( DByhteys $db, User $user, int $tilausID,
-														 int $ostoskoriID ) : bool {
+	                                                     int $ostoskoriID ) : bool {
 		$conn = $db->getConnection();
 		$conn->beginTransaction();
 

@@ -1,5 +1,8 @@
 <?php declare(strict_types=1);
-spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
+set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
+spl_autoload_extensions('.class.php');
+spl_autoload_register();
+
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 

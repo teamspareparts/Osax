@@ -27,15 +27,17 @@ function format_number( $number, int $dec_count = 2, bool $ilman_euro = false ) 
 }
 
 /*
+ * Luokat ladataan jatkossa tarpeen mukaan. PHP etsii tarvittavan luokan automaattisesti luokat-kansiosta
+ */
+set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
+spl_autoload_extensions('.class.php');
+spl_autoload_register();
+
+/*
  * Aloitetaan sessio.
  * Sessio käyttäjän ID ja sähköposti, ja yrityksen ID.
  */
 session_start();
-
-/*
- * Luokat ladataan jatkossa tarpeen mukaan. PHP etsii tarvittavan luokan automaattisesti luokat-kansiosta
- */
-spl_autoload_register(function (string $class_name) { require './luokat/' . $class_name . '.class.php'; });
 
 /*
  * Luodaan tarvittava oliot

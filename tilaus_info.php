@@ -199,7 +199,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<td><?= $tuote->tuotekoodi ?></td>
 				<td><?= $tuote->nimi ?></td>
 				<td><?= $tuote->valmistaja ?></td>
-				<td class="number"><?= $tuote->a_hinta_toString() ?></td>
+				<td class="number"><?= $tuote->aHinta_toString() ?></td>
 				<td class="number"><?= $tuote->kpl_maara?></td>
 				<td class="number"><?= $tuote->summa_toString() ?></td>
 				<td class="number"><?= $tuote->alv_toString() ?></td>
