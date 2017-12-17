@@ -20,6 +20,7 @@ class Tuote {
 	/** @var string $valmistaja <p> */ public $valmistaja = null;
 
 	/** @var array $tuoteryhmat <p> Kaikkien ryhmien ID, joissa tuote on. */ public $tuoteryhmat = array();
+	/** @var array $trTiedot <p> Tuoteryhmien tarkemmat tiedot. ID, oma_taso ja nimi. */ public $trTiedot = array();
 
 	/** @var float $a_hinta_ilman_alv <p> Kappale-hinta ilman alennusta, tai ALV:ta */ public $a_hinta_ilman_alv = 0.00;
 	/** @var float $a_hinta <p> Kappale-hinta ALV:n kanssa (ilman alennusta) */ public $a_hinta = 0.00;
@@ -33,8 +34,11 @@ class Tuote {
 	/** @var float $summa <p> */ public $summa = 0.00;
 
 	// Yp_valikoima sivulla käytössä olevat muuttujat
-	/** @var float $ostohinta <p> Ylläpitoa varten */ public $ostohinta = 0.00;
-	/** @var int $vuosimyynti <p> */ public $vuosimyynti = 0;
+	/** @var float $ostohinta <p> */ public $ostohinta = 0.00;
+	/** @var float $keskiostohinta <p> */ public $keskiostohinta = 0.00;
+	/** @var int $vuosimyynti <p> Kpl:tta myyty vuodessa. */ public $vuosimyynti = 0;
+	/** @var int $kokonaismyynti <p> Kpl:tta myyty. */ public $kokonaismyynti = 0;
+	/** @var int $yhteensäKpl <p> Kpl:tta ostettu. */ public $yhteensaKpl = 0;
 	/** @var string $ensimmaisenKerranVarastossa <p> timestamp */ public $ensimmaisenKerranVarastossa = null;
 	/** @var bool $paivitettava <p> */ public $paivitettava = null;
 	/** @var bool $tecdocissa <p> */ public $tecdocissa = null;
@@ -87,22 +91,41 @@ class Tuote {
 	/**
 	 * @param DByhteys $db
 	 */
-	function haeTuoteryhmat( DByhteys $db ) {
-		$rows = $db->query( "SELECT tuoteryhma_id FROM tuoteryhma_tuote WHERE tuote_id = ?",
-							[ $this->id ], FETCH_ALL, PDO::FETCH_NUM );
-		foreach ( $rows as $row ) {
-			$this->tuoteryhmat[] = $row[0];
+	function haeTuoteryhmat( DByhteys $db, bool $haeKaikkiTiedot ) {
+		if ( $haeKaikkiTiedot ) {
+			$sql = "SELECT t1.oma_taso, t1.id AS t1_id, t1.nimi as t1_nimi,
+						t2.id AS t2_id, t2.nimi as t2_nimi,
+						t3.id AS t3_id, t3.nimi as t3_nimi
+					FROM tuoteryhma_tuote tt
+					LEFT JOIN tuoteryhma t1 ON tt.tuoteryhma_id = t1.id
+					LEFT JOIN tuoteryhma t2 ON t1.parent_id = t2.id
+					LEFT JOIN tuoteryhma t3 ON t2.parent_id = t3.id
+					WHERE tt.tuote_id = ?";
+
+			$rows = $db->query( $sql, [ (string)$this->id ], FETCH_ALL );
+
+			foreach ( $rows as $row ) {
+				$this->tuoteryhmat[] = $row->t1_id;
+				$this->trTiedot[] = $row;
+			}
+
+		}
+		else {
+			$rows = $db->query( "SELECT tuoteryhma_id FROM tuoteryhma_tuote WHERE tuote_id = ?",
+								[ $this->id ], FETCH_ALL );
+			foreach ( $rows as $row ) {
+				$this->tuoteryhmat[] = $row->tuoteryhma_id;
+			}
 		}
 	}
 
 	/**
-	 * @deprecated Tämä funktio on käytössä vain ostoskorissa. Siirretty ostoskori luokkaan.
+	 * Hakee kaikki alennukset tuotteelle. Hieman erilainen ostoskorissa olevaan, joten siksi melkein kopiona tässä.
 	 *
 	 * @param DByhteys $db
-	 * @param int      $yritys_id
 	 */
 	function haeAlennukset ( DByhteys $db ) {
-		/*
+		/**
 		 * Tuotteiden normaalit määräalennukset.
 		 */
 		$sql = "SELECT 1 AS alennusTyyppi, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm
@@ -113,7 +136,7 @@ class Tuote {
 				ORDER BY maaraalennus_kpl";
 		$tuote_maaraalennukset = $db->query( $sql, [ $this->id ], FETCH_ALL );
 
-		/*
+		/**
 		 * Yrityksekohtaiset määräalennukset (hakee eri taulusta).
 		 */
 		$sql = "SELECT 2 AS alennusTyyppi, yritys_id, yritys.nimi, maaraalennus_kpl,
@@ -126,7 +149,7 @@ class Tuote {
 				ORDER BY maaraalennus_kpl";
 		$yritys_maaraalennukset = $db->query( $sql, [ $this->id ], FETCH_ALL );
 
-		/*
+		/**
 		 * Tuoteryhmäkohtaiset määräalennukset (hakee kolmannesta taulusta).
 		 */
 		$ryhma_maaraalennukset = [];
