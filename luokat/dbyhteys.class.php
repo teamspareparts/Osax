@@ -78,7 +78,7 @@ class DByhteys {
 	 *                               Haetaanko kaikki rivit, vai vain yksi.
 	 * @param int    $returnType     [optional], default = null <p>
 	 *                               Missä muodossa haluat tiedot palautettavan. Käyttää PDO-luokan
-	 *                               PDO::FETCH_* constant-muuttujia. <br> Default on PDO::FETCH_OBJ.
+	 *                               PDO::FETCH_* constant-muuttujia. <br> Default vaihtelee hakutavan mukaan.
 	 * @param string $className      [optional] <p> Jos haluat jonkin tietyn luokan olion. <p>
 	 *                               Huom: $returnType ei tarvitse olla määritelty.<p>
 	 *                               Huom: haun muuttujien nimet pitää olla samat kuin luokan muuttujat.
