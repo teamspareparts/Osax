@@ -36,7 +36,7 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
 					hinta_ilman_alv AS a_hinta_ilman_alv, hinta_ilman_alv AS a_hinta_alennettu_ilman_alv,
 					toimittaja_tehdassaldo.tehdassaldo, paivitettava, tecdocissa, aktiivinen, vuosimyynti,
 					ensimmaisen_kerran_varastossa as ensimmaisenKerranVarastossa,
-					hankintapaikka.nimi as hankintapaikkaNimi
+					hankintapaikka.nimi as hankintapaikkaNimi, keskiostohinta, yhteensa_kpl AS yhteensaKpl
 				FROM tuote
 				LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 				LEFT JOIN toimittaja_tehdassaldo 
@@ -71,8 +71,7 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
 	/** @var Tuote[] $results */
 
 	foreach ( $results as $t ) {
-		$t->haeTuoteryhmat( $db );
-		// Hae alennukset myös || tai vaihtoehtoisesti AJAXilla tarpeen mukaan
+		$t->haeTuoteryhmat( $db, true );
 		$t->haeAlennukset( $db );
 
 	}
@@ -90,7 +89,7 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
  * @param \Tuote $tuote
  * @return string
  */
-function luo_otsikon_tulostus ( int $brand_id, int $hankintapaikka_id, Tuote $tuote ) {
+function luo_otsikon_tulostus ( int $brand_id, int $hankintapaikka_id, Tuote $tuote ) : string {
 	if ( $brand_id != 0 ) {
 		$echo = $tuote->valmistaja . ', ';
 	} else $echo = 'Kaikki brändit, ';
@@ -106,12 +105,15 @@ $brand_id = (int)($_GET[ 'brand' ] ?? 0);
 $hankintapaikka_id = (int)($_GET[ 'hkp' ] ?? 0);
 $page = (int)($_GET[ 'page' ] ?? 1); // Mikä sivu tuotelistauksessa
 $products_per_page = (int)($_GET[ 'ppp' ] ?? 20); // Miten monta tuotetta per sivu näytetään.
+$order_column = (int)($_GET[ 'col' ] ?? 1); // Mikä sivu tuotelistauksessa
+$order_direction = (int)($_GET[ 'dir' ] ?? 1); // Miten monta tuotetta per sivu näytetään.
 
 if ( $page < 1 ) { $page = 1; }
 if ( $products_per_page < 1 || $products_per_page > 5000 ) { $products_per_page = 20; }
 $offset = ($page - 1) * $products_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
 
-$results = hae_tuotteet( $db, [$brand_id, $hankintapaikka_id], [$products_per_page, $offset] );
+$results = hae_tuotteet( $db, [$brand_id, $hankintapaikka_id], [$products_per_page, $offset],
+                         [$order_column,$order_direction] );
 
 $total_products = $results[0];
 /**
@@ -131,14 +133,14 @@ $total_pages = ( $total_products !== 0 )
 	: 1;
 
 if ( $page > $total_pages ) {
-	header( "Location:yp_valikoima.php?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&ppp={$products_per_page}" );
+	header( "Location:yp_valikoima.php?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&ppp={$products_per_page}&col={$order_column}&dir={$order_direction}" );
 	exit();
 }
 
-$first_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=1&ppp={$products_per_page}";
-$prev_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=".($page-1)."&ppp={$products_per_page}";
-$next_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=".($page+1)."&ppp={$products_per_page}";
-$last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&ppp={$products_per_page}";
+$first_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=1&ppp={$products_per_page}&col={$order_column}&dir={$order_direction}";
+$prev_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=".($page-1)."&ppp={$products_per_page}&col={$order_column}&dir={$order_direction}";
+$next_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page=".($page+1)."&ppp={$products_per_page}&col={$order_column}&dir={$order_direction}";
+$last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&ppp={$products_per_page}&col={$order_column}&dir={$order_direction}";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,6 +175,8 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 				<input type="hidden" name="brand" value="<?=$brand_id?>">
 				<input type="hidden" name="hkp" value="<?=$hankintapaikka_id?>">
 				<input type="hidden" name="ppp" value="<?=$products_per_page?>">
+				<input type="hidden" name="col" value="<?=$order_column?>">
+				<input type="hidden" name="dir" value="<?=$order_direction?>">
 				<label>Sivu:
 					<input type="number" name="page" value="<?=$page?>"
 					       min="1" max="<?=$total_pages?>"  maxlength="2"
@@ -269,9 +273,11 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 							<dt>Hankintapaikka</dt> <dd><?= $t->hankintapaikkaNimi ?></dd>
 							<dt>hyllypaikka</dt> <dd><?= $t->hyllypaikka ?></dd>
 							<dt>Tuoteryhmät</dt>
-								<dd><?php foreach( $t->tuoteryhmat as $tr ) :
-										echo $tr . "<br>";
-									endforeach; ?>
+								<dd><?php foreach( $t->trTiedot as $tr ) :
+										echo $tr->oma_taso . ": " . $tr->t1_nimi . "<br>";
+									endforeach;
+									if ( empty($t->tuoteryhmat) ) { echo "---"; }
+									?>
 								</dd>
 							<dt>Kuvan URL</dt> <dd><?= $t->kuvaURL ?? "---" ?></dd>
 							<dt>Infot</dt> <dd><?= $t->infot ?? "---" ?></dd>
@@ -282,7 +288,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 							<dt>ALV_kanta</dt> <dd><?= $t->alv_toString() ?></dd>
 							<dt>keskimyyntihinta</dt> <dd><?= '' ?></dd>
 							<dt>Ostohinta</dt> <dd><?= $t->ostohinta_toString() ?></dd>
-							<dt>keskiostohinta</dt> <dd><?= '' ?></dd>
+							<dt>keskiostohinta</dt> <dd><?= format_number($t->keskiostohinta) ?></dd>
 						</dl>
 						<hr>
 						<dl>
@@ -290,7 +296,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 							<dt>minimimyyntiera</dt> <dd><?= $t->minimimyyntiera ?></dd>
 							<dt>vuosimyynti</dt> <dd><?= "" ?></dd>
 							<dt>1. kerran varastossa</dt> <dd><?= $t->ensimmaisenKerranVarastossa ?></dd>
-							<dt>yhteensa_kpl</dt> <dd><?= "" ?></dd>
+							<dt>Yhteensä ostettu sisään</dt> <dd><?= $t->yhteensaKpl ?></dd>
 						</dl>
 						<hr>
 						<dl>
