@@ -56,4 +56,13 @@ class EoltasWebservice {
 		);
 		return self::sendRequest($fields);
 	}
+
+	/**
+	 * Palauttaa config tiedostoon tallennetun Eoltaksen hankintapaikka id:n.
+	 * @return int
+	 */
+	static function getEoltasHankintapaikkaId() : int {
+		$config = parse_ini_file( self::$config_path );
+		return (int)$config['eoltas_hankintapaikka_id'];
+	}
 }

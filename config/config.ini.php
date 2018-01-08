@@ -28,6 +28,7 @@ eoltas_user = ""
 eoltas_token = ""
 eoltas_juridical_id = ""
 eoltas_contract_id = ""
+eoltas_hankintapaikka_id = "200"
 
 [Misc]
 indev = "1"
