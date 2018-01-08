@@ -142,7 +142,7 @@ elseif ( isset( $_POST[ 'tuote_modal_tiedot' ] ) ) {
 }
 
 /**
- *
+ * Haetaan tuotteelle vertailutuotteet omien linkitysten perusteella. (Palauttaa vertailutuotteet arrayna)
  */
 elseif ( isset( $_POST[ 'tuote_modal_omat_vertailutuotteet' ] ) ) {
 	if ( $_POST['tuotteet'] ) {
@@ -156,6 +156,13 @@ elseif ( isset( $_POST[ 'tuote_modal_omat_vertailutuotteet' ] ) ) {
 		$result = $db->query($sql, $_POST['tuotteet'], FETCH_ALL);
 		$result = !empty($result) ? array_unique($result, SORT_REGULAR) : [];
 	}
+}
+
+/**
+ * Haetaan tuotteelle Eoltaksen tehdassaldo reaaliaikaisesti. (Palauttaa int|null)
+ */
+elseif ( isset( $_POST[ 'eoltas_tehdassaldo' ] ) ) {
+	$result = EoltasWebservice::getEoltasTehdassaldo( (int)$_POST['hankintapaikka_id'], $_POST['articleNo'] );
 }
 
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa

@@ -65,4 +65,33 @@ class EoltasWebservice {
 		$config = parse_ini_file( self::$config_path );
 		return (int)$config['eoltas_hankintapaikka_id'];
 	}
+
+	/**
+	 * Hakee ja palauttaa Eoltas tuotteen tehdassaldon.
+	 * @param int $hankintapaikka_id
+	 * @param string $articleNo
+	 * @return int|null
+	 */
+	static function getEoltasTehdassaldo( int $hankintapaikka_id, string $articleNo ) {
+		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
+		// Tehdään webservice haku vain Eoltaksen tuotteille
+		if ( $hankintapaikka_id != $eoltas_hankintapaikka_id) {
+			return null;
+		}
+		$eoltas_data = EoltasWebservice::searchProduct( $articleNo );
+		// Tarkistetaan webservice-yhteys
+		if ( !$eoltas_data || !$eoltas_data->acknowledge ) {
+			trigger_error('Cannot connect to Eoltas webservice.');
+		}
+		// Etsitään oikea tuote ja lisätään tuotteelle tehdassaldo
+		foreach ( $eoltas_data->response->products as $eoltas_product) {
+			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
+			$articleNo = str_replace(" ", "", $articleNo);
+			if ( $articleNo == $eoltas_product->supplierCode ) {
+				return $eoltas_product->stock;
+			}
+		}
+		return null;
+	}
+
 }
