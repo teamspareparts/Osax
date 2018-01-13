@@ -60,7 +60,8 @@ function tulosta_puu( array &$elements, int $par_ID = 0, string $par_oT = "", in
 						data-id='{$el->id}' data-nimi='{$el->nimi}' data-kerroin='{$el->hinnoittelukerroin}'>
 						<i class='material-icons'>edit</i>
 					</a> |
-					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
+					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'>Alennukset & Tuotteet</a> |
+					<a href='#' class='delete' data-id='{$el->id}' style='color:red;'>X</a>
 				</summary>";
 			tulosta_puu( $el->children, (int)$el->id, $new_oT, $depth );
 			echo '</details>';
@@ -70,7 +71,8 @@ function tulosta_puu( array &$elements, int $par_ID = 0, string $par_oT = "", in
 					<a href='#' class='edit' data-id='{$el->id}' data-nimi='{$el->nimi}'
 						data-kerroin='{$el->hinnoittelukerroin}'><i class='material-icons'>edit</i>
 					</a> |
-					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'> Alennukset </a>
+					<a href='#' class='sales' data-id='{$el->id}' data-nimi='{$el->nimi}'>Alennukset & Tuotteet</a> |
+					<a href='#' class='delete' data-id='{$el->id}' style='color:red;'>X</a>
 				</span>";
 		}
 
@@ -151,17 +153,20 @@ else if ( !empty($_POST['muokkaa_id']) ) {
  * Alennuksen lisäys
  */
 else if ( !empty($_POST['lisaa_alennus_id']) ) {
-	$sql = "INSERT INTO tuoteryhma_erikoishinta
+	$db->query(
+		"INSERT INTO tuoteryhma_erikoishinta
 				(tuoteryhma_id, hankintapaikka_id, yritys_id, maaraalennus_kpl, alennus_prosentti, alkuPvm, loppuPvm)
-			VALUES (?,?,?,?,?,?,?)";
-	$db->query( $sql, [ $_POST['lisaa_alennus_id'], $_POST['hkp_id'], $_POST['yritys_id'], $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'] ] );
+			VALUES (?,?,?,?,?,?,?)",
+		[ $_POST['lisaa_alennus_id'], $_POST['hkp_id'], $_POST['yritys_id'], $_POST['maara'],
+			$_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'] ] );
 }
 /*
  * Alennuksen muokkaus
  */
 else if ( !empty($_POST['muokkaa_alennus_id']) ) {
-	$sql = "UPDATE tuoteryhma_erikoishinta SET maaraalennus_kpl = ?, alennus_prosentti = ?, alkuPvm = ?, loppuPvm = ? WHERE id = ?";
-	$db->query( $sql, [ $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'], $_POST['muokkaa_alennus_id'] ] );
+	$db->query(
+		"UPDATE tuoteryhma_erikoishinta SET maaraalennus_kpl = ?, alennus_prosentti = ?, alkuPvm = ?, loppuPvm = ? WHERE id = ?",
+		[ $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'], $_POST['muokkaa_alennus_id'] ] );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -170,7 +175,7 @@ if ( !empty($_POST) || !empty($_FILES) ) {
 	exit();
 }
 else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
+	$feedback = $_SESSION['feedback'] ?? "";
 	unset($_SESSION["feedback"]);
 }
 
@@ -225,25 +230,31 @@ $future = date('Y-m-d',strtotime('+6 months'));
 			<div class="otsikko_container blue">
 				<section class="otsikko">
 					<h3>Ryhmät</h3>
-					<span id="alennus_box_otsikko"></span>
 				</section>
 			</div>
 			<?php tulosta_puu( $tree ); ?>
 		</section>
 
-		<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
+		<section class="white-bg" style="min-width:200px; margin-right:30px; white-space:nowrap; border:1px solid; border-radius:5px;">
 			<div class="otsikko_container blue">
 				<section class="otsikko">
 					<h3>Alennukset</h3>
 					<span id="alennus_box_otsikko"></span>
 				</section>
 			</div>
-			<div id="loader" style="display: none;">
-				<div class="loading"></div>
-				<p>lataa alennuksia...</p>
-			</div>
 			<button id="uusi_alennus" class="nappi" data-id='' style="visibility: hidden;">Lisää uusi alennus</button>
 			<div id="alennukset">
+			</div>
+		</section>
+
+		<section class="white-bg" style="min-width:200px; white-space:nowrap; border:1px solid; border-radius:5px;">
+			<div class="otsikko_container blue">
+				<section class="otsikko">
+					<h3>Tuotteet</h3>
+					<span id="tuotteet_box_otsikko"></span>
+				</section>
+			</div>
+			<div id="tuotteet">
 			</div>
 		</section>
 	</section>
@@ -261,7 +272,9 @@ $future = date('Y-m-d',strtotime('+6 months'));
 	let today = <?= json_encode($today) ?>;
 	let future = <?= json_encode($future) ?>;
 	let ale_tr_otsikko = document.getElementById("alennus_box_otsikko");
+	let tuot_tr_otsikko = document.getElementById("tuotteet_box_otsikko");
 
+	/** Lisää uusi tuoteryhmä */
 	Array.from(add_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
 			let parent = element.dataset.id;
@@ -295,6 +308,7 @@ $future = date('Y-m-d',strtotime('+6 months'));
 		});
 	});
 
+	/** Muokkaa tuoteryhmää */
 	Array.from(edit_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
 			let id = element.dataset.id;
@@ -328,31 +342,33 @@ $future = date('Y-m-d',strtotime('+6 months'));
 		});
 	});
 
+	/** Alennuksien haku napit */
 	Array.from(sales_napit).forEach(function(element) {
 		element.addEventListener('click', function () {
 			let tuoteryhmaID = element.dataset.id; // Tuoteryhmä, jonka alennukset haetaan.
 			let ajax =  new XMLHttpRequest(); // AJAX-pyyntöä varten.
-			let loader = document.getElementById('loader'); // Lataus-ikonin container. Näyttämistä/piilottamista varten.
-			let alennukset, saleHTML, alennusCount, i;
+			let response, tuotteet, alennukset, saleHTML, tuotteetHTML, alennusCount, tuotteetCount, i;
 
-			ale_tr_otsikko.innerHTML = "&nbsp;&nbsp;" + tuoteryhmaID + ": " + element.dataset.nimi;
+			ale_tr_otsikko.innerHTML = "" + tuoteryhmaID + ": " + element.dataset.nimi;
+			tuot_tr_otsikko.innerHTML = "" + tuoteryhmaID + ": " + element.dataset.nimi;
 
 			// Asetetaan nappi uuden alennuksen lisäämistä varten näkyviin, ja lisätään siihen tr.ID
 			uusi_alennus.dataset.id = tuoteryhmaID;
 			uusi_alennus.style.visibility = 'visible';
-			// Pistetään lataus ikoni näkyviin. Käytännössä tätä ei tarvita, koska systeemi liian nopea muutenkin.
-			loader.style.display = "visible";
+
 			// Luodaan AJAX-pyyntö
 			ajax.open('POST', 'ajax_requests.php', true);
 			ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
 
 			ajax.onreadystatechange = function() {
 				if (ajax.readyState === 4 && ajax.status === 200) {
-					// Pyyntö valmis, ja tiedot vastaanotettu: piilotetaan lataus-ikoni
-					loader.style.visibility = 'none';
-					alennukset = JSON.parse(ajax.responseText);
+					response = JSON.parse(ajax.responseText);
+					alennukset = response[0];
+					tuotteet = response[1];
 					alennusCount = alennukset.length;
+					tuotteetCount = tuotteet.length;
 					saleHTML = "";
+					tuotteetHTML = "";
 					// Lisätäään muokkaus-formit jokaista alennusta varten.
 					for ( i=0; i<alennusCount; i++ ) {
 						saleHTML += `
@@ -393,7 +409,22 @@ $future = date('Y-m-d',strtotime('+6 months'));
 						saleHTML += "<p>Ei alennuksia.</p>"
 					}
 
+					// Tuotteiden listaus.
+					for ( i=0; i<tuotteetCount; i++ ) {
+						tuotteetHTML += `
+							<dl data-id="${tuotteet[i].id}">
+								<dt>ID</dt> <dd>${tuotteet[i].id}</dd>
+								<dt>Tuotekoodi</dt> <dd>${tuotteet[i].tuotekoodi} </dd>
+								<dt>Nimi</dt> <dd>${tuotteet[i].nimi} </dd>
+							</dl>
+							<hr>`;
+					}
+					if (tuotteetCount === 0) {
+						tuotteetHTML += "<p>Ei tuotteita.</p>"
+					}
+
 					document.getElementById('alennukset').innerHTML = saleHTML;
+					document.getElementById('tuotteet').innerHTML = tuotteetHTML;
 				}
 			};
 
@@ -401,6 +432,7 @@ $future = date('Y-m-d',strtotime('+6 months'));
 		});
 	});
 
+	/** Uuden alennuksen lisäys */
 	uusi_alennus.addEventListener('click', function () {
 		Modal.open({
 			content: `

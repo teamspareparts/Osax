@@ -120,7 +120,16 @@ elseif ( isset( $_POST[ 'tuoteryhma_alennukset' ] ) ) {
 			LEFT JOIN yritys ON yritys_id = yritys.id
 			JOIN hankintapaikka ON hankintapaikka_id = hankintapaikka.id
 			WHERE tuoteryhma_id = ?";
-	$result = $db->query( $sql, array_values( $_POST ), FETCH_ALL );
+	$sales = $db->query( $sql, array_values( $_POST ), FETCH_ALL );
+
+	$sql = "SELECT id, tuotekoodi, nimi
+			FROM tuote
+			JOIN tuoteryhma_tuote ON tuote.id = tuoteryhma_tuote.tuote_id
+			WHERE tuoteryhma_id = ?
+			ORDER BY id DESC LIMIT 5";
+	$tuotteet = $db->query( $sql, array_values( $_POST ), FETCH_ALL );
+
+	$result = [$sales, $tuotteet];
 }
 
 /**
