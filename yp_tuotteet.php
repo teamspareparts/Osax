@@ -1,7 +1,6 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 require 'tecdoc.php';
-require 'apufunktiot.php';
 
 /**
  * Lisää uuden tuotteen tietokantaan.
@@ -197,7 +196,7 @@ function filter_catalog_products ( DByhteys $db, array $products ) : array {
 	 */
 	function get_product_from_database( DByhteys $db, stdClass $product ) : array {
 		$product->articleNo = str_replace(" ", "", $product->articleNo);
-		$sql = "SELECT 	*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
+		$sql = "SELECT 	tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta,
 					toimittaja_tehdassaldo.tehdassaldo
 				FROM 	tuote 
 				JOIN 	ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta

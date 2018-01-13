@@ -77,40 +77,6 @@ function filter_catalog_products ( DByhteys $db, array $products ) : array {
 }
 
 /**
- * Etsii kannasta tuotteita eoltaksen webservice-vastauksen perusteella.
- * @param DByhteys $db
- * @param array $products
- * @return array
- * @deprecated
- */
-function filter_catalog_products_from_eoltas_products ( DByhteys $db, array $products, int $eoltas_hankintapaikka_id ) : array {
-	if ( !$products ) {
-		return [];
-	}
-	$values = [];
-	foreach ($products as $product) {
-		$values[] = str_replace(" ", "", $product->supplierCode);
-	}
-	$values[] = $eoltas_hankintapaikka_id;
-	$questionmarks = implode( ',', array_fill( 0, count($products), '?' ) );
-	$sql = "SELECT 	    tuote.*, (hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS hinta
-			FROM 	    tuote
-			JOIN 	    ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
-			WHERE 	    tuote.articleNo IN ($questionmarks)
-						AND tuote.aktiivinen = 1
-						AND tuote.hankintapaikka_id = ?
-			GROUP BY    tuote.id
-			LIMIT 10";
-	$own_products = $db->query($sql, $values, FETCH_ALL);
-
-	if ( !$own_products ) {
-		$own_products = [];
-	}
-
-	return merge_tecdoc_product_variables_to_catalog_products($own_products);
-}
-
-/**
  * Etsii kannasta itse perustetut tuotteet.
  * @param DByhteys $db
  * @param string   $search_number
@@ -243,56 +209,6 @@ function divide_products_by_availability( array $products ) : array {
 		}
 	}
 	return [$available, $not_available];
-}
-
-/**
- * Haetaan Eoltaksen tuotteille tehdassaldot webservicen avulla.
- * @param array $products
- */
-function merge_eoltas_products_with_eoltas_data( array $products ) {
-	$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
-	foreach ( $products as $product) {
-		// Tehdään webservice haku vain Eoltaksen tuotteille
-		if ( $product->hankintapaikka_id != $eoltas_hankintapaikka_id) {
-			continue;
-		}
-		$eoltas_data = EoltasWebservice::searchProduct( $product->articleNo );
-		// Tarkistetaan webservice-yhteys
-		if ( !$eoltas_data || !$eoltas_data->acknowledge ) {
-			trigger_error('Cannot connect to Eoltas webservice.');
-		}
-		foreach ( $eoltas_data->response->products as $eoltas_product) {
-			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
-			$product->articleNo = str_replace(" ", "", $product->articleNo);
-			if ( $product->articleNo == $eoltas_product->supplierCode &&
-				$product->brandNo == $eoltas_product->brandId ) {
-				$product->tehdassaldo = $eoltas_product->stock;
-				break;
-			}
-		}
-	}
-}
-
-/**
- * Yhdistetään Eoltaksen webserviceltä saatu data tuotteisiin.
- * @param array $products
- * @param array $eoltas_products
- * @return array
- * @deprecated
- */
-function merge_products_with_eoltas_data( array $products, array $eoltas_products ) : array {
-	foreach ( $products as $tuote) {
-		foreach ( $eoltas_products as $eoltas_product) {
-			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
-			$tuote->articleNo = str_replace(" ", "", $tuote->articleNo);
-			if ( $tuote->articleNo == $eoltas_product->supplierCode &&
-				$tuote->brandNo == $eoltas_product->brandId ) {
-				$tuote->tehdassaldo = $eoltas_product->stock;
-				break;
-			}
-		}
-	}
-	return $products;
 }
 
 /**
@@ -430,8 +346,6 @@ if ( !empty($_GET["manuf"]) ) {
 	sortProductsByPrice($catalog_products);
 	sortProductsByPrice($not_available);
 }
-
-merge_eoltas_products_with_eoltas_data( $not_available );
 
 ?>
 <!DOCTYPE html>
@@ -575,7 +489,7 @@ require 'tuotemodal.php';
 			</thead>
 			<tbody>
 			<?php foreach ($not_available as $product) : ?>
-				<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
+				<tr class="tuote" data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 					<td class="clickable thumb">
 						<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 					<td class="clickable"><?=$product->tuotekoodi?></td>
@@ -812,8 +726,39 @@ require 'tuotemodal.php';
 				});
 			}
 		);
-
 	}
+
+    /**
+     * Haetaan ajaxilla Eoltas-tuotteiden tehdassaldot ja lisätään ne
+     */
+    function hae_eoltas_tehdassaldo() {
+        let tuotteet = document.getElementsByClassName("tuote");
+        for (let i = 0; i < tuotteet.length; i++) {
+            let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
+            let articleNo = tuotteet[i].cells[1].innerText.slice(4);
+            $.post(
+                "ajax_requests.php",
+                {   eoltas_tehdassaldo: true,
+                    hankintapaikka_id: hankintapaikka_id,
+                    articleNo: articleNo },
+                function( data ) {
+                    if ( data ) {
+                        let varoitus_kuvake = "";
+                        let tehdassaldo = +data;
+                        // Valitaan varoitus ikoni
+                        if ( tehdassaldo === 0 ) {
+                            varoitus_kuvake = "<i class='material-icons' style='color:red;' " +
+                                "title='Tehdassaldo nolla (0).'>highlight_off</i>";
+                        } else {
+                            varoitus_kuvake = "<i class='material-icons' style='color:green;' " +
+                                "title='Tehdassaldo " + tehdassaldo + " kpl'>check_circle</i>";
+                        }
+                        tuotteet[i].cells[5].innerHTML += varoitus_kuvake;
+                    }
+
+                });
+        }
+    }
 
 	$(document).ready(function(){
 
@@ -853,6 +798,9 @@ require 'tuotemodal.php';
 
                 productModal(tuote_id, tecdoc_id);
 			});
+
+		// Haetaan Eoltas-tuotteille tehdassaldot
+        hae_eoltas_tehdassaldo();
 
 	});//doc.ready
 
@@ -903,6 +851,7 @@ require 'tuotemodal.php';
             $("#hakutyyppi").val(exact);
         }
 	}
+
 </script>
 
 </body>

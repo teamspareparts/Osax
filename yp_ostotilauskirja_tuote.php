@@ -247,8 +247,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             <th class="number">Ostohinta</th>
             <th class="number">Yhteensä</th>
             <th>Selite</th>
-	        <th></th>
-            <th></th>
+	        <th></th><!-- Tehdassaldo -->
+            <th></th><!-- Varoitus -->
+	        <th></th><!-- Toiminnot -->
         </tr>
         </thead>
         <tbody>
@@ -258,10 +259,10 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 	        <td colspan="2"></td>
 	        <td class="number"><?=format_number($otk->rahti)?></td>
             <td class="number"><?=format_number($otk->rahti)?></td>
-	        <td colspan="3"></td></tr>
+	        <td colspan="4"></td></tr>
         <!-- Tuotteet -->
-        <?php foreach ($products as $product) : ?>
-            <tr><td><?=$product->tilauskoodi?></td>
+        <?php foreach ($products as $index=>$product) : ?>
+            <tr class="tuote"><td><?=$product->tilauskoodi?></td>
                 <td><?=$product->tuotekoodi?></td>
                 <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
                 <td class="number"><?=format_number($product->kpl,0)?></td>
@@ -275,14 +276,15 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 				        <?=$product->selite?>
                     <?php endif;?>
                 </td>
-	            <td class="number">
+	            <td></td><!-- Tehdassaldo -->
+	            <td class="number"><!-- Varoitus -->
 		            <?php if ( $product->hyllyssa_vastaavia_tuotteita ) : ?>
 			            <span title="Hyllyssä <?=$product->hyllypaikka?> vastaavia tuotteita" style="color: rebeccapurple">
 				            <i class="material-icons">warning</i>
 				            <?=$product->hyllyssa_vastaavia_tuotteita?></span>
 	                <?php endif; ?>
 	            </td>
-                <td class="toiminnot">
+                <td class="toiminnot"><!-- Toiminnot -->
                     <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                             '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
                             '<?=$product->selite?>', <?=$product->automaatti?>)">Muokkaa</button>
@@ -295,7 +297,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         <tr class="border_top"><td>YHTEENSÄ</td>
 	        <td colspan="2"></td>
             <td class="number"><?= format_number($yht_kpl,0)?></td>
-            <td></td>
+            <td colspan="2"></td>
             <td class="number"><?=format_number($yht_hinta)?></td>
             <td colspan="4"></td>
         </tr>
@@ -341,7 +343,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
      * @param tuote_id
      * @param automaatti
      */
-	function poista_ostotilauskirjalta(tuote_id, automaatti){
+	function poista_ostotilauskirjalta(tuote_id, automaatti) {
         if( confirm("Haluatko varmasti poistaa tuotteen ostotilauskirjalta?") ) {
             //Rakennetaan form
             let form = document.createElement("form");
@@ -375,7 +377,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         }
     }
 
-	function tyhjenna_ostotilauskirja(){
+	function tyhjenna_ostotilauskirja() {
 		if( confirm("Haluatko varmasti tyhjentää ostotilauskirjan?") ) {
 			//Rakennetaan form
 			let form = document.createElement("form");
@@ -395,7 +397,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		}
 	}
 
-    function varmista_lahetys(ostotilauskirja_id){
+    function varmista_lahetys(ostotilauskirja_id) {
         let vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
         if ( vahvistus ) {
             let form = document.createElement("form");
@@ -421,6 +423,39 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         }
     }
 
+    function hae_eoltas_tehdassaldo() {
+	    let tuotteet = document.getElementsByClassName("tuote");
+	    for (let i = 0; i < tuotteet.length; i++) {
+		    let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
+	        let articleNo = tuotteet[i].cells[1].innerText.slice(4);
+	        let kpl = +tuotteet[i].cells[3].innerText;
+            $.post(
+                "ajax_requests.php",
+                {   eoltas_tehdassaldo: true,
+                    hankintapaikka_id: hankintapaikka_id,
+                    articleNo: articleNo },
+                function( data ) {
+                    if ( data ) {
+                        let varoitus_kuvake = "";
+                        let tehdassaldo = +data;
+                        // Valitaan varoitus ikoni
+                        if ( tehdassaldo === 0 ) {
+                            varoitus_kuvake = "<i class='material-icons' style='color:red;' " +
+	                            "title='Tehdassaldo nolla (0).'>highlight_off</i>";
+                        } else if ( (tehdassaldo - kpl) < 0 ) {
+                            varoitus_kuvake = "<i class='material-icons' style='color:goldenrod;' " +
+                                "title='Tehdassaldo " + tehdassaldo + " kpl'>highlight_off</i>";
+                        } else {
+                            varoitus_kuvake = "<i class='material-icons' style='color:green;' " +
+	                            "title='Tehdassaldo " + tehdassaldo + " kpl'>check_circle</i>";
+                        }
+                        tuotteet[i].cells[8].innerHTML += varoitus_kuvake;
+                    }
+
+                });
+	    }
+    }
+
 
 
     $(document).ready(function(){
@@ -431,6 +466,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 window.location = $(this).data('href');
                 //return false;
             });
+
+        hae_eoltas_tehdassaldo();
     });
 
 
