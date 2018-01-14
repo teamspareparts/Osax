@@ -711,7 +711,7 @@ require 'tuotemodal.php';
 					</thead>
 					<tbody>
 					<?php foreach ($catalog_products as $product) : ?>
-						<tr data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
+						<tr class="tuote" data-tecdoc_id="<?=$product->articleId?>" data-tuote_id="<?=$product->id?>">
 							<td class="clickable thumb">
 								<img src="<?=$product->thumburl?>" alt="<?=$product->articleName?>"></td>
 							<td class="clickable"><?=$product->tuotekoodi?></td>
@@ -1102,6 +1102,39 @@ require 'tuotemodal.php';
 		);
 	}
 
+    /**
+     * Haetaan ajaxilla Eoltas-tuotteiden tehdassaldot ja lisätään ne
+     */
+    function hae_eoltas_tehdassaldo() {
+        let tuotteet = document.getElementsByClassName("tuote");
+        for (let i = 0; i < tuotteet.length; i++) {
+            let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
+            let articleNo = tuotteet[i].cells[1].innerText.slice(4);
+            let brandName = tuotteet[i].cells[2].innerText.split("\n")[0];
+            $.post(
+                "ajax_requests.php",
+                {   eoltas_tehdassaldo: true,
+                    hankintapaikka_id: hankintapaikka_id,
+                    articleNo: articleNo,
+                    brandName: brandName },
+                function( data ) {
+                    if ( data ) {
+                        let varoitus_kuvake = "";
+                        let tehdassaldo = +data;
+                        // Valitaan varoitus ikoni
+                        if ( tehdassaldo === 0 ) {
+                            varoitus_kuvake = "<i class='material-icons' style='color:red;' " +
+                                "title='Tehdassaldo nolla (0).'>highlight_off</i>";
+                        } else {
+                            varoitus_kuvake = "<i class='material-icons' style='color:green;' " +
+                                "title='Tehdassaldo " + tehdassaldo + " kpl'>check_circle</i>";
+                        }
+                        tuotteet[i].cells[5].innerHTML += varoitus_kuvake;
+                    }
+                });
+        }
+    }
+
 	$(document).ready(function(){
 		//Tuotteen lisääminen ostotilauskirjalle
 		$(document.body)
@@ -1139,6 +1172,10 @@ require 'tuotemodal.php';
 
                 productModal(tuote_id, tecdoc_id);
 			});
+
+		//Haetaan Eoltas-tuotteille tehdassaldot
+		hae_eoltas_tehdassaldo();
+
 	});//doc.ready
 
 	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
