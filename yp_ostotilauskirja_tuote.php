@@ -454,7 +454,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                         tuotteet[i].cells[8].innerHTML += varoitus_kuvake;
                     }
 
-                });
+                }).fail(function () {
+                    tuotteet[i].cells[8].innerText += "Virhe tehdassaldoa haettaessa.";
+            });
 	    }
     }
 
