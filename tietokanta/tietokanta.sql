@@ -223,6 +223,7 @@ CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
   `ostoskori_id` smallint UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int(11) UNSIGNED NOT NULL, -- PK, FK
   `kpl_maara` smallint UNSIGNED NOT NULL DEFAULT 1,
+  `tilaustuote` boolean NOT NULL DEFAULT 0, -- Tilataan suoraan hankintapaikalta
   PRIMARY KEY (`ostoskori_id`, `tuote_id`),
   CONSTRAINT fk_ostoskoriTuote_ostoskori FOREIGN KEY (`ostoskori_id`) REFERENCES `ostoskori`(`id`),
   CONSTRAINT fk_ostoskoriTuote_tuote FOREIGN KEY (`tuote_id`) REFERENCES `tuote`(`id`)

@@ -119,9 +119,10 @@ class Ostoskori {
 			}
 			else { // Käytä Tuote-luokkaa
 				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi, tuote.hankintapaikka_id,
-							tuote.varastosaldo, tuote.minimimyyntiera, ALV_kanta.prosentti AS alv_prosentti,
+							tuote.varastosaldo, tuote.minimimyyntiera, tuote.hyllypaikka,
+							ALV_kanta.prosentti AS alv_prosentti,
 							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
-							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, hyllypaikka
+							(tuote.hinta_ilman_alv) AS a_hinta_ilman_alv, kpl_maara, tilaustuote
 						FROM ostoskori_tuote
 						LEFT JOIN tuote ON tuote.id = ostoskori_tuote.tuote_id
 						LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
@@ -149,15 +150,15 @@ class Ostoskori {
 	 * @param int      $kpl_maara <p> Montako tuotetta
 	 * @return int <p> Montako tuotetta lisätty tietokantaan (pitäisi olla yksi)
 	 */
-	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara ) : int {
+	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara, bool $tilaustuote = false ) : int {
 		// Tarkistetaan kpl_maara == 0 varalle.
 		if ( $kpl_maara <= 0 ) {
 			return $this->poista_tuote( $db, $tuote_id ); // Oletetaan, että poistaminen oli tarkoitus.
 		} // Jos vaikka joku ei ymmärrä mitä "poista_tuote"-metodi mahdollisesti tekee.
 
-		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara) VALUE ( ?, ?, ? )
+		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara, tilaustuote) VALUE ( ?, ?, ?, ? )
  				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara)";
-		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id, $kpl_maara ] );
+		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id, $kpl_maara, $tilaustuote ] );
 
 		$this->hae_ostoskorin_sisalto( $db, false );
 
