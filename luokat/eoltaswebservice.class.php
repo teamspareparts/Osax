@@ -6,7 +6,7 @@
 class EoltasWebservice {
 	private static $request_url = 'https://b2b.eoltas.lt/index.php?cl=nfqwebservicemainview';
 	private static $config_path = './config/config.ini.php';
-	private static $timeout = 3; //sekuntia
+	private static $timeout = 4; //sekuntia
 
 	/**
 	 * Curl pyynnön lähetys Eoltakselle.
@@ -58,6 +58,73 @@ class EoltasWebservice {
 	}
 
 	/**
+	 * Hakee touotteen id:n perusteella.
+	 * @param string $id
+	 * @return stdClass
+	 */
+	static function getProduct( string $id ) : stdClass {
+		$fields = array(
+			'action' => 'addToBasket',
+			'id' => $id
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
+	 * Hakee ostoskorin.
+	 * @return stdClass
+	 */
+	static function getBasket() : stdClass {
+		$fields = array(
+			'action' => 'getBasket'
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
+	 * Lisää tuotteen ostoskoriin. Palauttaa ostoskorin.
+	 * @param string $id <p> Eoltaksen oma id
+	 * @param int $amount
+	 * @return stdClass
+	 */
+	private static function addToBasket( string $id, int $amount ) : stdClass {
+		$fields = array(
+			'action' => 'addToBasket',
+			'id' => $id,
+			'amount' => $amount
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
+	 * Muokkaa tuotetta ostoskorissa.
+	 * @param string $id
+	 * @param int $amount
+	 * @return stdClass
+	 */
+	private static function editBasket( string $id, int $amount ) : stdClass {
+		$fields = array(
+			'action' => 'editBasket',
+			'id' => $id,
+			'amount' => $amount
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
+	 * Poistaa tuotteen ostoskorista.
+	 * @param string $id
+	 * @return stdClass
+	 */
+	private static function removeFromBasket( string $id ) : stdClass {
+		$fields = array(
+			'action' => 'addToBasket',
+			'id' => $id
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
 	 * Palauttaa config tiedostoon tallennetun Eoltaksen hankintapaikka id:n.
 	 * @return int
 	 */
@@ -92,6 +159,12 @@ class EoltasWebservice {
 			}
 		}
 		return null;
+	}
+
+
+	private static function addProductToEoltasOrderBook( string $articleNo, string $brandNo ) : bool {
+		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
+
 	}
 
 }
