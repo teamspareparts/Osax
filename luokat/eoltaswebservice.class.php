@@ -48,7 +48,7 @@ class EoltasWebservice {
 	 * @param string $manufacturers
 	 * @return stdClass
 	 */
-	static function searchProduct( string $query, string $manufacturers = '') : stdClass {
+	static function searchProduct( string $query, string $manufacturers ) : stdClass {
 		$fields = array(
 			'action' => 'searchProduct',
 			'query' => $query,
@@ -72,13 +72,13 @@ class EoltasWebservice {
 	 * @param string $articleNo
 	 * @return int|null
 	 */
-	static function getEoltasTehdassaldo( int $hankintapaikka_id, string $articleNo ) {
+	static function getEoltasTehdassaldo( int $hankintapaikka_id, string $articleNo, string $brandName ) {
 		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
 		// Tehdään webservice haku vain Eoltaksen tuotteille
 		if ( $hankintapaikka_id != $eoltas_hankintapaikka_id) {
 			return null;
 		}
-		$eoltas_data = EoltasWebservice::searchProduct( $articleNo );
+		$eoltas_data = EoltasWebservice::searchProduct( $articleNo , $brandName);
 		// Tarkistetaan webservice-yhteys
 		if ( !$eoltas_data || !$eoltas_data->acknowledge ) {
 			trigger_error('Cannot connect to Eoltas webservice.');

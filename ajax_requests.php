@@ -171,7 +171,7 @@ elseif ( isset( $_POST[ 'tuote_modal_omat_vertailutuotteet' ] ) ) {
  * Haetaan tuotteelle Eoltaksen tehdassaldo reaaliaikaisesti. (Palauttaa int|null)
  */
 elseif ( isset( $_POST[ 'eoltas_tehdassaldo' ] ) ) {
-	$result = EoltasWebservice::getEoltasTehdassaldo( (int)$_POST['hankintapaikka_id'], $_POST['articleNo'] );
+	$result = EoltasWebservice::getEoltasTehdassaldo( (int)$_POST['hankintapaikka_id'], $_POST['articleNo'], $_POST['brandName'] );
 }
 
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa

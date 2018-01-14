@@ -736,11 +736,13 @@ require 'tuotemodal.php';
         for (let i = 0; i < tuotteet.length; i++) {
             let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
             let articleNo = tuotteet[i].cells[1].innerText.slice(4);
+            let brandName = tuotteet[i].cells[2].innerText.split("\n")[0];
             $.post(
                 "ajax_requests.php",
                 {   eoltas_tehdassaldo: true,
                     hankintapaikka_id: hankintapaikka_id,
-                    articleNo: articleNo },
+                    articleNo: articleNo,
+                    brandName: brandName },
                 function( data ) {
                     if ( data ) {
                         let varoitus_kuvake = "";
