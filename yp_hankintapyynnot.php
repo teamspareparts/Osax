@@ -15,9 +15,9 @@ $sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, DATE_FORM
 		ORDER BY pvm ASC";
 $hankintapyynnot = $db->query( $sql, [], FETCH_ALL );
 
-$sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted, tuote.nimi AS tuote_nimi,
- 			tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, yritys.nimi AS yritys_nimi, kayttaja.sukunimi,
- 			ostotilauskirja_tuote.kpl AS otk_kpl
+$sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted,
+			tuote.nimi AS tuote_nimi, tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, hyllypaikka,
+			yritys.nimi AS yritys_nimi, kayttaja.sukunimi, SUM(ostotilauskirja_tuote.kpl) AS otk_kpl
 		FROM tuote_ostopyynto
 		JOIN kayttaja ON kayttaja.id = kayttaja_id
 		JOIN yritys ON yritys.id = yritys_id
@@ -26,6 +26,10 @@ $sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-
 		WHERE kasitelty IS NULL
 		ORDER BY pvm ASC";
 $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
+
+foreach ( $ostopyynnot as $tuote ) {
+	$tuote->vastaavat = tuoteMyyntitiedot::haeVastaavat( $db, $tuote->tuote_id, $tuote->hyllypaikka );
+}
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
@@ -65,12 +69,13 @@ else {
 	if ( $ostopyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
+			<tr><th colspan="9" class="center" style="background-color:#1d7ae2;"> Ostopyynnöt </th></tr>
 			<tr><th>#</th>
 				<th>Tuote</th>
 				<th></th>
 				<th>Saldo</th>
-				<th>OTK</th>
+				<th title="Ostotilauskirjalla kpl">OTK</th>
+				<th title="Vastaavia tuotteita kpl">Vastaavat</th>
 				<th>Käyttäjä</th>
 				<th>Pvm.</th>
 				<th>Käsittely:</th>
@@ -83,6 +88,7 @@ else {
 					<td><?= $op->valmistaja ?><br><?= $op->tuote_nimi ?></td>
 					<td><?= $op->varastosaldo ?></td>
 					<td><?= $op->otk_kpl ?></td>
+					<td><?= count($op->vastaavat) ?></td>
 					<td><?= $op->sukunimi ?>,<br><?= $op->yritys_nimi ?></td>
 					<td><?= $op->pvm_formatted ?></td>
 					<td><form action="ajax_requests.php" method="post" data-row-id="op<?=$i?>">
@@ -109,13 +115,13 @@ else {
 	<?php if ( $hankintapyynnot ) : ?>
 		<table style="min-width:80%;">
 			<thead>
-			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;"> Hankintapyynnöt </th></tr>
+			<tr><th colspan="9" class="center" style="background-color:#1d7ae2;"> Hankintapyynnöt </th></tr>
 			<tr><th>#</th>
 				<th>Tuote</th>
 				<th></th>
 				<th>Käyttäjä</th>
 				<th>Pvm.</th>
-				<th>Korvaava okey?</th>
+				<th>Korvaava OK?</th>
 				<th>Käsittely:</th>
 			</tr>
 			</thead>
@@ -142,7 +148,7 @@ else {
 						</form>
 					</td>
 				</tr>
-				<tr><td colspan="6"><b>Selitys:</b> <?= !empty($hkp->selitys) ? $hkp->selitys : '[Tyhjä]' ?></td></tr>
+				<tr><td colspan="8"><b>Selitys:</b> <?= !empty($hkp->selitys) ? $hkp->selitys : '[Tyhjä]' ?></td></tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>

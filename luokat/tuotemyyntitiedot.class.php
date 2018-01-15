@@ -8,11 +8,18 @@
 
 class tuoteMyyntitiedot {
 
-	public static function haeVastaavat( int $id ) {
+	/**
+	 * @param DByhteys $db
+	 * @param int      $id
+	 * @param string   $hyllypaikka
+	 * @return array
+	 */
+	public static function haeVastaavat( DByhteys $db, int $id, string $hyllypaikka ) {
+		$sql = "SELECT id, articleNo, nimi, valmistaja, varastosaldo
+				FROM tuote 
+				WHERE hyllypaikka = ? AND id != ?";
 
-		$sql = "";
-
-		$rows = $db->query( $sql, [ ], FETCH_ALL );
+		return $db->query( $sql, [ $hyllypaikka, $id ], FETCH_ALL );
 	}
 
 }
