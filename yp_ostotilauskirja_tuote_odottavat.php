@@ -19,14 +19,25 @@ function sortProductsByName( array $products ) : array {
 	return $products;
 }
 
+/**
+ * Haetaan ostotilauskirja annetun id:n perusteella.
+ * @param DByhteys $db
+ * @param int $id
+ * @return stdClass|null
+ */
+function getTilauskirja( DByhteys $db, int $id ) {
+	$sql = "SELECT ostotilauskirja_arkisto.*, hankintapaikka.nimi AS hankintapaikka_nimi
+ 			FROM ostotilauskirja_arkisto
+ 			LEFT JOIN hankintapaikka
+ 				ON ostotilauskirja_arkisto.hankintapaikka_id = hankintapaikka.id
+ 			WHERE ostotilauskirja_arkisto.id = ? AND hyvaksytty = 0";
+	$otk = $db->query($sql, [$id]);
+	return $otk ? $otk : null;
+}
+
 // Haetaan ostotilauskirjan tiedot
-$ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
-$sql = "SELECT ostotilauskirja_arkisto.*, hankintapaikka.nimi AS hankintapaikka_nimi
- 		FROM ostotilauskirja_arkisto
- 		LEFT JOIN hankintapaikka
- 			ON ostotilauskirja_arkisto.hankintapaikka_id = hankintapaikka.id
- 		WHERE ostotilauskirja_arkisto.id = ? AND hyvaksytty = 0";
-$otk = $db->query($sql, [$ostotilauskirja_id]);
+$ostotilauskirja_id = isset($_GET['id']) ? (int)$_GET['id'] : null;
+$otk = getTilauskirja($db, $ostotilauskirja_id);
 if ( !$otk ) {
 	header("Location: yp_ostotilauskirja_odottavat.php");
 	exit();
@@ -39,10 +50,17 @@ if( isset($_POST['vastaanotettu']) ) {
 		$tuotteet = isset($_POST['tuotteet']) ? $_POST['tuotteet'] : [];
 
 		//Päivitetään lopulliset kappalemäärät sekä ostotilaukseen että varastosaldoihin
-		//TODO: Jaottele rahtimaksu touotteiden ostohintaan
+		//TODO: Jaottele rahtimaksu touotteiden ostohintaan?
+
+		$sql_values_arkisto = []; // Arkistoitavan ostotilauskirjan tuotteet
+		$sql_values_tuote = []; // Päivitettävät tuotetiedot
+		// Haetaan kaikki päivitettävät tiedot arrayhin
+		foreach ($tuotteet as $tuote) {
+			array_push($sql_values_arkisto, $tuote['id'], $otk->id, $tuote['automaatti'], $tuote['kpl']);
+			array_push($sql_values_tuote, $tuote['id'], $tuote['kpl'], $tuote['hyllypaikka']);
+		}
 
 		// Päivitetään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
-		$sql_values_arkisto = [];
 		$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, ?, ?)'));
 		$sql = "  INSERT INTO ostotilauskirja_tuote_arkisto (tuote_id, ostotilauskirja_id, automaatti, kpl) 
                   VALUES {$questionmarks}
@@ -50,7 +68,6 @@ if( isset($_POST['vastaanotettu']) ) {
                   kpl = VALUES(kpl)";
 
 		// Päivitetään tuotteille uudet tiedot (kaikki kerralla)
-		$sql_values_tuote = [];
 		$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, varastosaldo, ?)'));
 		$sql2 = "	INSERT INTO tuote (id, varastosaldo, yhteensa_kpl, hyllypaikka)
 					VALUES {$questionmarks}
@@ -64,12 +81,6 @@ if( isset($_POST['vastaanotettu']) ) {
 					    hyllypaikka = VALUES(hyllypaikka),
 					    ensimmaisen_kerran_varastossa =
 					    	IF( ISNULL(ensimmaisen_kerran_varastossa), now(), ensimmaisen_kerran_varastossa )";
-
-		// Haetaan kaikki päivitettävät tiedot arrayhin
-		foreach ($tuotteet as $tuote) {
-			array_push($sql_values_arkisto, $tuote['id'], $otk->id, $tuote['automaatti'], $tuote['kpl']);
-			array_push($sql_values_tuote, $tuote['id'], $tuote['kpl'], $tuote['hyllypaikka']);
-		}
 
 		// Tiedot tietokantaan
 		$db->query($sql, $sql_values_arkisto);
@@ -85,7 +96,7 @@ if( isset($_POST['vastaanotettu']) ) {
 		header("Location: yp_ostotilauskirja_odottavat.php");
 		exit();
     } else {
-	    $_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
     }
 }
 
@@ -267,18 +278,18 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 					<td class="center">---</td>
 					<td></td></tr>
 				<!-- Tuotteet -->
-				<?php foreach ($products as $product) : ?>
+				<?php foreach ($products as $index=>$product) : ?>
 					<tr>
 						<td><?=$product->tilauskoodi?></td>
 						<td><?=$product->tuotekoodi?></td>
 						<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
 						<td class="number">
-							<input type="number" name="tuotteet[<?=$product->id?>][kpl]" value="<?=$product->kpl?>" min="0" required>
+							<input type="number" name="tuotteet[<?=$index?>][kpl]" value="<?=$product->kpl?>" min="0" required>
 						</td>
 						<td class="number"><?=format_number($product->ostohinta)?></td>
 						<td class="number"><?=format_number($product->kokonaishinta)?></td>
 						<td class="center">
-							<input type="text" name="tuotteet[<?=$product->id?>][hyllypaikka]" value="<?=$product->hyllypaikka?>">
+							<input type="text" name="tuotteet[<?=$index?>][hyllypaikka]" value="<?=$product->hyllypaikka?>">
 						</td>
 						<td>
 							<?php if ( $product->automaatti ) : ?>
@@ -288,8 +299,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 							<?php endif;?>
 						</td>
 					</tr>
-					<input type="hidden" name="tuotteet[<?=$product->id?>][id]" value="<?=$product->id?>">
-					<input type="hidden" name="tuotteet[<?=$product->id?>][automaatti]" value="<?=$product->automaatti?>">
+					<input type="hidden" name="tuotteet[<?=$index?>][id]" value="<?=$product->id?>">
+					<input type="hidden" name="tuotteet[<?=$index?>][automaatti]" value="<?=$product->automaatti?>">
 				<?php endforeach; ?>
 				<!-- Yhteensä -->
 				<tr class="border_top"><td>YHTEENSÄ</td>

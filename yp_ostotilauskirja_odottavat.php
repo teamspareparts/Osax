@@ -5,12 +5,6 @@ require 'tecdoc.php';
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
-//Jos ostokirjatilaus on juuri lähetetty hankintapaikalle, ladataan ostotilauskirja
-$otk_id = isset($_SESSION["download"]) ? $_SESSION["download"] : 0;
-unset($_SESSION["download"]);
-if ( $otk_id ) {
-	header( "refresh:0;URL=yp_luo_ostotilauskirjatiedosto.php?id={$otk_id}" );
-}
 
 /**
  * Tässä tiedostossa listataan kaikki toimittajille lähetetyt ostotilauskirjat, jotka voi merkata saapuneeksi.
@@ -23,6 +17,24 @@ $sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauski
  		WHERE hyvaksytty = 0
  		GROUP BY ostotilauskirja_arkisto.id";
 $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
+
+// Ladataan csv-tiedosto, jos tilauskirja on juuri lähetetty.
+if ( isset($_SESSION["download"]) ) {
+	$otk_id = (int)$_SESSION["download"];
+	unset($_SESSION["download"]);
+	if ( $otk_id ) {
+		header( "refresh:0;URL=yp_luo_ostotilauskirjatiedosto.php?id={$otk_id}" );
+	}
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty($_POST) ){
+	header("Location: " . $_SERVER['REQUEST_URI']);
+	exit();
+}
+$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
+unset($_SESSION["feedback"]);
+
 ?>
 
 <!DOCTYPE html>
@@ -48,6 +60,8 @@ $ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 		<section class="napit">
 		</section>
 	</div>
+
+	<?= $feedback ?>
 
 	<?php if ( $ostotilauskirjat ) : ?>
 		<table>
