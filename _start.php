@@ -1,4 +1,6 @@
 <?php declare(strict_types=1);
+error_reporting(E_ERROR);
+ini_set('display_errors', "1");
 
 /**
  * For debugging. Tulostaa kaikki tiedot muuttujasta käyttäen print_r()- ja var_dump()-funktioita.
