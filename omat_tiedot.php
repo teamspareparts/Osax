@@ -193,7 +193,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	<form method="post" accept-charset="utf-8">
 		<fieldset><legend>Vaihda salasana</legend>
 			<label for="old_ss" class="required">Vanha salasana</label>
-			<input type="password" name="vanha_salasana" pattern=".{8,}" placeholder="Edellinen salasana"
+			<input type="password" name="vanha_salasana" pattern=".{1,}" placeholder="Edellinen salasana"
 			       id="old_ss" required>
 			<br><br>
 			<label for="uusi_salasana" class="required">Uusi salasana</label>
