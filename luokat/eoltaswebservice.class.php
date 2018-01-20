@@ -6,7 +6,7 @@
 class EoltasWebservice {
 	private static $request_url = 'https://b2b.eoltas.lt/index.php?cl=nfqwebservicemainview';
 	private static $config_path = './config/config.ini.php';
-	private static $timeout = 4; //sekuntia
+	private static $timeout = 5; //sekuntia
 
 	/**
 	 * Curl pyynnön lähetys Eoltakselle.
@@ -201,29 +201,41 @@ class EoltasWebservice {
 	/**
 	 * Lisää tuotteen Eoltaksen avoimelle ostotilauskirjalle.
 	 * @param DByhteys $db
-	 * @param string $articleNo
-	 * @param string $brandNo
+	 * @param int $id <p> Tuotteen id.
+	 * @param int $kpl
+	 * @param int $tilaus_id
 	 * @return bool
 	 */
-	private static function addProductToEoltasOrderBook( DByhteys $db, int $id, int $kpl ) : bool {
+	static function addProductToEoltasOrderBook( DByhteys $db, int $id, int $kpl, int $tilaus_id ) : bool {
 		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
 		// Haetaan Eoltaksen avoimen ostotilauskirjan id
 		$sql = "SELECT id FROM ostotilauskirja WHERE hankintapaikka_id = ? AND toimitusjakso != 0";
 		$otk_id = $db->query($sql, [$eoltas_hankintapaikka_id]);
+		$selite = "Tilaus id: {$tilaus_id}, {$kpl}kpl.";
 		if ( !$otk_id ) {
 			return false;
 		}
 		// Lisätään tuote ostotilauskirjalle
-		//TODO: KESKEN!! Selite valmiiksi!!
-		$sql = "INSERT INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, automaatti,
+		$sql = "INSERT INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, tilaustuote,
  					kpl, selite, lisays_kayttaja_id)
-				VALUES (?,?,0,?,?,0)
-				ON DUPLICATE KEY UPDATE kpl = kpl + VALUES(kpl)";
-		$res = $db->query($sql, [$otk_id, $id, $kpl]);
-		return false;
+				VALUES (?,?,1,?,?,0)
+				ON DUPLICATE KEY UPDATE kpl = kpl + VALUES(kpl), selite = CONCAT(VALUES(selite), selite)";
+		$result = $db->query($sql, [$otk_id->id, $id, $kpl, $selite]);
+		if ( !$result ) {
+			return false;
+		}
+		return true;
 	}
 
 	//TODO: KESKEN
+
+	/**
+	 * Lisätään tuote Eoltaksen ostoskoriin tuote-id:n perusteella.
+	 * @param DByhteys $db
+	 * @param int $tuote_id
+	 * @param int $kpl
+	 * @return bool
+	 */
 	static function addProductToBasket( DByhteys $db, int $tuote_id, int $kpl ) : bool {
 		$sql = "SELECT hankintapaikka_id, articleNo, brandNo, valmistaja FROM tuote WHERE id = ?";
 		$tuote = $db->query($sql, [$tuote_id]);
@@ -235,29 +247,38 @@ class EoltasWebservice {
 			return false;
 		}
 		// Haetaan Eoltaksen oma tuote-id
-		$eoltas_id = self::getEoltasProductId( $tuote->articleNo, $tuote->brandNo, $tuote->bradName );
+		$eoltas_id = self::getEoltasProductId( $tuote->articleNo, $tuote->valmistaja, $tuote->brandNo );
 		if ( !$eoltas_id ) {
 			return false;
 		}
 		// Lisätään tuote ostoskoriin
-		//$ostoskori = self::addToBasket( $eoltas_id, $kpl );
-		//self::addProductToEoltasOrderBook( $db, $tuote->id, $kpl );
+		$ostoskori = self::addToBasket( $eoltas_id, $kpl );
+		return true;
+	}
+
+	//TODO: KESKEN
+	static function addBasketProductsToEoltasBasket( DByhteys $db, int $tilaus_id, array $tuotteet ) : bool {
+		foreach ( $tuotteet as $tuote ) {
+			//self::addProductToBasket( $db, $tuote->id, $tuote->kpl );
+			//self::addProductToEoltasOrderBook( $db, $tuote->id, $tuote->kpl, $tilaus_id );
+		}
 		return false;
 	}
 
 	/**
 	 * Tarkastetaan, että tilattavia tuotteita on tarpeeksi.
-	 * @return bool
+	 * @return array <p> Tuotteet joita ei ollut tarpeeksi.
 	 */
-	static function checkBasketValidity() : bool {
+	static function checkBasketValidity() : array {
 		$ostoskori = self::getBasket();
+		$vajaat_tuotteet = [];
 		foreach ( $ostoskori->response->basket as $product ) {
 			if ( $product->amount > $product->stock ) {
 				// Tilattavia tuotteita enemmän kuin varastossa
-				return false;
+				$vajaat_tuotteet[] = $product;
 			}
 		}
-		return true;
+		return $vajaat_tuotteet;
 	}
 
 }
