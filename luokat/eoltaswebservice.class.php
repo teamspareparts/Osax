@@ -125,6 +125,20 @@ class EoltasWebservice {
 	}
 
 	/**
+	 * KÄYTÄ ERITTÄIN VAROEN!
+	 * Tekee tilauksen.
+	 * @return stdClass
+	 */
+	/*private static function order() : stdClass {
+		$fields = array(
+			'action' => 'order',
+			'deliveryId' => 'oxidstandard',
+			'addressId' => 'adc7cc6698e9a9689163b7eddc0d280f'
+		);
+		return self::sendRequest($fields);
+	}*/
+
+	/**
 	 * Palauttaa config tiedostoon tallennetun Eoltaksen hankintapaikka id:n.
 	 * @return int
 	 */
@@ -227,8 +241,6 @@ class EoltasWebservice {
 		return true;
 	}
 
-	//TODO: KESKEN
-
 	/**
 	 * Lisätään tuote Eoltaksen ostoskoriin tuote-id:n perusteella.
 	 * @param DByhteys $db
@@ -257,19 +269,28 @@ class EoltasWebservice {
 	}
 
 	//TODO: KESKEN
-	static function addBasketProductsToEoltasBasket( DByhteys $db, int $tilaus_id, array $tuotteet ) : bool {
+	static function addBasketProductsToEoltasBasket( DByhteys $db, int $tilaus_id, array $tuotteet ) : array {
+		// Lisätään tuotteet Eoltaksen ostoskoriin
 		foreach ( $tuotteet as $tuote ) {
 			//self::addProductToBasket( $db, $tuote->id, $tuote->kpl );
 			//self::addProductToEoltasOrderBook( $db, $tuote->id, $tuote->kpl, $tilaus_id );
 		}
-		return false;
+		// Palautetaan tuotteet, joita yritetään tilata enemmäin kuin tehtaalla varastossa
+		return self::getInvalidProductsFromBasket();
+	}
+
+	static function orderFromEoltas() : bool {
+		if ( self::getInvalidProductsFromBasket() ) {
+			return false;
+		}
+		//$order = self::order();
 	}
 
 	/**
 	 * Tarkastetaan, että tilattavia tuotteita on tarpeeksi.
 	 * @return array <p> Tuotteet joita ei ollut tarpeeksi.
 	 */
-	static function checkBasketValidity() : array {
+	static function getInvalidProductsFromBasket() : array {
 		$ostoskori = self::getBasket();
 		$vajaat_tuotteet = [];
 		foreach ( $ostoskori->response->basket as $product ) {
