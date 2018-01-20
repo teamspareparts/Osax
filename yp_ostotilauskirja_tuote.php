@@ -8,7 +8,7 @@ if ( !$user->isAdmin() ) {
 
 //tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
-if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$ostotilauskirja_id])) {
+if ( !$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$ostotilauskirja_id]) ) {
 	header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
@@ -18,7 +18,7 @@ if (!$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$o
  * @param int $hankintapaikka_id
  * @return float
  */
-function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : float {
+function get_toimitusaika( DByhteys $db, int $hankintapaikka_id ) : float {
     $oletus_toimitusaika = 7; //Käytetään mikäli aikaisempia tilauksia ei ole
     //Toimitusaika (lasketaan kolmen viime lähetyksen keskiarvo)
     $sql = "	SELECT lahetetty, saapumispaiva 
@@ -47,10 +47,10 @@ function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : float {
  * @param int $ostotilauskirja_id
  * @return int <p> Palauttaa 0 tai arkistoidun ostotilauskirjan id:n.
  */
-function laheta_ostotilauskirja(DByhteys $db, int $user_id, int $ostotilauskirja_id){
+function laheta_ostotilauskirja( DByhteys $db, int $user_id, int $ostotilauskirja_id ) : int {
 
     //Haetaan ostotilauskirjan tuotteet
-    $sql = "SELECT * FROM ostotilauskirja_tuote
+    $sql = "SELECT ostotilauskirja_tuote.*, tuote.sisaanostohinta FROM ostotilauskirja_tuote
  			LEFT JOIN tuote
  			  ON ostotilauskirja_tuote.tuote_id = tuote.id
  			WHERE ostotilauskirja_id = ?";
@@ -59,11 +59,9 @@ function laheta_ostotilauskirja(DByhteys $db, int $user_id, int $ostotilauskirja
     }
 
     //Haetaan hankintapaikan keskimääräinen toimitusaika
-    $hankintapaikka_id = $db->query("SELECT hankintapaikka_id FROM ostotilauskirja WHERE id = ?",
-        [$ostotilauskirja_id])->hankintapaikka_id;
-
+	$sql = "SELECT hankintapaikka_id FROM ostotilauskirja WHERE id = ?";
+    $hankintapaikka_id = $db->query($sql, [$ostotilauskirja_id])->hankintapaikka_id;
     $toimitusaika = get_toimitusaika($db, $hankintapaikka_id);
-
 
 	//Lisätään ostotilauskirja arkistoon
 	$sql = "INSERT INTO ostotilauskirja_arkisto ( hankintapaikka_id, tunniste, original_rahti, rahti,
@@ -75,24 +73,22 @@ function laheta_ostotilauskirja(DByhteys $db, int $user_id, int $ostotilauskirja
 	}
 	$uusi_otk_id = $db->query("SELECT LAST_INSERT_ID() AS last_id", []);
 
-
     //Lisätään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
     $sql_insert_values = [];
-    $questionmarks = implode(',', array_fill(0, count($products), '(?, ?, ?, ?, ?, ?, ?, ?, ?)'));
-	$sql = "INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, automaatti,
-	        original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta) 
- 								VALUES {$questionmarks}";
+    $questionmarks = implode(',', array_fill(0, count($products), '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'));
+	$sql = "INSERT INTO ostotilauskirja_tuote_arkisto (ostotilauskirja_id, tuote_id, automaatti, tilaustuote,
+	        	original_kpl, kpl, selite, lisays_pvm, lisays_kayttaja_id, ostohinta)
+	        VALUES {$questionmarks}";
 
 	foreach ($products as $product) {
-		array_push($sql_insert_values, $uusi_otk_id->last_id, $product->id, $product->automaatti, $product->kpl, $product->kpl,
-			$product->selite, $product->lisays_pvm, $product->lisays_kayttaja_id, $product->sisaanostohinta);
-    }
-
+		array_push($sql_insert_values, $uusi_otk_id->last_id, $product->tuote_id, $product->automaatti,
+			$product->tilaustuote, $product->kpl, $product->kpl, $product->selite, $product->lisays_pvm,
+			$product->lisays_kayttaja_id, $product->sisaanostohinta);
+	}
     $result = $db->query($sql, $sql_insert_values);
 	if( !$result ) {
 		return 0;
 	}
-
 
     //Pävitetään seuraava lähetyspäivä ja saapumispäivä ostotilauskirjalle
     $sql = "UPDATE ostotilauskirja
@@ -100,7 +96,6 @@ function laheta_ostotilauskirja(DByhteys $db, int $user_id, int $ostotilauskirja
 	            oletettu_saapumispaiva = now() + INTERVAL toimitusjakso WEEK + INTERVAL ? DAY 
  			WHERE id = ?";
     $db->query($sql, [$toimitusaika, $ostotilauskirja_id]);
-
 
 	//Tyhjennetään alkuperäinen ostotilauskirja
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
@@ -126,23 +121,35 @@ function sortProductsByName( array $products ) : array {
 }
 
 if ( isset($_POST['muokkaa']) ) {
-    if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
+	if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
         $_POST['selite'] = "AUTOMAATTI";
     }
-    $sql1 = "  UPDATE ostotilauskirja_tuote
-              SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
-              WHERE ostotilauskirja_id = ? AND tuote_id = ? AND automaatti = ?";
-    $sql2 = " UPDATE tuote SET sisaanostohinta = ? WHERE id = ?";
-    if ( $db->query($sql1, [$_POST['kpl'], $user->id, $_POST['selite'], $ostotilauskirja_id, $_POST['id'], $_POST['automaatti']]) &&
-        $db->query($sql2, [$_POST['ostohinta'], $_POST['id']]) ) {
+    // Muokataan tilauskirjan tuotetta
+	$values = [
+		$_POST['kpl'],
+		$user->id,
+		$_POST['selite'],
+		$ostotilauskirja_id,
+		$_POST['id'],
+		$_POST['automaatti'],
+		$_POST['tilaustuote']
+	];
+	$sql = "UPDATE ostotilauskirja_tuote
+			SET kpl = ?, lisays_kayttaja_id = ?, selite = ?
+            WHERE ostotilauskirja_id = ? AND tuote_id = ? AND automaatti = ? AND tilaustuote = ?";
+	$result1 = $db->query($sql, $values);
+	// Päivitetään sisäänostohinta
+	$sql = "UPDATE tuote SET sisaanostohinta = ? WHERE id = ?";
+	$result2 = $db->query($sql, [$_POST['ostohinta'], $_POST['id']]);
+    if ( $result1 && $result2) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR: Muokkauksessa tapahtui virhe!</p>";
     }
 }
 else if( isset($_POST['poista']) ) {
-    if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ? ",
-                    [$_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]) ) {
+	$sql = "DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ? AND tilaustuote = ?";
+    if ( $db->query($sql, [$_POST['id'], $ostotilauskirja_id, $_POST['automaatti'], $_POST['tilaustuote']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Tuote poistettu ostotilauskirjalta.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -185,7 +192,7 @@ $sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
         	ON tuote.hyllypaikka = t2.hyllypaikka AND t2.hyllypaikka <> ''
         		AND tuote.id != t2.id AND t2.aktiivinen = 1
         WHERE ostotilauskirja_id = ?
-        GROUP BY tuote_id, automaatti";
+        GROUP BY tuote_id, automaatti, tilaustuote";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
@@ -272,8 +279,10 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 	            <td>
                     <?php if ( $product->automaatti ) : ?>
                         <span style="color: red"><?=$product->selite?></span>
+                    <?php elseif ( $product->tilaustuote ) : ?>
+	                    <span style="color: green"><?=$product->selite?></span>
                     <?php else : ?>
-				        <?=$product->selite?>
+	                    <?=$product->selite?>
                     <?php endif;?>
                 </td>
 	            <td></td><!-- Tehdassaldo -->
@@ -287,9 +296,10 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <td class="toiminnot"><!-- Toiminnot -->
                     <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
                             '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
-                            '<?=$product->selite?>', <?=$product->automaatti?>)">Muokkaa</button>
+                            '<?=$product->selite?>', <?=$product->automaatti?>, <?=$product->tilaustuote?>)">
+	                    Muokkaa</button>
                     <button class="nappi red" onclick="poista_ostotilauskirjalta(
-                    <?=$product->id?>, <?=$product->automaatti?>)">Poista</button>
+                    <?=$product->id?>, <?=$product->automaatti?>, <?=$product->tilaustuote?>)">Poista</button>
                 </td>
             </tr>
         <?php endforeach;?>
@@ -310,7 +320,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 <script type="text/javascript">
 
 
-    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite, automaatti){
+    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite, automaatti, tilaustuote){
         Modal.open( {
             content:  '\
 				<h4>Muokkaa tuotteen tietoja ostotilauskirjalla.</h4>\
@@ -331,6 +341,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <br><br> \
 					<input name="id" type="hidden" value="'+tuote_id+'">\
 					<input name="automaatti" type="hidden" value="'+automaatti+'">\
+					<input name="tilaustuote" type="hidden" value="'+tilaustuote+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
 				</form>\
 				',
@@ -339,11 +350,12 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
     }
 
     /**
-     *
+     * Luodaan form tuotteen poistamista varten.
      * @param tuote_id
      * @param automaatti
+     * @param tilaustuote
      */
-	function poista_ostotilauskirjalta(tuote_id, automaatti) {
+	function poista_ostotilauskirjalta(tuote_id, automaatti, tilaustuote) {
         if( confirm("Haluatko varmasti poistaa tuotteen ostotilauskirjalta?") ) {
             //Rakennetaan form
             let form = document.createElement("form");
@@ -370,6 +382,13 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 			field.setAttribute("name", "automaatti");
 			field.setAttribute("value", automaatti);
 			form.appendChild(field);
+
+			//tilaustuote
+            field = document.createElement("input");
+            field.setAttribute("type", "hidden");
+            field.setAttribute("name", "tilaustuote");
+            field.setAttribute("value", tilaustuote);
+            form.appendChild(field);
 
             //form submit
             document.body.appendChild(form);

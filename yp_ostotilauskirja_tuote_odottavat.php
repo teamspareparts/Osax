@@ -43,11 +43,15 @@ if ( !$otk ) {
 	exit();
 }
 
-if( isset($_POST['vastaanotettu']) ) {
-	if ( $db->query("UPDATE ostotilauskirja_arkisto SET saapumispaiva = NOW(), hyvaksytty = 1, vastaanottaja = ?
-  					WHERE id = ? ", [$user->id, $_POST['id']]) ) {
+if ( isset($_POST['vastaanotettu']) ) {
+	$tuotteet = isset($_POST['tuotteet']) ? $_POST['tuotteet'] : [];
+	if ( $tuotteet ) {
 
-		$tuotteet = isset($_POST['tuotteet']) ? $_POST['tuotteet'] : [];
+		// Päivitetään arkistoidun tilauskirjan tietoja
+		$sql = "UPDATE ostotilauskirja_arkisto
+				SET saapumispaiva = NOW(), hyvaksytty = 1, vastaanottaja = ?
+				WHERE id = ?";
+		$db->query($sql, [$user->id, $_POST['id']]);
 
 		//Päivitetään lopulliset kappalemäärät sekä ostotilaukseen että varastosaldoihin
 		//TODO: Jaottele rahtimaksu touotteiden ostohintaan?
@@ -56,20 +60,21 @@ if( isset($_POST['vastaanotettu']) ) {
 		$sql_values_tuote = []; // Päivitettävät tuotetiedot
 		// Haetaan kaikki päivitettävät tiedot arrayhin
 		foreach ($tuotteet as $tuote) {
-			array_push($sql_values_arkisto, $tuote['id'], $otk->id, $tuote['automaatti'], $tuote['kpl']);
+			array_push($sql_values_arkisto, $tuote['id'], $otk->id, $tuote['automaatti'], $tuote['tilaustuote'], $tuote['kpl']);
 			array_push($sql_values_tuote, $tuote['id'], $tuote['kpl'], $tuote['hyllypaikka']);
 		}
 
 		// Päivitetään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
-		$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, ?, ?)'));
-		$sql = "  INSERT INTO ostotilauskirja_tuote_arkisto (tuote_id, ostotilauskirja_id, automaatti, kpl) 
-                  VALUES {$questionmarks}
-                  ON DUPLICATE KEY UPDATE
-                  kpl = VALUES(kpl)";
+		$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, ?, ?, ?)'));
+		$sql = "INSERT INTO ostotilauskirja_tuote_arkisto (tuote_id, ostotilauskirja_id, automaatti, tilaustuote, kpl) 
+                VALUES {$questionmarks}
+                ON DUPLICATE KEY UPDATE
+                	kpl = VALUES(kpl)";
+		$db->query($sql, $sql_values_arkisto);
 
 		// Päivitetään tuotteille uudet tiedot (kaikki kerralla)
 		$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, varastosaldo, ?)'));
-		$sql2 = "	INSERT INTO tuote (id, varastosaldo, yhteensa_kpl, hyllypaikka)
+		$sql = "	INSERT INTO tuote (id, varastosaldo, yhteensa_kpl, hyllypaikka)
 					VALUES {$questionmarks}
                     ON DUPLICATE KEY UPDATE
                         varastosaldo = varastosaldo + VALUES(varastosaldo), 
@@ -81,10 +86,7 @@ if( isset($_POST['vastaanotettu']) ) {
 					    hyllypaikka = VALUES(hyllypaikka),
 					    ensimmaisen_kerran_varastossa =
 					    	IF( ISNULL(ensimmaisen_kerran_varastossa), now(), ensimmaisen_kerran_varastossa )";
-
-		// Tiedot tietokantaan
-		$db->query($sql, $sql_values_arkisto);
-		$db->query($sql2, $sql_values_tuote);
+		$db->query($sql, $sql_values_tuote);
 
 		// Päivitetään uusin/tarkin saapumispäivä alkuperäiselle ostotilauskirjalle
 		$sql = "UPDATE ostotilauskirja
@@ -96,18 +98,18 @@ if( isset($_POST['vastaanotettu']) ) {
 		header("Location: yp_ostotilauskirja_odottavat.php");
 		exit();
     } else {
-		$_SESSION["feedback"] = "<p class='error'>ERROR.</p>";
+		$_SESSION["feedback"] = "<p class='error'>Tilauskirja on tyhjä.</p>";
     }
 }
 
 if ( isset($_POST['muokkaa_tuote']) ) {
-	unset($_POST['muokkaa_tuote']);
+	// Muokataan tuotetta ostotilauskirjalla
 	$sql = "UPDATE ostotilauskirja_tuote_arkisto
 		  	SET kpl = ?
-  	        WHERE tuote_id = ?
-  	        	AND ostotilauskirja_id = ?
-  	        	AND automaatti = ?";
-	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id, $_POST['automaatti']]);
+  	        WHERE tuote_id = ? AND ostotilauskirja_id = ?
+  	        	AND automaatti = ? AND tilaustuote = ?";
+	$result1 = $db->query($sql, [$_POST['kpl'], $_POST['id'], $ostotilauskirja_id, $_POST['automaatti'], $_POST['tilaustuote']]);
+	// Muokataan tuotteen hyllypaikkaa
 	$sql = "UPDATE tuote SET hyllypaikka = ? WHERE id = ?";
 	$result2 = $db->query($sql, [$_POST['hyllypaikka'], $_POST['id']]);
     if ( !$result1 || !$result2 ) {
@@ -115,7 +117,6 @@ if ( isset($_POST['muokkaa_tuote']) ) {
 	}
 }
 if ( isset($_POST['muokkaa_rahti']) ) {
-	unset($_POST['muokkaa_rahti']);
 	$sql = "UPDATE ostotilauskirja_arkisto SET rahti = ? WHERE id = ?";
 	$db->query($sql, [$_POST['rahti'], $ostotilauskirja_id]);
 }
@@ -133,7 +134,7 @@ $sql = "  SELECT *, tuote.sisaanostohinta*ostotilauskirja_tuote_arkisto.kpl AS k
           LEFT JOIN tuote
             ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
           WHERE ostotilauskirja_id = ?
-          GROUP BY tuote_id, automaatti";
+          GROUP BY tuote_id, automaatti, tilaustuote";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 $products = sortProductsByName($products);
 
@@ -231,6 +232,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 	                <td>
 	                    <?php if ( $product->automaatti ) : ?>
 	                        <span style="color: red"><?=$product->selite?></span>
+	                    <?php elseif ( $product->tilaustuote ) : ?>
+		                    <span style="color: green"><?=$product->selite?></span>
 	                    <?php else : ?>
 	                        <?=$product->selite?>
 	                    <?php endif;?>
@@ -238,8 +241,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 	                <td class="toiminnot">
 	                    <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
 			                    '<?=$product->tuotekoodi?>', <?=$product->kpl?>,
-			                    '<?=$product->hyllypaikka?>', <?=$product->automaatti?>)">
-	                        Muokkaa</button>
+			                    '<?=$product->hyllypaikka?>', <?=$product->automaatti?>,
+			                    <?=$product->tilaustuote?>)">
+		                    Muokkaa</button>
 	                </td>
 				</tr>
 			<?php endforeach; ?>
@@ -294,6 +298,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 						<td>
 							<?php if ( $product->automaatti ) : ?>
 								<span style="color: red"><?=$product->selite?></span>
+							<?php elseif ( $product->tilaustuote ) : ?>
+								<span style="color: green"><?=$product->selite?></span>
 							<?php else : ?>
 								<?=$product->selite?>
 							<?php endif;?>
@@ -301,6 +307,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 					</tr>
 					<input type="hidden" name="tuotteet[<?=$index?>][id]" value="<?=$product->id?>">
 					<input type="hidden" name="tuotteet[<?=$index?>][automaatti]" value="<?=$product->automaatti?>">
+					<input type="hidden" name="tuotteet[<?=$index?>][tilaustuote]" value="<?=$product->tilaustuote?>">
 				<?php endforeach; ?>
 				<!-- Yhteensä -->
 				<tr class="border_top"><td>YHTEENSÄ</td>
@@ -322,7 +329,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 <script type="text/javascript">
 
-	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka, automaatti){
+	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka, automaatti, tilaustuote){
 		Modal.open( {
 			content:  '\
 				<h4>Muokkaa tilatun tuotteen tietoja mikäli saapuva<br>\
@@ -341,6 +348,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 					<br><br>\
 					<input type="hidden" name="id" value="'+tuote_id+'">\
 					<input type="hidden" name="automaatti" value="'+automaatti+'">\
+					<input type="hidden" name="tilaustuote" value="'+tilaustuote+'">\
 					<input type="submit" name="muokkaa_tuote" value="Muokkaa" class="nappi"> \
 				</form>\
 				',
