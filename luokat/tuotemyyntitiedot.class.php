@@ -9,17 +9,36 @@
 class tuoteMyyntitiedot {
 
 	/**
+	 * Hakee vastaavat tuotteet annetulle ID:lle ja hyllypaikalle.
 	 * @param DByhteys $db
-	 * @param int      $id
+	 * @param int      $tuoteID
 	 * @param string   $hyllypaikka
 	 * @return array
 	 */
-	public static function haeVastaavat( DByhteys $db, int $id, string $hyllypaikka ) {
+	public static function haeVastaavat( DByhteys $db, int $tuoteID, string $hyllypaikka ) {
 		$sql = "SELECT id, articleNo, nimi, valmistaja, varastosaldo
 				FROM tuote 
 				WHERE hyllypaikka = ? AND id != ?";
 
-		return $db->query( $sql, [ $hyllypaikka, $id ], FETCH_ALL );
+		return $db->query( $sql, [ $hyllypaikka, $tuoteID ], FETCH_ALL );
+	}
+
+	/**
+	 * Haetaan montako tuotetta on ostotilauskirjalla.
+	 * Käytössä ostopyynnöissä (yp_hankintapyynnöt) ylläpidolle tiedoksi, että tuotetta on jo tilauksessa.
+	 * @param DByhteys $db
+	 * @param int      $tuoteID
+	 * @return array
+	 */
+	public static function otkTuotettaTilattu( DByhteys $db, int $tuoteID ) {
+		$sql = "SELECT SUM(kpl) AS kpl_maara
+				FROM ostotilauskirja_tuote_arkisto
+				INNER JOIN ostotilauskirja_arkisto 
+					ON ostotilauskirja_arkisto.ostotilauskirja_id = ostotilauskirja_tuote_arkisto.ostotilauskirja_id
+				WHERE tuote_id = ?
+					AND ostotilauskirja_arkisto.hyvaksytty = FALSE";
+
+		return $db->query( $sql, [ $tuoteID ], FETCH_ALL );
 	}
 
 	/**

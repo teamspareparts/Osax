@@ -27,8 +27,11 @@ $sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-
 		ORDER BY pvm ASC";
 $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
 
-foreach ( $ostopyynnot as $tuote ) {
-	$tuote->vastaavat = tuoteMyyntitiedot::haeVastaavat( $db, $tuote->tuote_id, $tuote->hyllypaikka );
+foreach ( $ostopyynnot as $op_rivi ) {
+	if ( !empty($op_rivi->hyllypaikka) ) {
+		$op_rivi->vastaavat = tuoteMyyntitiedot::haeVastaavat( $db, $op_rivi->tuote_id, $op_rivi->hyllypaikka );
+	} else $op_rivi->vastaavat = [];
+	$op_rivi->otkTuotettaTilattu = tuoteMyyntitiedot::otkTuotettaTilattu( $db, $op_rivi->tuote_id );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -87,7 +90,7 @@ else {
 					<td><?= $op->tuotekoodi ?></td>
 					<td><?= $op->valmistaja ?><br><?= $op->tuote_nimi ?></td>
 					<td><?= $op->varastosaldo ?></td>
-					<td><?= $op->otk_kpl ?></td>
+					<td><?= $op->otkTuotettaTilattu->kpl_maara ?></td>
 					<td><?= count($op->vastaavat) ?></td>
 					<td><?= $op->sukunimi ?>,<br><?= $op->yritys_nimi ?></td>
 					<td><?= $op->pvm_formatted ?></td>
