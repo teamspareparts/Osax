@@ -58,4 +58,58 @@ class tuoteMyyntitiedot {
 
 		return $db->query( $sql, [ $tuoteID ], FETCH_ALL );
 	}
+
+	/**
+	 * Tuotteen kokonaismyynti yhteensä
+	 * @param DByhteys $db
+	 * @param int      $tuoteID
+	 * @return array
+	 */
+	public static function tuotteenKokonaisMyynti( DByhteys $db, int $tuoteID ) {
+		$sql = "SELECT count(tilaus_id) AS tilausten_maara, sum(kpl) AS kpl_maara, 
+					SUM(pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus))/count(tilaus_id) AS keskimyyntihinta
+				FROM tilaus_tuote
+				INNER JOIN tilaus 
+					ON tilaus_tuote.tilaus_id = tilaus.id
+				WHERE tuote_id = ?";
+
+		return $db->query( $sql, [ $tuoteID ], FETCH_ALL );
+	}
+
+	/**
+	 * Hyllypaikan vuosimyynti (from now to -1 year)
+	 * @param DByhteys $db
+	 * @param string   $hyllypaikka
+	 * @return array
+	 */
+	public static function hyllypaikanVuosimyynti( DByhteys $db, string $hyllypaikka ) {
+		$sql = "SELECT count(tilaus_id) AS tilausten_maara, sum(kpl) AS kpl_maara, 
+					SUM(pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus))/count(tilaus_id) AS keskimyyntihinta
+				FROM tilaus_tuote
+				INNER JOIN tilaus 
+					ON tilaus_tuote.tilaus_id = tilaus.id
+						AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+				INNER JOIN tuote
+					ON tuote.hyllypaikka = ?";
+
+		return $db->query( $sql, [ $hyllypaikka ], FETCH_ALL );
+	}
+
+	/**
+	 * Hyllypaikan vuosimyynti (from now to -1 year)
+	 * @param DByhteys $db
+	 * @param string   $hyllypaikka
+	 * @return array
+	 */
+	public static function hyllypaikanKokonaisMyynti( DByhteys $db, string $hyllypaikka ) {
+		$sql = "SELECT count(tilaus_id) AS tilausten_maara, sum(kpl) AS kpl_maara, 
+					SUM(pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus))/count(tilaus_id) AS keskimyyntihinta
+				FROM tilaus_tuote
+				INNER JOIN tilaus 
+					ON tilaus_tuote.tilaus_id = tilaus.id
+				INNER JOIN tuote
+					ON tuote.hyllypaikka = ?";
+
+		return $db->query( $sql, [ $hyllypaikka ], FETCH_ALL );
+	}
 }
