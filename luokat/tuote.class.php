@@ -36,6 +36,7 @@ class Tuote {
 	// Yp_valikoima sivulla käytössä olevat muuttujat
 	/** @var float $ostohinta <p> */ public $ostohinta = 0.00;
 	/** @var float $keskiostohinta <p> */ public $keskiostohinta = 0.00;
+	/** @var float $keskimyyntihinta <p> */ public $keskimyyntihinta = 0.00;
 	/** @var int $vuosimyynti <p> Kpl:tta myyty vuodessa. */ public $vuosimyynti = 0;
 	/** @var int $kokonaismyynti <p> Kpl:tta myyty. */ public $kokonaismyynti = 0;
 	/** @var int $yhteensäKpl <p> Kpl:tta ostettu. */ public $yhteensaKpl = 0;
