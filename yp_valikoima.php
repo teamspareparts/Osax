@@ -74,6 +74,16 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
 		$t->haeTuoteryhmat( $db, true );
 		$t->haeAlennukset( $db );
 
+		/**
+		 * Seuraava osio voisi olla luultavasti huomattavasti nopeampi jos lisätty ylhäällä olevaan isoon hakuun.
+		 * Mutta en jaksa. Joten nopea ratkaisu. Tämä on ollut jo tarpeeksi pitkään tekeillä.
+		 * --jj 180122
+		 */
+		/** @var \stdClass $temp_myyntitiedot */
+		$temp_myyntitiedot = tuoteMyyntitiedot::tuotteenVuosimyynti( $db, $t->id );
+		//debug( $temp_myyntitiedot, true );
+		$t->keskimyyntihinta = $temp_myyntitiedot->keskimyyntihinta ?? 0;
+		$t->vuosimyynti = $temp_myyntitiedot->kpl_maara ?? 0;
 	}
 
 	return [$row_count, $results];
@@ -245,7 +255,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 				<td><?= "" ?></td>
 				<td><?= $t->hyllypaikka ?></td>
 
-				<td><button class="nappi show" data-dialog-id="#dialog_<?=$t->id?>">Muokkaa</button>
+				<td><button class="nappi show" data-dialog-id="#dialog_<?=$t->id?>">Info</button>
 
 					<dialog id="dialog_<?=$t->id?>" style="width: 500px;">
 
@@ -286,15 +296,15 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 						<dl>
 							<dt>Hinta (ALV 0 %)</dt> <dd><?= $t->aHintaIlmanALV_toString() ?></dd>
 							<dt>ALV_kanta</dt> <dd><?= $t->alv_toString() ?></dd>
-							<dt>keskimyyntihinta</dt> <dd><?= '' ?></dd>
+							<dt>Keskimyyntihinta</dt> <dd><?= format_number($t->keskimyyntihinta) ?></dd>
 							<dt>Ostohinta</dt> <dd><?= $t->ostohinta_toString() ?></dd>
-							<dt>keskiostohinta</dt> <dd><?= format_number($t->keskiostohinta) ?></dd>
+							<dt>Keskiostohinta</dt> <dd><?= format_number($t->keskiostohinta) ?></dd>
 						</dl>
 						<hr>
 						<dl>
-							<dt>varastosaldo</dt> <dd><?= $t->varastosaldo ?></dd>
-							<dt>minimimyyntiera</dt> <dd><?= $t->minimimyyntiera ?></dd>
-							<dt>vuosimyynti</dt> <dd><?= "" ?></dd>
+							<dt>Varastosaldo</dt> <dd><?= $t->varastosaldo ?></dd>
+							<dt>Minimimyyntiera</dt> <dd><?= $t->minimimyyntiera ?></dd>
+							<dt>Vuosimyynti</dt> <dd><?= $t->vuosimyynti ?></dd>
 							<dt>1. kerran varastossa</dt> <dd><?= $t->ensimmaisenKerranVarastossa ?></dd>
 							<dt>Yhteensä ostettu sisään</dt> <dd><?= $t->yhteensaKpl ?></dd>
 						</dl>
