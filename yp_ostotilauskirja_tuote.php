@@ -184,7 +184,20 @@ unset($_SESSION["feedback"]);
 // Haetaan ostotilauskirjalla olevat tuotteet
 $sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
  			tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
-		SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita
+			SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita,
+			
+			(SELECT sum(kpl)
+				FROM tilaus_tuote
+				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
+					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+				WHERE tuote_id = tuote.id) AS vuosimyynti_kpl
+				
+			/*(SELECT sum(kpl)
+				FROM tilaus_tuote
+				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
+					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+				INNER JOIN tuote t3 ON t3.hyllypaikka = t2.hyllypaikka) AS vuosimyynti_hylly_kpl*/
+				
         FROM ostotilauskirja_tuote
         INNER JOIN tuote
         	ON ostotilauskirja_tuote.tuote_id = tuote.id
@@ -207,8 +220,6 @@ $yht = $db->query($sql, [$ostotilauskirja_id]);
 $yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="fi" xmlns="http://www.w3.org/1999/html">
@@ -251,6 +262,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             <th>Tuote</th>
             <th class="number">KPL</th>
             <th class="number">Varastosaldo</th>
+	        <th class="number">Myynti kpl</th>
+	        <th class="number">Hyllypaikan myynti</th>
             <th class="number">Ostohinta</th>
             <th class="number">Yhteensä</th>
             <th>Selite</th>
@@ -263,7 +276,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         <!-- Rahtimaksu -->
         <tr><td colspan="2"></td>
 	        <td>Rahtimaksu</td>
-	        <td colspan="2"></td>
+	        <td colspan="4"></td>
 	        <td class="number"><?=format_number($otk->rahti)?></td>
             <td class="number"><?=format_number($otk->rahti)?></td>
 	        <td colspan="4"></td></tr>
@@ -274,6 +287,8 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
                 <td class="number"><?=format_number($product->kpl,0)?></td>
                 <td class="number"><?=format_number($product->varastosaldo,0)?></td>
+	            <td class="number"><?=format_number($product->vuosimyynti_kpl,0)?></td>
+	            <td class="number">WIP</td>
                 <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                 <td class="number"><?=format_number($product->kokonaishinta)?></td>
 	            <td>
@@ -307,7 +322,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
         <tr class="border_top"><td>YHTEENSÄ</td>
 	        <td colspan="2"></td>
             <td class="number"><?= format_number($yht_kpl,0)?></td>
-            <td colspan="2"></td>
+            <td colspan="4"></td>
             <td class="number"><?=format_number($yht_hinta)?></td>
             <td colspan="4"></td>
         </tr>
