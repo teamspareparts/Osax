@@ -32,6 +32,7 @@ class Tuote {
 
 	/** @var int $kpl_maara <p> */ public $kpl_maara = 0;
 	/** @var float $summa <p> */ public $summa = 0.00;
+	/** @var bool $tilaustuote <p >*/ public $tilaustuote = null;
 
 	// Yp_valikoima sivulla käytössä olevat muuttujat
 	/** @var float $ostohinta <p> */ public $ostohinta = 0.00;

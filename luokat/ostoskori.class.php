@@ -107,7 +107,7 @@ class Ostoskori {
 		else { // Hae kaikki tiedot
 			if ( !$tuote_luokka ) {
 				$this->tuotteet = array();
-				$sql = "SELECT tuote_id, kpl_maara FROM ostoskori_tuote WHERE ostoskori_id = ?";
+				$sql = "SELECT tuote_id, kpl_maara, tilaustuote FROM ostoskori_tuote WHERE ostoskori_id = ?";
 				$db->prepare_stmt( $sql );
 				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
 				while ( $row = $db->get_next_row() ) {
@@ -118,7 +118,8 @@ class Ostoskori {
 				$this->cart_mode = 1;
 			}
 			else { // Käytä Tuote-luokkaa
-				$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.valmistaja, tuote.nimi, tuote.hankintapaikka_id,
+				$sql = "SELECT tuote.id, tuote.articleNo, tuote.brandNo, tuote.hankintapaikka_id,
+							tuote.tuotekoodi, tuote.valmistaja, tuote.nimi,
 							tuote.varastosaldo, tuote.minimimyyntiera, tuote.hyllypaikka,
 							ALV_kanta.prosentti AS alv_prosentti,
 							(tuote.hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
@@ -148,6 +149,7 @@ class Ostoskori {
 	 * @param DByhteys $db
 	 * @param int      $tuote_id  <p> Lisättävän tuotteen ID tietokannassa
 	 * @param int      $kpl_maara <p> Montako tuotetta
+	 * @param bool     $tilaustuote <p> Tilataanko tuote suoraan tehtaalta
 	 * @return int <p> Montako tuotetta lisätty tietokantaan (pitäisi olla yksi)
 	 */
 	public function lisaa_tuote( DByhteys $db, int $tuote_id, int $kpl_maara, bool $tilaustuote = false ) : int {
@@ -157,7 +159,7 @@ class Ostoskori {
 		} // Jos vaikka joku ei ymmärrä mitä "poista_tuote"-metodi mahdollisesti tekee.
 
 		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara, tilaustuote) VALUE ( ?, ?, ?, ? )
- 				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara)";
+ 				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara), tilaustuote = VALUES(tilaustuote)";
 		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id, $kpl_maara, $tilaustuote ] );
 
 		$this->hae_ostoskorin_sisalto( $db, false );

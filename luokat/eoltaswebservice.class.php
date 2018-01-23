@@ -64,7 +64,7 @@ class EoltasWebservice {
 	 */
 	static function getProduct( string $id ) : stdClass {
 		$fields = array(
-			'action' => 'addToBasket',
+			'action' => 'getProduct',
 			'id' => $id
 		);
 		return self::sendRequest($fields);
@@ -287,7 +287,7 @@ class EoltasWebservice {
 	}
 
 	/**
-	 * Tarkastetaan, että tilattavia tuotteita on tarpeeksi.
+	 * Tarkastetaan, että tilattavia tuotteita on tarpeeksi Eoltaksen ostoskorissa.
 	 * @return array <p> Tuotteet joita ei ollut tarpeeksi.
 	 */
 	static function getInvalidProductsFromBasket() : array {
@@ -297,6 +297,34 @@ class EoltasWebservice {
 			if ( $product->amount > $product->stock ) {
 				// Tilattavia tuotteita enemmän kuin varastossa
 				$vajaat_tuotteet[] = $product;
+			}
+		}
+		return $vajaat_tuotteet;
+	}
+
+	/**
+	 * @param array $tuotteet <p> Ostoskorin tuotteet.
+	 * @return array
+	 */
+	static function checkOstoskoriValidity( array $tuotteet ) : array {
+		$vajaat_tuotteet = [];
+		foreach ( $tuotteet as $tuote ) {
+			if ( !$tuote->tilaustuote ) {
+				continue;
+			}
+			if ( !self::checkEoltasHankintapaikkaId( $tuote->hankintapaikka_id ) ) {
+				continue;
+			}
+			$eoltas_id = self::getEoltasProductId( $tuote->articleNo, $tuote->valmistaja, $tuote->brandNo );
+			if ( !$eoltas_id ) {
+				$vajaat_tuotteet[] = $tuote;
+			}
+			$eoltas_product = self::getProduct( $eoltas_id );
+			// Tarkastetaan tilattavien tuotteiden määrä
+			if ( $tuote->kpl_maara > $eoltas_product->response->product->stock ) {
+				// Tilattavia tuotteita enemmän kuin varastossa
+				$tuote->eoltas_stock = $eoltas_product->response->product->stock;
+				$vajaat_tuotteet[] = $tuote;
 			}
 		}
 		return $vajaat_tuotteet;
