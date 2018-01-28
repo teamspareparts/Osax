@@ -322,6 +322,9 @@ class EoltasWebservice {
 		if ( !$tuotteet ) {
 			return true;
 		}
+		// TODO: Try - catch
+		// Tyhjennetään ostoskori varmuuden varalta
+		self::clearBasket();
 		// Lisätään tuotteet Eoltaksen ostoskoriin
 		foreach ( $tuotteet as $tuote ) {
 			$success = self::addProductToBasket( $db, $tuote->id, $tuote->kpl );
@@ -347,7 +350,9 @@ class EoltasWebservice {
 
 		/*
 		if ( $order->response->errors????????) {
-			//TODO: mitä tehdään jos epäonnistui?
+			// Yritetään tyhjentää ostoskori, jos tilaus epäonnistui
+			self::clearBasket();
+			return false;
 		}
 		*/
 		return true;

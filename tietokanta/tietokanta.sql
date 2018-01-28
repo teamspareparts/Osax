@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean DEFAULT 0,
   `maksutapa` tinyint DEFAULT NULL,
+  `tilaustuotteet_tilattu` boolean NOT NULL DEFAULT 0, -- Onko tilaustuotteet tilattu hankintapaikalta
   `laskunro` int DEFAULT NULL, -- Otetaan laskunumero-taulusta
   `paivamaara` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `pysyva_rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
