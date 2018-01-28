@@ -2,12 +2,12 @@ SET FOREIGN_KEY_CHECKS=0; -- Taulut ovat väärässä järjestyksessä FOREIGN K
 
 CREATE TABLE IF NOT EXISTS `kayttaja` (
   `id` mediumint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `sahkoposti` varchar(255) NOT NULL, -- UNIQUE KEY
+  `sahkoposti` varchar(255) NOT NULL, -- UK
   `salasana_hajautus` varchar(100) NOT NULL,
   `salasana_vaihdettu` timestamp DEFAULT CURRENT_TIMESTAMP,
   `etunimi` varchar(20) DEFAULT NULL,
   `sukunimi` varchar(20) DEFAULT NULL,
-  `yritys_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
+  `yritys_id` smallint UNSIGNED NOT NULL, -- FK
   `puhelin` varchar(20) DEFAULT NULL,
   `yllapitaja` tinyint(1) NOT NULL DEFAULT 0, -- Tarkoituksella ei boolean
   `aktiivinen` boolean NOT NULL DEFAULT 1,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `kayttaja` (
 CREATE TABLE IF NOT EXISTS `yritys` (
   `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
   `nimi` varchar(255) NOT NULL,
-  `y_tunnus` varchar(9) NOT NULL,  -- UNIQUE KEY
+  `y_tunnus` varchar(9) NOT NULL,  -- UK
   `sahkoposti` varchar(255) DEFAULT NULL,
   `puhelin` varchar(20) DEFAULT NULL,
   `katuosoite` varchar(255) DEFAULT NULL,
@@ -42,8 +42,8 @@ CREATE TABLE IF NOT EXISTS `yritys` (
 
 CREATE TABLE IF NOT EXISTS `tuote` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `articleNo` varchar(30) NOT NULL, -- UNIQUE KEY
-  `brandNo` varchar(20) NOT NULL, -- UNIQUE KEY
+  `articleNo` varchar(30) NOT NULL, -- UK
+  `brandNo` varchar(20) NOT NULL, -- UK
   `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK, UK
   `tuotekoodi` varchar(30) NOT NULL, -- Tuotteen näkyvä koodi. Muotoa hankintapaikka_id-articleNo
   `tilauskoodi` varchar(30) NOT NULL, -- Koodi, jota käytetään tilauskirjaa tehdessä.
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
   `kuva_url` varchar(100) DEFAULT NULL,
   `infot` varchar(300) DEFAULT NULL, -- Erottimena |
   `hinta_ilman_ALV` decimal(11,4) NOT NULL,
-  `ALV_kanta` tinyint(1) UNSIGNED NOT NULL DEFAULT 0, -- Foreign KEY
+  `ALV_kanta` tinyint(1) UNSIGNED NOT NULL DEFAULT 0, -- FK
   `varastosaldo` mediumint NOT NULL DEFAULT 0,
   `minimimyyntiera` mediumint UNSIGNED NOT NULL DEFAULT 1,
   `sisaanostohinta` decimal(11,4) NOT NULL DEFAULT 0.00,
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `tuote` (
 
 CREATE TABLE IF NOT EXISTS `tilaus` (
   `id` mediumint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `kayttaja_id` mediumint UNSIGNED NOT NULL, -- Foreign KEY
+  `kayttaja_id` mediumint UNSIGNED NOT NULL, -- FK
   `kasitelty` boolean NOT NULL DEFAULT 0,
   `maksettu` boolean DEFAULT 0,
   `maksutapa` tinyint DEFAULT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tilaustuote` boolean NOT NULL DEFAULT 0, -- PK -- Onko tuote tilattu suoraan tehtaalta
   `tuotteen_nimi` varchar(20) NOT NULL,
   `valmistaja` varchar(30) NOT NULL,
-  `pysyva_hinta` decimal(11,4) NOT NULL, -- Ei sisällä ALV
+  `pysyva_hinta` decimal(11,4) NOT NULL, -- Ei sisällä ALV:ia
   `pysyva_alv` decimal(3,2) NOT NULL,
   `pysyva_alennus` decimal(3,2) NOT NULL DEFAULT 0.00,
   `kpl` mediumint NOT NULL DEFAULT 1,
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `tuote_hankintapyynto` (
 
 CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `tuote_id` int(11) UNSIGNED NOT NULL, -- Foreign KEY
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- FK
   `maaraalennus_kpl` mediumint UNSIGNED NOT NULL DEFAULT 0,
   `alennus_prosentti` decimal(3,2) NOT NULL DEFAULT 0.00,
   `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
@@ -184,8 +184,8 @@ CREATE TABLE IF NOT EXISTS `tuote_erikoishinta` (
 
 CREATE TABLE IF NOT EXISTS `tuoteyritys_erikoishinta` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `tuote_id` int(11) UNSIGNED NOT NULL, -- Foreign KEY
-  `yritys_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
+  `tuote_id` int(11) UNSIGNED NOT NULL, -- FK
+  `yritys_id` smallint UNSIGNED NOT NULL, -- FK
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
   `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
@@ -198,9 +198,9 @@ CREATE TABLE IF NOT EXISTS `tuoteyritys_erikoishinta` (
 
 CREATE TABLE IF NOT EXISTS `tuoteryhma_erikoishinta` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- Foreign KEY
+  `hankintapaikka_id` smallint UNSIGNED NOT NULL, -- FK
   `tuoteryhma_id` smallint UNSIGNED NOT NULL, -- FK
-  `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- FK
+  `yritys_id` smallint UNSIGNED NOT NULL DEFAULT 0, -- FK -- ei CONSTRAINTia koska voi olla ei-yrityskohtainen
   `maaraalennus_kpl` int(11) UNSIGNED DEFAULT 0,
   `alennus_prosentti` decimal(3,2) DEFAULT 0.00,
   `alkuPvm` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Tarjouksen alkamis pvm
@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS `ostoskori_tuote` (
 
 CREATE TABLE IF NOT EXISTS `hankintapaikka` (
   `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `nimi` varchar(11) NOT NULL, -- UNIQUE KEY
+  `nimi` varchar(11) NOT NULL, -- UK
   `katuosoite` varchar(50) DEFAULT '',
   `postinumero` varchar(11) DEFAULT '',
   `kaupunki` varchar(50) DEFAULT '',
