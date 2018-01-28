@@ -1,4 +1,6 @@
 <?php declare(strict_types=1);
+error_reporting(E_ERROR);
+ini_set('display_errors', "1");
 print("<pre>");
 
 $config = parse_ini_file( "../config/config.ini.php", true);
