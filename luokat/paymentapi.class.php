@@ -165,7 +165,7 @@ class PaymentAPI {
 				'UPDATE tilaus SET maksettu = -1, kasitelty = -1 WHERE id = ? AND kayttaja_id = ?' );
 			$stmt->execute( [ $tilausID, $user->id ] );
 
-			$stmt = $conn->prepare( "SELECT tuote_id, kpl FROM tilaus_tuote WHERE tilaus_id = ?" );
+			$stmt = $conn->prepare( "SELECT tuote_id, kpl, tilaustuote FROM tilaus_tuote WHERE tilaus_id = ?" );
 			$stmt->execute( [ $tilausID ] );
 			$results = $stmt->fetchAll();
 
@@ -179,22 +179,27 @@ class PaymentAPI {
 		        		UPDATE varastosaldo = varastosaldo + VALUES(varastosaldo), paivitettava = 1";
 			$stmt = $conn->prepare( $sql );
 			foreach ( $results as $tuote ) {
-				array_push( $values, $tuote->tuote_id, $tuote->kpl );
+				// Palautetaan varastosaldot vain tavallisille tuotteille (ei tilaustuotteille)
+				if ( !$tuote->tilaustuote ) {
+					array_push($values, $tuote->tuote_id, $tuote->kpl);
+				} else {
+					array_push($values, $tuote->tuote_id, 0);
+				}
 			}
 			$stmt->execute( $values );
 
 			/*
 			 * Lisätään tuotteet takaisin ostoskoriin.
 			 */
-			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?,?)' ) );
+			$questionmarks = implode( ',', array_fill( 0, count( $results ), '(?,?,?,?)' ) );
 			$values = [];
-			$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara)
+			$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, tilaustuote, kpl_maara)
 						VALUES {$questionmarks}
  					ON DUPLICATE KEY
  						UPDATE kpl_maara = kpl_maara + VALUES(kpl_maara)";
 			$stmt = $conn->prepare( $sql );
 			foreach ( $results as $tuote ) {
-				array_push( $values, $ostoskoriID, $tuote->tuote_id, $tuote->kpl );
+				array_push( $values, $ostoskoriID, $tuote->tuote_id, $tuote->tilaustuote, $tuote->kpl );
 			}
 			$stmt->execute( $values );
 

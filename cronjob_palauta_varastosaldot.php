@@ -14,13 +14,14 @@ $db = new DByhteys();
 // Montako tuntia tilauksen pitää olla keskeytynyt, jotta saldot palautetaan
 $tunnit_keskeytyneena = 24;
 
-// Haetaan keskeneräisten tilausten tuotteet
-$sql = "SELECT tuote_id, kpl
+// Haetaan keskeneräisten tilausten tuotteet (ei tilaustuotteita)
+$sql = "SELECT tilaus_tuote.tuote_id, tilaus_tuote.kpl
 		FROM tilaus_tuote
 		LEFT JOIN tilaus
 			ON tilaus.id = tilaus_tuote.tilaus_id
 		WHERE tilaus.paivamaara < (now() - INTERVAL ? HOUR)
-			AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL ";
+			AND tilaus.maksettu = 0 AND tilaus.maksettu IS NOT NULL
+			AND tilaus_tuote.tilaustuote = 0";
 $tuotteet = $db->query( $sql, [$tunnit_keskeytyneena], FETCH_ALL);
 
 // Haetaan tilausten id:t

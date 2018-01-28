@@ -118,7 +118,7 @@ class EoltasWebservice {
 	 */
 	private static function removeFromBasket( string $id ) : stdClass {
 		$fields = array(
-			'action' => 'addToBasket',
+			'action' => 'removeFromBasket',
 			'id' => $id
 		);
 		return self::sendRequest($fields);
@@ -225,7 +225,7 @@ class EoltasWebservice {
 		// Haetaan Eoltaksen avoimen ostotilauskirjan id
 		$sql = "SELECT id FROM ostotilauskirja WHERE hankintapaikka_id = ? AND toimitusjakso != 0";
 		$otk_id = $db->query($sql, [$eoltas_hankintapaikka_id]);
-		$selite = "Tilaus id: {$tilaus_id}, {$kpl}kpl.";
+		$selite = "PIKATILAUS, TILAUS {$tilaus_id}, {$kpl}kpl, " . date('d.m.Y');
 		if ( !$otk_id ) {
 			return false;
 		}
@@ -248,7 +248,7 @@ class EoltasWebservice {
 	 * @param int $kpl
 	 * @return bool
 	 */
-	static function addProductToBasket( DByhteys $db, int $tuote_id, int $kpl ) : bool {
+	private static function addProductToBasket( DByhteys $db, int $tuote_id, int $kpl ) : bool {
 		$sql = "SELECT hankintapaikka_id, articleNo, brandNo, valmistaja FROM tuote WHERE id = ?";
 		$tuote = $db->query($sql, [$tuote_id]);
 		if ( !$tuote ) {
@@ -268,8 +268,25 @@ class EoltasWebservice {
 		return true;
 	}
 
+	/**
+	 * Tyhjentää Eoltaksen ostoskorin.
+	 * @return bool
+	 */
+	private static function clearBasket() : bool {
+		// Haetaan webservicen ostoskori
+		$basket = self::getBasket();
+		// Poistetaan tuote kerrallaan
+		foreach ( $basket->response->basket as $tuote ) {
+			$success = self::removeFromBasket($tuote->productId);
+			if ( !$success ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	//TODO: KESKEN
-	static function addBasketProductsToEoltasBasket( DByhteys $db, int $tilaus_id, array $tuotteet ) : array {
+	/*static function addBasketProductsToEoltasBasket( DByhteys $db, int $tilaus_id, array $tuotteet ) : array {
 		// Lisätään tuotteet Eoltaksen ostoskoriin
 		foreach ( $tuotteet as $tuote ) {
 			//self::addProductToBasket( $db, $tuote->id, $tuote->kpl );
@@ -277,41 +294,94 @@ class EoltasWebservice {
 		}
 		// Palautetaan tuotteet, joita yritetään tilata enemmäin kuin tehtaalla varastossa
 		return self::getInvalidProductsFromBasket();
-	}
+	}*/
 
-	static function orderFromEoltas() : bool {
-		if ( self::getInvalidProductsFromBasket() ) {
+	/**
+	 * Tilaa tilauksen tilaustuotteet Eoltakselta.
+	 * @param DByhteys $db
+	 * @param int $tilaus_id
+	 * @return bool
+	 */
+	static function orderFromEoltas( DByhteys $db, int $tilaus_id ) : bool {
+		if ( !$tilaus_id ) {
 			return false;
 		}
+		$hankintapaikka_id = self::getEoltasHankintapaikkaId();
+		// Haetaan tilauksen tilaustuotteet, jotka on tilattu Eoltakselta
+		$sql = "SELECT tuote.id, tilaus_tuote.tilaustuote, tilaus_tuote.kpl
+				FROM tilaus
+				INNER JOIN tilaus_tuote
+					ON tilaus.id = tilaus_tuote.tilaus_id
+				INNER JOIN tuote
+					ON tilaus_tuote.tuote_id = tuote.id
+				WHERE tilaus.id = ?
+					AND tilaus.maksettu = 1
+					AND tilaus_tuote.tilaustuote = 1
+					AND tuote.hankintapaikka_id = ?";
+		$tuotteet = $db->query($sql, [$tilaus_id, $hankintapaikka_id], FETCH_ALL);
+		if ( !$tuotteet ) {
+			return true;
+		}
+		// Lisätään tuotteet Eoltaksen ostoskoriin
+		foreach ( $tuotteet as $tuote ) {
+			$success = self::addProductToBasket( $db, $tuote->id, $tuote->kpl );
+			if ( !$success ) {
+				// Jos lisäys epäonnistui, tyhjennetään ostoskori ja keskeytetään tilaus
+				self::clearBasket();
+				return false;
+			}
+		}
+		// Tarkastetaan, että Eoltaksella on tarpeeksi tuotteita varastossa
+		$vajaat_tuotteet = self::getInvalidProductsFromWebserviceBasket();
+		if ( $vajaat_tuotteet ) {
+			//TODO: Mitä tehdään jos tuotteita ei ole tarpeeksi
+		}
+		// Lisätään tuotteet tilauskirjalle
+		foreach ( $tuotteet as $tuote ) {
+			self::addProductToEoltasOrderBook( $db, $tuote->id, $tuote->kpl, $tilaus_id );
+		}
+		// Tehdään tilaus
+		/**
 		//$order = self::order();
+		 */
+
+		/*
+		if ( $order->response->errors????????) {
+			//TODO: mitä tehdään jos epäonnistui?
+		}
+		*/
+		return true;
 	}
 
 	/**
-	 * Tarkastetaan, että tilattavia tuotteita on tarpeeksi Eoltaksen ostoskorissa.
-	 * @return array <p> Tuotteet joita ei ollut tarpeeksi.
+	 * Tarkistetaan, että Webservicen ostoskorissa varastosaldo on suurempi kuin tilattavien määrä
+	 * @return array
 	 */
-	static function getInvalidProductsFromBasket() : array {
+	static function getInvalidProductsFromWebserviceBasket() : array {
 		$ostoskori = self::getBasket();
 		$vajaat_tuotteet = [];
-		foreach ( $ostoskori->response->basket as $product ) {
-			if ( $product->amount > $product->stock ) {
+		foreach ( $ostoskori->response->basket as $tuote ) {
+			if ( $tuote->amount > $tuote->stock ) {
 				// Tilattavia tuotteita enemmän kuin varastossa
-				$vajaat_tuotteet[] = $product;
+				$vajaat_tuotteet[] = $tuote;
 			}
 		}
 		return $vajaat_tuotteet;
 	}
 
 	/**
+	 * Tarkastetaan, että Eoltaksella on tarpeeksi tuotteita varastossa.
 	 * @param array $tuotteet <p> Ostoskorin tuotteet.
 	 * @return array
 	 */
 	static function checkOstoskoriValidity( array $tuotteet ) : array {
 		$vajaat_tuotteet = [];
 		foreach ( $tuotteet as $tuote ) {
+			// Tarkistus vain tilaustuotteille
 			if ( !$tuote->tilaustuote ) {
 				continue;
 			}
+			// Tarkistus vain Eoltaksen tuotteille
 			if ( !self::checkEoltasHankintapaikkaId( $tuote->hankintapaikka_id ) ) {
 				continue;
 			}

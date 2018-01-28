@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS `tilaus` (
 CREATE TABLE IF NOT EXISTS `tilaus_tuote` (
   `tilaus_id` mediumint UNSIGNED NOT NULL, -- PK, FK
   `tuote_id` int UNSIGNED NOT NULL, -- PK, FK
+  `tilaustuote` boolean NOT NULL DEFAULT 0, -- PK -- Onko tuote tilattu suoraan tehtaalta
   `tuotteen_nimi` varchar(20) NOT NULL,
   `valmistaja` varchar(30) NOT NULL,
   `pysyva_hinta` decimal(11,4) NOT NULL, -- Ei sisällä ALV

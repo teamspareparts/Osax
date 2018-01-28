@@ -485,11 +485,11 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                             varoitus_kuvake = "<i class='material-icons' style='color:green;' " +
 	                            "title='Tehdassaldo " + tehdassaldo + " kpl'>check_circle</i>";
                         }
-                        tuotteet[i].cells[8].innerHTML += varoitus_kuvake;
+                        tuotteet[i].cells[10].innerHTML += varoitus_kuvake;
                     }
 
                 }).fail(function () {
-                    tuotteet[i].cells[8].innerText += "Virhe tehdassaldoa haettaessa.";
+                    tuotteet[i].cells[10].innerText += "Virhe tehdassaldoa haettaessa.";
             });
 	    }
     }

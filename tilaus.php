@@ -41,11 +41,11 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		 * Prep.stmt. tuotteiden lisäys tietokantaan. Lisätään kaikki tuotteet kerralla.
 		 * Kustomi haun rakennusta tehokkuuden vuoksi. Yksitellen tehtynä hyvin hidasta.
 		 */
-		$questionmarks = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?,?,?,?,?,?,?)' ) );
+		$questionmarks = implode( ',', array_fill( 0, count( $cart->tuotteet ), '(?,?,?,?,?,?,?,?,?)' ) );
 		$values = [];
 		$stmt = $conn->prepare( "
 			INSERT INTO tilaus_tuote
-				(tilaus_id, tuote_id, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
+				(tilaus_id, tuote_id, tilaustuote, tuotteen_nimi, valmistaja, pysyva_hinta, pysyva_alv, pysyva_alennus, kpl)
 			VALUES {$questionmarks}" );
 
 		// Päivitetään tuotteiden varastosaldot
@@ -57,11 +57,16 @@ if ( !empty( $_POST[ 'vahvista_tilaus' ] ) ) {
 		$stmt_varastosaldot = $conn->prepare( $sql);
 
 		foreach ( $cart->tuotteet as $tuote ) {
-			array_push( $values, $tilaus_id, $tuote->id, $tuote->nimi, $tuote->valmistaja,
-						$tuote->a_hinta_ilman_alv, $tuote->alv_prosentti, $tuote->alennus_prosentti,
-						$tuote->kpl_maara );
+			array_push( $values, $tilaus_id, $tuote->id, $tuote->tilaustuote, $tuote->nimi,
+						$tuote->valmistaja, $tuote->a_hinta_ilman_alv, $tuote->alv_prosentti,
+						$tuote->alennus_prosentti, $tuote->kpl_maara );
+			// Vähennetään varastosaldot vain tuotteilta, jotka on tilattu omasta varastosta
+			if ( !$tuote->tilaustuote ) {
+				array_push($values_varastosaldot, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara));
+			} else {
+				array_push($values_varastosaldot, $tuote->id, $tuote->varastosaldo);
 
-			array_push( $values_varastosaldot, $tuote->id, ($tuote->varastosaldo - $tuote->kpl_maara) );
+			}
 		}
 
 		// Lisätään tilauksen tuotteet
