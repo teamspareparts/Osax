@@ -13,18 +13,18 @@ class tuoteMyyntitiedot {
 	 * @param DByhteys $db
 	 * @param int      $tuoteID
 	 * @param string   $hyllypaikka
-	 * @return array
+	 * @return Tuote[]
 	 */
 	public static function haeVastaavat( DByhteys $db, int $tuoteID, string $hyllypaikka ) {
 		$sql = "SELECT id, articleNo, nimi, valmistaja, varastosaldo
 				FROM tuote 
 				WHERE hyllypaikka = ? AND id != ?";
 
-		return $db->query( $sql, [ $hyllypaikka, $tuoteID ], FETCH_ALL );
+		return $db->query( $sql, [ $hyllypaikka, $tuoteID ], FETCH_ALL, null, 'Tuote' );
 	}
 
 	/**
-	 * Haetaan montako tuotetta on ostotilauskirjalla.
+	 * Haetaan montako tuotetta on ostotilauskirjalla (lähetetyt).
 	 * Käytössä ostopyynnöissä (yp_hankintapyynnöt) ylläpidolle tiedoksi, että tuotetta on jo tilauksessa.
 	 * @param DByhteys $db
 	 * @param int      $tuoteID
@@ -53,7 +53,8 @@ class tuoteMyyntitiedot {
 				FROM tilaus_tuote
 				INNER JOIN tilaus 
 					ON tilaus_tuote.tilaus_id = tilaus.id
-						AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+					AND tilaus.maksettu = TRUE 
 				WHERE tuote_id = ?";
 
 		return $db->query( $sql, [ $tuoteID ], FETCH_ALL );
@@ -71,6 +72,7 @@ class tuoteMyyntitiedot {
 				FROM tilaus_tuote
 				INNER JOIN tilaus 
 					ON tilaus_tuote.tilaus_id = tilaus.id
+					AND tilaus.maksettu = TRUE 
 				WHERE tuote_id = ?";
 
 		return $db->query( $sql, [ $tuoteID ], FETCH_ALL );
@@ -88,7 +90,8 @@ class tuoteMyyntitiedot {
 				FROM tilaus_tuote
 				INNER JOIN tilaus 
 					ON tilaus_tuote.tilaus_id = tilaus.id
-						AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+					AND tilaus.maksettu = TRUE
 				INNER JOIN tuote
 					ON tuote.hyllypaikka = ?";
 
@@ -107,6 +110,7 @@ class tuoteMyyntitiedot {
 				FROM tilaus_tuote
 				INNER JOIN tilaus 
 					ON tilaus_tuote.tilaus_id = tilaus.id
+					AND tilaus.maksettu = TRUE 
 				INNER JOIN tuote
 					ON tuote.hyllypaikka = ?";
 
