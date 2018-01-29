@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `yritys` (
   `katuosoite` varchar(255) DEFAULT NULL,
   `postinumero` varchar(10) DEFAULT NULL,
   `postitoimipaikka` varchar(255) DEFAULT NULL,
-  `maa` varchar(200) DEFAULT 'Suomi',
+  `maa` varchar(200) NOT NULL DEFAULT 'Suomi',
   `aktiivinen` boolean NOT NULL DEFAULT 1,
   `rahtimaksu` decimal(11,2) NOT NULL DEFAULT 15.00,
   `ilmainen_toimitus_summa_raja` decimal(11,2) NOT NULL DEFAULT 1000.00,
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS `ostotilauskirja_tuote` (
 
 CREATE TABLE IF NOT EXISTS `ostotilauskirja_arkisto` ( -- Tänne valmiit tilauskirjat (MUUTTUMATTOMAT)
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, -- PK
-  `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- Foreign KEY
+  `hankintapaikka_id` smallint UNSIGNED NOT NULL,  -- FK
   `tunniste` varchar(50) NOT NULL,
   `original_rahti` decimal(11,2) NOT NULL,
   `rahti` decimal(11,2) NOT NULL,

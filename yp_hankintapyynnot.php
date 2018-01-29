@@ -15,15 +15,19 @@ $sql = "SELECT articleNo, valmistaja, tuotteen_nimi, kayttaja_id, pvm, DATE_FORM
 		ORDER BY pvm ASC";
 $hankintapyynnot = $db->query( $sql, [], FETCH_ALL );
 
-$sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted,
-			tuote.nimi AS tuote_nimi, tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, hyllypaikka,
+$sql = "SELECT t_op.tuote_id, t_op.kayttaja_id, t_op.pvm, DATE_FORMAT(t_op.pvm,'%Y-%m-%d') AS pvm_formatted,
+			t1.nimi AS tuote_nimi, t1.tuotekoodi, t1.valmistaja, t1.varastosaldo, t1.hyllypaikka,
 			yritys.nimi AS yritys_nimi, kayttaja.sukunimi, 
-			(SELECT SUM(ostotilauskirja_tuote.kpl) AS otk_kpl FROM ostotilauskirja_tuote 
-				WHERE ostotilauskirja_tuote.tuote_id = tuote_ostopyynto.tuote_id) AS otk_kpl
-		FROM tuote_ostopyynto
-		INNER JOIN kayttaja ON kayttaja.id = kayttaja_id
-		INNER JOIN yritys ON yritys.id = yritys_id
-		INNER JOIN tuote ON tuote.id = tuote_id
+			(SELECT SUM(kpl) FROM ostotilauskirja_tuote otk_t WHERE otk_t.tuote_id = t_op.tuote_id) 
+				AS otk_kpl_od,
+			(SELECT SUM(kpl) FROM ostotilauskirja_tuote_arkisto otk_t_ark
+				INNER JOIN ostotilauskirja_arkisto otk_ark ON otk_ark.ostotilauskirja_id = otk_t_ark.ostotilauskirja_id
+				WHERE otk_t_ark.tuote_id = t_op.tuote_id AND otk_ark.hyvaksytty = FALSE) 
+				AS otk_kpl_til
+		FROM tuote_ostopyynto t_op
+		INNER JOIN kayttaja ON kayttaja.id = t_op.kayttaja_id
+		INNER JOIN yritys ON yritys.id = kayttaja.yritys_id
+		INNER JOIN tuote t1 ON t1.id = t_op.tuote_id
 		WHERE kasitelty IS NULL
 		ORDER BY pvm ASC";
 $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
@@ -31,8 +35,10 @@ $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
 foreach ( $ostopyynnot as $op_rivi ) {
 	if ( !empty($op_rivi->hyllypaikka) ) {
 		$op_rivi->vastaavat = tuoteMyyntitiedot::haeVastaavat( $db, $op_rivi->tuote_id, $op_rivi->hyllypaikka );
+		foreach ( $op_rivi->vastaavat as $vast_tuote ) {
+			$op_rivi->vast_varastosaldo_yht += $vast_tuote->varastosaldo;
+		}
 	} else $op_rivi->vastaavat = [];
-	$op_rivi->otkTuotettaTilattu = tuoteMyyntitiedot::otkTuotettaTilattu( $db, $op_rivi->tuote_id );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -91,8 +97,9 @@ else {
 					<td><?= $op->tuotekoodi ?></td>
 					<td><?= $op->valmistaja ?><br><?= $op->tuote_nimi ?></td>
 					<td><?= $op->varastosaldo ?></td>
-					<td><?= $op->otkTuotettaTilattu->kpl_maara ?></td>
-					<td><?= count($op->vastaavat) ?></td>
+					<td>Odottavat: <?=$op->otk_kpl_od ?? '--'?><br>
+						Tilattu: <?=$op->otk_kpl_til ?? '--'?></td>
+					<td><?= count($op->vastaavat) ?><br>Kpl: <?= $op->vast_varastosaldo_yht ?></td>
 					<td><?= $op->sukunimi ?>,<br><?= $op->yritys_nimi ?></td>
 					<td><?= $op->pvm_formatted ?></td>
 					<td><form action="ajax_requests.php" method="post" data-row-id="op<?=$i?>">
