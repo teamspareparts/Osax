@@ -17,12 +17,13 @@ $hankintapyynnot = $db->query( $sql, [], FETCH_ALL );
 
 $sql = "SELECT tuote_ostopyynto.tuote_id, kayttaja_id, pvm, DATE_FORMAT(pvm,'%Y-%m-%d') AS pvm_formatted,
 			tuote.nimi AS tuote_nimi, tuote.tuotekoodi, tuote.valmistaja, tuote.varastosaldo, hyllypaikka,
-			yritys.nimi AS yritys_nimi, kayttaja.sukunimi, SUM(ostotilauskirja_tuote.kpl) AS otk_kpl
+			yritys.nimi AS yritys_nimi, kayttaja.sukunimi, 
+			(SELECT SUM(ostotilauskirja_tuote.kpl) AS otk_kpl FROM ostotilauskirja_tuote 
+				WHERE ostotilauskirja_tuote.tuote_id = tuote_ostopyynto.tuote_id) AS otk_kpl
 		FROM tuote_ostopyynto
-		JOIN kayttaja ON kayttaja.id = kayttaja_id
-		JOIN yritys ON yritys.id = yritys_id
-		JOIN tuote ON tuote.id = tuote_id
-		LEFT JOIN ostotilauskirja_tuote ON ostotilauskirja_tuote.tuote_id = tuote.id
+		INNER JOIN kayttaja ON kayttaja.id = kayttaja_id
+		INNER JOIN yritys ON yritys.id = yritys_id
+		INNER JOIN tuote ON tuote.id = tuote_id
 		WHERE kasitelty IS NULL
 		ORDER BY pvm ASC";
 $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
