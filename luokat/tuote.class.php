@@ -15,7 +15,6 @@ class Tuote {
 	/** @var int $tehdassaldo <p> */ public $tehdassaldo = 0;
 	/** @var int $minimimyyntiera <p> */ public $minimimyyntiera = 0;
 
-
 	/** @var string $nimi <p> */ public $nimi = null;
 	/** @var string $valmistaja <p> */ public $valmistaja = null;
 
