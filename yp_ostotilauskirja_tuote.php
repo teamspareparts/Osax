@@ -182,28 +182,29 @@ $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
 // Haetaan ostotilauskirjalla olevat tuotteet
-$sql = "SELECT tuote.*, ostotilauskirja_tuote.*,
- 			tuote.sisaanostohinta*ostotilauskirja_tuote.kpl AS kokonaishinta,
+$sql = "SELECT t1.*, otk_t.*,
+ 			(t1.sisaanostohinta * otk_t.kpl) AS kokonaishinta,
 			SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita,
 			
 			(SELECT sum(kpl)
 				FROM tilaus_tuote
 				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
 					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
-				WHERE tuote_id = tuote.id) AS vuosimyynti_kpl
+				WHERE tuote_id = t1.id) AS vuosimyynti_kpl,
 				
-			/*(SELECT sum(kpl)
-				FROM tilaus_tuote
-				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
+			(SELECT sum(tt.kpl)
+				FROM tuote t3
+				INNER JOIN tilaus_tuote tt ON tt.tuote_id = t3.id
+				INNER JOIN tilaus ON tt.tilaus_id = tilaus.id
 					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
-				INNER JOIN tuote t3 ON t3.hyllypaikka = t2.hyllypaikka) AS vuosimyynti_hylly_kpl*/
+				WHERE t3.hyllypaikka = t2.hyllypaikka ) AS vuosimyynti_hylly_kpl
 				
-        FROM ostotilauskirja_tuote
-        INNER JOIN tuote
-        	ON ostotilauskirja_tuote.tuote_id = tuote.id
+        FROM ostotilauskirja_tuote otk_t
+        INNER JOIN tuote t1
+        	ON otk_t.tuote_id = t1.id
         LEFT JOIN tuote t2
-        	ON tuote.hyllypaikka = t2.hyllypaikka AND t2.hyllypaikka <> ''
-        		AND tuote.id != t2.id AND t2.aktiivinen = 1
+        	ON t1.hyllypaikka = t2.hyllypaikka AND t2.hyllypaikka <> ''
+        		AND t1.id != t2.id AND t2.aktiivinen = 1
         WHERE ostotilauskirja_id = ?
         GROUP BY tuote_id, automaatti, tilaustuote";
 $products = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
@@ -288,7 +289,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                 <td class="number"><?=format_number($product->kpl,0)?></td>
                 <td class="number"><?=format_number($product->varastosaldo,0)?></td>
 	            <td class="number"><?=format_number($product->vuosimyynti_kpl,0)?></td>
-	            <td class="number">WIP</td>
+	            <td class="number"><?=format_number($product->vuosimyynti_hylly_kpl,0)?></td>
                 <td class="number"><?=format_number($product->sisaanostohinta)?></td>
                 <td class="number"><?=format_number($product->kokonaishinta)?></td>
 	            <td>
