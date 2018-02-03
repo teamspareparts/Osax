@@ -11,7 +11,7 @@
 
     <section class="header_top" id="headertop">
         <div id="head_logo">
-            <img src="./img/osax_logo.jpg" align="left" alt="No pics, plz">
+	        <a href="etusivu.php"> <img src="./img/osax_logo.jpg" align="left" alt="No pics, plz"> </a>
         </div>
 
         <div id="head_info">
