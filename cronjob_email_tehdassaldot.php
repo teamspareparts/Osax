@@ -18,10 +18,10 @@ function debug($var,bool$var_dump=false){
 
 echo "<pre>";
 $db = new DByhteys();
-$rows_in_query_at_one_time = 10000;
+$max_rows_in_query_at_one_time = 10000;
 $hankintapaikka_id = 170;
-//$tiedosto_polku = '../../../imap/osax.fi/myynti/Maildir/cur';
-$tiedosto_polku = '../../../../imap/osax.fi/myynti/Maildir/cur'; // indev-versio
+$tiedosto_polku = '../../../imap/osax.fi/myynti/Maildir/cur';
+//$tiedosto_polku = '../../../../imap/osax.fi/myynti/Maildir/cur'; // indev-versio
 $latest_filepath = '';
 $latest_emtime = 0;
 
@@ -77,15 +77,18 @@ if ( !empty( $csv_array ) ) {
 	$sql = "INSERT INTO toimittaja_tehdassaldo (tuote_articleNo, tehdassaldo, hankintapaikka_id) VALUES (?,?,?)
 			ON DUPLICATE KEY UPDATE tehdassaldo = VALUES(tehdassaldo)";
 
-	$values = array_chunk( $csv_array, $rows_in_query_at_one_time );
+	$values = array_chunk( $csv_array, $max_rows_in_query_at_one_time );
 
 	foreach ( $values as $values_chunk ) {
-		$val_count = count($values_chunk);
-		$kysymysmerkit = str_repeat('(?,?,?),', ($val_count-1)) . "(?,?,?)";
+		$kysymysmerkit = str_repeat('(?,?,?),', (count($values_chunk)-1)) . "(?,?,?)";
 		$sql_w_templates = str_replace("(?,?,?)", $kysymysmerkit, $sql);
+		// Seuraavan rivin tarkoitus on litistää 2D-array 1D-muotoon.
 		$value_array = iterator_to_array(new RecursiveIteratorIterator(new RecursiveArrayIterator($values_chunk)),false);
+		// Jostain syystä hajoaa viimeisen $values_chunk-osion kohdalla. Alempana tarkistetaan, ja korjataan.
 
 		$value_array_len = count($value_array);
+		// Ylempi iterator_to_array (tai joku muu funktio samalla rivillä) missaa viimeisen elementin.
+		// Manuaalisesti muutetaan 1D muotoon loppuun.
 		if ( $value_array_len % 3 != 0 ) {
 			$last_array = array_pop($value_array[$value_array_len-1]);
 			$value_array[] = $last_array[0];
