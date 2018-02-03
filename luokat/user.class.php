@@ -85,6 +85,9 @@ class User {
 	 * @return string
 	 */
 	public function kokoNimi() : string {
+		// Tarkistetaan, että etunimi ei ole NULL. strlen/substr kaatuu, jos antaa NULL parametrina.
+		$this->etunimi = $this->etunimi ?? '';
+
 		// Tarkistetaan etunimen pituus (jos liian pitkä, lyhennetään E.), ja lisätään sukunimi perään.
 		$str = ((strlen( $this->etunimi ) > 15)
 					? (substr( $this->etunimi, 0, 1 ) . ".")
