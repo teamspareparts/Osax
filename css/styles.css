@@ -287,6 +287,7 @@ dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
 ********************************************/
 .otsikko_container {
 	display: flex; /* For that sweet responsive design. */
+	align-items: center; /* Vertical center */
 	margin-top: -9px; /* Yksinkertaisesti sanottuna: keskittää otsikon bodyn ja headering väliin. */
 	margin-bottom: 11px; /* Ditto. */
 	background-color: lightsteelblue; /* Well, now I'm just being flashy. */

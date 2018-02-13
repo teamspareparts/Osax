@@ -186,8 +186,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 				<a href="yp_ostotilauskirja_tuote_odottavat.php?id=<?=$otk->id?>&tarkista" class="nappi">
 					Tarkasta tiedot ja hyväsky</a>
 			<?php else : ?>
-				<button id="merkkaa_vastaanotetuksi" class="nappi"
-				        onclick="document.getElementById('submit_button').click()">
+				<button class="nappi" onclick="document.getElementById('submit_button').click()">
 					Merkitse vastaanotetuksi</button>
 			<?php endif; ?>
 		</section>
@@ -265,7 +264,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		</table>
 
 	<?php else : ?><!-- Annetaan mahdollisuus muokata kpl ja hyllypaikkaa. -->
-		<form action="" method="post" onsubmit="return " id="vastaanota_ostotilauskirja">
+		<form action="" method="post">
 			<table>
 				<thead>
 				<tr><th>Tilauskoodi</th>
@@ -339,7 +338,16 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 <script type="text/javascript">
 
-	function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, hyllypaikka, automaatti, tilaustuote){
+    /**
+     * Modal tuotteen tietojen muokkaamiseen.
+     * @param tuote_id
+     * @param tuotenumero
+     * @param kpl
+     * @param hyllypaikka
+     * @param automaatti
+     * @param tilaustuote
+     */
+	function avaa_modal_muokkaa_tuote( tuote_id, tuotenumero, kpl, hyllypaikka, automaatti, tilaustuote ) {
 		Modal.open( {
 			content:  '\
 				<h4>Muokkaa tilatun tuotteen tietoja mikäli saapuva<br>\
@@ -366,7 +374,11 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		});
 	}
 
-    function avaa_modal_muokkaa_rahtimaksu(rahti){
+    /**
+     * Modal rahtimaksun muokkamiseen.
+     * @param rahti
+     */
+    function avaa_modal_muokkaa_rahtimaksu( rahti ) {
         Modal.open( {
             content:  '\
 				<h4>Muokkaa rahtimaksua.</h4>\

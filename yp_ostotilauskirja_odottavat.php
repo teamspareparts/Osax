@@ -1,22 +1,9 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
 
 if ( !$user->isAdmin() ) {
 	header("Location:etusivu.php"); exit();
 }
-
-/**
- * Tässä tiedostossa listataan kaikki toimittajille lähetetyt ostotilauskirjat, jotka voi merkata saapuneeksi.
- * Tietoja voi vielä muuttaa, mikäli saapunut erä ei vastaa ostotilauskirjaa.
- */
-
-$sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauskirja_arkisto
- 		LEFT JOIN ostotilauskirja_tuote_arkisto
- 			ON ostotilauskirja_arkisto.id = ostotilauskirja_tuote_arkisto.ostotilauskirja_id
- 		WHERE hyvaksytty = 0
- 		GROUP BY ostotilauskirja_arkisto.id";
-$ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 
 // Ladataan csv-tiedosto, jos tilauskirja on juuri lähetetty.
 if ( isset($_SESSION["download"]) ) {
@@ -35,6 +22,12 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
+$sql = "SELECT *, SUM(kpl*ostohinta) AS hinta, SUM(kpl) AS kpl FROM ostotilauskirja_arkisto
+ 		LEFT JOIN ostotilauskirja_tuote_arkisto
+ 			ON ostotilauskirja_arkisto.id = ostotilauskirja_tuote_arkisto.ostotilauskirja_id
+ 		WHERE hyvaksytty = 0
+ 		GROUP BY ostotilauskirja_arkisto.id";
+$ostotilauskirjat = $db->query($sql, [], FETCH_ALL);
 ?>
 
 <!DOCTYPE html>
@@ -67,7 +60,7 @@ unset($_SESSION["feedback"]);
 		<table>
 			<thead>
 			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">Varastoon saapuvat tilauskirjat</th></tr>
-			<tr><th style="max-width: 200pt">Tunniste</th>
+			<tr><th>Tunniste</th>
 				<th>Lähetetty</th>
 				<th>Saapuu</th>
 				<th>KPL</th>

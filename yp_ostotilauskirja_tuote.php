@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
 
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
@@ -40,6 +39,7 @@ function get_toimitusaika( DByhteys $db, int $hankintapaikka_id ) : float {
 }
 
 /**
+ * Luo select-valikon hankintapaikkaan liitetyistä tilauskirjoista.
  * @param DByhteys $db
  * @param int $hankintapaikka_id
  * @return String|null
@@ -61,6 +61,14 @@ function get_ostotilauskirja_select_string( DByhteys $db, int $hankintapaikka_id
 	return $str;
 }
 
+/**
+ * Siirtää tiluastuotteen toiselle tilauskirjalle.
+ * @param DByhteys $db
+ * @param int $otk_id
+ * @param int $uusi_otk_id
+ * @param int $tuote_id
+ * @return bool
+ */
 function siirra_tuote_toiselle_tilauskirjalle( DByhteys $db, int $otk_id, int $uusi_otk_id, int $tuote_id ) : bool {
 	// Tarkastetaan onko tuotetta jo toisella tilauskirjalla
 	$sql = "SELECT *
@@ -115,7 +123,7 @@ function siirra_tuote_toiselle_tilauskirjalle( DByhteys $db, int $otk_id, int $u
  */
 function tallenna_ostotilauskirja( DByhteys $db, int $ostotilauskirja_id, array $tuotteet ) : bool {
 
-	// Päivitetään kaikkien tuotteiden kpl
+	// Päivitetään kaikkien tilauskirjalla olevien tuotteiden kpl
 	$values = [];
 	$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, ?, ?, ?)'));
 	$sql = "INSERT INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, automaatti, tilaustuote, kpl)
@@ -127,7 +135,7 @@ function tallenna_ostotilauskirja( DByhteys $db, int $ostotilauskirja_id, array 
 		array_push($values, $ostotilauskirja_id, $tuote['id'], $tuote['automaatti'],
 			$tuote['tilaustuote'], $tuote['kpl']);
 	}
-	$db->query($sql, $values);
+	$result = $db->query($sql, $values);
 
 	// Poistetaan tuotteet
 	$sql = "DELETE FROM ostotilauskirja_tuote
@@ -141,7 +149,7 @@ function tallenna_ostotilauskirja( DByhteys $db, int $ostotilauskirja_id, array 
 		}
 	}
 
-	return false;
+	return $result ? true : false;
 }
 
 
@@ -226,9 +234,8 @@ function sortProductsByName( array $products ) : array {
 }
 
 if ( isset($_POST['muokkaa']) ) {
-	if ( $_POST['automaatti']) { //Ei muuteta selitettä, jos automaation lisäämä tuote
-        $_POST['selite'] = "AUTOMAATTI";
-    }
+	// Ei muuteta selitettä, jos automaation lisäämä tuote
+	$_POST['selite'] = $_POST['automaatti'] ? "AUTOMAATTI" : $_POST['selite'];
     // Muokataan tilauskirjan tuotetta
 	$values = [
 		$_POST['kpl'],
@@ -356,7 +363,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 	<!-- Otsikko ja painikkeet -->
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>" class="nappi grey">Takaisin</a>
+			<a href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
 			<span>Ostotilauskirja&nbsp;&nbsp;</span>
@@ -367,11 +374,12 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 		</section>
 	</div>
 
-	<div style="display: flex; align-items: center;">
-		<section style="margin-right: auto">
+	<!-- Alaotsikko ja painikkeet -->
+	<div class="flex" style="align-items: center;">
+		<section>
             <h4>Arvioitu saapumispäivä: <?=date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></h4>
 		</section>
-		<section>
+		<section style="margin-left: auto;">
 			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
 			<button class="nappi" onclick="tallenna_ostotilauskirja()">Tallenna</button>
 		</section>
@@ -475,7 +483,17 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 <script type="text/javascript">
 
 
-    function avaa_modal_muokkaa_tuote(tuote_id, tuotenumero, kpl, ostohinta, selite, automaatti, tilaustuote){
+    /**
+     * Modal tuotteen tietojen muokkaamiseen.
+     * @param tuote_id
+     * @param tuotenumero
+     * @param kpl
+     * @param ostohinta
+     * @param selite
+     * @param automaatti
+     * @param tilaustuote
+     */
+    function avaa_modal_muokkaa_tuote( tuote_id, tuotenumero, kpl, ostohinta, selite, automaatti, tilaustuote ) {
         Modal.open( {
             content:  '\
 				<h4>Muokkaa tuotteen tietoja ostotilauskirjalla.</h4>\
@@ -511,7 +529,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
      * @param tilaustuote
      * @param tuotenumero
      */
-    function siirra(tuote_id, automaatti, tilaustuote, tuotenumero) {
+    function siirra( tuote_id, automaatti, tilaustuote, tuotenumero ) {
         let tilauskirjat = <?=json_encode($tilauskirjat_tuotteen_siirtamista_varten)?>;
         Modal.open({
             content:  '\
@@ -580,6 +598,10 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
         }
     }
 
+
+    /**
+     * Luodaan form tilauskirjan poistamista varten.
+     */
 	function tyhjenna_ostotilauskirja() {
 		if( confirm("Haluatko varmasti tyhjentää ostotilauskirjan?") ) {
 			//Rakennetaan form
@@ -600,6 +622,9 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 		}
 	}
 
+    /**
+     * Lähetetään tuotteiden muokkaukseen käytettävä form.
+     */
 	function tallenna_ostotilauskirja() {
         let form = document.getElementById('muokkaa_ostotilauskirja_kaikki');
 
@@ -613,6 +638,9 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
         form.submit();
 	}
 
+    /**
+     * Varmistetaa tilauskirjan lähetys ja luodaan form lähetystä varten.
+     */
     function varmista_lahetys() {
         let vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
         if ( vahvistus ) {
@@ -633,6 +661,9 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
         }
     }
 
+    /**
+     * Haetaan tehdassaldot Eoltaksen tuotteille.
+     */
     function hae_eoltas_tehdassaldo() {
 	    let tuotteet = document.getElementsByClassName("tuote");
 	    for (let i = 0; i < tuotteet.length; i++) {
@@ -663,16 +694,13 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
                         }
                         tuotteet[i].cells[10].innerHTML += varoitus_kuvake;
                     }
-
                 });
 	    }
     }
 
-
     $(document).ready(function(){
         hae_eoltas_tehdassaldo();
     });
-
 
 </script>
 </body>

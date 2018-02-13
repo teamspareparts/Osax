@@ -1,43 +1,39 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-require 'tecdoc.php';
 
 if ( !$user->isAdmin() ) {
     header("Location:etusivu.php"); exit();
 }
 
-//tarkastetaan onko GET muuttuja sallittu ja haetaan hankintapaikan tiedot
-$hankintapaikka_id = isset($_GET['id']) ? $_GET['id'] : null;
-if (!$hp = $db->query("SELECT * FROM hankintapaikka WHERE id = ? LIMIT 1", [$hankintapaikka_id])) {
+// Tarkastetaan onko GET muuttuja sallittu ja haetaan hankintapaikan tiedot
+$hankintapaikka_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$hankintapaikka = $db->query("SELECT * FROM hankintapaikka WHERE id = ?", [$hankintapaikka_id]);
+if ( !$hankintapaikka ) {
     header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
 
 /** Ostotilauskirjan lisäys */
 if ( isset($_POST['lisaa']) ) {
-    $toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
+    $toimitusjakso = isset($_POST['toimitusjakso']) ? $_POST['toimitusjakso'] : 0;
 	$arr = [
-		$_POST["tunniste"],
-		$_POST["lahetyspvm"],
-		$_POST["saapumispvm"],
-		$_POST["rahti"],
+		$_POST['tunniste'],
+		$_POST['lahetyspvm'],
+		$_POST['saapumispvm'],
+		$_POST['rahti'],
 		$toimitusjakso,
-		$_POST["hankintapaikka_id"],
+		$_POST['hankintapaikka_id'],
 	];
     //Tarkastetaan onko hankintapaikalla jo toistuva tilauskirja
-	$sql = "SELECT  id FROM ostotilauskirja 
-            WHERE   toimitusjakso > 0 AND hankintapaikka_id = ?  
-            LIMIT   1";
-	$result = $db->query($sql, [$hankintapaikka_id]);
-    if ( $toimitusjakso && $result) { //Vain yksi toistuva ostotilauskirja
-        $_SESSION["feedback"] = "<p class='error'>Hankintapaikalla voi olla vain 
-                                    yksi aktiivinen tilauskirja.</p>";
+	$sql = "SELECT id FROM ostotilauskirja WHERE toimitusjakso > 0 AND hankintapaikka_id = ?";
+    if ( $db->query($sql, [$hankintapaikka_id]) ) { //Vain yksi toistuva ostotilauskirja
+        $_SESSION["feedback"] = "<p class='error'>Hankintapaikalla voi olla vain yksi aktiivinen tilauskirja.</p>";
     }
     else {
 		$sql = "INSERT IGNORE INTO ostotilauskirja 
-                (tunniste, oletettu_lahetyspaiva, oletettu_saapumispaiva,
-                rahti, toimitusjakso, hankintapaikka_id)
+                	(tunniste, oletettu_lahetyspaiva, oletettu_saapumispaiva,
+                	rahti, toimitusjakso, hankintapaikka_id)
                 VALUES ( ?, ?, ?, ?, ?, ? )";
-		if ($db->query($sql, $arr)) {
+		if ( $db->query($sql, $arr) ) {
 			$_SESSION["feedback"] = "<p class='success'>Uusi ostotilauskirja lisätty.</p>";
 		} else {
 			$_SESSION["feedback"] = "<p class='error'>Ostotilauskirjan tunniste varattu.</p>";
@@ -46,31 +42,30 @@ if ( isset($_POST['lisaa']) ) {
 }
 /** Ostotilauskirjan muokkaus */
 else if ( isset($_POST['muokkaa']) ) {
-	$toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
 	$arr = [
-		$_POST["lahetyspvm"],
-		$_POST["saapumispvm"],
-		$_POST["rahti"],
-		$toimitusjakso,
-		$_POST["ostotilauskirja_id"],
+		$_POST['lahetyspvm'],
+		$_POST['saapumispvm'],
+		$_POST['rahti'],
+		$_POST['toimitusjakso'],
+		$_POST['ostotilauskirja_id'],
 	];
-    $sql = "  UPDATE ostotilauskirja
-              SET oletettu_lahetyspaiva = ?, oletettu_saapumispaiva = ?, rahti = ?, toimitusjakso = ?
-              WHERE id = ?";
+    $sql = "UPDATE ostotilauskirja
+            SET oletettu_lahetyspaiva = ?, oletettu_saapumispaiva = ?, rahti = ?, toimitusjakso = ?
+            WHERE id = ?";
     if ( $db->query($sql, $arr) ) {
         $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
     }
     //Merkataan, että tuotteiden riittävyys on laskettava uudelleen
-    $sql = "    UPDATE tuote
-                SET paivitettava = 1
-                WHERE id IN (SELECT tuote_id FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?)";
+    $sql = "UPDATE tuote
+            SET paivitettava = 1
+            WHERE id IN (SELECT tuote_id FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?)";
     $db->query($sql, [$_POST["ostotilauskirja_id"]]);
 }
 /** Ostotilauskirjan poistaminen */
 else if( isset($_POST['poista']) ) {
-    unset($_POST['poista']);
-	$db->query("DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?", array_values($_POST));
-    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", array_values($_POST)) ) {
+	$sql = "DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?";
+	$db->query($sql, [$_POST['ostotilauskirja_id']]);
+    if ( $db->query("DELETE FROM ostotilauskirja WHERE id = ?", [$_POST['ostotilauskirja_id']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Ostotilauskirja poistettu.</p>";
     } else {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
@@ -120,7 +115,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 		</section>
 		<section class="otsikko">
 			<span>Ostotilauskirja&nbsp;&nbsp;</span>
-			<h1><?=$hp->id?> - <?=$hp->nimi?></h1>
+			<h1><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></h1>
 		</section>
 		<section class="napit">
 			<button class="nappi" type="button" onclick="avaa_modal_uusi_ostotilauskirja('<?=$hankintapaikka_id?>')">
@@ -176,7 +171,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                                     '<?= date("Y-m-d", strtotime($otk->oletettu_saapumispaiva))?>',
                                     '<?= $otk->rahti?>', '<?= $otk->toimitusjakso?>', '<?= $otk->id?>')">
                                     Muokkaa</a>
-                        <a class="nappi" href='javascript:void(0)'
+                        <a class="nappi red" href='javascript:void(0)'
                            onclick="poista_ostotilauskirja('<?= $otk->id?>')">Poista</a>
                     </td>
                 </tr>
@@ -193,6 +188,10 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 <script type="text/javascript">
 
+	/**
+	 * Modal ostotilauskirjan lisäämiseen.
+	 * @param hankintapaikka_id
+	 */
     function avaa_modal_uusi_ostotilauskirja( hankintapaikka_id ) {
         let date = new Date().toISOString().slice(0,10);
         Modal.open({
@@ -229,11 +228,22 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         });
     }
 
-    function avaa_modal_muokkaa_ostotilauskirja(tunniste, lahetyspvm, saapumispvm, rahti, tilausjakso, ostotilauskirja_id){
-        if (tilausjakso !== 0) {
-            tilausjakso = '<input name="toimitusjakso" type="number" step="1" value="'+tilausjakso+'" min="1" placeholder="6" title="Tilausväli viikkoina" required>';
+    /**
+     * Modal tilauskirjan tietojen muokkaamiseen.
+     * @param tunniste
+     * @param lahetyspvm
+     * @param saapumispvm
+     * @param rahti
+     * @param tilausjakso
+     * @param ostotilauskirja_id
+     */
+    function avaa_modal_muokkaa_ostotilauskirja( tunniste, lahetyspvm, saapumispvm, rahti, tilausjakso, ostotilauskirja_id ) {
+        let tilausjakso_string;
+        if ( +tilausjakso ) {
+            tilausjakso_string = '<input type="number" name="toimitusjakso" step="1" value="'+tilausjakso+'" min="1" placeholder="6" title="Tilausväli viikkoina" required>';
         } else {
-        	tilausjakso = "ERIKOISTILAUS";
+            tilausjakso_string = '<input type=hidden name="toimitusjakso" step="1" value="'+tilausjakso+'">';
+        	tilausjakso_string += "ERIKOISTILAUS";
         }
         Modal.open( {
             content:  '\
@@ -254,7 +264,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 					<input name="rahti" type="number" step="0.01" value="'+rahti+'" title="Rahtimaksu">\
 					<br><br>\
 					<label>Tilausväli (vko)</label>\
-                    '+ tilausjakso +'\
+                    '+tilausjakso_string+'\
 	                <br><br>\
 					<input name="ostotilauskirja_id" type="hidden" value="'+ostotilauskirja_id+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
@@ -264,8 +274,12 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         });
     }
 
-    function poista_ostotilauskirja(ostotilauskirja_id){
-        if( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
+    /**
+     * Tilauskirjan poistamista varten
+     * @param ostotilauskirja_id
+     */
+    function poista_ostotilauskirja( ostotilauskirja_id ) {
+        if ( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
             //Rakennetaan form
             let form = document.createElement("form");
             form.setAttribute("method", "POST");
@@ -290,8 +304,6 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         }
     }
 
-
-
     $(document).ready(function(){
 
         $('*[data-href]')
@@ -301,8 +313,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
                 return false;
             });
 
-        /** Ostotilauskirjan lisäys -modalin toiminta */
-
+	    // Ostotilauskirjan lisäys -modalin toiminta
 		$(document.body).on('change', 'input[name="tyyppi"]:radio', function() {
 			let toimitusjakso_div = $("#toimitusjakso_div");
 			let toimitusjakso_input = $("#toimitusjakso");
