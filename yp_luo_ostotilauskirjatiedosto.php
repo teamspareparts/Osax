@@ -17,13 +17,14 @@ if ( !$otk ){
 	exit();
 }
 
-$sql = "  SELECT 	tuote.tilauskoodi, tuote.articleNo, tuote.valmistaja, 
-  					SUM(ostotilauskirja_tuote_arkisto.original_kpl) AS kpl
-  		  FROM 		ostotilauskirja_tuote_arkisto
-          LEFT JOIN tuote
-            ON 		ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
-          WHERE 	ostotilauskirja_id = ?
-          GROUP BY 	tuote_id";
+$sql = "SELECT tuote.tilauskoodi, tuote.articleNo, tuote.valmistaja, 
+			SUM(ostotilauskirja_tuote_arkisto.original_kpl) AS kpl
+  		FROM ostotilauskirja_tuote_arkisto
+        LEFT JOIN tuote
+        	ON ostotilauskirja_tuote_arkisto.tuote_id = tuote.id 
+        WHERE ostotilauskirja_id = ?
+        	AND tilaustuote = 0
+        GROUP BY tuote_id";
 $tuotteet = $db->query($sql, [$ostotilauskirja_id], FETCH_ALL);
 
 // Luodaan raportti

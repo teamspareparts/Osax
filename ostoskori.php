@@ -6,8 +6,9 @@ require 'ostoskori_tilaus_funktiot.php';
 if ( !empty($_POST['ostoskori_tuote']) ) {
 	$tuote_id = (int)$_POST['ostoskori_tuote'];
 	$tuote_kpl = (int)$_POST['ostoskori_maara'] ?? 0;
+	$tilaustuote = (bool)$_POST['ostoskori_tilaustuote'];
 	if ( $tuote_kpl > 0 ) {
-		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl ) ) {
+		if ( $cart->lisaa_tuote( $db, $tuote_id, $tuote_kpl, $tilaustuote ) ) {
 			$_SESSION["feedback"] = '<p class="success">Ostoskori päivitetty.</p>';
 		} else {
 			$_SESSION["feedback"] = '<p class="error">Ostoskorin päivitys ei onnistunut.</p>';
@@ -83,8 +84,10 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 					       min="0" title="Kappalemäärä"> <!-- Kpl-määrä (käyttäjän muokattavissa) -->
 				</td>
 				<td><?= $tuote->alennus_huomautus ?></td>
-				<td class="toiminnot"><a class="nappi" href="javascript:void(0)"
-										 onclick="cartAction('<?= $tuote->id ?>')">Päivitä</a></td>
+				<td class="toiminnot">
+					<button class="nappi" onclick="cartAction(<?= $tuote->id ?>, <?= $tuote->tilaustuote ?>)">
+						Päivitä</button> <!-- Ostoskorin päivittäminen -->
+				</td>
 			</tr>
 		<?php endforeach; ?>
 		<tr id="rahtimaksu_listaus">
@@ -112,6 +115,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 <form name="ostoskorilomake" method="post" class="hidden">
 	<input id="ostoskori_tuote" type="hidden" name="ostoskori_tuote">
 	<input id="ostoskori_maara" type="hidden" name="ostoskori_maara">
+	<input id="ostoskori_tilaustuote" type="hidden" name="ostoskori_tilaustuote">
 </form>
 <script>
 	/**
@@ -119,11 +123,13 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 	 * Jos kpl-määrä nolla (0), tuote poistetaan ostoskorista.
 	 * //TODO: Ajaxilla saisi toimimaan hieman siistimmin, mutta vaikeampi toteuttaa. --JJ170609
 	 * @param id
+	 * @param tilaustuote
 	 */
-	function cartAction(id) {
+	function cartAction( id, tilaustuote ) {
 		let count = document.getElementById('maara_' + id).value;
 		document.getElementById('ostoskori_tuote').value = id;
 		document.getElementById('ostoskori_maara').value = count;
+        document.getElementById('ostoskori_tilaustuote').value = tilaustuote;
 		document.ostoskorilomake.submit();
 	}
 

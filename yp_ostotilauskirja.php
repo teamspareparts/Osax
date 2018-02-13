@@ -44,7 +44,6 @@ if ( isset($_POST['lisaa']) ) {
 		}
 	}
 }
-
 /** Ostotilauskirjan muokkaus */
 else if ( isset($_POST['muokkaa']) ) {
 	$toimitusjakso = isset($_POST["toimitusjakso"]) ? $_POST["toimitusjakso"] : 0;
@@ -67,7 +66,6 @@ else if ( isset($_POST['muokkaa']) ) {
                 WHERE id IN (SELECT tuote_id FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?)";
     $db->query($sql, [$_POST["ostotilauskirja_id"]]);
 }
-
 /** Ostotilauskirjan poistaminen */
 else if( isset($_POST['poista']) ) {
     unset($_POST['poista']);
@@ -78,7 +76,6 @@ else if( isset($_POST['poista']) ) {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
     }
 }
-
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
@@ -87,11 +84,10 @@ if ( !empty($_POST) ){
 $feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
 unset($_SESSION["feedback"]);
 
-
-
-
-//haetaan ostotilauskirjat
-$sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta, COUNT(ostotilauskirja_tuote.tuote_id) AS kpl FROM ostotilauskirja
+// Haetaan ostotilauskirjat
+$sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta,
+			COUNT(ostotilauskirja_tuote.tuote_id) AS kpl
+		FROM ostotilauskirja
  		LEFT JOIN ostotilauskirja_tuote
  			ON ostotilauskirja.id = ostotilauskirja_tuote.ostotilauskirja_id
  		LEFT JOIN tuote

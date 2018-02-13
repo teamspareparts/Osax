@@ -12,7 +12,13 @@ function check_products_in_shopping_cart ( Ostoskori $cart, User $user ) {
 	 */
 	foreach ( $cart->tuotteet as $tuote ) {
 
-		if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
+		// Huomautus, jos tuote on tilaustuote
+		if ( $tuote->tilaustuote && $tuote->varastosaldo === 0) {
+			$tuote->alennus_huomautus = "<span style='color:darkorange;'>Tilaustuote. Tilataan suoraan tehtaalta.</span>";
+		}
+
+		// Huomautus, jos tuotetta ei ole varastossa
+		elseif ( $tuote->kpl_maara > $tuote->varastosaldo ) {
 			$tuote->alennus_huomautus = "<span style='color:red;'>Ei varastossa</span>";
 		}
 
@@ -115,9 +121,20 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
 	}
 
+	// Tarkistetaan, että Eoltaksen tuotteita on tarpeeksi varastossa
+	$vajaat_tuotteet = EoltasWebservice::checkOstoskoriValidity( $cart->tuotteet );
+	if ( $vajaat_tuotteet ) {
+		$tilaaminen_mahdollista = false;
+		foreach ( $vajaat_tuotteet as $tuote ) {
+			$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei
+				ole tarpeeksi Eoltaksen varastossa ({$tuote->eoltas_stock}kpl).<br>";
+		}
+	}
+
+	// Tarkistetaan, että minimimyyntierä ylittyy ja että tuotteita on tarpeeksi varastossa.
 	if ( $cart->tuotteet ) {
 		foreach ( $cart->tuotteet as $tuote) {
-			if ( $tuote->kpl_maara > $tuote->varastosaldo ) {
+			if ( $tuote->kpl_maara > $tuote->varastosaldo && !$tuote->tilaustuote ) {
 				$tilaaminen_mahdollista = false;
 				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei ole tarpeeksi varastossa.<br>";
 			}

@@ -7,7 +7,7 @@ if ( !$user->isAdmin() ) {
 }
 
 //tarkastetaan onko GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
-$ostotilauskirja_id = isset($_GET['id']) ? $_GET['id'] : null;
+$ostotilauskirja_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ( !$otk = $db->query("SELECT * FROM ostotilauskirja WHERE id = ? LIMIT 1", [$ostotilauskirja_id]) ) {
 	header("Location: yp_ostotilauskirja_hankintapaikka.php"); exit();
 }
@@ -37,6 +37,111 @@ function get_toimitusaika( DByhteys $db, int $hankintapaikka_id ) : float {
         $toimitusaika = $oletus_toimitusaika; //default
     }
     return $toimitusaika;
+}
+
+/**
+ * @param DByhteys $db
+ * @param int $hankintapaikka_id
+ * @return String|null
+ */
+function get_ostotilauskirja_select_string( DByhteys $db, int $hankintapaikka_id ) {
+	// Haetaan hankintapaikan ostotilauskirjat
+	$sql = "SELECT * FROM ostotilauskirja WHERE hankintapaikka_id = ?";
+	$otks = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+	if ( !$otks ) {
+		return null;
+	}
+
+	// Build string
+	$str = "<select name='uusi_tilauskirja'>";
+	foreach ( $otks as $otk ) {
+		$str .= "<option value={$otk->id}>{$otk->tunniste}</option>";
+	}
+	$str .= "</select>";
+	return $str;
+}
+
+function siirra_tuote_toiselle_tilauskirjalle( DByhteys $db, int $otk_id, int $uusi_otk_id, int $tuote_id ) : bool {
+	// Tarkastetaan onko tuotetta jo toisella tilauskirjalla
+	$sql = "SELECT *
+			FROM ostotilauskirja_tuote
+			WHERE ostotilauskirja_id = ?
+				AND tuote_id = ?
+				AND tilaustuote = 1
+				AND automaatti = 0";
+	$tuote = $db->query($sql, [$uusi_otk_id, $tuote_id]);
+	if ( $tuote ) {
+		// Jos tuote jo tilauskirjalla päivitetään kpl määrä.
+		$sql = "UPDATE ostotilauskirja_tuote otk_t1
+				INNER JOIN (
+					SELECT kpl, selite FROM ostotilauskirja_tuote
+					WHERE ostotilauskirja_id = ? AND tuote_id = ?
+						AND tilaustuote = 1 AND automaatti = 0
+					) AS otk_t2
+				SET otk_t1.kpl = otk_t1.kpl + otk_t2.kpl,
+					otk_t1.selite = CONCAT(otk_t1.selite, otk_t2.selite)
+				WHERE otk_t1.ostotilauskirja_id = ?
+					AND otk_t1.tuote_id = ?
+					AND otk_t1.tilaustuote = 1
+					AND otk_t1.automaatti = 0";
+		$db->query($sql, [$otk_id, $tuote_id, $uusi_otk_id, $tuote_id]);
+		// Poista tuote alkuperäiseltä tilauskirjalta
+		$sql = "DELETE FROM ostotilauskirja_tuote
+				WHERE ostotilauskirja_id = ?
+					AND tuote_id = ?
+					AND tilaustuote = 1
+					AND automaatti = 0";
+		$result = $db->query($sql, [$otk_id, $tuote_id]);
+	} else {
+		// Jos tuotetta ei ole tilauskirjalla muutetaan vain tilauskirjan id
+		$sql = "UPDATE ostotilauskirja_tuote
+				SET ostotilauskirja_id = ?
+				WHERE ostotilauskirja_id = ?
+					AND tuote_id = ?
+					AND tilaustuote = 1
+					AND automaatti = 0";
+		$result = $db->query($sql, [$uusi_otk_id, $otk_id, $tuote_id]);
+	}
+	return $result ? true : false;
+
+
+}
+
+/**
+ * @param DByhteys $db
+ * @param int $ostotilauskirja_id
+ * @param array $tuotteet
+ * @return bool
+ */
+function tallenna_ostotilauskirja( DByhteys $db, int $ostotilauskirja_id, array $tuotteet ) : bool {
+
+	// Päivitetään kaikkien tuotteiden kpl
+	$values = [];
+	$questionmarks = implode(',', array_fill(0, count($tuotteet), '(?, ?, ?, ?, ?)'));
+	$sql = "INSERT INTO ostotilauskirja_tuote (ostotilauskirja_id, tuote_id, automaatti, tilaustuote, kpl)
+	        	VALUES {$questionmarks}
+	        ON DUPLICATE KEY
+	        	UPDATE kpl = VALUES(kpl)";
+
+	foreach ( $tuotteet as $tuote ) {
+		array_push($values, $ostotilauskirja_id, $tuote['id'], $tuote['automaatti'],
+			$tuote['tilaustuote'], $tuote['kpl']);
+	}
+	$db->query($sql, $values);
+
+	// Poistetaan tuotteet
+	$sql = "DELETE FROM ostotilauskirja_tuote
+			WHERE ostotilauskirja_id = ?
+				AND tuote_id = ?
+				AND automaatti = ?
+				AND tilaustuote = ?";
+	foreach ( $tuotteet as $tuote ) {
+		if ( $tuote['kpl'] == 0 ) {
+			$db->query($sql, [ $ostotilauskirja_id, $tuote['id'], $tuote['automaatti'], $tuote['tilaustuote'] ]);
+		}
+	}
+
+	return false;
 }
 
 
@@ -147,7 +252,11 @@ if ( isset($_POST['muokkaa']) ) {
         $_SESSION["feedback"] = "<p class='error'>ERROR: Muokkauksessa tapahtui virhe!</p>";
     }
 }
-else if( isset($_POST['poista']) ) {
+else if ( isset($_POST['muokkaa_kaikki']) ) {
+	$tuotteet = isset($_POST['tuote']) ? $_POST['tuote'] : [];
+	tallenna_ostotilauskirja($db, $ostotilauskirja_id, $tuotteet);
+}
+else if ( isset($_POST['poista']) ) {
 	$sql = "DELETE FROM ostotilauskirja_tuote WHERE tuote_id = ? AND ostotilauskirja_id = ? AND automaatti = ? AND tilaustuote = ?";
     if ( $db->query($sql, [$_POST['id'], $ostotilauskirja_id, $_POST['automaatti'], $_POST['tilaustuote']]) ) {
         $_SESSION["feedback"] = "<p class='success'>Tuote poistettu ostotilauskirjalta.</p>";
@@ -155,15 +264,18 @@ else if( isset($_POST['poista']) ) {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
     }
 }
-else if( isset($_POST['poista_kaikki']) ) {
+else if ( isset($_POST['poista_kaikki']) ) {
 	if ( $db->query("DELETE FROM ostotilauskirja_tuote WHERE ostotilauskirja_id = ?", [$ostotilauskirja_id]) ) {
 		$_SESSION["feedback"] = "<p class='success'>Tilauskirja tyhjennetty.</p>";
 	} else {
 		$_SESSION["feedback"] = "<p class='error'>Tilauskirja on jo tyhjä.</p>";
 	}
 }
-else if( isset($_POST['laheta']) ) {
-	$id = laheta_ostotilauskirja($db, (int)$user->id, (int)$_POST['id']);
+else if ( isset($_POST['siirra']) ) {
+	siirra_tuote_toiselle_tilauskirjalle($db, $otk->id, (int)$_POST['uusi_tilauskirja'], (int)$_POST['tuote_id']);
+}
+else if ( isset($_POST['laheta']) ) {
+	$id = laheta_ostotilauskirja($db, (int)$user->id, $otk->id);
     if ( $id ) {
         $_SESSION["download"] = $id;
 		header("Location: yp_ostotilauskirja_odottavat.php");
@@ -190,14 +302,16 @@ $sql = "SELECT t1.*, otk_t.*,
 				FROM tilaus_tuote
 				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
 					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
-				WHERE tuote_id = t1.id) AS vuosimyynti_kpl,
+				WHERE tuote_id = t1.id AND tilaus.maksettu = 1)
+			AS vuosimyynti_kpl,
 				
 			(SELECT sum(tt.kpl)
 				FROM tuote t3
 				INNER JOIN tilaus_tuote tt ON tt.tuote_id = t3.id
 				INNER JOIN tilaus ON tt.tilaus_id = tilaus.id
 					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
-				WHERE t3.hyllypaikka = t2.hyllypaikka ) AS vuosimyynti_hylly_kpl
+				WHERE t3.hyllypaikka = t1.hyllypaikka AND tilaus.maksettu = 1)
+			AS vuosimyynti_hylly_kpl
 				
         FROM ostotilauskirja_tuote otk_t
         INNER JOIN tuote t1
@@ -220,6 +334,8 @@ $sql = "SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS t
 $yht = $db->query($sql, [$ostotilauskirja_id]);
 $yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
+
+$tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($db, $otk->hankintapaikka_id);
 ?>
 
 <!DOCTYPE html>
@@ -247,88 +363,111 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<h1><?=$otk->tunniste?></h1>
 		</section>
 		<section class="napit">
-			<button class="nappi" onclick="varmista_lahetys(<?=$otk->id?>)">Lähetä</button>
-			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
+			<button class="nappi" onclick="varmista_lahetys()">Lähetä</button>
 		</section>
 	</div>
 
-    <h4>Arvioitu saapumispäivä: <?=date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></h4>
+	<div style="display: flex; align-items: center;">
+		<section style="margin-right: auto">
+            <h4>Arvioitu saapumispäivä: <?=date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></h4>
+		</section>
+		<section>
+			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
+			<button class="nappi" onclick="tallenna_ostotilauskirja()">Tallenna</button>
+		</section>
+	</div>
 
     <?= $feedback?>
 
-    <table style="min-width: 90%;">
-        <thead>
-        <tr><th>Tilauskoodi</th>
-            <th>Tuotenumero</th>
-            <th>Tuote</th>
-            <th class="number">KPL</th>
-            <th class="number">Varastosaldo</th>
-	        <th class="number">Myynti kpl</th>
-	        <th class="number">Hyllypaikan myynti</th>
-            <th class="number">Ostohinta</th>
-            <th class="number">Yhteensä</th>
-            <th>Selite</th>
-	        <th></th><!-- Tehdassaldo -->
-            <th></th><!-- Varoitus -->
-	        <th></th><!-- Toiminnot -->
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Rahtimaksu -->
-        <tr><td colspan="2"></td>
-	        <td>Rahtimaksu</td>
-	        <td colspan="4"></td>
-	        <td class="number"><?=format_number($otk->rahti)?></td>
-            <td class="number"><?=format_number($otk->rahti)?></td>
-	        <td colspan="4"></td></tr>
-        <!-- Tuotteet -->
-        <?php foreach ($products as $index=>$product) : ?>
-            <tr class="tuote"><td><?=$product->tilauskoodi?></td>
-                <td><?=$product->tuotekoodi?></td>
-                <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
-                <td class="number"><?=format_number($product->kpl,0)?></td>
-                <td class="number"><?=format_number($product->varastosaldo,0)?></td>
-	            <td class="number"><?=format_number($product->vuosimyynti_kpl,0)?></td>
-	            <td class="number"><?=format_number($product->vuosimyynti_hylly_kpl,0)?></td>
-                <td class="number"><?=format_number($product->sisaanostohinta)?></td>
-                <td class="number"><?=format_number($product->kokonaishinta)?></td>
-	            <td>
-                    <?php if ( $product->automaatti ) : ?>
-                        <span style="color: red"><?=$product->selite?></span>
-                    <?php elseif ( $product->tilaustuote ) : ?>
-	                    <span style="color: green"><?=$product->selite?></span>
-                    <?php else : ?>
-	                    <?=$product->selite?>
-                    <?php endif;?>
-                </td>
-	            <td></td><!-- Tehdassaldo -->
-	            <td class="number"><!-- Varoitus -->
-		            <?php if ( $product->hyllyssa_vastaavia_tuotteita ) : ?>
-			            <span title="Hyllyssä <?=$product->hyllypaikka?> vastaavia tuotteita" style="color: rebeccapurple">
-				            <i class="material-icons">warning</i>
-				            <?=$product->hyllyssa_vastaavia_tuotteita?></span>
-	                <?php endif; ?>
-	            </td>
-                <td class="toiminnot"><!-- Toiminnot -->
-                    <button class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
-                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
-                            '<?=$product->selite?>', <?=$product->automaatti?>, <?=$product->tilaustuote?>)">
-	                    Muokkaa</button>
-                    <button class="nappi red" onclick="poista_ostotilauskirjalta(
-                    <?=$product->id?>, <?=$product->automaatti?>, <?=$product->tilaustuote?>)">Poista</button>
-                </td>
-            </tr>
-        <?php endforeach;?>
-        <!-- Yhteensä -->
-        <tr class="border_top"><td>YHTEENSÄ</td>
-	        <td colspan="2"></td>
-            <td class="number"><?= format_number($yht_kpl,0)?></td>
-            <td colspan="4"></td>
-            <td class="number"><?=format_number($yht_hinta)?></td>
-            <td colspan="4"></td>
-        </tr>
-        </tbody>
-    </table>
+	<form action="" method="post" id="muokkaa_ostotilauskirja_kaikki">
+	    <table style="min-width: 90%;">
+	        <thead>
+	        <tr><th>Tilauskoodi</th>
+	            <th>Tuotenumero</th>
+	            <th>Tuote</th>
+	            <th class="number">KPL</th>
+	            <th class="number">Varastosaldo</th>
+		        <th class="number">Myynti kpl</th>
+		        <th class="number">Hyllypaikan myynti</th>
+	            <th class="number">Ostohinta</th>
+	            <th class="number">Yhteensä</th>
+	            <th>Selite</th>
+		        <th></th><!-- Tehdassaldo -->
+	            <th></th><!-- Varoitus -->
+		        <th></th><!-- Input -->
+		        <th></th><!-- Toiminnot -->
+	        </tr>
+	        </thead>
+	        <tbody>
+	        <!-- Rahtimaksu -->
+	        <tr><td colspan="2"></td>
+		        <td>Rahtimaksu</td>
+		        <td colspan="4"></td>
+		        <td class="number"><?=format_number($otk->rahti)?></td>
+	            <td class="number"><?=format_number($otk->rahti)?></td>
+		        <td colspan="5"></td></tr>
+	        <!-- Tuotteet -->
+	        <?php foreach ($products as $index=>$product) : ?>
+	            <tr class="tuote"><td><?=$product->tilauskoodi?></td>
+	                <td><?=$product->tuotekoodi?></td>
+	                <td><?=$product->valmistaja?><br><?=$product->nimi?></td>
+	                <td class="number"><?=format_number($product->kpl,0)?></td>
+	                <td class="number"><?=format_number($product->varastosaldo,0)?></td>
+		            <td class="number"><?=format_number($product->vuosimyynti_kpl,0)?></td>
+		            <td class="number"><?=format_number($product->vuosimyynti_hylly_kpl,0)?></td>
+	                <td class="number"><?=format_number($product->sisaanostohinta)?></td>
+	                <td class="number"><?=format_number($product->kokonaishinta)?></td>
+		            <td>
+	                    <?php if ( $product->automaatti ) : ?>
+	                        <span style="color: red"><?=$product->selite?></span>
+	                    <?php elseif ( $product->tilaustuote ) : ?>
+		                    <span style="color: green"><?=$product->selite?></span>
+	                    <?php else : ?>
+		                    <?=$product->selite?>
+	                    <?php endif;?>
+	                </td>
+		            <td></td><!-- Tehdassaldo -->
+		            <td class="number"><!-- Varoitus -->
+			            <?php if ( $product->hyllyssa_vastaavia_tuotteita ) : ?>
+				            <span title="Hyllyssä <?=$product->hyllypaikka?> vastaavia tuotteita" style="color: rebeccapurple">
+					            <i class="material-icons">warning</i>
+					            <?=$product->hyllyssa_vastaavia_tuotteita?></span>
+		                <?php endif; ?>
+		            </td>
+		            <td><!-- Input -->
+			            <input type="number" value="<?=$product->kpl?>" name="tuote[<?=$index?>][kpl]" class="kpl" min="0">
+			            <input type="hidden" value="<?=$product->id?>" name="tuote[<?=$index?>][id]">
+			            <input type="hidden" value="<?=$product->automaatti?>" name="tuote[<?=$index?>][automaatti]">
+			            <input type="hidden" value="<?=$product->tilaustuote?>" name="tuote[<?=$index?>][tilaustuote]">
+		            </td>
+	                <td class="toiminnot"><!-- Toiminnot -->
+	                    <button type="button" class="nappi" onclick="avaa_modal_muokkaa_tuote(<?=$product->id?>,
+	                            '<?=$product->tuotekoodi?>', <?=$product->kpl?>, <?=$product->sisaanostohinta?>,
+	                            '<?=$product->selite?>', <?=$product->automaatti?>, <?=$product->tilaustuote?>)">
+		                    Muokkaa</button>
+	                    <button type="button" class="nappi red" onclick="poista_ostotilauskirjalta(
+	                        <?=$product->id?>, <?=$product->automaatti?>, <?=$product->tilaustuote?>)">
+		                    Poista</button>
+		                <?php if ( $product->tilaustuote ) : ?>
+		                    <button type="button" class="nappi" onclick="siirra(
+		                        <?=$product->id?>, <?=$product->automaatti?>, <?=$product->tilaustuote?>,
+		                        '<?=$product->tuotekoodi?>')">
+		                        Siirrä</button>
+		                <?php endif; ?>
+	                </td>
+	            </tr>
+	        <?php endforeach;?>
+	        <!-- Yhteensä -->
+	        <tr class="border_top"><td>YHTEENSÄ</td>
+		        <td colspan="2"></td>
+	            <td class="number"><?= format_number($yht_kpl,0)?></td>
+	            <td colspan="4"></td>
+	            <td class="number"><?=format_number($yht_hinta)?></td>
+	            <td colspan="5"></td>
+	        </tr>
+	        </tbody>
+	    </table>
+	</form>
 </main>
 
 <?php require 'footer.php'; ?>
@@ -347,10 +486,10 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                     <h4 style="display: inline;">'+tuotenumero+'</h4>\
 					<br><br>\
 					<label>KPL</label>\
-					<input name="kpl" type="number" value="'+kpl+'" title="Tilattavat kappaleet" min="1" required>\
+					<input name="kpl" type="number" value="'+kpl+'" class="kpl" title="Tilattavat kappaleet" min="1" required>\
 					<br><br>\
 					<label>Ostohinta (€)</label>\
-					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" title="Tuotteen ostohinta" required>\
+					<input name="ostohinta" type="number" step="0.01" value="'+ostohinta.toFixed(2)+'" class="eur" title="Tuotteen ostohinta" required>\
 					<br><br>\
 					<label for="selite">Selite:</label><br> \
                     <textarea rows="3" cols="25" name="selite" form="muokkaa_otk_tuote" placeholder="Miksi lisäät tuotteen käsin?">'+selite+'</textarea>\
@@ -359,6 +498,35 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 					<input name="automaatti" type="hidden" value="'+automaatti+'">\
 					<input name="tilaustuote" type="hidden" value="'+tilaustuote+'">\
 					<input class="nappi" type="submit" name="muokkaa" value="Muokkaa"> \
+				</form>\
+				',
+            draggable: true
+        });
+    }
+
+    /**
+     * Siirretään tuote toiselle ostotilauskirjalle
+     * @param tuote_id
+     * @param automaatti
+     * @param tilaustuote
+     * @param tuotenumero
+     */
+    function siirra(tuote_id, automaatti, tilaustuote, tuotenumero) {
+        let tilauskirjat = <?=json_encode($tilauskirjat_tuotteen_siirtamista_varten)?>;
+        Modal.open({
+            content:  '\
+				<h4>Siirrä tuote toiselle tilauskirjalle.</h4>\
+				<hr>\
+				<br>\
+				<form action="" method="post" name="muokkaa_ostotilauskirja_tuote" id="muokkaa_otk_tuote">\
+                    <label>Tuote:</label>\
+                    <span style="font-weight: bold">'+tuotenumero+'</span>\
+					<br><br>\
+					<label>Tilauskirja:</label>\
+	                '+tilauskirjat+'\
+	                <br><br>\
+					<input type="hidden" name="tuote_id" value="'+tuote_id+'">\
+					<input type="submit" name="siirra" value="Siirrä" class="nappi"> \
 				</form>\
 				',
             draggable: true
@@ -432,7 +600,20 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		}
 	}
 
-    function varmista_lahetys(ostotilauskirja_id) {
+	function tallenna_ostotilauskirja() {
+        let form = document.getElementById('muokkaa_ostotilauskirja_kaikki');
+
+        //asetetaan $_POST["muokkaa_kaikki"]
+        let field = document.createElement("input");
+        field.setAttribute("type", "hidden");
+        field.setAttribute("name", "muokkaa_kaikki");
+        field.setAttribute("value", "true");
+        form.appendChild(field);
+
+        form.submit();
+	}
+
+    function varmista_lahetys() {
         let vahvistus = confirm( "Haluatko varmasti lähettää ostotilauskirjan hankintapaikalle?");
         if ( vahvistus ) {
             let form = document.createElement("form");
@@ -443,13 +624,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
             let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "laheta");
-            field.setAttribute("value", true);
-            form.appendChild(field);
-
-            field = document.createElement("input");
-            field.setAttribute("type", "hidden");
-            field.setAttribute("name", "id");
-            field.setAttribute("value", ostotilauskirja_id);
+            field.setAttribute("value", "true");
             form.appendChild(field);
 
             //form submit
@@ -461,7 +636,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
     function hae_eoltas_tehdassaldo() {
 	    let tuotteet = document.getElementsByClassName("tuote");
 	    for (let i = 0; i < tuotteet.length; i++) {
-		    let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
+            let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
 	        let articleNo = tuotteet[i].cells[1].innerText.slice(4);
             let brandName = tuotteet[i].cells[2].innerText.split("\n")[0];
 	        let kpl = +tuotteet[i].cells[3].innerText;
@@ -489,23 +664,12 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
                         tuotteet[i].cells[10].innerHTML += varoitus_kuvake;
                     }
 
-                }).fail(function () {
-                    tuotteet[i].cells[10].innerText += "Virhe tehdassaldoa haettaessa.";
-            });
+                });
 	    }
     }
 
 
-
     $(document).ready(function(){
-
-        $('*[data-href]')
-            .css('cursor', 'pointer')
-            .click(function(){
-                window.location = $(this).data('href');
-                //return false;
-            });
-
         hae_eoltas_tehdassaldo();
     });
 

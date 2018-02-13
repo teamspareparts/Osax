@@ -517,6 +517,14 @@ require 'tuotemodal.php';
 								</i>
 							<?php endif; ?>
 						<?php endif; ?>
+						<!-- Hidden section -->
+						<div class="hidden">
+							<input style="width: 50px;" id="maara_<?=$product->id?>" name="maara_<?=$product->id?>" class="maara"
+							       type="number" value="0" min="0" title="Kappale-määrä">
+							<button class="nappi" id="tuote_cartAdd_<?=$product->id?>" onclick="addToShoppingCart(
+							<?=$product->id?>,'<?=$product->articleName?>','<?=$product->brandName?>', 1)">
+								<i class="material-icons">add_shopping_cart</i></button>
+						</div>
 					</td>
 					<td class="number"><?=format_number($product->hinta)?></td>
 					<?php if ( $user->isAdmin() ) : ?>
@@ -646,25 +654,30 @@ require 'tuotemodal.php';
 	}
 
 	/**
-	 * Tämän pitäisi lisätä tuote ostoskoriin...
-	 * @param product_id
-	 * @param tuoteNimi
-	 * @param tuoteValmistaja
+	 * Lisää tuotteen ostoskoriin ajaxilla.
+	 * @param tuote_id
+	 * @param tuote_nimi
+	 * @param tuote_valmistaja
+	 * @param tilaustuote
 	 */
-	function addToShoppingCart( product_id, tuoteNimi, tuoteValmistaja ) {
-		// TODO: Tuotteen nimen ja valmistajan lisäys tietokantaan.
-		let kpl_maara = $("#maara_" + product_id).val();
+	function addToShoppingCart( tuote_id, tuote_nimi, tuote_valmistaja, tilaustuote ) {
+		let kpl_maara = $("#maara_" + tuote_id).val();
 		if ( kpl_maara > 0 ) {
+		    // Tallenna tuotteen tiedot
+		    $.post("ajax_requests.php",
+			    {   tallenna_tuote: true,
+				    tuote_nimi: tuote_nimi,
+				    tuote_valmistaja: tuote_valmistaja,
+				    tuote_id: tuote_id });
+		    // Lisää ostoskoriin
 			$.post("ajax_requests.php",
 				{	ostoskori_toiminto: true,
-					tuote_id: product_id,
+					tuote_id: tuote_id,
 					kpl_maara: kpl_maara,
-					tuote_nimi: tuoteNimi,
-					tuote_valmistaja: tuoteValmistaja },
-
+					tilaustuote: tilaustuote },
 				function( data ) {
 					if ( data.success === true ) {
-						$("#tuote_cartAdd_" + product_id)
+						$("#tuote_cartAdd_" + tuote_id)
 							.css("background-color","green")
 							.addClass("disabled");
 						$("#head_cart_tuotteet").text(data.tuotteet_kpl);
@@ -678,23 +691,26 @@ require 'tuotemodal.php';
 	}
 
 	/**
-     * Lisää tuotteen ostotilauskirjalle
-	 * @param id
+     * Lisää tuotteen ostotilauskirjalle.
+	 * @param tuote_id
 	 * @param hankintapaikka_id
 	 * @param tuote_nimi
 	 * @param tuote_valmistaja
 	 */
-	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
-		//haetaan hankintapaikan ostotilauskirjat
+	function showLisaaOstotilauskirjalleDialog(tuote_id, hankintapaikka_id, tuote_nimi, tuote_valmistaja){
+        // Tallenna tuotteen tiedot
+        $.post("ajax_requests.php",
+            {   tallenna_tuote: true,
+                tuote_nimi: tuote_nimi,
+                tuote_valmistaja: tuote_valmistaja,
+                tuote_id: tuote_id });
+        // Haetaan hankintapaikan ostotilauskirjat
 		$.post(
 			"ajax_requests.php",
 			{   hankintapaikan_ostotilauskirjat: true,
-				hankintapaikka_id: hankintapaikka_id,
-				tuote_id: id,
-				tuote_nimi: tuote_nimi,
-				tuote_valmistaja: tuote_valmistaja },
+				hankintapaikka_id: hankintapaikka_id },
 			function( data ) {
-				ostotilauskirjat = JSON.parse(toJSON(data));
+				let ostotilauskirjat = JSON.parse(toJSON(data));
 				if( ostotilauskirjat.length === 0 ){
 					alert("Luo ensin tuotteen hankintapaikalle ostotilauskirja!" +
 						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
@@ -718,7 +734,7 @@ require 'tuotemodal.php';
                             <label for="selite">Selite:</label><br> \
                             <textarea rows="3" cols="25" name="selite" form="ostotilauskirjalomake" placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
-                            <input type="hidden" name="id" id="otk_id" value="'+id+'"> \
+                            <input type="hidden" name="id" id="otk_id" value="'+tuote_id+'"> \
 				        </form> \
                         \
                     ',
@@ -729,7 +745,8 @@ require 'tuotemodal.php';
 	}
 
     /**
-     * Haetaan ajaxilla Eoltas-tuotteiden tehdassaldot ja lisätään ne
+     * Haetaan ajaxilla Eoltas-tuotteiden tehdassaldot ja lisätään
+     * tehdassaldosta ilmoittava kuvake ja osto-nappi
      */
     function hae_eoltas_tehdassaldo() {
         let tuotteet = document.getElementsByClassName("tuote");
@@ -745,6 +762,7 @@ require 'tuotemodal.php';
                     brandName: brandName },
                 function( data ) {
                     if ( data ) {
+                        // Lisätään tehdassaldoa ilmaiseva kuvake
                         let varoitus_kuvake = "";
                         let tehdassaldo = +data;
                         // Valitaan varoitus ikoni
@@ -755,7 +773,17 @@ require 'tuotemodal.php';
                             varoitus_kuvake = "<i class='material-icons' style='color:green;' " +
                                 "title='Tehdassaldo " + tehdassaldo + " kpl'>check_circle</i>";
                         }
-                        tuotteet[i].cells[5].innerHTML += varoitus_kuvake;
+                        tuotteet[i].cells[5].innerHTML = varoitus_kuvake + tuotteet[i].cells[5].innerHTML;
+
+                        /************************************************************************
+                        // Lisätään osta -nappi
+	                    if ( tehdassaldo > 0 ) {
+                            let osta_section = tuotteet[i].cells[5].childNodes[4];
+                            osta_section.className = osta_section.className.replace(/\bhidden\b/g, "");
+                            // Määritellään max osto-määrä
+                            osta_section.childNodes[1].setAttribute('max', tehdassaldo);
+                        }
+                        *************************************************************************/
                     }
 
                 });
@@ -764,7 +792,7 @@ require 'tuotemodal.php';
 
 	$(document).ready(function(){
 
-		//Tuotteen lisääminen ostotilauskirjalle
+		// Tuotteen lisääminen ostotilauskirjalle
 		$(document.body)
 			.on('submit', '#ostotilauskirjalomake', function(e){
 			    e.preventDefault();
@@ -788,7 +816,7 @@ require 'tuotemodal.php';
 					});
 			});
 
-		//Tuoteikkuna
+		// Tuoteikkuna
 		$('.clickable')
 			.css('cursor', 'pointer')
 			.click(function(){

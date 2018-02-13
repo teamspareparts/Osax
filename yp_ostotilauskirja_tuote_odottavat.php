@@ -61,7 +61,13 @@ if ( isset($_POST['vastaanotettu']) ) {
 		// Haetaan kaikki päivitettävät tiedot arrayhin
 		foreach ($tuotteet as $tuote) {
 			array_push($sql_values_arkisto, $tuote['id'], $otk->id, $tuote['automaatti'], $tuote['tilaustuote'], $tuote['kpl']);
-			array_push($sql_values_tuote, $tuote['id'], $tuote['kpl'], $tuote['hyllypaikka']);
+
+			// Tilaustuotteille ei päivitetä saldoa!
+			if ( $tuote['tilaustuote'] ) {
+				array_push($sql_values_tuote, $tuote['id'], 0, $tuote['hyllypaikka']);
+			} else {
+				array_push($sql_values_tuote, $tuote['id'], $tuote['kpl'], $tuote['hyllypaikka']);
+			}
 		}
 
 		// Päivitetään ostotilauskirjan tuotteet arkistoon (kaikki kerralla)
@@ -288,7 +294,11 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 						<td><?=$product->tuotekoodi?></td>
 						<td><?=$product->valmistaja?><br><?=$product->nimi?></td>
 						<td class="number">
-							<input type="number" name="tuotteet[<?=$index?>][kpl]" value="<?=$product->kpl?>" min="0" required>
+							<?php if ( $product->tilaustuote ) : ?>
+								<span style="color: red">Ei varastoon</span><br>
+							<?php endif; ?>
+							<input type="number" name="tuotteet[<?=$index?>][kpl]" value="<?=$product->kpl?>"
+							       class="kpl" min="0" required>
 						</td>
 						<td class="number"><?=format_number($product->ostohinta)?></td>
 						<td class="number"><?=format_number($product->kokonaishinta)?></td>

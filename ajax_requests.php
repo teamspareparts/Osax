@@ -1,17 +1,5 @@
 <?php declare(strict_types=1);
 
-/**
- * @param DByhteys $db
- * @param int      $tuote_id
- * @param string   $nimi
- * @param string   $valmistaja
- * @return int
- */
-function tallenna_nimi_ja_valmistaja( DByhteys $db, int $tuote_id, string $nimi, string $valmistaja ) : int {
-	return $db->query( 'UPDATE tuote SET nimi = ?, valmistaja = ? WHERE id = ? LIMIT 1',
-					   [ $nimi, $valmistaja, $tuote_id ] );
-}
-
 set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
 spl_autoload_extensions('.class.php');
 spl_autoload_register();
@@ -30,13 +18,21 @@ $db = new DByhteys();
  */
 $result = null;
 
+
+/**
+ * Tallennetaan tuotteen nimi ja valmistaja kantaan.
+ */
+if ( isset( $_POST[ 'tallenna_tuote' ] ) ) {
+	$result = $db->query( 'UPDATE tuote SET nimi = ?, valmistaja = ? WHERE id = ? LIMIT 1',
+		[ $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ], (int)$_POST[ 'tuote_id' ] ] );
+}
 /**
  * Ostoskorin toimintaa varten
  */
-if ( isset( $_POST[ 'ostoskori_toiminto' ] ) ) {
-	tallenna_nimi_ja_valmistaja( $db, (int)$_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
+else if ( isset( $_POST[ 'ostoskori_toiminto' ] ) ) {
 	$cart = new Ostoskori( $db, (int)$_SESSION[ 'yritys_id' ], 0 );
-	$result = $cart->lisaa_tuote( $db, (int)$_POST[ 'tuote_id' ], (int)$_POST[ 'kpl_maara' ] );
+	$tilaustuote = isset($_POST['tilaustuote']) ? true : false;
+	$result = $cart->lisaa_tuote( $db, (int)$_POST[ 'tuote_id' ], (int)$_POST[ 'kpl_maara' ], $tilaustuote );
 	if ( $result ) {
 		$result = [ 'success' => true,
 			'tuotteet_kpl' => $cart->montako_tuotetta,
@@ -67,7 +63,6 @@ elseif ( !empty( $_POST[ 'tuote_hankintapyynto' ] ) ) {
  * Haetaan tuotteen hankintapaikan ostotilauskirjat
  */
 elseif ( !empty( $_POST[ 'hankintapaikan_ostotilauskirjat' ] ) ) {
-	tallenna_nimi_ja_valmistaja( $db, (int)$_POST[ 'tuote_id' ], $_POST[ 'tuote_nimi' ], $_POST[ 'tuote_valmistaja' ] );
 	$sql = "SELECT id, tunniste FROM ostotilauskirja WHERE hankintapaikka_id = ?";
 	$result = $db->query( $sql, [ $_POST[ 'hankintapaikka_id' ] ], FETCH_ALL );
 }

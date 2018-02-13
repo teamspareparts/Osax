@@ -701,7 +701,7 @@ require 'tuotemodal.php';
 			<?php if ( $catalog_products) : // Tulokset (saatavilla) ?>
 				<table style="min-width: 90%;"><!-- Katalogissa saatavilla, tilattavissa olevat tuotteet (varastosaldo > 0) -->
 					<thead>
-					<tr><th colspan="10" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
+					<tr><th colspan="11" class="center" style="background-color:#1d7ae2;">Valikoimassa: (<?=count($catalog_products)?>)</th></tr>
 					<tr> <th>Kuva</th> <th>Tuotenumero</th> <th>Tuote</th> <th>Info</th>
 						<th class="number">Saldo</th> <th class="number">Tehdas</th> <th class="number">Hinta (sis. ALV)</th>
                         <th class="number">Ostohinta ALV0%</th><th class="number">Kate %</th>
@@ -1054,20 +1054,23 @@ require 'tuotemodal.php';
 
 	/**
 	 * Lisää tuotteen ostotilauskirjalle
-	 * @param id
+	 * @param tuote_id
 	 * @param hankintapaikka_id
 	 * @param tuote_nimi
 	 * @param tuote_valmistaja
 	 */
-	function showLisaaOstotilauskirjalleDialog(id, hankintapaikka_id, tuote_nimi, tuote_valmistaja) {
-		//haetaan hankintapaikan ostotilauskirjat
+	function showLisaaOstotilauskirjalleDialog(tuote_id, hankintapaikka_id, tuote_nimi, tuote_valmistaja) {
+        // Tallenna tuotteen tiedot
+        $.post("ajax_requests.php",
+            {   tallenna_tuote: true,
+                tuote_nimi: tuote_nimi,
+                tuote_valmistaja: tuote_valmistaja,
+                tuote_id: tuote_id });
+        // Haetaan hankintapaikan ostotilauskirjat
 		$.post(
 			"ajax_requests.php",
 			{   hankintapaikan_ostotilauskirjat: true,
-				hankintapaikka_id: hankintapaikka_id,
-				tuote_id: id,
-				tuote_nimi: tuote_nimi,
-				tuote_valmistaja: tuote_valmistaja },
+				hankintapaikka_id: hankintapaikka_id },
 			function( data ) {
 				let ostotilauskirjat = JSON.parse(toJSON(data));
 				if ( ostotilauskirjat.length === 0 ) {
@@ -1093,7 +1096,7 @@ require 'tuotemodal.php';
                             <label for="selite">Selite:</label><br> \
                             <textarea rows="3" cols="25" name="selite" form="ostotilauskirjalomake" placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
                             <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
-                            <input type="hidden" name="id" id="otk_id" value="'+id+'"> \
+                            <input type="hidden" name="id" id="otk_id" value="'+tuote_id+'"> \
 				        </form> \
                     ',
 					draggable: true
