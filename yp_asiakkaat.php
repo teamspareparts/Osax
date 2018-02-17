@@ -52,7 +52,7 @@ $asiakkaat = $rows = $db->query(
 				<i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Yritys:&nbsp;&nbsp;</span><h1><?=$yritys->nimi?></h1>
+			<span>Yritys:</span><h1><?=$yritys->nimi?></h1>
 		</section>
 		<section class="napit">
 			<a href="yp_lisaa_asiakas.php?yritys_id=<?=$yritys->id?>" class="nappi">

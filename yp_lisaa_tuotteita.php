@@ -242,7 +242,7 @@ unset($_SESSION["feedback"]);
 		</section>
 		<section class="otsikko">
 			<h1>Lisää TecDoc-tuotteita</h1>
-			<span>&nbsp;&nbsp;<?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></span>
+			<span><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></span>
 		</section>
 		<section class="napit">
 			<button class="nappi" id="info_button">Info</button>

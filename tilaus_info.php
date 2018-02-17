@@ -122,7 +122,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 			<?php endif; ?>
 		</section>
 		<section class="otsikko">
-			<h1>Tilaus <?=sprintf('%04d', $tilaus_tiedot->id)?> &nbsp;&nbsp;</h1>
+			<h1>Tilaus <?=sprintf('%04d', $tilaus_tiedot->id)?> </h1>
 			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
 				<span class="inline-block" style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
 				<?php if ( $user->isAdmin() ) : ?>

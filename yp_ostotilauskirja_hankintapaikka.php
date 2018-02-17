@@ -63,7 +63,7 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 		</section>
 		<section class="otsikko">
 			<h1>Ostotilauskirjat</h1>
-			<span>&nbsp;&nbsp; Valitse alla olevalta listalta hankintapaikka</span>
+			<span> Valitse alla olevalta listalta hankintapaikka</span>
 		</section>
 		<section class="napit">
 			<a href="yp_ostotilauskirja_historia.php" class="nappi grey">OTK historia

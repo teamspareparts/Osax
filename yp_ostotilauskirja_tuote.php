@@ -366,7 +366,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 			<a href="yp_ostotilauskirja.php?id=<?=$otk->hankintapaikka_id?>" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Ostotilauskirja&nbsp;&nbsp;</span>
+			<span>Ostotilauskirja</span>
 			<h1><?=$otk->tunniste?></h1>
 		</section>
 		<section class="napit">

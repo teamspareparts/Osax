@@ -88,7 +88,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 			<a href="yp_yritykset.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Yrityksen muokkaus &nbsp;&nbsp;</span>
+			<span>Yrityksen muokkaus</span>
 			<h1><?= $yritys->nimi?></h1>
 		</section>
 	</div>

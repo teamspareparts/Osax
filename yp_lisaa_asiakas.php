@@ -89,7 +89,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		</section>
 		<section class="otsikko">
 			<h1>Lisää uusi käyttäjä</h1>
-			<span>&nbsp;&nbsp; Yritykselle: <?= $yritys_id ?></span>
+			<span> Yritykselle: <?= $yritys_id ?></span>
 		</section>
 		<section class="napit">
 		</section>

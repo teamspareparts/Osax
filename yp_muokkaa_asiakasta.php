@@ -58,7 +58,7 @@ if ( !$asiakas->isValid() || !$asiakas->aktiivinen) {
 		</section>
 		<section class="otsikko">
 			<h1>Muokkaa asiakkaan tietoja</h1>
-			<span>&nbsp;&nbsp; Asiakas: <?= $asiakas->sahkoposti ?></span>
+			<span> Asiakas: <?= $asiakas->sahkoposti ?></span>
 		</section>
 		<section class="napit">
 		</section>

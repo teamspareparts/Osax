@@ -114,7 +114,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 			<a href="yp_ostotilauskirja_hankintapaikka.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Ostotilauskirja&nbsp;&nbsp;</span>
+			<span>Ostotilauskirja</span>
 			<h1><?=$hankintapaikka->id?> - <?=$hankintapaikka->nimi?></h1>
 		</section>
 		<section class="napit">

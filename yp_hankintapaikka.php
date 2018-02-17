@@ -87,7 +87,7 @@ $linkitetyt_brandit = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 				<a href="yp_hankintapaikat.php" class="nappi grey"><i class="material-icons">navigate_before</i>Hankintapaikat</a>
 			</section>
 			<section class="otsikko">
-				<span><?=$hankintapaikka->hankintapaikka_id?>&nbsp;&nbsp;</span>
+				<span><?=$hankintapaikka->hankintapaikka_id?></span>
 				<h1><?=$hankintapaikka->nimi?></h1>
 			</section>
 			<section class="napit">
