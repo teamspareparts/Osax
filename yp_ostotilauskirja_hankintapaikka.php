@@ -43,9 +43,7 @@ function hae_hankintapaikkojen_ostotilauskirjat( DByhteys $db, array &$hankintap
 //Haetaan kaikki hankintapaikat, joihin linkitetty valmistaja
 $hankintapaikat = hae_aktiiviset_hankintapaikat($db);
 hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
-
 ?>
-
 
 <!DOCTYPE html>
 <html lang="fi">
@@ -68,6 +66,8 @@ hae_hankintapaikkojen_ostotilauskirjat($db, $hankintapaikat);
 			<span>&nbsp;&nbsp; Valitse alla olevalta listalta hankintapaikka</span>
 		</section>
 		<section class="napit">
+			<a href="yp_ostotilauskirja_historia.php" class="nappi grey">OTK historia
+				<i class="material-icons">navigate_next</i></a>
 		</section>
 	</div>
 
