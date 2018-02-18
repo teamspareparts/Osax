@@ -8,11 +8,11 @@ if ( !$user->isAdmin() ) {
 /**
  * Hakee kaikki ostotilauskirjat
  * @param DByhteys $db
- * @return \stdClass[]
+ * @return \Ostotilauskirja[]
  */
 function hae_ostotilauskirjat( DByhteys $db ) {
-	$sql = "SELECT * FROM ostotilauskirja_arkisto otk_a";
-	return $db->query( $sql, [], DByhteys::FETCH_ALL );
+	$sql = "SELECT * FROM ostotilauskirja_arkisto ORDER BY saapumispaiva";
+	return $db->query( $sql, [], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
@@ -41,24 +41,28 @@ $otkt = hae_ostotilauskirjat( $db );
 <main class="main_body_container">
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a class="nappi grey" href="ostoskori.php?cancel">
-				<i class="material-icons">navigate_before</i>Takaisin</a>
+			<button class="nappi grey" id="takaisin_nappi">
+				<i class="material-icons">navigate_before</i>Takaisin</button>
 		</section>
 		<section class="otsikko">
 			<h1>Ostotilauskirjahistoria</h1>
 		</section>
 	</div>
 
-	<?php foreach ( $otkt as $otk ) : ?>
-		<ul>
-			<li><?php debug( $otk ) ?></li>
-		</ul>
-	<?php endforeach; ?>
+	<ul><?php foreach ( $otkt as $otk ) : ?>
+		<li><?= $otk->id . ", " . $otk->tunniste . ", " . $otk->saapumispaiva . " -- " ?>
+			<a href="yp_ostotilauskirja_historia.php">Linkki</a>
+		</li>
+		<?php endforeach; ?>
+	</ul>
 </main>
 
 <?php require 'footer.php'; ?>
 
 <script type="text/javascript">
+	document.getElementById('takaisin_nappi').addEventListener('click', function() {
+		window.history.back();
+	});
 </script>
 
 </body>
