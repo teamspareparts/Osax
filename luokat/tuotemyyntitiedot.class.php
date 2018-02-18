@@ -6,7 +6,7 @@
  * Time: 15:50
  */
 
-class tuoteMyyntitiedot {
+class TuoteMyyntitiedot {
 
 	/**
 	 * Hakee vastaavat tuotteet annetulle ID:lle ja hyllypaikalle.

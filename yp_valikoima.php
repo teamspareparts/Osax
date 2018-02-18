@@ -80,7 +80,7 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
 		 * --jj 180122
 		 */
 		/** @var \stdClass $temp_myyntitiedot */
-		$temp_myyntitiedot = tuoteMyyntitiedot::tuotteenVuosimyynti( $db, $t->id );
+		$temp_myyntitiedot = TuoteMyyntitiedot::tuotteenVuosimyynti( $db, $t->id );
 		//debug( $temp_myyntitiedot, true );
 		$t->keskimyyntihinta = $temp_myyntitiedot->keskimyyntihinta ?? 0;
 		$t->vuosimyynti = $temp_myyntitiedot->kpl_maara ?? 0;

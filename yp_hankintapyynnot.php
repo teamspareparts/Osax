@@ -34,7 +34,7 @@ $ostopyynnot = $db->query( $sql, [], FETCH_ALL );
 
 foreach ( $ostopyynnot as $op_rivi ) {
 	if ( !empty($op_rivi->hyllypaikka) ) {
-		$op_rivi->vastaavat = tuoteMyyntitiedot::haeVastaavat( $db, $op_rivi->tuote_id, $op_rivi->hyllypaikka );
+		$op_rivi->vastaavat = TuoteMyyntitiedot::haeVastaavat( $db, $op_rivi->tuote_id, $op_rivi->hyllypaikka );
 		foreach ( $op_rivi->vastaavat as $vast_tuote ) {
 			$op_rivi->vast_varastosaldo_yht += $vast_tuote->varastosaldo;
 		}

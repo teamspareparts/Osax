@@ -144,7 +144,7 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
             </thead>
             <tbody>
             <?php foreach ( $ostotilauskirjat as $otk ) : ?>
-                <tr>
+                <tr data-id="<?=$otk->id?>">
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= $otk->tunniste?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
