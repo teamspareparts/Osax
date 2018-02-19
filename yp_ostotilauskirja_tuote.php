@@ -382,6 +382,9 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 		<section style="margin-left: auto;">
 			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
 			<button class="nappi" onclick="tallenna_ostotilauskirja()">Tallenna</button>
+			<?php if ($otk->hankintapaikka_id == 200) : ?>
+				<button class="nappi" id="tehdassaldo_nappi" onclick="hae_eoltas_tehdassaldo()">Hae tehdassaldo</button>
+			<?php endif; ?>
 		</section>
 	</div>
 
@@ -664,7 +667,8 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
     /**
      * Haetaan tehdassaldot Eoltaksen tuotteille.
      */
-    function hae_eoltas_tehdassaldo() {
+    async function hae_eoltas_tehdassaldo() {
+        document.getElementById("tehdassaldo_nappi").classList = "hidden";
 	    let tuotteet = document.getElementsByClassName("tuote");
 	    for (let i = 0; i < tuotteet.length; i++) {
             let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
@@ -697,10 +701,6 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
                 });
 	    }
     }
-
-    $(document).ready(function(){
-        hae_eoltas_tehdassaldo();
-    });
 
 </script>
 </body>
