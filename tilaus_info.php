@@ -14,10 +14,10 @@ if ( !empty($_POST['peruuta_id']) ) {
 	}
 
 	// Yes, yes, voisi tehdä tehokkaammin, I know, I'm just lazy.
-	$kayttaja = new User( $db, $_POST['user_id'] );
+	$kayttaja = new User( $db, (int)$_POST['user_id'] );
 	$ostoskori = new Ostoskori( $db, $kayttaja->yritys_id, -1 );
 
-	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
+	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, (int)$_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
 
 $tilaus = new Laskutiedot($db, $tilaus_id, $user);
@@ -74,7 +74,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		<section class="otsikko">
 			<h1 class="inline-block">Tilaus <?=sprintf('%04d', $tilaus->tilaus_nro)?> </h1>
 			<!-- Tilauksen tila -->
-			<?php if ( $tilaus->maksettu == false ) : ?>
+			<?php if ( $tilaus->maksettu == 0 ) : ?>
 				<span style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
 				<?php if ( $user->isAdmin() ) : ?>
 					<button class="nappi red" id="peruuta_tilaus">Peruuta tilaus?</button>
