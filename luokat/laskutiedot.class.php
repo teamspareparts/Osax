@@ -21,6 +21,7 @@ class Laskutiedot {
 	public $db = null;
 	/** @var Tuote[] */
 	public $tuotteet = null;
+	public $tuotteet_kpl = 0; // Tuotteiden kappalemäärä
 	/** @var array */
 	public $hintatiedot = array(
 		'alv_kannat' => array(),  // Yksittäisten alv-kantojen tietoja varten, kuten perus ja määrä alempana
@@ -32,6 +33,8 @@ class Laskutiedot {
 		'summa_yhteensa' => 0.00, // Kaikki maksut yhteenlaskettu. Lopullinen asiakkaan maksama summa.
 	);
 	public $maksutapa = null;
+	public $maksettu = null;
+	public $kasitelty = null;
 
 	public $laskuHeader = null;
 
@@ -68,13 +71,17 @@ class Laskutiedot {
 	 * Hakee tilauksen päivämäärän ja rahtimaksun tietokannasta.
 	 */
 	function haeTilauksenTiedot() {
-		$sql = "SELECT paivamaara, pysyva_rahtimaksu, maksutapa, laskunro FROM tilaus WHERE id = ? LIMIT 1";
+		$sql = "SELECT paivamaara, pysyva_rahtimaksu, maksutapa, laskunro, maksettu, kasitelty
+				FROM tilaus
+				WHERE id = ? LIMIT 1";
 		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
 		if ( $row ) {
 			$this->tilaus_pvm = $row->paivamaara;
 			$this->hintatiedot[ 'rahtimaksu' ] = $row->pysyva_rahtimaksu;
 			$this->maksutapa = $row->maksutapa;
 			$this->laskunro = $row->laskunro;
+			$this->maksettu = $row->maksettu;
+			$this->kasitelty = $row->kasitelty;
 		}
 	}
 
@@ -83,7 +90,11 @@ class Laskutiedot {
 	 */
 	function haeToimitusosoite() {
 		$sql = "SELECT pysyva_katuosoite AS katuosoite, pysyva_postinumero AS postinumero,
-					pysyva_postitoimipaikka AS postitoimipaikka
+					pysyva_postitoimipaikka AS postitoimipaikka,
+					CONCAT(pysyva_etunimi, ' ', pysyva_sukunimi) AS koko_nimi,
+					pysyva_puhelin AS puhelin,
+					pysyva_sahkoposti AS sahkoposti,
+					pysyva_yritys AS yritys
 				FROM tilaus_toimitusosoite WHERE tilaus_id = ? LIMIT 1";
 		$this->toimitusosoite = $this->db->query( $sql, [ $this->tilaus_nro ], false, PDO::FETCH_ASSOC );
 	}
@@ -98,6 +109,7 @@ class Laskutiedot {
 		 * SQL-käsky, ja DB-luokan metodit
 		 */
 		$sql = "SELECT tuote.id, tuote.tuotekoodi, tuote.hyllypaikka,
+					tilaus_tuote.tilaustuote,
 					tilaus_tuote.tuotteen_nimi AS nimi,
 					tilaus_tuote.valmistaja, 
 					tilaus_tuote.kpl AS kpl_maara,
@@ -126,6 +138,7 @@ class Laskutiedot {
 			/** @var $row Tuote */
 			$this->tuotteet[] = $row;
 			$this->hintatiedot[ 'tuotteet_yht' ] += $row->summa;
+			$this->tuotteet_kpl += $row->kpl_maara;
 
 			/*
 			 * Loppu on hintatietojen laskelua, josta suurin osa ALV-tietojen muistiin pistämistä.

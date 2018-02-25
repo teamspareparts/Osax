@@ -1,59 +1,17 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
-/**
- * Hakee yleiset tiedot tilauksesta, käyttäjän tiedot (mukaan lukien yrityksen nimi), toimitusosoitteet,
- *  ja tilaukset loppusumman ja kpl-määrän. Ei hae tuotteita. Käyttäjän tiedot erikseen, eikä $user-oliosta,
- *  jotta ylläpitäjä voi käyttää sivua.
- * @param DByhteys $db
- * @param int      $tilaus_id
- * @return stdClass <p> tilauksen tiedot, pois lukien tuotteet
- */
-function hae_tilauksen_tiedot ( DByhteys $db, int $tilaus_id ) {
-	$sql = "SELECT tilaus.id, tilaus.kayttaja_id, tilaus.paivamaara, tilaus.kasitelty, tilaus.pysyva_rahtimaksu,
-				kayttaja.etunimi, kayttaja.sukunimi, kayttaja.sahkoposti, yritys.nimi AS yritys, tilaus.maksettu,
-				tilaus.laskunro,
-				CONCAT(tmo.pysyva_etunimi, ' ', tmo.pysyva_sukunimi) AS tmo_koko_nimi,
-				CONCAT(tmo.pysyva_katuosoite, ', ', tmo.pysyva_postinumero, ' ', tmo.pysyva_postitoimipaikka) AS tmo_osoite,
-				tmo.pysyva_sahkoposti AS tmo_sahkoposti, tmo.pysyva_puhelin AS tmo_puhelin,
-				SUM( tilaus_tuote.kpl * 
-						(tilaus_tuote.pysyva_hinta * (1+tilaus_tuote.pysyva_alv) * (1-tilaus_tuote.pysyva_alennus)) )
-					AS summa,
-				SUM(tilaus_tuote.kpl) AS kpl
-			FROM tilaus
-			LEFT JOIN kayttaja ON kayttaja.id=tilaus.kayttaja_id
-			LEFT JOIN tilaus_tuote ON tilaus_tuote.tilaus_id=tilaus.id
-			LEFT JOIN tuote ON tuote.id=tilaus_tuote.tuote_id
-			LEFT JOIN tilaus_toimitusosoite AS tmo ON tmo.tilaus_id = tilaus.id
-			LEFT JOIN yritys ON yritys.id = kayttaja.yritys_id
-			WHERE tilaus.id = ?
-			GROUP BY tilaus.id";
-
-	return $db->query( $sql, [ $tilaus_id ] );
-}
-
-/**
- * Hakee, ja palauttaa tilaukseen liitettyjen tuotteiden tiedot.
- * @param DByhteys $db
- * @param int      $tilaus_id
- * @return Tuote[] <p> Tiedot tilatuista tuotteista.
- */
-function hae_tilauksen_tuotteet( DByhteys $db, int $tilaus_id ) : array {
-	$sql = "SELECT tuote_id AS id, pysyva_hinta AS a_hinta_ilman_alv, pysyva_alv AS alv_prosentti,
-				pysyva_alennus AS alennus_prosentti, kpl AS kpl_maara, tuotteen_nimi AS nimi, tilaus_tuote.valmistaja,
-  				(pysyva_hinta * (1+pysyva_alv)) AS a_hinta, 
-				(pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus)) AS a_hinta_alennettu, 
-				(kpl * (pysyva_hinta * (1+pysyva_alv) * (1-pysyva_alennus))) AS summa, 
-				tuote.tuotekoodi
-			FROM tilaus_tuote
-			LEFT JOIN tuote ON tuote.id = tilaus_tuote.tuote_id
-			WHERE tilaus_id = ?";
-
-	return $db->query( $sql, [ $tilaus_id ], FETCH_ALL, PDO::FETCH_CLASS, 'Tuote' );
+$tilaus_id = isset( $_GET[ 'id' ] ) ? (int)$_GET[ 'id' ] : null;
+if ( !$tilaus_id ) {
+	header( "Location:tilaushistoria.php?id={$user->id}" );
+	exit();
 }
 
 if ( !empty($_POST['peruuta_id']) ) {
 	require './luokat/paymentAPI.class.php';
+	if ( !$user->isAdmin() ) {
+		return;
+	}
 
 	// Yes, yes, voisi tehdä tehokkaammin, I know, I'm just lazy.
 	$kayttaja = new User( $db, $_POST['user_id'] );
@@ -62,31 +20,23 @@ if ( !empty($_POST['peruuta_id']) ) {
 	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, $_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
 
-if ( !isset( $_GET[ 'id' ] ) ) {
-	header( "Location:tilaushistoria.php?id={$user->id}" );
-	exit();
-}
-
-$tilaus_tiedot = hae_tilauksen_tiedot( $db, (int)$_GET[ 'id' ] );
+$tilaus = new Laskutiedot($db, $tilaus_id, $user);
 
 // Löytyikö tilauksen tiedot ID:llä.
-if ( !$tilaus_tiedot ) {
+if ( !$tilaus ) {
 	header( "Location:tilaushistoria.php" );
 	exit();
 }
 
 // Tarkistetaan onko tilaus sen hetkisen käyttäjän tekemä, tai onko käyttäjä admin.
 // Lähetään pois, jos ei kumpaankin.
-elseif ( !($tilaus_tiedot->kayttaja_id == $user->id) && !$user->isAdmin() ) {
+elseif ( ($tilaus->asiakas->id != $user->id) && !$user->isAdmin() ) {
 	header( "Location:tilaushistoria.php" );
 	exit();
 }
 
-/** @var Tuote[] $tuotteet <p> Tilauksen tuotteet */
-$tuotteet = hae_tilauksen_tuotteet( $db, $tilaus_tiedot->id );
-
-$lasku_file_nimi = "lasku-". sprintf( '%05d', $tilaus_tiedot->laskunro) ."-{$tilaus_tiedot->kayttaja_id}.pdf";
-$noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus_tiedot->laskunro)."-{$tilaus_tiedot->kayttaja_id}.pdf";
+$lasku_file_nimi = "lasku-". sprintf( '%05d', $tilaus->laskunro) ."-{$tilaus->asiakas->id}.pdf";
+$noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tilaus->asiakas->id}.pdf";
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
@@ -122,22 +72,23 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 			<?php endif; ?>
 		</section>
 		<section class="otsikko">
-			<h1>Tilaus <?=sprintf('%04d', $tilaus_tiedot->id)?> </h1>
-			<?php if ( $tilaus_tiedot->maksettu == false ) : ?>
-				<span class="inline-block" style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
+			<h1 class="inline-block">Tilaus <?=sprintf('%04d', $tilaus->tilaus_nro)?> </h1>
+			<!-- Tilauksen tila -->
+			<?php if ( $tilaus->maksettu == false ) : ?>
+				<span style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
 				<?php if ( $user->isAdmin() ) : ?>
 					<button class="nappi red" id="peruuta_tilaus">Peruuta tilaus?</button>
 				<?php endif; ?>
-			<?php elseif ( $tilaus_tiedot->maksettu == -1 ) : ?>
-				<span class="inline-block" style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
-			<?php elseif ( $tilaus_tiedot->kasitelty == false ) : ?>
-				<span class="inline-block" style="color:steelblue;"> Odottaa käsittelyä. </span>
+			<?php elseif ( $tilaus->maksettu == -1 ) : ?>
+				<span style="color:red;font-weight: bold">Tilaus peruttu. Maksua ei suoritettu.</span>
+			<?php elseif ( $tilaus->kasitelty == false ) : ?>
+				<span style="color:steelblue;"> Odottaa käsittelyä. </span>
 			<?php else: ?>
-				<span class="inline-block" style="color:green;"> Käsitelty ja toimitettu. </span>
+				<span style="color:green;"> Käsitelty ja toimitettu. </span>
 			<?php endif; ?>
 		</section>
 		<section class="napit">
-			<?php if ( $tilaus_tiedot->maksettu AND !is_null($tilaus_tiedot->laskunro) ) : ?>
+			<?php if ( $tilaus->maksettu AND !is_null($tilaus->laskunro) ) : ?>
 				<!-- Laskun lataus -->
 				<form method="post" action="download.php" class="inline-block">
 					<input type="hidden" name="filepath" value="./tilaukset/<?= $lasku_file_nimi ?>">
@@ -154,47 +105,59 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 		</section>
 	</div>
 
-	<?= $feedback ?>
+	<?= $feedback?>
 
 	<div class="flex_row">
 
-		<div class="table white-bg">
-			<div class="tr">
-				<div class="td pad">Tilausnumero: <?= sprintf('%04d', $tilaus_tiedot->id)?></div>
-				<div class="td pad">Päivämäärä: <?= date("d.m.Y", strtotime($tilaus_tiedot->paivamaara))?></div>
-			</div>
-			<div class="tr">
-				<div class="td pad">Tilaaja: <?= "{$tilaus_tiedot->etunimi} {$tilaus_tiedot->sukunimi}" ?></div>
-				<div class="td pad">Yritys: <?= $tilaus_tiedot->yritys?></div>
-			</div>
-			<div class="tr">
-				<div class="td pad">Tuotteet: <?= $tilaus_tiedot->kpl?></div>
-				<div class="td pad">Summa:
-					<?= format_number( $tilaus_tiedot->summa+$tilaus_tiedot->pysyva_rahtimaksu ) ?>
+		<table class="white-bg">
+			<tr>
+				<td>Tilausnumero: <?= sprintf('%04d', $tilaus->tilaus_nro)?></td>
+				<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus->tilaus_pvm))?></td>
+			</tr>
+			<tr>
+				<td>Tilaaja: <?= $tilaus->asiakas->etunimi?> <?= $tilaus->asiakas->sukunimi?></td>
+				<td>Yritys: <?= $tilaus->yritys->nimi?></td>
+			</tr>
+			<tr>
+				<td>Tuotteet: <?= $tilaus->tuotteet_kpl?></td>
+				<td>Summa:<?= format_number( $tilaus->hintatiedot["summa_yhteensa"] )?>
 					( ml. rahtimaksu )
-				</div>
-			</div>
-			<div>
-				<p class="small_note">Kaikki hinnat sisältävät ALV:n</p>
-			</div>
-		</div>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2">Maksutapa: <?=$tilaus->maksutapa_toString()?></td>
+			</tr>
+			<tr>
+				<td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td>
+			</tr>
+		</table>
 
 		<div class="white-bg" style="padding-left: 10px;">
 			<p style="font-weight: bold;">Toimitusosoite</p>
-			<p style="margin:10px;"><?=$tilaus_tiedot->tmo_koko_nimi . ', ' . $tilaus_tiedot->yritys?></p>
-			<p style="margin:10px;"><?=$tilaus_tiedot->tmo_osoite?></p>
-			<p style="margin:10px;"><?="{$tilaus_tiedot->tmo_puhelin}, {$tilaus_tiedot->tmo_sahkoposti}"?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["koko_nimi"]?>, <?= $tilaus->toimitusosoite["yritys"]?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["katuosoite"]?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["postinumero"]?> <?= $tilaus->toimitusosoite["postitoimipaikka"]?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["puhelin"]?> <?= $tilaus->toimitusosoite["sahkoposti"]?></p>
 		</div>
 	</div>
+
 	<br>
 	<table width="100%">
 		<thead>
-			<tr><th colspan="8" class="center" style="background-color:#1d7ae2;">Tilatut tuotteet</th></tr>
-			<tr> <th>Tuotenumero</th> <th>Tuote</th> <th>Valmistaja</th> <th class="number">Kpl-hinta</th> <th class="number">Kpl</th> <th class="number">Hinta (yht.)</th> <th class="number">ALV-%</th> <th class="number">Alennus</th>
+			<tr><th colspan="9" class="center" style="background-color:#1d7ae2;">Tilatut tuotteet</th></tr>
+			<tr><th>Tuotenumero</th>
+				<th>Tuote</th>
+				<th>Valmistaja</th>
+				<th class="number">Kpl-hinta</th>
+				<th class="number">Kpl</th>
+				<th class="number">Hinta (yht.)</th>
+				<th class="number">ALV-%</th>
+				<th class="number">Alennus</th>
+				<th></th><!-- Lisäinfot -->
 			</tr>
 		</thead>
 		<tbody>
-		<?php foreach ( $tuotteet as $tuote) : ?>
+		<?php foreach ( $tilaus->tuotteet as $tuote ) : ?>
 			<tr>
 				<td><?= $tuote->tuotekoodi ?></td>
 				<td><?= $tuote->nimi ?></td>
@@ -206,17 +169,23 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 				<td class="number">
 					<?=((float)$tuote->alennus_prosentti!=0) ? (round($tuote->alennus_prosentti*100)." %") : ("---")?>
 				</td>
+				<td>
+					<?php if ( $tuote->tilaustuote ) : ?>
+						<span style="color: darkorange">Tilaustuote</span>
+					<?php endif; ?>
+				</td>
 			</tr>
 		<?php endforeach; ?>
 			<tr style="background-color:#cecece;">
 				<td>---</td>
 				<td>Rahtimaksu</td>
 				<td></td>
-				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
+				<td class="number"><?= $tilaus->rahtimaksu_toString() ?></td>
 				<td></td>
-				<td class="number"><?= format_number( $tilaus_tiedot->pysyva_rahtimaksu ) ?></td>
-				<td class="number">24 %</td>
-				<td class="number"><?= ($tilaus_tiedot->pysyva_rahtimaksu==0) ? "Ilmainen toimitus" : "---" ?></td>
+				<td class="number"><?= $tilaus->rahtimaksu_toString() ?></td>
+				<td class="number"><?= $tilaus->rahtimaksuALV_toString() ?></td>
+				<td class="number"><?= ($tilaus->hintatiedot["rahtimaksu"]==0) ? "Ilmainen toimitus" : "---" ?></td>
+				<td></td>
 			</tr>
 		</tbody>
 	</table>
@@ -227,8 +196,8 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 <?php if ($user->isAdmin()) : ?>
 	<script async>
 		let peruuta_nappi = document.getElementById('peruuta_tilaus');
-		let tilaus_id = <?=$tilaus_tiedot->id?>;
-		let user_id = <?=$tilaus_tiedot->kayttaja_id?>;
+		let tilaus_id = <?=$tilaus->tilaus_nro?>;
+		let user_id = <?=$tilaus->asiakas->id?>;
 
 		peruuta_nappi.addEventListener('click', function() {
 			Modal.open({

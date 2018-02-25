@@ -239,17 +239,18 @@ class EoltasWebservice {
 	/**
 	 * Lisää tuotteen Eoltaksen avoimelle ostotilauskirjalle.
 	 * @param DByhteys $db
-	 * @param int $id <p> Tuotteen id.
+	 * @param int $tuote_id
 	 * @param int $kpl
 	 * @param int $tilaus_id
 	 * @return bool
 	 */
-	private static function addProductToEoltasOrderBook( DByhteys $db, int $id, int $kpl, int $tilaus_id ) : bool {
+	private static function addProductToEoltasOrderBook( DByhteys $db, int $tuote_id, int $kpl, int $tilaus_id ) : bool {
 		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
-		// Haetaan Eoltaksen avoimen ostotilauskirjan id
+		// Selite tilauskirjalle
+		$selite = "PIKATILAUS, TILAUS {$tilaus_id}, {$kpl}kpl, " . date('d.m.Y') . " ";
+		// Haetaan Eoltaksen avoimen tilauskirjan id
 		$sql = "SELECT id FROM ostotilauskirja WHERE hankintapaikka_id = ? AND toimitusjakso != 0";
 		$otk_id = $db->query($sql, [$eoltas_hankintapaikka_id]);
-		$selite = "PIKATILAUS, TILAUS {$tilaus_id}, {$kpl}kpl, " . date('d.m.Y') . " ";
 		if ( !$otk_id ) {
 			return false;
 		}
@@ -258,7 +259,7 @@ class EoltasWebservice {
  					kpl, selite, lisays_kayttaja_id)
 				VALUES (?,?,1,?,?,0)
 				ON DUPLICATE KEY UPDATE kpl = kpl + VALUES(kpl), selite = CONCAT(VALUES(selite), selite)";
-		$result = $db->query($sql, [$otk_id->id, $id, $kpl, $selite]);
+		$result = $db->query($sql, [$otk_id->id, $tuote_id, $kpl, $selite]);
 		if ( !$result ) {
 			return false;
 		}
