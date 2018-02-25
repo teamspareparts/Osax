@@ -20,7 +20,7 @@ if ( !empty($_POST['peruuta_id']) ) {
 	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, (int)$_POST['peruuta_id'], $ostoskori->ostoskori_id );
 }
 
-$tilaus = new Laskutiedot($db, $tilaus_id, $user);
+$tilaus = new Laskutiedot($db, $tilaus_id);
 
 // Löytyikö tilauksen tiedot ID:llä.
 if ( !$tilaus ) {
@@ -120,7 +120,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 			</tr>
 			<tr>
 				<td>Tuotteet: <?= $tilaus->tuotteet_kpl?></td>
-				<td>Summa:<?= format_number( $tilaus->hintatiedot["summa_yhteensa"] )?>
+				<td>Summa: <?= format_number( $tilaus->hintatiedot["summa_yhteensa"] )?>
 					( ml. rahtimaksu )
 				</td>
 			</tr>

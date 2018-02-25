@@ -11,7 +11,7 @@ function debug($var,$var_dump=false){
 	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
 }
 
-$lasku = new Laskutiedot( $db, 3, $user, $yritys );
+$lasku = new Laskutiedot( $db, 3 );
 
 $config['indev'] = 1;
 

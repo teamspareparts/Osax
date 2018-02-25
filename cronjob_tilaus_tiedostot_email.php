@@ -46,7 +46,8 @@ if ( $rows ) {
 		echo "- $tilaus->id :: ";
 
 		$user = new User( $db, $tilaus->kayttaja_id );
-		$lasku = new Laskutiedot( $db, $tilaus->id, $user, $config['indev'] );
+		$lasku = new Laskutiedot( $db, $tilaus->id, $config['indev'] );
+		$lasku->luoLaskunNumero();
 
 		require './misc/lasku_html.php';     // HTML-tiedostot vaativat $lasku-objektia, joten siksi nämä ei alussa.
 		require './misc/noutolista_html.php';

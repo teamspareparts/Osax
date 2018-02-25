@@ -27,7 +27,7 @@ $myynti_alvillinen = 0;
 $myynti_alviton = 0;
 foreach ( $tilaukset as $tilaus ) {
 	// Luodaan Laskutiedot-olio väärällä userilla, koska tarvitaan vain tilausten summia
-	$lasku = new Laskutiedot($db, $tilaus->id, $user);
+	$lasku = new Laskutiedot($db, $tilaus->id);
 	$laskut[] = $lasku;
 	// Yhteensä
 	$myynti_alvillinen += $lasku->hintatiedot[ 'summa_yhteensa' ];

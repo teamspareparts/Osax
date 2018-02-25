@@ -40,18 +40,15 @@ class Laskutiedot {
 
 	/**
 	 * @param DByhteys $db
-	 * @param int      $tilausID
-	 * @param User     $user
+	 * @param int      $tilaus_id
 	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, /*int*/ $tilausID = null, User $user, $indev = 1 ) {
+	function __construct( DByhteys $db, /*int*/ $tilaus_id = null, $indev = 1 ) {
 		/*
 		 * Alustetaan luokan muuttujat ja oliot
 		 */
-		$this->tilaus_nro = !empty( $tilausID ) ? $tilausID : '[Til nro]';
+		$this->tilaus_nro = !empty( $tilaus_id ) ? $tilaus_id : '[Til nro]';
 		$this->db = $db;
-		$this->asiakas = $user;
-		$this->yritys = new Yritys( $db, $user->yritys_id );
 		$this->osax = new Yritys( $db, 1 );
 
 		$this->laskuHeader = ( $indev )
@@ -61,10 +58,19 @@ class Laskutiedot {
 		/*
 		 * Haetaan tilauksen tiedot, toimitusosoite, tuotteet, ja lopuksi laskun numero tietokannasta.
 		 */
+		$this->haeAsiakkaanTiedot();
 		$this->haeTilauksenTiedot();
 		$this->haeToimitusosoite();
 		$this->haeTuotteet();
-		$this->haeLaskunNumero();
+	}
+
+	function haeAsiakkaanTiedot() {
+		$sql = "SELECT kayttaja_id FROM tilaus WHERE id = ? LIMIT 1";
+		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
+		if ( $row ) {
+			$this->asiakas = new User($this->db, $row->kayttaja_id);
+			$this->yritys = new Yritys($this->db, $row->kayttaja_id);
+		}
 	}
 
 	/**
@@ -192,7 +198,7 @@ class Laskutiedot {
 			$this->hintatiedot[ 'tuotteet_yht' ] + $this->hintatiedot[ 'rahtimaksu' ];
 	}
 
-	function haeLaskunNumero() {
+	function luoLaskunNumero() {
 		if ( $this->laskunro === null ) {
 			$sql = "SELECT laskunro FROM laskunumero LIMIT 1";
 			$row = $this->db->query( $sql );

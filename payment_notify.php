@@ -57,7 +57,8 @@ switch ( $get_count ) {
 
 				$config = parse_ini_file( "./config/config.ini.php" );
 
-				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $user, $config['indev'] );
+				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $config['indev'] );
+				$lasku->luoLaskunNumero();
 
 				if ( !file_exists('./tilaukset') ) {
 					mkdir( './tilaukset' );
