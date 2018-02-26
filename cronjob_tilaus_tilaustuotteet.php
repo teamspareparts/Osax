@@ -25,8 +25,8 @@ if ( !$tilaus ) {
 }
 
 // Yritetään tilata Eoltaksen tilaustuotteet
-/*$success = EoltasWebservice::orderFromEoltas( $db, $tilaus->id );
+$success = EoltasWebservice::orderFromEoltas( $db, $tilaus->id );
 if ( $success ) {
 	$sql = "UPDATE tilaus SET tilaustuotteet_tilattu = 1 WHERE id = ?";
 	$db->query($sql, [$tilaus->id]);
-}*/
+}

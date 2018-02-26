@@ -181,6 +181,25 @@ class Email {
 	}
 
 	/**
+	 * Lähetetään ilmoitus ylläpitäjälle, mikäli Eoltakselta ei voitu tilata kaikkia tuotteita
+	 * riittämättömän tehdassaldon takia.
+	 * @param int $tilaus_id
+	 * @param array $tuotteet
+	 */
+	static function lahetaIlmoitusRiittamatonEoltasTehdassaldo( int $tilaus_id, array $tuotteet ) {
+		$config = parse_ini_file( Email::$config_path );
+		Email::$target_email = $config['admin_email'];
+		Email::$subject = "Tilauksessa {$tilaus_id} riittämätön tehdassaldo";
+		$m = "<p>Tilauksessa id:{$tilaus_id} ei pystytä tilaamaan seuraavia Eoltaksen tuotteita</p>";
+		foreach ( $tuotteet as $tuote ) {
+			$m .= "<p>Tuote: {$tuote->productId} Ostettu: {$tuote->amount} Tilattu: {$tuote->stock}</p>";
+		}
+		Email::$message = $m;
+
+		Email::sendMail( $config );
+	}
+
+	/**
 	 * Jos config-path on jokin muu kuin default ('./config/config.ini.php').
 	 *
 	 * @param string $path
