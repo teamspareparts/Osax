@@ -118,9 +118,9 @@ $brands = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 			<a href="yp_hankintapaikka.php?hankintapaikka_id=<?=$hankintapaikka->id?>" class="nappi grey">Takaisin</a>
 		</section>
 		<section class="otsikko">
-			<span>Brändien linkitys&nbsp;&nbsp;</span>
+			<span>Brändien linkitys</span>
 			<h1><?=$hankintapaikka->nimi?></h1>
-			<span>&nbsp;&nbsp;<?=$hankintapaikka->id?></span>
+			<span><?=$hankintapaikka->id?></span>
 		</section>
 		<section class="napit">
 			<button onclick="submit_linkitys();" class="nappi">Vahvista linkitettävät brändit</button>
