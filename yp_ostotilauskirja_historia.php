@@ -51,7 +51,7 @@ $otkt = hae_ostotilauskirjat( $db );
 
 	<ul><?php foreach ( $otkt as $otk ) : ?>
 		<li><?= $otk->id . ", " . $otk->tunniste . ", " . $otk->saapumispaiva . " -- " ?>
-			<a href="yp_ostotilauskirja_historia.php">Linkki</a>
+			<a href="yp_ostotilauskirja_historia_tuotteet.php?id=<?= $otk->id ?>">Linkki tuotteet</a>
 		</li>
 		<?php endforeach; ?>
 	</ul>

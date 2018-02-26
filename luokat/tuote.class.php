@@ -91,6 +91,7 @@ class Tuote {
 
 	/**
 	 * @param DByhteys $db
+	 * @param bool     $haeKaikkiTiedot
 	 */
 	function haeTuoteryhmat( DByhteys $db, bool $haeKaikkiTiedot ) {
 		if ( $haeKaikkiTiedot ) {
