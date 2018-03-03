@@ -33,8 +33,13 @@ class Ostoskori {
 	public $yritys_id = null;
 	/**
 	 * @var int <p> Ostoskorin ID tietokannassa.
+	 * @deprecated Don't use. Käytä ->id muuttujaa sen sijaan
 	 */
 	public $ostoskori_id = null;
+	/**
+	 * @var int <p> Ostoskorin ID tietokannassa.
+	 */
+	public $id = null;
 	/**
 	 * @var int <p> Mitkä tiedot haettu. Sama kuin konstruktorin $cart_mode, mutta pysyvään
 	 * tallenukseen.
@@ -82,6 +87,7 @@ class Ostoskori {
 	 */
 	private function hae_cart_id ( DByhteys $db, int $yritys_id ) {
 		$this->ostoskori_id = (int)$db->query( "SELECT id FROM ostoskori WHERE yritys_id = ? LIMIT 1", [ $yritys_id ] )->id;
+		$this->id = $this->ostoskori_id;
 	}
 
 	/**
