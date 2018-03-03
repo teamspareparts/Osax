@@ -1,7 +1,13 @@
+<?php declare(strict_types=1);
+/**
+ * @var $user \User
+ * @var $cart \Ostoskori
+ */
+?>
+
 <noscript>
     <meta http-equiv="refresh" content="0; url=index.php">
 </noscript>
-
 
 <header class="header_container">
 	<!-- Tiedoston latausta varten -->
