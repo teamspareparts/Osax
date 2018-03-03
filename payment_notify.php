@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
 spl_autoload_extensions('.class.php');
 spl_autoload_register();
@@ -7,6 +7,7 @@ if ( empty( $_GET[ 'ORDER_NUMBER' ] ) ) {
 	header( 'Location: etusivu.php' );
 	exit;
 }
+$tilaus_id = (int)$_GET[ 'ORDER_NUMBER' ];
 
 sleep(300); // Jotta käyttäjä varmasti ehtii ensin payment_process sivulle.
 
@@ -14,9 +15,10 @@ $db = new DByhteys();
 
 // Haetaan kayttajan ID tilauksesta.
 $sql = "SELECT kayttaja_id FROM tilaus WHERE id = ?";
-$row = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ] ] );
+$row = $db->query( $sql, [ $tilaus_id ] );
 
 $user = new User( $db, $row->kayttaja_id );
+$cart = new Ostoskori( $db, $user->yritys_id, -1 );
 $get_count = count( $_GET );
 
 switch ( $get_count ) {
@@ -32,10 +34,10 @@ switch ( $get_count ) {
 			 */
 
 			$sql = "SELECT id FROM tilaus WHERE id = ? AND kayttaja_id = ? AND maksettu = 0";
-			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
+			$result = $db->query( $sql, [ $tilaus_id, $user->id ] );
 
 			if ( $result ) {
-				PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $_GET[ 'ORDER_NUMBER' ], $cart->ostoskori_id );
+				PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, $tilaus_id, $cart->id );
 			}
 		}
 		break;
@@ -50,15 +52,15 @@ switch ( $get_count ) {
 			 * Jos maksu on jo hyväksytty, tällä sivulla ei tehdä mitään.
 			 */
 			$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = 0 WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
-			$result = $db->query( $sql, [ $_GET[ 'ORDER_NUMBER' ], $user->id ] );
+			$result = $db->query( $sql, [ $tilaus_id, $user->id ] );
 
 			if ( $result ) {
 				require './mpdf/mpdf.php';
 
 				$config = parse_ini_file( "./config/config.ini.php" );
 
-				$lasku = new Laskutiedot( $db, $_GET[ 'ORDER_NUMBER' ], $config['indev'] );
-				$lasku->luoLaskunNumero();
+				$lasku = new Lasku( $db, $tilaus_id, $config['indev'] );
+				$lasku->luoLaskunNumero( $db );
 
 				if ( !file_exists('./tilaukset') ) {
 					mkdir( './tilaukset' );
@@ -90,7 +92,7 @@ switch ( $get_count ) {
 				 * Sähköpostit
 				 ********************/
 				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $lasku_nimi );
-				Email::lahetaNoutolista( $_GET[ 'ORDER_NUMBER' ], $noutolista_nimi );
+				Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
 
 				if ( !$_SESSION['indev'] ) {
 					// Kopio Jannelle
