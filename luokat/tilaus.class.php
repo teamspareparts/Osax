@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 /**
  * Class Tilaus
@@ -11,7 +11,7 @@ class Tilaus {
 	public $maksettu;
 	public $maksutapa;
 	public $tilaustuotteet_tilattu;
-	public $laskunro; // Laskun numero. Merkitään laskua luodessa.
+	public $laskunro;
 	public $paivamaara;
 
 	/** @var User */
@@ -42,7 +42,7 @@ class Tilaus {
 	 * @param int      $tilaus_id
 	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, /*int*/ $tilaus_id = null, $indev = 1 ) {
+	function __construct( DByhteys $db, int $tilaus_id = null, $indev = 1 ) {
 
 		$sql = "SELECT paivamaara, pysyva_rahtimaksu, maksutapa, laskunro, maksettu, kasitelty, kayttaja_id
 				FROM tilaus
@@ -172,7 +172,7 @@ class Tilaus {
 	 * @param int   $dec_count [optional] default=2 <p> Kuinka monta desimaalia.
 	 * @return string
 	 */
-	function float_toString( /*float*/ $number, /*int*/ $dec_count = 2 ) {
+	function float_toString( float $number, int $dec_count = 2 ) {
 		return number_format( (float)$number, $dec_count, ',', '.' );
 	}
 
@@ -191,7 +191,7 @@ class Tilaus {
 	 * @param bool $ilman_euro [optional] default=false <p> Tulostetaanko hinta ilman €-merkkiä.
 	 * @return string
 	 */
-	function rahtimaksuIlmanALV_toString ( /*bool*/ $ilman_euro = false ) {
+	function rahtimaksuIlmanALV_toString ( bool $ilman_euro = false ) {
 		$rahti = $this->hintatiedot[ 'rahtimaksu' ] / ($this->hintatiedot[ 'rahtimaksu_alv' ] + 1);
 
 		return number_format( $rahti, 2, ',', '.' )
@@ -204,7 +204,7 @@ class Tilaus {
 	 * @param int  $decCount  [optional] default=0 <p> Montako desimaalia (0 == pyöristetty kokonaisluku).
 	 * @return string
 	 */
-	function rahtimaksuALV_toString ( /*bool*/ $ilmanPros = false, /*int*/ $decCount = 0 ) {
+	function rahtimaksuALV_toString ( bool $ilmanPros = false, int $decCount = 0 ) {
 		$rahtiALV = ($decCount == 0)
 			? $this->hintatiedot[ 'rahtimaksu_alv' ] * 100
 			: $this->hintatiedot[ 'rahtimaksu_alv' ] ;
