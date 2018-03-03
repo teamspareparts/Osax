@@ -75,7 +75,7 @@ class Email {
 	 * @param Laskutiedot $lasku <p> Tilauksen tiedot (tuotteet, tilaaja, tilausnro)
 	 * @param string $file_name <p> Laskun nimi (tiedostonimi siis)
 	 */
-	static function lahetaTilausvahvistus( string $email, Laskutiedot $lasku, string $file_name ) {
+	static function lahetaTilausvahvistus( string $email, Lasku $lasku, string $file_name ) {
 		Email::$target_email = $email;
 		Email::$subject = "Tilausvahvistus";
 

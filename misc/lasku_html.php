@@ -1,4 +1,10 @@
-<?php
+<?php declare(strict_types=1);
+
+/**
+ * @var $lasku \Lasku
+ * @var $config array
+ */
+
 $pdf_lasku_html_header = '<div style="font-weight:bold;text-align:center;">	Osax Oy :: Kuitti </div>';
 
 $pdf_lasku_html_footer = '
@@ -54,9 +60,9 @@ $pdf_lasku_html_body = "
 . "
 <!-- Tilauksen numero ja tilausaika -->
 <div>
-	<span style='padding-right:20px;'>Tilausnro: ".sprintf('%04d', $lasku->tilaus_nro)."</span>
+	<span style='padding-right:20px;'>Tilausnro: ".sprintf('%04d', $lasku->id)."</span>
 	<span>---</span>
-	<span>Tilausaika: {$lasku->tilaus_pvm}</span>
+	<span>Tilausaika: {$lasku->paivamaara}</span>
 </div>
 <hr>
 <!-- Tuotteet-taulukko, header-rivi -->
@@ -155,7 +161,7 @@ $pdf_lasku_html_body .= "
 </table>
 <hr>
 
-<p style='font-weight:bold;'>{$lasku->maksutapa_toString(0)}</p>
+<p style='font-weight:bold;'>{$lasku->maksutapa_toString(false)}</p>
 
 <hr>
 <table style='width:100%; font-size:80%;'>

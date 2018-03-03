@@ -12,7 +12,7 @@ $config = parse_ini_file( "./config/config.ini.php" ); // Jannen sähköpostin t
 $db = new DByhteys( $config );
 
 // Haetaan niiden tilauksien tiedot, joilla ei ole vielä laskua (siten juuri tilattu)
-$sql = "SELECT id, kayttaja_id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
+$sql = "SELECT id FROM tilaus WHERE maksettu = 1 AND laskunro IS NULL";
 $rows = $db->query( $sql, [], FETCH_ALL );
 
 if ( $rows ) {
@@ -45,9 +45,7 @@ if ( $rows ) {
 
 		echo "- $tilaus->id :: ";
 
-		$user = new User( $db, $tilaus->kayttaja_id );
-		$lasku = new Laskutiedot( $db, $tilaus->id, $config['indev'] );
-		$lasku->luoLaskunNumero();
+		$lasku = new Lasku( $db, $tilaus->id, $config['indev'] );
 
 		require './misc/lasku_html.php';     // HTML-tiedostot vaativat $lasku-objektia, joten siksi nämä ei alussa.
 		require './misc/noutolista_html.php';
@@ -59,10 +57,11 @@ if ( $rows ) {
 		$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
 		$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
 		$mpdf->WriteHTML( $pdf_lasku_html_body );
-		$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$lasku->asiakas->id}.pdf";
 		$mpdf->Output( $lasku_nimi, 'F' );
 
-		if ( file_exists("./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
+		if ( file_exists("./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro)
+						 . "-{$lasku->asiakas->id}.pdf") ) {
 			echo " Lasku: OK -";
 		}
 
@@ -73,17 +72,19 @@ if ( $rows ) {
 		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
 		$mpdf->WriteHTML( $pdf_noutolista_html_body );
-		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
+		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro)
+			. "-{$lasku->asiakas->id}.pdf";
 		$mpdf->Output( $noutolista_nimi, 'F' );
 
-		if ( file_exists("./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf") ) {
+		if ( file_exists("./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro)
+						 . "-{$lasku->asiakas->id}.pdf") ) {
 			echo " Noutolista: OK";
 		}
 
 		/********************
 		 * Sähköpostit
 		 ********************/
-		Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $lasku_nimi );
+		Email::lahetaTilausvahvistus( $lasku->asiakas->sahkoposti, $lasku, $lasku_nimi );
 		Email::lahetaNoutolista( $tilaus->id, $noutolista_nimi );
 
 		if ( !$_SESSION['indev'] ) {

@@ -1,4 +1,8 @@
-<?php
+<?php declare(strict_types=1);
+/**
+ * @var $lasku \Lasku
+ * @var $config array
+ */
 $pdf_noutolista_html_header = "
 	<div style='font-weight:bold;text-align:center;'> Osax Oy :: Tilauksen noutolista </div>";
 $pdf_noutolista_html_footer = '
@@ -27,8 +31,8 @@ $pdf_noutolista_html_body = "
 			</thead>
 			<tbody>
 			<tr><td>".date('d.m.Y')."</td>
-				<td style='text-align: center;'>$lasku->tilaus_pvm</td>
-				<td style='text-align:right;'>".sprintf('%04d', $lasku->tilaus_nro)."</td>
+				<td style='text-align: center;'>$lasku->paivamaara</td>
+				<td style='text-align:right;'>".sprintf('%04d', $lasku->id)."</td>
 				<td style='text-align:right;'>".sprintf('%04d', $lasku->asiakas->id)."</td>
 			</tr>
 			</tbody>
