@@ -1,6 +1,6 @@
 <?php
 /**
- * @version 2017-02-xx <p> WIP
+ * @deprecated Käytä Tilaus- tai Lasku-luokkaa
  */
 class Laskutiedot {
 

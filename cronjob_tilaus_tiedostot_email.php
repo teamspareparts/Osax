@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 chdir(__DIR__); // Määritellään työskentelykansio // This breaks symlinks on Windows
 set_time_limit(300); // 5min
 

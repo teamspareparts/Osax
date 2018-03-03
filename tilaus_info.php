@@ -17,7 +17,19 @@ if ( !empty($_POST['peruuta_id']) ) {
 	$kayttaja = new User( $db, (int)$_POST['user_id'] );
 	$ostoskori = new Ostoskori( $db, $kayttaja->yritys_id, -1 );
 
-	PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, (int)$_POST['peruuta_id'], $ostoskori->ostoskori_id );
+	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $kayttaja, (int)$_POST['peruuta_id'], $ostoskori->id )) {
+		// Something something feedback
+	}
+
+
+}
+
+/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
+if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
+	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] ); exit();
+} else {
+	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
+	unset( $_SESSION[ "feedback" ] );
 }
 
 $tilaus = new Laskutiedot($db, $tilaus_id);
@@ -37,14 +49,6 @@ elseif ( ($tilaus->asiakas->id != $user->id) && !$user->isAdmin() ) {
 
 $lasku_file_nimi = "lasku-". sprintf( '%05d', $tilaus->laskunro) ."-{$tilaus->asiakas->id}.pdf";
 $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tilaus->asiakas->id}.pdf";
-
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
-	header( "Location: " . $_SERVER[ 'REQUEST_URI' ] ); exit();
-} else {
-	$feedback = isset( $_SESSION[ 'feedback' ] ) ? $_SESSION[ 'feedback' ] : "";
-	unset( $_SESSION[ "feedback" ] );
-}
 ?>
 <!DOCTYPE html>
 <html lang="fi">

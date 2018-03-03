@@ -140,9 +140,9 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 					<td class="number"><?=format_number( $tuote->kokonaishinta)?></td>
 					<td>
 						<?php if ( $tuote->automaatti ) : ?>
-							<span style="color: red"><?=$tuote->selite?></span>
+							<span style="color:red;"><?=$tuote->selite?></span>
 						<?php elseif ( $tuote->tilaustuote ) : ?>
-							<span style="color: green"><?=$tuote->selite?></span>
+							<span style="color:green;"><?=$tuote->selite?></span>
 						<?php else : ?>
 							<?=$tuote->selite?>
 						<?php endif;?>

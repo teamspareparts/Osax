@@ -54,7 +54,7 @@ class Ostoskori {
 	 * @param int      $yritys_id <p> Ostoskorin omistaja
 	 * @param DByhteys &$db       <p> Tietokantayhteys, for obvious reasons. (Ostoskori on DB:ssä)
 	 * @param int      $cart_mode [optional] <p> Mitä tietoja haetaan tuotteista:
-	 *                            <ul><li>-1 : Älä hae mitään tietoja
+	 *                            <ul><li>-1 : Älä hae mitään tietoja (paitsi ID)
 	 *                            <li> 0 : Hae vain montako eri tuotetta ostoskorissa on
 	 *                            <li> 1 : Hae kaikkien tuotteiden ID:t ja kpl-määrät
 	 *                            </ul>
