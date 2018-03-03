@@ -16,7 +16,7 @@ class Lasku extends Tilaus {
 	 * @param int      $tilaus_id
 	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, int $tilaus_id = null, $indev = 1 ) {
+	function __construct( DByhteys $db, int $tilaus_id, $indev = 1 ) {
 
 		parent::__construct( $db, $tilaus_id );
 
@@ -28,15 +28,20 @@ class Lasku extends Tilaus {
 
 	}
 
+	/**
+	 * Huom! Kasvattaa laskunumeroa, jos tilauksella ei ole jo sitä! Älä käytä, jos tilausta ei ole alustettu,
+	 * etkä halua niin tapahtuvan.
+	 * @param \DByhteys $db
+	 */
 	function luoLaskunNumero( DByhteys $db ) {
 		if ( $this->laskunro === null ) {
 			$sql = "SELECT laskunro FROM laskunumero LIMIT 1";
-			$row = $this->db->query( $sql );
+			$row = $db->query( $sql );
 			$this->laskunro = $row->laskunro;
 			$sql = "UPDATE laskunumero SET laskunro = laskunro + 1 LIMIT 1";
-			$this->db->query( $sql );
+			$db->query( $sql );
 			$sql = "UPDATE tilaus SET laskunro = ? WHERE id = ? LIMIT 1";
-			$this->db->query( $sql, [ $this->laskunro, $this->tilaus_nro ] );
+			$db->query( $sql, [ $this->laskunro, $this->id ] );
 		}
 	}
 
