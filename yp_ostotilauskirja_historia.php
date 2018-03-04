@@ -11,7 +11,9 @@ if ( !$user->isAdmin() ) {
  * @return \Ostotilauskirja[]
  */
 function hae_ostotilauskirjat( DByhteys $db ) {
-	$sql = "SELECT * FROM ostotilauskirja_arkisto ORDER BY saapumispaiva";
+	$sql = "SELECT * FROM ostotilauskirja_arkisto
+			WHERE hyvaksytty = 1
+ 			ORDER BY saapumispaiva";
 	return $db->query( $sql, [], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
 }
 

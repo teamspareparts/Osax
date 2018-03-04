@@ -169,6 +169,25 @@ elseif ( isset( $_POST[ 'eoltas_tehdassaldo' ] ) ) {
 	$result = EoltasWebservice::getEoltasTehdassaldo( (int)$_POST['hankintapaikka_id'], $_POST['articleNo'], $_POST['brandName'] );
 }
 
+/**
+ * Haetaan hankintapaikan OTK-historia
+ */
+elseif ( !empty( $_POST[ 'hae_otk_historia' ] ) ) {
+	$sql = "SELECT * FROM ostotilauskirja_arkisto 
+			WHERE hankintapaikka_id = ? AND hyvaksytty = 1 
+			ORDER BY saapumispaiva";
+	$result = $db->query( $sql, [(int)$_POST[ 'hae_otk_historia' ]], FETCH_ALL );
+	if (!$result) {
+		$result = print_r($_POST, true);
+	}
+}
+
+else {
+	$result = 'Jotain meni väärin\n';
+	$result .= print_r($_POST, true);
+
+}
+
 header('Content-Type: application/json'); // Paluuarvo JSON-muodossa
 echo json_encode( $result ); // Tulos palautuu takaisin JSON-muodossa AJAX:in pyytäneelle javascriptille.
 exit();

@@ -14,8 +14,6 @@ if ( !$otk = $db->query(
 	exit();
 }
 
-
-
 /**
  * Järjestetään tuotteet artikkelinumeron mukaan.
  * @param array $products
@@ -95,7 +93,7 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 	<!-- Otsikko ja painikkeet -->
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a href="yp_ostotilauskirja_historia.php" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</a>
+			<button id="takaisin_nappi" class="nappi grey"><i class="material-icons">navigate_before</i>Takaisin</button>
 		</section>
 		<section class="otsikko">
 			<span>OTK Arkisto</span>
@@ -163,5 +161,10 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 
 <?php require 'footer.php'; ?>
 
+<script>
+	document.getElementById('takaisin_nappi').addEventListener('click', function() {
+		window.history.back();
+	});
+</script>
 </body>
 </html>

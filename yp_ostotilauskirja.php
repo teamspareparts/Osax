@@ -182,6 +182,12 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         <p>Ei ostotilaukirjoja.</p>
     <?php endif; ?>
 
+	<hr>
+
+	<h2>Historia:</h2>
+	<div id="historia_container">
+		<button id="hae_historia" class="nappi" data-id="<?=$hankintapaikka->id?>">Hae hankintapaikan OTK historia</button>
+	</div>
 </main>
 
 <?php require 'footer.php'; ?>
@@ -304,6 +310,36 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
         }
     }
 
+	document.getElementById('hae_historia').addEventListener('click', function() {
+		let div_container = document.getElementById('historia_container');
+	    let hae_nappi = document.getElementById('hae_historia');
+	    let html;
+	    let historia;
+
+	    $.post(
+		    "ajax_requests.php",
+		    { "hae_otk_historia": hae_nappi.dataset.id },
+		    function (data) {
+		    	if (data) {
+				    hae_nappi.style.visibility = "hidden";
+				    console.log(data);
+
+				    html = "<ul>";
+				    data.forEach(function (otk) {
+					    html += `
+				            <li>${otk.id}, ${otk.tunniste}, ${otk.saapumispaiva} --
+						        <a href='yp_ostotilauskirja_historia_tuotteet.php?id=${otk.id}'>Linkki tuotteet</a>
+						    </li>
+					    </li>`;
+				    });
+				    html += "<ul>";
+
+				    div_container.innerHTML = html;
+			    }
+		    }
+	    );
+	});
+
     $(document).ready(function(){
 
         $('*[data-href]')
@@ -335,10 +371,8 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 					e.preventDefault();
 				});
 		});
+
     });
-
-
-
 </script>
 </body>
 </html>
