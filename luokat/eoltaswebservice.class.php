@@ -193,7 +193,7 @@ class EoltasWebservice {
 	 * @param int $id
 	 * @return bool
 	 */
-	private static function checkEoltasHankintapaikkaId( int $id ) : bool {
+	public static function checkEoltasHankintapaikkaId( int $id ) : bool {
 		$eoltas_hankintapaikka_id = EoltasWebservice::getEoltasHankintapaikkaId();
 		if ( $id != $eoltas_hankintapaikka_id) {
 			return false;
@@ -336,7 +336,6 @@ class EoltasWebservice {
 		if ( !$tuotteet ) {
 			return true;
 		}
-		// TODO: Try - catch
 		try {
 			// Tyhjennetään ostoskori varmuuden varalta
 			$result = self::clearBasket();

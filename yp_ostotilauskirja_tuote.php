@@ -71,7 +71,10 @@ function get_ostotilauskirja_select_string( DByhteys $db, int $hankintapaikka_id
  */
 function siirra_tuote_toiselle_tilauskirjalle( DByhteys $db, int $otk_id, int $uusi_otk_id, int $tuote_id ) : bool {
 	// Tarkastetaan onko tuotetta jo toisella tilauskirjalla
-	$sql = "SELECT *
+	if ( $otk_id == $uusi_otk_id ) {
+		return true;
+	}
+	$sql = "SELECT tuote_id
 			FROM ostotilauskirja_tuote
 			WHERE ostotilauskirja_id = ?
 				AND tuote_id = ?
@@ -225,8 +228,6 @@ function laheta_ostotilauskirja( DByhteys $db, int $user_id, int $ostotilauskirj
  * @return array <p> Sama array sortattuna
  */
 function sortProductsByName( array $products ) : array {
-	//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
-	//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
 	usort($products, function ($a, $b) {
 		return ($a->articleNo > $b->articleNo);
 	});
@@ -293,7 +294,7 @@ else if ( isset($_POST['laheta']) ) {
 }
 
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ){
+if ( !empty($_POST) ) {
     header("Location: " . $_SERVER['REQUEST_URI']);
     exit();
 }
@@ -382,7 +383,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 		<section style="margin-left: auto;">
 			<button class="nappi red" onclick="tyhjenna_ostotilauskirja()">Tyhjennä</button>
 			<button class="nappi" onclick="tallenna_ostotilauskirja()">Tallenna</button>
-			<?php if ($otk->hankintapaikka_id == 200) : ?>
+			<?php if ( EoltasWebservice::checkEoltasHankintapaikkaId($otk->hankintapaikka_id) ) : ?>
 				<button class="nappi" id="tehdassaldo_nappi" onclick="hae_eoltas_tehdassaldo()">Hae tehdassaldo</button>
 			<?php endif; ?>
 		</section>
@@ -571,7 +572,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
             let field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "poista");
-            field.setAttribute("value", true);
+            field.setAttribute("value", "true");
             form.appendChild(field);
 
             //tuote_id
@@ -616,7 +617,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
 			let field = document.createElement("input");
 			field.setAttribute("type", "hidden");
 			field.setAttribute("name", "poista_kaikki");
-			field.setAttribute("value", true);
+			field.setAttribute("value", "true");
 			form.appendChild(field);
 
 			//form submit
@@ -668,7 +669,7 @@ $tilauskirjat_tuotteen_siirtamista_varten = get_ostotilauskirja_select_string($d
      * Haetaan tehdassaldot Eoltaksen tuotteille.
      */
     async function hae_eoltas_tehdassaldo() {
-        document.getElementById("tehdassaldo_nappi").classList = "hidden";
+        document.getElementById("tehdassaldo_nappi").className = "hidden";
 	    let tuotteet = document.getElementsByClassName("tuote");
 	    for (let i = 0; i < tuotteet.length; i++) {
             let hankintapaikka_id = tuotteet[i].cells[1].innerText.substr(0,3);
