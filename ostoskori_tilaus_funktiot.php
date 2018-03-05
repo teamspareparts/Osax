@@ -112,7 +112,7 @@ function tarkista_osoitekirja_ja_tulosta_tmo_valinta_nappi_tai_disabled ( int $o
  * @return string <p> Palauttaa tilausnapin HTML-muodossa. Mukana huomautus, jos ei pysty tilaamaan.
  */
 function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
-		Ostoskori $cart, User $user, bool $ostoskori = true ) {
+		Ostoskori $cart, User $user, bool $ostoskori = true ) : string {
 	$tilaaminen_mahdollista = true;
 	$huomautus = '';
 
@@ -121,13 +121,15 @@ function tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled (
 		$huomautus .= 'Tilaus vaatii toimitusosoitteen.<br>';
 	}
 
-	// Tarkistetaan, että Eoltaksen tuotteita on tarpeeksi varastossa
-	$vajaat_tuotteet = EoltasWebservice::checkOstoskoriValidity( $cart->tuotteet );
-	if ( $vajaat_tuotteet ) {
-		$tilaaminen_mahdollista = false;
-		foreach ( $vajaat_tuotteet as $tuote ) {
-			$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei
+	if ( !$ostoskori ) {
+		// Tarkistetaan, että Eoltaksen tuotteita on tarpeeksi varastossa
+		$vajaat_tuotteet = EoltasWebservice::checkOstoskoriValidity($cart->tuotteet);
+		if ( $vajaat_tuotteet ) {
+			$tilaaminen_mahdollista = false;
+			foreach ($vajaat_tuotteet as $tuote) {
+				$huomautus .= "Tuotteita ei voi tilata, koska {$tuote->tuotekoodi}:tta ei
 				ole tarpeeksi Eoltaksen varastossa ({$tuote->eoltas_stock}kpl).<br>";
+			}
 		}
 	}
 

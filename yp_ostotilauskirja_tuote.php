@@ -125,6 +125,9 @@ function siirra_tuote_toiselle_tilauskirjalle( DByhteys $db, int $otk_id, int $u
  * @return bool
  */
 function tallenna_ostotilauskirja( DByhteys $db, int $ostotilauskirja_id, array $tuotteet ) : bool {
+	if ( !$tuotteet ) {
+		return false;
+	}
 
 	// Päivitetään kaikkien tilauskirjalla olevien tuotteiden kpl
 	$values = [];

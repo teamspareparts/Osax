@@ -73,9 +73,9 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 		<tbody>
 		<?php foreach ( $cart->tuotteet as $tuote) : ?>
 			<tr>
-				<td><?= $tuote->tuotekoodi?></td> <!-- Tuotenumero -->
-				<td><?= $tuote->nimi?></td> <!-- Tuotteen nimi -->
-				<td><?= $tuote->valmistaja?></td> <!-- Tuotteen valmistaja -->
+				<td><?= $tuote->tuotekoodi ?></td> <!-- Tuotenumero -->
+				<td><?= $tuote->nimi ?></td> <!-- Tuotteen nimi -->
+				<td><?= $tuote->valmistaja ?></td> <!-- Tuotteen valmistaja -->
 				<td class="number"><?= $tuote->summa_toString() ?></td> <!-- Hinta yhteensä (sis. ALV) -->
 				<td class="number"><?= $tuote->aHintaAlennettu_toString() ?></td> <!-- Kpl-hinta (sis. ALV) -->
 				<td class="number">
@@ -104,7 +104,7 @@ check_products_in_shopping_cart( $cart, $user ); // Tarkistetaan hinnat, ja raht
 	</table>
 	<div id=tilausvahvistus_maksutiedot style="width:20em;">
 		<p>Tuotteiden kokonaissumma: <b><?= $cart->summa_toString() ?></b></p>
-		<p>Summa yhteensä: <b><?= format_number( ($cart->summa_yhteensa + $user->rahtimaksu) )?></b> ( ml. toimitus )</p>
+		<p>Summa yhteensä: <b><?= format_number( ($cart->summa_yhteensa + $user->rahtimaksu) ) ?></b> ( ml. toimitus )</p>
 		<span class="small_note">Kaikki hinnat sis. ALV</span>
 	</div>
 	<?= tarkista_pystyyko_tilaamaan_ja_tulosta_tilaa_nappi_tai_disabled( $cart, $user ) ?>
