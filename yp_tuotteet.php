@@ -809,14 +809,14 @@ require 'tuotemodal.php';
 			{   valmistajan_hankintapaikat: true,
 				brand_id: brandNo },
 			function( data ) {
-				hankintapaikat = JSON.parse(toJSON(data));
+				let hankintapaikat = data;
 				if( hankintapaikat.length === 0 ){
 					alert("Linkitä ensin tuotteen brändi johonkin hankintapaikkaan!");
 					return;
 				}
 				//Luodaan alasvetovalikko
 				let hankintapaikka_valikko = '<select name="hankintapaikat">';
-				for(let i=0; i < hankintapaikat.length; i++){
+				for ( let i=0; i < hankintapaikat.length; i++ ) {
 					hankintapaikka_valikko += '<option name="hankintapaikka" value="'+hankintapaikat[i].id+'">'+hankintapaikat[i].id + " - " + hankintapaikat[i].nimi+'</option>';
 				}
 				hankintapaikka_valikko += '</select>';
@@ -915,15 +915,15 @@ require 'tuotemodal.php';
 				<div class="dialogi-otsikko">Muokkaa tuotetta '+tuotekoodi+'</div> \
 				<form action="" method="post"> \
 					<label for="ostohinta">Ostohinta:</label> \
-						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" required> &euro;<br> \
+						<input type="number" step="0.01" class="eur" name="ostohinta" placeholder="0,00" value="'+ostohinta+'" min="0" required> &euro;<br> \
 					<label for="hinta">Hinta (ilman ALV):</label> \
-						<input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" required> &euro;<br> \
+						<input type="number" step="0.01" class="eur" name="hinta" placeholder="0,00" value="'+hinta+'" min="0" required> &euro;<br> \
 					<label for="alv">ALV Verokanta:</label> \
 				        '+alv_valikko+'<br> \
 				    <label for="tilaskoodi">Tilauskoodi:</label> \
 				        <input style="width: 80pt;" name="tilauskoodi" value="'+tilauskoodi+'" required><br> \
 					<label for="varastosaldo">Varastosaldo:</label> \
-						<input type="number" class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'"> kpl<br> \
+						<input type="number" class="kpl" name="varastosaldo" placeholder="0" value="'+varastosaldo+'" min="0" required> kpl<br> \
 					<label for="minimimyyntiera">Minimimyyntierä:</label> \
 						<input type="number" class="kpl" name="minimimyyntiera" value="'+minimimyyntiera+'" min="1" required> kpl<br> \
 					<label for="hyllypaikka">Hyllypaikka:</label> \
@@ -938,12 +938,12 @@ require 'tuotemodal.php';
 					<input type="hidden" name="tuotealennus" value="' + id + '"> \
 					<br> \
 					<label for="kpl_maara" class="required">Kpl-määrä:</label> \
-						<input name="kpl_maara" class="kpl number" placeholder="0" value="" \
-							title="Kpl-määrä alennukselle" required> kpl \
+						<input type="number" name="kpl_maara" class="kpl number" placeholder="0" value="" \
+							title="Kpl-määrä alennukselle" min="0" required> kpl \
 					<br> \
 					<label for="alennus_pros" class="required">Alennus:</label> \
-						<input name="alennus_pros" class="kpl number" placeholder="0" value=""\
-							title="Alennus-prosentti" required> % \
+						<input type="number" name="alennus_pros" class="kpl number" placeholder="0" value=""\
+							title="Alennus-prosentti" min="0" required> % \
 					<br> \
 					<label for="pvm_alku" class="required">Pvm-alku:</label> \
 						<input type="date" name="pvm_alku" class="kpl number" style="width:95pt;"\
@@ -1008,14 +1008,14 @@ require 'tuotemodal.php';
         params = JSON.stringify(params).replace(/,/g,", ");
 
         tecdocToCatPort[functionName] (params, function(response) {
-            if (response.data) {
+            if ( response.data ) {
+                let tuote = response.data.array[0];
                 // Jos taulukossa on jo tuloksia poistetaan vanhat
                 if (table.rows.length !== 0) {
                     while(table.rows.length > 0) {
                         table.deleteRow(0);
                     }
                 }
-                response = response.data.array[0];
 
                 // thead
                 let header = table.createTHead();
@@ -1032,10 +1032,10 @@ require 'tuotemodal.php';
                 let brand = row.insertCell(1);
                 let article_no = row.insertCell(2);
                 let article_name = row.insertCell(3);
-                brand_no.innerHTML = response.brandNo;
-                brand.innerHTML = response.brandName;
-                article_no.innerHTML = response.articleNo;
-                article_name.innerHTML = response.articleName;
+                brand_no.innerHTML = tuote.brandNo;
+                brand.innerHTML = tuote.brandName;
+                article_no.innerHTML = tuote.articleNo;
+                article_name.innerHTML = tuote.articleName;
 
                 // Tyylittely
                 row.style.fontWeight = "bold";
@@ -1072,38 +1072,67 @@ require 'tuotemodal.php';
 			{   hankintapaikan_ostotilauskirjat: true,
 				hankintapaikka_id: hankintapaikka_id },
 			function( data ) {
-				let ostotilauskirjat = JSON.parse(toJSON(data));
+				let ostotilauskirjat = data;
 				if ( ostotilauskirjat.length === 0 ) {
 					alert("Luo ensin kyseiselle toimittajalle ostotilauskirja!" +
 						"\rMUUT -> TILAUSKIRJAT -> HANKINTAPAIKKA -> UUSI OSTOTILAUSKIRJA");
 					return;
 				}
 				//Luodaan alasvetovalikko
-				let ostotilauskirja_lista = '<select name="ostotilauskirjat">';
+				let ostotilauskirja_lista = '<select name="ostotilauskirjat" id="otk_id">';
 				for (let i=0; i < ostotilauskirjat.length; i++) {
 					ostotilauskirja_lista += '<option name="ostotilauskirja" value="'+ostotilauskirjat[i].id+'">'+ostotilauskirjat[i].tunniste+'</option>';
 				}
 				ostotilauskirja_lista += '</select>';
 				//avataan Modal
-				Modal.open({
-					content: '\
+                Modal.open({
+                    content: '\
                         <div class="dialogi-otsikko">Lisää ostotilauskirjaan</div> \
-                        <form action="" name="ostotilauskirjalomake" id="ostotilauskirjalomake" method="post"> \
+                        <form action="" method="post" onsubmit="event.preventDefault(); lisaaOstotilauskirjalle()"> \
                             <label for="ostotilauskirja">Ostotilauskirja:</label><br> \
 				            '+ostotilauskirja_lista+'<br><br> \
 				            <label for="kpl">Kappaleet:</label><br> \
-				            <input class="kpl" type="number" name="kpl" placeholder="1" min="1" required> kpl<br><br> \
+				            <input type="number" name="kpl" id="otk_kpl" class="kpl" placeholder="1" min="1" required> kpl<br><br> \
                             <label for="selite">Selite:</label><br> \
-                            <textarea rows="3" cols="25" name="selite" form="ostotilauskirjalomake" placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
-                            <input class="nappi" type="submit" name="lisaa_otk" value="Lisää ostotilauskirjalle">\
-                            <input type="hidden" name="id" id="otk_id" value="'+tuote_id+'"> \
+                            <textarea name="selite" id="otk_selite" rows="3" cols="25" form="ostotilauskirjalomake"\
+                                placeholder="Miksi lisäät tuotteen käsin?"></textarea><br><br> \
+                            <input type="submit" value="Lisää tilauskirjalle" class="nappi">\
+                            <input type="hidden" name="tuote_id" id="otk_tuote_id" value="'+tuote_id+'"> \
 				        </form> \
                     ',
-					draggable: true
-				});
+                    draggable: true
+                });
 			}
 		);
 	}
+
+    /**
+     * Lisää tuotteen ostotilauskirjalle
+     */
+    function lisaaOstotilauskirjalle() {
+        let tilauskirja_id = document.getElementById('otk_id').value;
+        let tuote_id = document.getElementById('otk_tuote_id').value;
+        let kpl = document.getElementById('otk_kpl').value;
+        let selite = document.getElementById('otk_selite').value;
+        $.post(
+            "ajax_requests.php",
+            {   lisaa_tilauskirjalle: true,
+                ostotilauskirja_id: tilauskirja_id,
+                tuote_id: tuote_id,
+                kpl: kpl,
+                selite: selite },
+            function( data ) {
+                Modal.close();
+                if ( (!!data) === true ) {
+                    $("#lisaa_otk_nappi_" + tuote_id)
+                        .css("background-color","green")
+                        .addClass("disabled");
+                } else {
+                    alert("Tuote on jo kyseisellä tilauskirjalla.");
+                }
+            });
+        return 0;
+    }
 
     /**
      * Haetaan ajaxilla Eoltas-tuotteiden tehdassaldot ja lisätään ne
@@ -1138,30 +1167,62 @@ require 'tuotemodal.php';
         }
     }
 
+    /**
+     * Sivun latautuessa esitäytetään valikot URLin perusteella.
+     */
+    function tayta_valikot() {
+
+        //qs["haluttu ominaisuus"] voi hakea urlista php:n GET
+        //funktion tapaan tietoa
+        let qs = (function (a) {
+            let p, i, b = {};
+            if (a !== "") {
+                for (i = 0; i < a.length; ++i) {
+                    p = a[i].split('=', 2);
+
+                    if (p.length === 1) {
+                        b[p[0]] = "";
+                    } else {
+                        b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+                    }
+                }
+            }
+
+            return b;
+        })(window.location.search.substr(1).split('&'));
+
+        // Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
+        if (qs["manuf"]) {
+            let manuf = qs["manuf"];
+            let model = qs["model"];
+            let car = qs["car"];
+            let osat = qs["osat"];
+            let osat_alalaji = qs["osat_alalaji"];
+            taytaAjoneuvomallillahakuValinnat(manuf, model, car, osat, osat_alalaji);
+        }
+
+        if (qs["haku"]) {
+            let search = qs["haku"];
+            $("#search").val(search);
+        }
+
+        if (qs["numerotyyppi"]) {
+            let number_type = qs["numerotyyppi"];
+            if (number_type === "all" || number_type === "articleNo" ||
+                number_type === "comparable" || number_type === "oe") {
+                $("#numerotyyppi").val(number_type);
+            }
+        }
+
+        if (qs["exact"]) {
+            let exact = qs["exact"];
+            if (exact === "true" || exact === "false") {
+                $("#hakutyyppi").val(exact);
+            }
+        }
+    }
+
 	$(document).ready(function(){
-		//Tuotteen lisääminen ostotilauskirjalle
-		$(document.body)
-			.on('submit', '#ostotilauskirjalomake', function(e){
-				e.preventDefault();
-				let tuote_id = $('#otk_id').val();
-				$.post(
-					"ajax_requests.php",
-					{   lisaa_tilauskirjalle: true,
-						ostotilauskirja_id: $('select[name=ostotilauskirjat]').val(),
-						tuote_id: tuote_id,
-						kpl: $('input[name=kpl]').val(),
-                        selite: $('textarea[name=selite]').val() },
-					function( data ) {
-						Modal.close();
-						if ((!!data) === true ) {
-							$("#lisaa_otk_nappi_" + tuote_id)
-								.css("background-color","green")
-								.addClass("disabled");
-						} else {
-							alert("ERROR: Tuote on jo kyseisellä tilauskirjalla.");
-						}
-					});
-			});
 
 		//Avataan tuoteikkuna tuotetta painettaessa
 		$('.clickable')
@@ -1179,55 +1240,10 @@ require 'tuotemodal.php';
 		//Haetaan Eoltas-tuotteille tehdassaldot
 		hae_eoltas_tehdassaldo();
 
+        // Täytetään valikot sivun latautuessa
+        tayta_valikot();
+
 	});//doc.ready
-
-	//qs["haluttu ominaisuus"] voi hakea urlista php:n GET
-	//funktion tapaan tietoa
-	let qs = (function(a) {
-		let p, i, b = {};
-		if (a !== "") {
-			for ( i = 0; i < a.length; ++i ) {
-				p = a[i].split('=', 2);
-
-				if (p.length === 1) {
-					b[p[0]] = "";
-				} else {
-					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " ")); }
-			}
-		}
-
-		return b;
-	})(window.location.search.substr(1).split('&'));
-
-    // Laitetaan ennen sivun päivittämistä tehdyt valinnat takaisin
-    if ( qs["manuf"] ) {
-        let manuf = qs["manuf"];
-        let model = qs["model"];
-        let car = qs["car"];
-        let osat = qs["osat"];
-        let osat_alalaji = qs["osat_alalaji"];
-        taytaAjoneuvomallillahakuValinnat(manuf, model, car, osat, osat_alalaji);
-    }
-
-	if ( qs["haku"] ) {
-		let search = qs["haku"];
-		$("#search").val(search);
-	}
-
-	if( qs["numerotyyppi"] ){
-		let number_type = qs["numerotyyppi"];
-		if (number_type === "all" || number_type === "articleNo" ||
-			number_type === "comparable" || number_type === "oe") {
-			$("#numerotyyppi").val(number_type);
-		}
-	}
-
-	if ( qs["exact"] ){
-		let exact = qs["exact"];
-		if (exact === "true" || exact === "false") {
-			$("#hakutyyppi").val(exact);
-		}
-	}
 
 </script>
 </body>

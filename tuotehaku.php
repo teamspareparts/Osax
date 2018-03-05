@@ -744,6 +744,9 @@ require 'tuotemodal.php';
 		);
 	}
 
+	/**
+	 * Lisää tuotteen ostotilauskirjalle
+	 */
 	function lisaaOstotilauskirjalle() {
 	    let tilauskirja_id = document.getElementById('otk_id').value;
 		let tuote_id = document.getElementById('otk_tuote_id').value;
