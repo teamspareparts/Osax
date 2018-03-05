@@ -69,7 +69,7 @@ class Laskutiedot {
 		$row = $this->db->query( $sql, [ $this->tilaus_nro ] );
 		if ( $row ) {
 			$this->asiakas = new User($this->db, $row->kayttaja_id);
-			$this->yritys = new Yritys($this->db, $row->kayttaja_id);
+			$this->yritys = new Yritys($this->db, $this->asiakas->yritys_id);
 		}
 	}
 
