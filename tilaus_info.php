@@ -109,40 +109,40 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 		</section>
 	</div>
 
-	<?= $feedback?>
-
+	<?= $feedback ?>
 	<div class="flex_row">
 
-		<table class="white-bg">
-			<tr>
-				<td>Tilausnumero: <?= sprintf('%04d', $tilaus->tilaus_nro)?></td>
-				<td>Päivämäärä: <?= date("d.m.Y", strtotime($tilaus->tilaus_pvm))?></td>
-			</tr>
-			<tr>
-				<td>Tilaaja: <?= $tilaus->asiakas->etunimi?> <?= $tilaus->asiakas->sukunimi?></td>
-				<td>Yritys: <?= $tilaus->yritys->nimi?></td>
-			</tr>
-			<tr>
-				<td>Tuotteet: <?= $tilaus->tuotteet_kpl?></td>
-				<td>Summa: <?= format_number( $tilaus->hintatiedot["summa_yhteensa"] )?>
-					( ml. rahtimaksu )
-				</td>
-			</tr>
-			<tr>
-				<td colspan="2">Maksutapa: <?=$tilaus->maksutapa_toString()?></td>
-			</tr>
-			<tr>
-				<td colspan="2" class="small_note">Kaikki hinnat sisältävät ALV:n</td>
-			</tr>
-		</table>
+		<div class="table white-bg">
+			<div class="tr">
+				<div class="td pad">Tilausnumero: <?= sprintf('%04d', $tilaus->tilaus_nro) ?></div>
+				<div class="td pad">Päivämäärä: <?= date("d.m.Y", strtotime($tilaus->tilaus_pvm)) ?></div>
+			</div>
+			<div class="tr">
+				<div class="td pad">Tilaaja: <?= $tilaus->asiakas->etunimi ?> <?= $tilaus->asiakas->sukunimi ?></div>
+				<div class="td pad">Yritys: <?= $tilaus->yritys->nimi ?></div>
+			</div>
+			<div class="tr">
+				<div class="td pad">Tuotteet: <?= $tilaus->tuotteet_kpl ?></div>
+				<div class="td pad">Summa: <?= format_number($tilaus->hintatiedot["summa_yhteensa"]) ?></div>
+			</div>
+			<div class="tr">
+				<div class="td pad">Maksutapa: <?= ($tilaus->maksutapa) ? "Lasku 14pv" : "e-korttimaksu"; ?></div>
+				<div class="td pad"></div>
+			</div>
+			<div class="tr">
+				<div class="td pad small_note">Kaikki hinnat sisältävät ALV:n</div>
+				<div class="td pad"></div>
+			</div>
+		</div>
 
 		<div class="white-bg" style="padding-left: 10px;">
 			<p style="font-weight: bold;">Toimitusosoite</p>
-			<p style="margin:10px;"><?= $tilaus->toimitusosoite["koko_nimi"]?>, <?= $tilaus->toimitusosoite["yritys"]?></p>
-			<p style="margin:10px;"><?= $tilaus->toimitusosoite["katuosoite"]?></p>
-			<p style="margin:10px;"><?= $tilaus->toimitusosoite["postinumero"]?> <?= $tilaus->toimitusosoite["postitoimipaikka"]?></p>
-			<p style="margin:10px;"><?= $tilaus->toimitusosoite["puhelin"]?> <?= $tilaus->toimitusosoite["sahkoposti"]?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["koko_nimi"] ?>, <?= $tilaus->toimitusosoite["yritys"] ?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["katuosoite"] ?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["postinumero"] ?> <?= $tilaus->toimitusosoite["postitoimipaikka"] ?></p>
+			<p style="margin:10px;"><?= $tilaus->toimitusosoite["puhelin"] ?> <?= $tilaus->toimitusosoite["sahkoposti"] ?></p>
 		</div>
+
 	</div>
 
 	<br>
@@ -167,11 +167,11 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 				<td><?= $tuote->nimi ?></td>
 				<td><?= $tuote->valmistaja ?></td>
 				<td class="number"><?= $tuote->aHinta_toString() ?></td>
-				<td class="number"><?= $tuote->kpl_maara?></td>
+				<td class="number"><?= $tuote->kpl_maara ?></td>
 				<td class="number"><?= $tuote->summa_toString() ?></td>
 				<td class="number"><?= $tuote->alv_toString() ?></td>
 				<td class="number">
-					<?=((float)$tuote->alennus_prosentti!=0) ? (round($tuote->alennus_prosentti*100)." %") : ("---")?>
+					<?= ((float)$tuote->alennus_prosentti!=0) ? (round($tuote->alennus_prosentti*100)." %") : ("---") ?>
 				</td>
 				<td>
 					<?php if ( $tuote->tilaustuote ) : ?>
@@ -200,8 +200,8 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 <?php if ($user->isAdmin()) : ?>
 	<script async>
 		let peruuta_nappi = document.getElementById('peruuta_tilaus');
-		let tilaus_id = <?=$tilaus->tilaus_nro?>;
-		let user_id = <?=$tilaus->asiakas->id?>;
+		let tilaus_id = <?= $tilaus->tilaus_nro ?>;
+		let user_id = <?= $tilaus->asiakas->id ?>;
 
 		peruuta_nappi.addEventListener('click', function() {
 			Modal.open({

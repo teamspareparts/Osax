@@ -42,9 +42,9 @@ class Tilaus {
 	 * @param int      $tilaus_id
 	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, int $tilaus_id = null, $indev = 1 ) {
+	function __construct( DByhteys $db, int $tilaus_id, $indev = 1 ) {
 
-		$sql = "SELECT paivamaara, pysyva_rahtimaksu, maksutapa, laskunro, maksettu, kasitelty, kayttaja_id
+		$sql = "SELECT id, paivamaara, pysyva_rahtimaksu, maksutapa, laskunro, maksettu, kasitelty, kayttaja_id
 				FROM tilaus
 				WHERE id = ? LIMIT 1";
 		$row = $db->query( $sql, [ $tilaus_id ] );
