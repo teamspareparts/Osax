@@ -158,7 +158,7 @@ class EoltasWebservice {
 			'deliveryId' => 'oxidstandard',
 			'addressId' => 'adc7cc6698e9a9689163b7eddc0d280f'
 		);
-		//return self::sendRequest($fields);
+		return self::sendRequest($fields);
 	}*/
 
 	/**
@@ -166,7 +166,7 @@ class EoltasWebservice {
 	 * @return bool
 	 * @throws Exception
 	 */
-	private static function clearBasket() : bool {
+	public static function clearBasket() : bool {
 		// Haetaan webservicen ostoskori
 		$basket = self::getBasket();
 		// Poistetaan tuote kerrallaan
@@ -209,13 +209,13 @@ class EoltasWebservice {
 	 * @return string|null <p> Palauttaa löydetyn id:n tai null
 	 * @throws Exception
 	 */
-	private static function getEoltasProductId( string $articleNo, string $brandName, string $brandId ) {
+	private static function getEoltasProductId( string $articleNo, string $brandName ) {
 		$eoltas_data = EoltasWebservice::searchProduct( $articleNo , $brandName );
 		// Etsitään oikea tuote
 		foreach ( $eoltas_data->response->products as $product) {
 			$product->supplierCode = str_replace(" ", "", $product->supplierCode);
 			$articleNo = str_replace(" ", "", $articleNo);
-			if ( strcasecmp($articleNo, $product->supplierCode) === 0 && $brandId == $product->brandId ) {
+			if ( strcasecmp($articleNo, $product->supplierCode) === 0 && strcasecmp($brandName, $product->brandName) === 0 ) {
 				// Oikea tuote löytyi
 				return $product->id;
 			}
@@ -298,7 +298,7 @@ class EoltasWebservice {
 			return false;
 		}
 		// Haetaan Eoltaksen oma tuote-id
-		$eoltas_id = self::getEoltasProductId( $tuote->articleNo, $tuote->valmistaja, $tuote->brandNo );
+		$eoltas_id = self::getEoltasProductId( $tuote->articleNo, $tuote->valmistaja );
 		if ( !$eoltas_id ) {
 			return false;
 		}
@@ -356,7 +356,6 @@ class EoltasWebservice {
 				// Tilataan niin monta tuotetta kuin mahdollista
 				foreach ( $vajaat_tuotteet as $tuote ) {
 					if ( $tuote->amount > $tuote->stock ) {
-						var_dump($tuote);
 						self::editBasket($tuote->productId, (int)$tuote->stock);
 					}
 					// Ilmoitus ylläpidolle, että tuotteita ei voinut tilata tarpeeksi!
@@ -418,28 +417,23 @@ class EoltasWebservice {
 			if ( !self::checkEoltasHankintapaikkaId( $tuote->hankintapaikka_id ) ) {
 				continue;
 			}
-			// Haetaan tuotteen Eoltas id
 			try {
-				$eoltas_id = self::getEoltasProductId($tuote->articleNo, $tuote->valmistaja, $tuote->brandNo);
+				// Haetaan tuotteen Eoltas id
+				$eoltas_id = self::getEoltasProductId($tuote->articleNo, $tuote->valmistaja);
 				if ( !$eoltas_id ) {
 					$vajaat_tuotteet[] = $tuote;
+				} else {
+					$eoltas_product = self::getProduct($eoltas_id);
+					// Tarkastetaan tilattavien tuotteiden määrä
+					if ( $tuote->kpl_maara > $eoltas_product->response->product->stock ) {
+						// Tilattavia tuotteita enemmän kuin varastossa
+						$tuote->eoltas_stock = $eoltas_product->response->product->stock;
+						$vajaat_tuotteet[] = $tuote;
+					}
 				}
 			} catch ( Exception $e ) {
 				$vajaat_tuotteet[] = $tuote;
 			}
-			// Haetaan tuotteen tehdassaldo
-			try {
-				$eoltas_product = self::getProduct($eoltas_id);
-				// Tarkastetaan tilattavien tuotteiden määrä
-				if ( $tuote->kpl_maara > $eoltas_product->response->product->stock ) {
-					// Tilattavia tuotteita enemmän kuin varastossa
-					$tuote->eoltas_stock = $eoltas_product->response->product->stock;
-					$vajaat_tuotteet[] = $tuote;
-				}
-			} catch ( Exception $e ) {
-				$vajaat_tuotteet[] = $tuote;
-			}
-
 		}
 		return $vajaat_tuotteet;
 	}
