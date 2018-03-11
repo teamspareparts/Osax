@@ -152,14 +152,14 @@ class EoltasWebservice {
 	 * @return stdClass
 	 * @throws Exception
 	 */
-	/*private static function order() : stdClass {
+	private static function order() : stdClass {
 		$fields = array(
 			'action' => 'order',
 			'deliveryId' => 'oxidstandard',
 			'addressId' => 'adc7cc6698e9a9689163b7eddc0d280f'
 		);
 		return self::sendRequest($fields);
-	}*/
+	}
 
 	/**
 	 * Tyhjentää Eoltaksen ostoskorin.
@@ -205,7 +205,6 @@ class EoltasWebservice {
 	 * Hakee Eoltaksen tuote-id:n.
 	 * @param string $articleNo
 	 * @param string $brandName
-	 * @param string $brandId
 	 * @return string|null <p> Palauttaa löydetyn id:n tai null
 	 * @throws Exception
 	 */
@@ -369,9 +368,7 @@ class EoltasWebservice {
 			}
 
 			// Tehdään tilaus
-			/**
-			 * //$order = self::order();
-			 */
+			//$order = self::order();
 
 		} catch ( Exception $e ) {
 			// Yritetään tyhjentää ostoskori varmuuden varalta.
