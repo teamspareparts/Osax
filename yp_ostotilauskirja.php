@@ -71,13 +71,15 @@ else if( isset($_POST['poista']) ) {
         $_SESSION["feedback"] = "<p class='error'>ERROR</p>";
     }
 }
+
 /** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
 if ( !empty($_POST) ){
     header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
     exit();
+} else {
+	$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
+	unset($_SESSION["feedback"]);
 }
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-unset($_SESSION["feedback"]);
 
 // Haetaan ostotilauskirjat
 $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta,
@@ -90,6 +92,12 @@ $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hi
  		WHERE ostotilauskirja.hankintapaikka_id = ?
  		GROUP BY ostotilauskirja.id";
 $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
+
+$sql = "SELECT * FROM ostotilauskirja_arkisto 
+			WHERE hankintapaikka_id = ? AND hyvaksytty = 1 
+			ORDER BY saapumispaiva";
+$otk_historia = $db->query( $sql, [$hankintapaikka_id],
+                            FETCH_ALL, null, "Ostotilauskirja" );
 ?>
 
 <!DOCTYPE html>
@@ -185,9 +193,37 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 	<hr>
 
 	<h2>Historia:</h2>
-	<div id="historia_container">
-		<button id="hae_historia" class="nappi" data-id="<?=$hankintapaikka->id?>">Hae hankintapaikan OTK historia</button>
-	</div>
+	<?php if ( $otk_historia ) : ?>
+		<table id="otk_hist">
+			<thead>
+			<tr><th>Tunniste</th>
+				<th>Toimitusväli</th>
+				<th>Lähetyspäivä</th>
+				<th>Saapumispäivä</th>
+				<th>Tuotteet</th>
+				<th>Hinta</th>
+				<th>Rahti</th>
+				<th></th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $otk_historia as $otk ) : ?>
+				<tr data-id="<?=$otk->id?>" data-href="yp_ostotilauskirja_historia_tuotteet.php?id=<?=$otk->id?>">
+					<td><?= $otk->tunniste?></td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td><?= format_number($otk->kpl,0)?></td>
+					<td><?= format_number($otk->hinta)?></td>
+					<td><?= format_number($otk->rahti)?></td>
+					<td><a href='yp_ostotilauskirja_historia_tuotteet.php?id=<?=$otk->id?>'>Tuotteet</a></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php else : ?>
+		<p>Hankintapaikalla ei ole yhtään OTK:ta historiassa.</p>
+	<?php endif; ?>
 </main>
 
 <?php require 'footer.php'; ?>
@@ -285,14 +321,15 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
      * @param ostotilauskirja_id
      */
     function poista_ostotilauskirja( ostotilauskirja_id ) {
+    	let form, field;
         if ( confirm("Haluatko varmasti poistaa kyseisen ostotilauskirjan?") ) {
             //Rakennetaan form
-            let form = document.createElement("form");
+            form = document.createElement("form");
             form.setAttribute("method", "POST");
             form.setAttribute("action", "");
 
             //asetetaan $_POST["poista"]
-            let field = document.createElement("input");
+	        field = document.createElement("input");
             field.setAttribute("type", "hidden");
             field.setAttribute("name", "poista");
             field.setAttribute("value", "true");
@@ -309,36 +346,6 @@ $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
             form.submit();
         }
     }
-
-	document.getElementById('hae_historia').addEventListener('click', function() {
-		let div_container = document.getElementById('historia_container');
-	    let hae_nappi = document.getElementById('hae_historia');
-	    let html;
-	    let historia;
-
-	    $.post(
-		    "ajax_requests.php",
-		    { "hae_otk_historia": hae_nappi.dataset.id },
-		    function (data) {
-		    	if (data) {
-				    hae_nappi.style.visibility = "hidden";
-				    console.log(data);
-
-				    html = "<ul>";
-				    data.forEach(function (otk) {
-					    html += `
-				            <li>${otk.id}, ${otk.tunniste}, ${otk.saapumispaiva} --
-						        <a href='yp_ostotilauskirja_historia_tuotteet.php?id=${otk.id}'>Linkki tuotteet</a>
-						    </li>
-					    </li>`;
-				    });
-				    html += "<ul>";
-
-				    div_container.innerHTML = html;
-			    }
-		    }
-	    );
-	});
 
     $(document).ready(function(){
 

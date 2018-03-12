@@ -228,6 +228,7 @@ if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
 	}
 
 	let osoitekirja = <?= json_encode( $user->toimitusosoitteet )?>;
+
 	valitse_toimitusosoite(0);
 </script>
 
