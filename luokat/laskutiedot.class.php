@@ -53,7 +53,7 @@ class Laskutiedot {
 
 		$this->laskuHeader = ( $indev )
 			? "<h2 style='color: red;'>InDev testilasku</h2>"
-			: "<img src='../img/osax_logo.jpg' alt='Osax.fi'>";
+			: "<img src='./img/osax_logo.jpg' alt='Osax.fi'>";
 
 		/*
 		 * Haetaan tilauksen tiedot, toimitusosoite, tuotteet, ja lopuksi laskun numero tietokannasta.

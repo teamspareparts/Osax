@@ -24,7 +24,7 @@ class Lasku extends Tilaus {
 
 		$this->laskuHeader = ( $indev )
 			? "<h2 style='color: red;'>InDev testilasku</h2>"
-			: "<img src='../img/osax_logo.jpg' alt='Osax.fi'>";
+			: "<img src='./img/osax_logo.jpg' alt='Osax.fi'>";
 
 	}
 
