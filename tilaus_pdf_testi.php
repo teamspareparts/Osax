@@ -1,19 +1,31 @@
 <?php
+
+ini_set('display_errors', 1);
+
+
+set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
+spl_autoload_extensions('.class.php');
+spl_autoload_register();
 require './mpdf/mpdf.php';
-require './luokat/laskutiedot.class.php';
-require './luokat/dbyhteys.class.php'; $db = new DByhteys();
-require './luokat/user.class.php'; $user = new User( $db, 2 );
-require './luokat/yritys.class.php'; $yritys = new Yritys( $db, $user->yritys_id );
-require './luokat/tuote.class.php';
+
 
 function debug($var,$var_dump=false){
 	echo"<br><pre>Print_r ::<br>";print_r($var);echo"</pre>";
 	if($var_dump){echo"<br><pre>Var_dump ::<br>";var_dump($var);echo"</pre><br>";};
 }
 
-$lasku = new Laskutiedot( $db, 3 );
 
+$user_id = 1;
+$tilaus_id = 1;
 $config['indev'] = 1;
+
+
+$db = new DByhteys();
+$user = new User( $db, $user_id );
+$yritys = new Yritys( $db, $user->yritys_id );
+$lasku = new Lasku( $db, $tilaus_id, $config['indev'] );
+
+
 
 require 'misc/lasku_html.php';
 $mpdf = new mPDF();

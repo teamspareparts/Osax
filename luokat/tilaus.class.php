@@ -53,7 +53,7 @@ class Tilaus {
 			foreach ( $row as $property => $propertyValue ) {
 				$this->{$property} = $propertyValue;
 			}
-			$this->hintatiedot[ 'rahtimaksu' ] = $row->pysyva_rahtimaksu;
+			$this->hintatiedot[ 'rahtimaksu' ] = (float)$row->pysyva_rahtimaksu;
 		}
 
 		$this->asiakas = new User($db, $this->kayttaja_id);
