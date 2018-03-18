@@ -1,4 +1,4 @@
-﻿@CHARSET "UTF-8";
+@CHARSET "UTF-8";
 /********************************************
 	General application.
 *********************************************/
@@ -23,11 +23,11 @@ main { display: block; } /* IE */
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 
 
-h1 {
-	font-size: 1.6em;
-	margin: 0.67em 0; /* <top bottom> <right left> */
-}
+h1 { font-size: 1.6em; font-weight: bold; }
+
 h2 { font-size: 1.4em; }
+
+h3 { font-size: 1.17em; font-weight: bold; }
 
 fieldset { background-color: whitesmoke !important; /* //TODO: korjaa pois tuo "important!" */ }
 legend {
@@ -328,8 +328,8 @@ dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
 	color: inherit; /* Valkoinen */
 	background-color: inherit; /* Sininen */
 }
-.otsikko_container .otsikko * {
-	margin: 0 4px; /* Margin ja padding asetetaan jo ylhäällä. */
+.otsikko_container .otsikko :first-of-type {
+	margin: 0 0 0 15px; /* Margin ja padding asetetaan jo ylhäällä. */
 	padding: 0; /* Joten nollataan tässä, jotta esim <p> ei aiheita ongelmia. */
 }
 .otsikko_container .napit {

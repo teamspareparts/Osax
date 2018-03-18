@@ -9,27 +9,26 @@
 require_once 'tecdoc_asetukset.php';?>
 
 <!-- Tuoteikkuna Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-lg" role="document">
+<div class="modal fade" id="myModal">
+	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 
 			<!-- Modal header -->
 			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-					<span aria-hidden="true">&times;</span></button>
-				<ul class="nav nav-pills modal-title" role="tablist">
-					<li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#menu1" id="maintab" role="tab">Tuote</a></li>
-					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu2" role="tab">Kuvat</a></li>
-					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu3" role="tab">Vertailunumerot</a></li>
-					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu4" role="tab">Autot</a></li>
+				<ul class="nav nav-pills modal-title">
+					<li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#menu1" id="maintab">Tuote</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu2">Kuvat</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu3">Vertailunumerot</a></li>
+					<li class="nav-item"><a class="nav-link" data-toggle="tab" href="#menu4">Autot</a></li>
 				</ul>
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
 			</div>
 
 			<!-- Modal body -->
             <div class="modal-body">
 	            <!-- Tab panes -->
 				<div class="tab-content">
-					<div id="menu1" class="tab-pane fade in active" role="tabpanel">
+					<div id="menu1" class="tab-pane fade show active">
 						<div class="flex_row">
 							<div id="modal-thumbnail"></div>
 							<div>
@@ -39,22 +38,26 @@ require_once 'tecdoc_asetukset.php';?>
 							</div>
 						</div>
 					</div>
-					<div id="menu2" class="tab-pane fade text-center" role="tabpanel"></div>
-					<div id="menu3" class="tab-pane fade" role="tabpanel">
+					<div id="menu2" class="tab-pane fade text-center"></div>
+					<div id="menu3" class="tab-pane fade">
 						<div class="flex_row" style="vertical-align: top;">
 							<div style="width: 50%;">
 								<table class="vertailunumero_table" id="modal-oe">
-									<tr><th colspan="2" class="center">OE</th></tr>
+									<thead>
+										<tr><th colspan="2" class="center">OE</th></tr>
+									</thead>
 								</table>
 							</div>
 							<div style="width: 50%;">
 								<table class="vertailunumero_table" id="modal-comparable">
-									<tr><th colspan="2" class="center">Vertailunumerot</th></tr>
+									<thead>
+										<tr><th colspan="2" class="center">Vertailunumerot</th></tr>
+									</thead>
 								</table>
 							</div>
 						</div>
 					</div>
-					<div id="menu4" class="tab-pane fade" role="tabpanel">
+					<div id="menu4" class="tab-pane fade">
 						<ul id="dd"></ul> <!-- Dropdown -->
 					</div>
 				</div>
@@ -231,8 +234,7 @@ require_once 'tecdoc_asetukset.php';?>
                         docTypeName = response.articleDocuments.array[i].docTypeName;
 
                         documentlink += '<img src="./img/pdficon.png" style="margin-right:5px;margin-bottom:7px;">' +
-                            '<a href="' + doc + '" download="' + docName + '">' +
-                            '' + docTypeName + ' (PDF)</a><br>';
+                            '<a href="' + doc + '" download="' + docName + '">' + docTypeName + ' (PDF)</a><br>';
                     }
                 }
             }
@@ -338,12 +340,13 @@ require_once 'tecdoc_asetukset.php';?>
          */
         function oesToHTML(array) {
             let result = "";
+            let oes;
             if (array.length !== 0) {
-                array = array.array;
-                for (let i = 0; i < array.length; i++) {
-	                result += "<tr><td>" + array[i].brandName + "</td>" +
-                        "<td><a href='?haku=" + array[i].oeNumber + "&numerotyyppi=oe&exact=on'>"
-		                + array[i].oeNumber + "</a></td></tr>";
+                oes = array.array;
+                for (let i = 0; i < oes.length; i++) {
+	                result += "<tr><td>" + oes[i].brandName + "</td>" +
+                        "<td><a href='?haku=" + oes[i].oeNumber + "&numerotyyppi=oe&exact=on'>"
+		                + oes[i].oeNumber + "</a></td></tr>";
                 }
             }
             return result;
@@ -369,26 +372,28 @@ require_once 'tecdoc_asetukset.php';?>
             tecdocToCatPort[functionName](params,
 	            function(response){
 	                //Luodaan haetuista vertailunumeroista html-muotoinen taulu
-	                let comparableNumbers = "";
+	                let comparable_numbers_table_content = "";
 	                let sql_values = []; //ajax-pyyntöä varten
+		            let comparable_numbers;
+                    let comparable_table;
 
 	                if ( response.data ) {
-	                    response = response.data.array;
-	                    for (let i = 0; i < response.length; i++) {
-	                        if ( response[i].numberType === 0 || response[i].numberType === 3 ) {
-	                            comparableNumbers += "<tr><td>" + response[i].brandName + "</td>" +
-	                                "<td><a href='?haku=" + response[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
-	                                + response[i].articleNo + "</a></td></tr>";
+                        comparable_numbers = response.data.array;
+	                    for (let i = 0; i < comparable_numbers.length; i++) {
+	                        if ( comparable_numbers[i].numberType === 0 || comparable_numbers[i].numberType === 3 ) {
+	                            comparable_numbers_table_content += "<tr><td>" + comparable_numbers[i].brandName + "</td>" +
+	                                "<td><a href='?haku=" + comparable_numbers[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
+	                                + comparable_numbers[i].articleNo + "</a></td></tr>";
 
 	                            //Otetaan talteen tuotteen articleNo ja brandNo sql-kyselyä varten
-                                sql_values.push(response[i].articleNo.toString().replace(/ /g, ''));
-                                sql_values.push(response[i].brandNo);
+                                sql_values.push(comparable_numbers[i].articleNo.toString().replace(/ /g, ''));
+                                sql_values.push(comparable_numbers[i].brandNo);
 	                        }
 	                    }
 	                }
-	                let comparable_table = $("#modal-comparable");
+	                comparable_table = $("#modal-comparable");
                     comparable_table.find("tr:gt(0)").remove();
-	                comparable_table.append(comparableNumbers);
+	                comparable_table.append(comparable_numbers_table_content);
 
 	                // Haetaan omat vertailutuotteet
                     $.post(
@@ -401,13 +406,13 @@ require_once 'tecdoc_asetukset.php';?>
                             if ( tuotteet.length === 0 ) {
                                 return false;
                             }
-                            comparableNumbers = "";
+                            comparable_numbers_table_content = "";
                             for (let i = 0; i < tuotteet.length; i++) {
-	                            comparableNumbers += "<tr><td>" + tuotteet[i].valmistaja + "</td>" +
+                                comparable_numbers_table_content += "<tr><td>" + tuotteet[i].valmistaja + "</td>" +
 		                            "<td><a href='?haku=" + tuotteet[i].articleNo + "&numerotyyppi=comparable&exact=on'>"
 		                            + tuotteet[i].articleNo + "</a></td></tr>";
                             }
-                            comparable_table.append(comparableNumbers);
+                            comparable_table.append(comparable_numbers_table_content);
                         });
 
                  });
@@ -437,12 +442,11 @@ require_once 'tecdoc_asetukset.php';?>
             });
         }
 
-        response = response.data.array[0];
-
-        let articleId = response.directArticle.articleId;
-        let articleNo = response.directArticle.articleNo;
-        let genericArticleId = response.directArticle.genericArticleId;
-        let OEtable = oesToHTML(response.oenNumbers);
+        let product = response.data.array[0];
+        let articleId = product.directArticle.articleId;
+        let articleNo = product.directArticle.articleNo;
+        let genericArticleId = product.directArticle.genericArticleId;
+        let OEtable = oesToHTML(product.oenNumbers);
 
         //Lisätään OE-taulukko modaliin
 	    let oe_table = $("#modal-oe");
@@ -491,12 +495,13 @@ require_once 'tecdoc_asetukset.php';?>
         tecdocToCatPort[functionName] (params, function (response){
             let pair;
             let articleIdPairs = [];
+            let links;
             if ( response.data ) {
-                response = response.data.array[0];
-                for (let i = 0; i < response.articleLinkages.array.length; i++) {
+                links = response.data.array[0].articleLinkages.array;
+                for (let i = 0; i < links.length; i++) {
                     pair = {
-                        "articleLinkId" : response.articleLinkages.array[i].articleLinkId,
-                        "linkingTargetId" : response.articleLinkages.array[i].linkingTargetId
+                        "articleLinkId" : links[i].articleLinkId,
+                        "linkingTargetId" : links[i].linkingTargetId
                     };
                     articleIdPairs.push(pair);
                     if ( articleIdPairs.length === 25 ) {
@@ -518,11 +523,11 @@ require_once 'tecdoc_asetukset.php';?>
 
         /**
          * Apufunktio ajoneuvojen vuosimallien muotoiluun
-         * @param text
+         * @param teksti
          * @returns {string}
          */
-        function addSlashes( /*string*/text ) {
-            text = String(text);
+        function addSlashes( /*string*/teksti ) {
+            let text = String(teksti);
             return (text.substr(0, 4) + "/" + text.substr(4));
         }
 
@@ -540,17 +545,17 @@ require_once 'tecdoc_asetukset.php';?>
         params = JSON.stringify(params).replace(/,/g,", ");
         tecdocToCatPort[functionName] (params,
 	        function (response) {
-
-	        $("#manufacturer-"+response.data.array[0].linkedVehicles.array[0].manuId).removeClass("loading small");
-	        for (let i=0; i<response.data.array.length ; i++) {
+			let links = response.data.array;
+	        $("#manufacturer-" + links[0].linkedVehicles.array[0].manuId).removeClass("loading small");
+	        for (let i = 0; i < links.length; i++) {
 	            let yearTo = "";
-	            if (typeof response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
-	                yearTo = addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionTo);
+	            if (typeof links[i].linkedVehicles.array[0].yearOfConstructionTo !== 'undefined') {
+	                yearTo = addSlashes(links[i].linkedVehicles.array[0].yearOfConstructionTo);
 	            }
-	            $("#manufacturer-" + response.data.array[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
-	                response.data.array[i].linkedVehicles.array[0].modelDesc + " " +
-	                response.data.array[i].linkedVehicles.array[0].carDesc + " " +
-	                addSlashes(response.data.array[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
+	            $("#manufacturer-" + links[i].linkedVehicles.array[0].manuId).append("<li style='font-size: 14px;'>" +
+                    links[i].linkedVehicles.array[0].modelDesc + " " +
+                    links[i].linkedVehicles.array[0].carDesc + " " +
+	                addSlashes(links[i].linkedVehicles.array[0].yearOfConstructionFrom + "-" +
 	                    yearTo + "</li>"));
 	        }
         });
