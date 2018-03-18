@@ -32,7 +32,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	unset( $_SESSION[ "feedback" ] );
 }
 
-$tilaus = new Laskutiedot($db, $tilaus_id);
+$tilaus = new Tilaus($db, $tilaus_id);
 
 // Löytyikö tilauksen tiedot ID:llä.
 if ( !$tilaus ) {
@@ -76,7 +76,7 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 			<?php endif; ?>
 		</section>
 		<section class="otsikko">
-			<h1 class="inline-block">Tilaus <?=sprintf('%04d', $tilaus->tilaus_nro)?> </h1>
+			<h1 class="inline-block">Tilaus <?=sprintf('%04d', $tilaus->id)?> </h1>
 			<!-- Tilauksen tila -->
 			<?php if ( $tilaus->maksettu == 0 ) : ?>
 				<span style="color:orangered;"> Odottaa maksua. Lasku ei saatavilla. </span>
@@ -114,8 +114,8 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 
 		<div class="table white-bg">
 			<div class="tr">
-				<div class="td pad">Tilausnumero: <?= sprintf('%04d', $tilaus->tilaus_nro) ?></div>
-				<div class="td pad">Päivämäärä: <?= date("d.m.Y", strtotime($tilaus->tilaus_pvm)) ?></div>
+				<div class="td pad">Tilausnumero: <?= sprintf('%04d', $tilaus->id) ?></div>
+				<div class="td pad">Päivämäärä: <?= date("d.m.Y", strtotime($tilaus->paivamaara)) ?></div>
 			</div>
 			<div class="tr">
 				<div class="td pad">Tilaaja: <?= $tilaus->asiakas->etunimi ?> <?= $tilaus->asiakas->sukunimi ?></div>
@@ -200,7 +200,7 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 <?php if ($user->isAdmin()) : ?>
 	<script async>
 		let peruuta_nappi = document.getElementById('peruuta_tilaus');
-		let tilaus_id = <?= $tilaus->tilaus_nro ?>;
+		let tilaus_id = <?= $tilaus->id ?>;
 		let user_id = <?= $tilaus->asiakas->id ?>;
 
 		peruuta_nappi.addEventListener('click', function() {

@@ -72,7 +72,7 @@ class Email {
 	/**
 	 * Lähettää tilausvahvistuksen käyttäjälle; tuotetiedot ja lasku mukaan lukien.
 	 * @param string $email <p> Osoite, johon viesti lähetetään.
-	 * @param Laskutiedot $lasku <p> Tilauksen tiedot (tuotteet, tilaaja, tilausnro)
+	 * @param Lasku $lasku <p> Tilauksen tiedot (tuotteet, tilaaja, tilausnro)
 	 * @param string $file_name <p> Laskun nimi (tiedostonimi siis)
 	 */
 	static function lahetaTilausvahvistus( string $email, Lasku $lasku, string $file_name ) {
@@ -94,7 +94,7 @@ class Email {
 					Jukolankatu 19 80100 Joensuu<br>		
 					puh. 010 5485200<br>
 					janne@osax.fi';
-		Email::$message = "Tilaaja: {$lasku->asiakas->sahkoposti}<br>Tilausnumero:{$lasku->tilaus_nro}
+		Email::$message = "Tilaaja: {$lasku->asiakas->sahkoposti}<br>Tilausnumero:{$lasku->id}
 			<br>Summa: {$lasku->float_toString($lasku->hintatiedot['summa_yhteensa'])} €<br>
 			Tilatut tuotteet:<br>{$productTable} {$contactinfo}";
 

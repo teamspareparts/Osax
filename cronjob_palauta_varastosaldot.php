@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Palautetaan varastosaldot niistä tilauksista, jotka on keskeytetty
  * (maksettu = 0, tarkastetaan vain arkipäivinä)

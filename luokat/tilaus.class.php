@@ -214,13 +214,4 @@ class Tilaus {
 			. ( $ilmanPros ? '' : '&nbsp;&#37;' );
 	}
 
-	/**
-	 * //TODO: Poista? --JJ180302
-	 * @return string
-	 */
-	function maksutapa_toString() {
-		return ($this->maksutapa)
-			? ( "Lasku 14 pv." )
-			: ( "e-korttimaksu" );
-	}
 }
