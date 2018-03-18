@@ -93,9 +93,7 @@ require_once 'tecdoc_asetukset.php';?>
      * @param tecdoc_id Tuotteen tecodc_id
      */
     function productModal(/*int*/ tuote_id, /*int*/ tecdoc_id) {
-        tuote_id = (tuote_id) ? tuote_id : null;
-        tecdoc_id = (tecdoc_id) ? tecdoc_id : null;
-        if ( tuote_id === null && tecdoc_id === null) {
+        if ( !tuote_id && !tecdoc_id ) {
             return false;
         }
         // Tarkastetaan, onko modal jo auki

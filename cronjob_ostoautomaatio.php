@@ -10,7 +10,6 @@ require "luokat/dbyhteys.class.php";
 $db = new DByhteys();
 
 /*Config*/
-//TODO: Configit ini -tiedostoon
 $min_paivat_myynnissa = 30; //Montako päivää ollut myynnissä, vaikka olisi oikeasti ollut vähemmän
 $varmuusprosentti = 0; //Montako prosenttia tilataan enemmän kuin tarvitaan
 $automaatin_selite = "AUTOMAATTI"; //Ostotilauskirjalle menevä selite, jos automaation lisäämä tuote
@@ -48,13 +47,13 @@ function get_toimitusaika(DByhteys $db, int $hankintapaikka_id) : float {
  **********************************************************/
 
 // Tuote päivitettävä jos: tilaus, ostotilauskirjan muokkaus, varastosaldon muokkaus
-//TODO: Fetch limit, että ei kaadu...
-$sql = "  SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo , articleNo
-  		  FROM tuote
-  		  WHERE aktiivinen = 1 AND ensimmaisen_kerran_varastossa IS NOT NULL AND (hyllypaikka IS NOT NULL AND hyllypaikka <> '')";
-  		  		/*AND paivitettava = 1
-  		  		AND ensimmaisen_kerran_varastossa IS NOT NULL
-  		  		AND (hyllypaikka IS NOT NULL AND hyllypaikka <> '')";*/
+//TODO: Fetch limit, että ei kaadu (paivitettava = 1)...
+$sql = "SELECT id, ensimmaisen_kerran_varastossa, hankintapaikka_id, varastosaldo, articleNo
+  	    FROM tuote
+  	    WHERE aktiivinen = 1
+  	    	AND ensimmaisen_kerran_varastossa IS NOT NULL
+  			AND (hyllypaikka IS NOT NULL AND hyllypaikka <> '')";
+			/*AND paivitettava = 1*/
 $tuotteet = $db->query($sql, [], FETCH_ALL);
 
 $date = date("Y-m-d", strtotime("-1 year", time())); //Vuoden takainen pvm

@@ -411,8 +411,8 @@ if ( !empty($_POST['lisaa']) ) {
         $_POST['hankintapaikat'],
         $tuotekoodi,
         str_replace(" ", "", $_POST['tilauskoodi']),
-		str_replace(',', '.', $_POST['ostohinta']), //TODO: Turha, HTML tekee automaattisesti tämän.
-		str_replace(',', '.', $_POST['hinta']),
+		$_POST['ostohinta'],
+		$_POST['hinta'],
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
@@ -435,8 +435,8 @@ elseif ( !empty($_POST['poista']) ) {
 elseif ( !empty($_POST['muokkaa']) ) {
     $array = [
 		str_replace(" ", "", $_POST['tilauskoodi']),
-		str_replace(',', '.', $_POST['ostohinta']), //TODO: HTML tekee tämän automaattisesti.
-		str_replace(',', '.', $_POST['hinta']),
+		$_POST['ostohinta'],
+		$_POST['hinta'],
         $_POST['alv_lista'],
         $_POST['varastosaldo'],
         $_POST['minimimyyntiera'],
@@ -500,6 +500,7 @@ $haku = FALSE;
 $products = $catalog_products = $all_products = [];
 $yrityksien_nimet_alennuksen_asettamista_varten = hae_kaikki_yritykset_ja_lisaa_alasvetovalikko( $db );
 $tuoteryhmien_nimet_tuotteiden_linkitysta_varten = hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko( $db );
+$alv_kannat_tuotteen_muokkausta_varten = hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db );
 
 if ( !empty($_GET['haku']) ) { // Tuotekoodillahaku
 	$haku = TRUE; // Hakutulosten tulostamista varten.
@@ -884,8 +885,7 @@ require 'tuotemodal.php';
 	 */
     function showModifyDialog(id, tuotekoodi, tilauskoodi, ostohinta, hinta, alv, varastosaldo, minimimyyntiera,
                               hyllypaikka, tecdocissa ) {
-        let alv_valikko = <?= json_encode( hae_kaikki_ALV_kannat_ja_lisaa_alasvetovalikko( $db ) ) ?>;
-        //TODO: Eikö nämä pitäisi olla funktion ulkopuol-- y'know what I don't care. --jj170705
+        let alv_valikko = <?= json_encode($alv_kannat_tuotteen_muokkausta_varten) ?>;
         let yrit_valikko = <?= json_encode($yrityksien_nimet_alennuksen_asettamista_varten) ?>;
 		let tr_valikko = <?= json_encode($tuoteryhmien_nimet_tuotteiden_linkitysta_varten) ?>;
 		let vertailunumerolinkitys_html = (tecdocissa === 0) ? '\
