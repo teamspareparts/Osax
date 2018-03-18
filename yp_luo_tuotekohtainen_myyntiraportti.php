@@ -43,7 +43,7 @@ $raportti = "";
 //TODO: Varmista, että keskiostohinta on OK ja ota käyttöön katteessa --20170728 SL
 // Haetaan tuotteet annetuilla rajauksilla
 $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekoodi,
- 			tuote.nimi, SUM(tilaus_tuote.kpl) AS yhteensa_kpl, 
+ 			tuote.nimi, brandi.nimi AS brandi, SUM(tilaus_tuote.kpl) AS yhteensa_kpl,
  			ROUND( tuote.hinta_ilman_ALV, 2 ) AS hinta_ilman_ALV,
  			ROUND( SUM( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) * tilaus_tuote.kpl ), 2 ) AS yhteensa_summa,
  			ROUND( AVG( tilaus_tuote.pysyva_hinta * (1-tilaus_tuote.pysyva_alennus) ), 2 ) AS keskimyyntihinta,
@@ -59,6 +59,8 @@ $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekood
 			ON tilaus.id = tilaus_tuote.tilaus_id
 		RIGHT JOIN tuote
 			ON tilaus_tuote.tuote_id = tuote.id
+		LEFT JOIN brandi
+			ON tuote.brandNo = brandi.id
 		WHERE ( (tilaus.paivamaara > ? 
 				AND tilaus.paivamaara < ? + INTERVAL 1 DAY
 				AND tilaus.maksettu = 1
@@ -71,7 +73,7 @@ $sql = "SELECT tuote.id, tuote.brandNo, tuote.hankintapaikka_id, tuote.tuotekood
 $tuotteet = $db->query($sql, [$pvm_from, $pvm_to, $yritys, $yritys, $vain_myydyt, $brand, $brand, $hankintapaikka, $hankintapaikka], FETCH_ALL);
 
 // Luodaan raportin sisältö
-$raportti = "Brändi;Hankintapaikka;Tuotekoodi;Nimi;KPL Ovh ALV0 (€);" .
+$raportti = "Brand id;Brand;Hankintapaikka;Tuotekoodi;Nimi;KPL Ovh ALV0 (€);" .
 			"Myyty KPL;Myyty yht (€);Myyntikeskihinta (€);Kate%\r\n";
 foreach ($tuotteet as $tuote) {
 	$yhteensa_kpl += $tuote->yhteensa_kpl;
@@ -80,10 +82,11 @@ foreach ($tuotteet as $tuote) {
 	$tuote->hinta_ilman_ALV = str_replace(".", ",", $tuote->hinta_ilman_ALV);
 	$tuote->yhteensa_summa = str_replace(".", ",", $tuote->yhteensa_summa);
 	$tuote->keskimyyntihinta = str_replace(".", ",", $tuote->keskimyyntihinta);
-	$raportti .=    "{$tuote->brandNo};{$tuote->hankintapaikka_id};{$tuote->tuotekoodi};" .
-					"{$tuote->nimi};{$tuote->hinta_ilman_ALV};{$tuote->yhteensa_kpl};" .
-					"{$tuote->yhteensa_summa};{$tuote->keskimyyntihinta};{$tuote->kate}%" .
-					"\r\n";
+	$raportti .=
+		"{$tuote->brandNo};{$tuote->brandi};{$tuote->hankintapaikka_id};{$tuote->tuotekoodi};" .
+		"{$tuote->nimi};{$tuote->hinta_ilman_ALV};{$tuote->yhteensa_kpl};" .
+		"{$tuote->yhteensa_summa};{$tuote->keskimyyntihinta};{$tuote->kate}%" .
+		"\r\n";
 }
 $raportti .= "\r\nYHTEENSÄ\r\n{$yhteensa_myynti} €\r\n{$yhteensa_kpl} kpl";
 // Muutetaan koodaus windows-1252 muotoon

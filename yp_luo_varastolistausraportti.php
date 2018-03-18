@@ -25,10 +25,6 @@ switch ($_POST["sort"]) {
 		break;
 }
 
-// Alustetaan muuttujat
-$tuotteet = [];
-$raportti = "";
-
 //TODO: Varmista, että keskiostohinta on OK ja ota käyttöön katteessa --20170728 SL
 $sql = "SELECT tuote.id, tuote.hyllypaikka, tuote.tuotekoodi, tuote.sisaanostohinta, 
  			tuote.nimi, tuote.varastosaldo,
@@ -52,7 +48,7 @@ $sql = "SELECT tuote.id, tuote.hyllypaikka, tuote.tuotekoodi, tuote.sisaanostohi
 $tuotteet = $db->query($sql, [$brand, $brand, $hankintapaikka, $hankintapaikka], FETCH_ALL);
 
 // Luodaan raportti
-$raportti .= chr(0xEF).chr(0xBB).chr(0xBF); //UTF-8 BOM
+$raportti = "";
 // Otsikkorivi
 if ( $myyntitiedot ) {
 	$raportti .= "Hyllypaikka;Tuotekoodi;Nimi;Ostohinta (alv 0%);Varastosaldo;".
