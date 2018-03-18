@@ -24,7 +24,7 @@ function format_number( $number, int $dec_count = 2, bool $ilman_euro = false ) 
 		return number_format( (float)$number, 0, ',', '.' );
 	} else {
 		return number_format( (float)$number, $dec_count, ',', '.' )
-			. ( $ilman_euro ? '' : '&nbsp;&euro;' );
+			. ( $ilman_euro ? '' : ' €' );
 	}
 }
 
