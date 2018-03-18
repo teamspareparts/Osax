@@ -24,8 +24,12 @@ if ( !$tilaus ) {
 	return;
 }
 
+// Haetaan configista indev
+$config = parse_ini_file( "./config/config.ini.php" );
+$indev = (bool)$config['indev'];
+
 // Yritetään tilata Eoltaksen tilaustuotteet
-$success = EoltasWebservice::orderFromEoltas( $db, $tilaus->id );
+$success = EoltasWebservice::orderFromEoltas( $db, $tilaus->id, $indev );
 if ( $success ) {
 	$sql = "UPDATE tilaus SET tilaustuotteet_tilattu = 1 WHERE id = ?";
 	$db->query($sql, [$tilaus->id]);

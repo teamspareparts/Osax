@@ -315,7 +315,7 @@ class EoltasWebservice {
 	 * @param int $tilaus_id
 	 * @return bool
 	 */
-	public static function orderFromEoltas( DByhteys $db, int $tilaus_id ) : bool {
+	public static function orderFromEoltas( DByhteys $db, int $tilaus_id, bool $indev ) : bool {
 		if ( !$tilaus_id ) {
 			return false;
 		}
@@ -330,7 +330,8 @@ class EoltasWebservice {
 				WHERE tilaus.id = ?
 					AND tilaus.maksettu = 1
 					AND tilaus_tuote.tilaustuote = 1
-					AND tuote.hankintapaikka_id = ?";
+					AND tuote.hankintapaikka_id = ?
+					AND tilaus.tilaustuotteet_tilattu = 0";
 		$tuotteet = $db->query($sql, [$tilaus_id, $hankintapaikka_id], FETCH_ALL);
 		if ( !$tuotteet ) {
 			return true;
@@ -368,7 +369,11 @@ class EoltasWebservice {
 			}
 
 			// Tehdään tilaus
-			//$order = self::order();
+			if ( !$indev ) {
+				$order = self::order();
+			} else {
+				self::clearBasket();
+			}
 
 		} catch ( Exception $e ) {
 			// Yritetään tyhjentää ostoskori varmuuden varalta.
