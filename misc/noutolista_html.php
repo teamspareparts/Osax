@@ -17,7 +17,7 @@ $pdf_noutolista_html_footer = '
 /**
  * Noutolistan alkuosa. Logo ja laskun tiedot. Sen jälkeen tuotetaulukon header row.
  */
-$pdf_noutolista_html_body = "
+$pdf_noutolista_html_body_begin = "
 <table style='width:100%;'>
 	<tbody>
 	<tr><td colspan='2'>
@@ -64,23 +64,55 @@ $pdf_noutolista_html_body = "
 	<tbody>
 ";
 
+$pdf_noutolista_tuotteet = "";
+$pdf_noutolista_tilaustuotteet = "";
+
 /**
  * Lisätään tuotteiden tiedot
  */
 $i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
 foreach ( $lasku->tuotteet as $tuote ) {
-	$pdf_noutolista_html_body .= "
-		<tr><td style='text-align:right;'>".sprintf('%03d', $i++)."</td>
+	if ( !$tuote->tilaustuote ) {
+		$pdf_noutolista_tuotteet .= "
+		<tr><td style='text-align:right;'>" . sprintf('%03d', $i++) . "</td>
 			<td style='text-align:left;'>{$tuote->tuotekoodi}</td>
 			<td style='text-align:left;'>{$tuote->nimi}</td>
 			<td style='text-align:left;'>{$tuote->valmistaja}</td>
 			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
 			<td style='text-align:right;'>{$tuote->hyllypaikka}</td>
 		</tr>";
+	}
 }
 
-$pdf_noutolista_html_body .= "
+$i = 1; // Tuotteiden juoksevaa numerointia varten laskussa.
+foreach ( $lasku->tuotteet as $tuote ) {
+	if ( $tuote->tilaustuote ) {
+		$pdf_noutolista_tilaustuotteet .= "
+		<tr><td style='text-align:right;'>" . sprintf('%03d', $i++) . "</td>
+			<td style='text-align:left;'>{$tuote->tuotekoodi}</td>
+			<td style='text-align:left;'>{$tuote->nimi}</td>
+			<td style='text-align:left;'>{$tuote->valmistaja}</td>
+			<td style='text-align:right;'>{$tuote->kpl_maara}</td>
+			<td style='text-align:right;'>{$tuote->hyllypaikka}</td>
+		</tr>";
+	}
+}
+
+$pdf_noutolista_html_body_end = "
 	</tbody>
 </table>
 <hr>
 ";
+
+$pdf_noutolista_tehdastilaus_otsikko = "
+	<div style='font-weight:bold;text-align:center;'> TEHDASTILAUS </div>";
+
+/**
+ * Noutolistan body
+ */
+$pdf_noutolista_tehdastilaus_html_body =
+	$pdf_noutolista_tehdastilaus_otsikko . $pdf_noutolista_html_body_begin .
+	$pdf_noutolista_tilaustuotteet . $pdf_noutolista_html_body_end;
+
+$pdf_noutolista_html_body =
+	$pdf_noutolista_html_body_begin . $pdf_noutolista_tuotteet . $pdf_noutolista_html_body_end;

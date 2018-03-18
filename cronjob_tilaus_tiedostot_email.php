@@ -71,7 +71,21 @@ if ( $rows ) {
 		$mpdf = new mPDF();
 		$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 		$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
-		$mpdf->WriteHTML( $pdf_noutolista_html_body );
+		// Tavalliset tuotteet ja tehdastilaus
+		if ( $pdf_noutolista_tuotteet != "" && $pdf_noutolista_tilaustuotteet != "" ) {
+			$mpdf->WriteHTML($pdf_noutolista_html_body);
+			$mpdf->AddPage();
+			$mpdf->WriteHTML($pdf_noutolista_tehdastilaus_html_body);
+		}
+		// Vain tavalliset tuotteet
+		elseif ( $pdf_noutolista_tuotteet != "" ) {
+			$mpdf->WriteHTML($pdf_noutolista_html_body);
+		}
+		// Vain tehdastilaus
+		else {
+			$mpdf->WriteHTML($pdf_noutolista_tehdastilaus_html_body);
+		}
+
 		$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro)
 			. "-{$lasku->asiakas->id}.pdf";
 		$mpdf->Output( $noutolista_nimi, 'F' );

@@ -39,7 +39,20 @@ require 'misc/noutolista_html.php';
 $mpdf = new mPDF();
 $mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
 $mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
-$mpdf->WriteHTML( $pdf_noutolista_html_body );
+// Tavalliset tuotteet ja tehdastilaus
+if ( $pdf_noutolista_tuotteet != "" && $pdf_noutolista_tilaustuotteet != "" ) {
+	$mpdf->WriteHTML($pdf_noutolista_html_body);
+	$mpdf->AddPage();
+	$mpdf->WriteHTML($pdf_noutolista_tehdastilaus_html_body);
+}
+// Tavalliset tuotteet
+elseif ( $pdf_noutolista_tuotteet != "" ) {
+	$mpdf->WriteHTML($pdf_noutolista_html_body);
+}
+// Tehdastilaus
+else {
+	$mpdf->WriteHTML($pdf_noutolista_tehdastilaus_html_body);
+}
 $mpdf->Output("./testi-noutolista.pdf", 'F');
 
 
