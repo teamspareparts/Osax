@@ -7,6 +7,7 @@ if ( empty( $_GET[ 'ORDER_NUMBER' ] ) ) {
 	header( 'Location: etusivu.php' );
 	exit;
 }
+
 $tilaus_id = (int)$_GET[ 'ORDER_NUMBER' ];
 
 sleep(300); // Jotta käyttäjä varmasti ehtii ensin payment_process sivulle.
@@ -33,7 +34,11 @@ switch ( $get_count ) {
 			 * Jos tilaus on jo peruutettu, tällä sivulla ei tehdä mitään.
 			 */
 
-			$sql = "SELECT id FROM tilaus WHERE id = ? AND kayttaja_id = ? AND maksettu = 0";
+			$sql = "SELECT id 
+					FROM tilaus 
+					WHERE id = ? 
+						AND kayttaja_id = ? 
+						AND maksettu = 0";
 			$result = $db->query( $sql, [ $tilaus_id, $user->id ] );
 
 			if ( $result ) {
@@ -51,54 +56,15 @@ switch ( $get_count ) {
 			 * Jos käyttäjä palaa suoraan takaisin payment_process-sivulle, se hyväksytään siellä.
 			 * Jos maksu on jo hyväksytty, tällä sivulla ei tehdä mitään.
 			 */
-			$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = 0 WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
+			$sql = "UPDATE tilaus 
+					SET maksettu = 1, maksutapa = 0 
+					WHERE id = ? 
+						AND kayttaja_id = ? 
+						AND maksettu != 1";
 			$result = $db->query( $sql, [ $tilaus_id, $user->id ] );
 
-			if ( $result ) {
-				require './mpdf/mpdf.php';
+			// Laskun/noutolistan luonti tapahtuu cronjobin kautta.
 
-				$config = parse_ini_file( "./config/config.ini.php" );
-
-				$lasku = new Lasku( $db, $tilaus_id, $config['indev'] );
-				$lasku->luoLaskunNumero( $db );
-
-				if ( !file_exists('./tilaukset') ) {
-					mkdir( './tilaukset' );
-				}
-
-				/********************
-				 * Laskun luonti
-				 ********************/
-				$mpdf = new mPDF();
-				require './misc/lasku_html.php';
-				$mpdf->SetHTMLHeader( $pdf_lasku_html_header );
-				$mpdf->SetHTMLFooter( $pdf_lasku_html_footer );
-				$mpdf->WriteHTML( $pdf_lasku_html_body );
-				$lasku_nimi = "./tilaukset/lasku-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
-				$mpdf->Output( $lasku_nimi, 'F' );
-
-				/********************
-				 * Noutolistan luonti
-				 ********************/
-				$mpdf = new mPDF();
-				require './misc/noutolista_html.php';
-				$mpdf->SetHTMLHeader( $pdf_noutolista_html_header );
-				$mpdf->SetHTMLFooter( $pdf_noutolista_html_footer );
-				$mpdf->WriteHTML( $pdf_noutolista_html_body );
-				$noutolista_nimi = "./tilaukset/noutolista-" . sprintf('%05d', $lasku->laskunro) . "-{$user->id}.pdf";
-				$mpdf->Output( $noutolista_nimi, 'F' );
-
-				/********************
-				 * Sähköpostit
-				 ********************/
-				Email::lahetaTilausvahvistus( $user->sahkoposti, $lasku, $lasku_nimi );
-				Email::lahetaNoutolista( $tilaus_id, $noutolista_nimi );
-
-				if ( !$_SESSION['indev'] ) {
-					// Kopio Jannelle
-					Email::lahetaTilausvahvistus( 'janne@osax.fi', $lasku, $lasku_nimi );
-				}
-			}
 		}
 		break;
 }

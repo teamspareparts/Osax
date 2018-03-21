@@ -56,8 +56,11 @@ else {
 if ( !empty( $tilaus_id ) ) {
 	unset( $_SESSION[ 'tilaus' ] );
 
-	$sql = "UPDATE tilaus SET maksettu = 1, maksutapa = ? 
-			WHERE id = ? AND kayttaja_id = ? AND maksettu != 1";
+	$sql = "UPDATE tilaus
+			SET maksettu = 1, maksutapa = ? 
+			WHERE id = ? 
+				AND kayttaja_id = ? 
+				AND maksettu != 1";
 	$result = $db->query( $sql, [ $maksutapa, $tilaus_id, $user->id ] );
 
 	/**
