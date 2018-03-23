@@ -25,7 +25,7 @@ if ( isset($_POST['lisaa']) ) {
 	];
     //Tarkastetaan onko hankintapaikalla jo toistuva tilauskirja
 	$sql = "SELECT id FROM ostotilauskirja WHERE toimitusjakso > 0 AND hankintapaikka_id = ?";
-    if ( $db->query($sql, [$hankintapaikka_id]) ) { //Vain yksi toistuva ostotilauskirja
+    if ( $db->query($sql, [$hankintapaikka_id]) && $toimitusjakso != 0 ) { //Vain yksi toistuva ostotilauskirja
         $_SESSION["feedback"] = "<p class='error'>Hankintapaikalla voi olla vain yksi aktiivinen tilauskirja.</p>";
     }
     else {
