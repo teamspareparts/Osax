@@ -11,9 +11,16 @@ if ( !$user->isAdmin() ) {
  * @return \Ostotilauskirja[]
  */
 function hae_ostotilauskirjat( DByhteys $db ) {
-	$sql = "SELECT * FROM ostotilauskirja_arkisto
+	$sql = "SELECT otk_a.id, tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
+  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti, 
+  				hankintapaikka_id, hp.nimi AS hankintapaikka,
+  				(SELECT IFNULL(SUM(otk_t_a.kpl*t.sisaanostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a 
+  				LEFT JOIN tuote t ON t.id = otk_t_a.tuote_id WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
+  					AS hinta
+			FROM ostotilauskirja_arkisto otk_a
+			LEFT JOIN hankintapaikka hp ON otk_a.hankintapaikka_id = hp.id
 			WHERE hyvaksytty = 1
- 			ORDER BY saapumispaiva";
+ 			ORDER BY saapumispaiva DESC";
 	return $db->query( $sql, [], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
 }
 
@@ -29,12 +36,13 @@ $otkt = hae_ostotilauskirjat( $db );
 ?>
 
 <!DOCTYPE html>
-<html lang="fi" xmlns="http://www.w3.org/1999/html">
+<html lang="fi">
 <head>
 	<meta charset="UTF-8">
 	<title>Ostotilauskirjat</title>
 	<link rel="stylesheet" href="css/styles.css">
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 </head>
 <body>
 
@@ -51,13 +59,34 @@ $otkt = hae_ostotilauskirjat( $db );
 		</section>
 	</div>
 
-	<ul><?php foreach ( $otkt as $otk ) : ?>
-		<li><?= $otk->id . ", " . $otk->tunniste . ", " . $otk->saapumispaiva . " -- " ?>
-			<a href="yp_ostotilauskirja_historia_tuotteet.php?id=<?= $otk->id ?>">Linkki tuotteet</a>
-		</li>
-		<?php endforeach; ?>
-	</ul>
-</main>
+	<?php if ( $otkt ) : ?>
+		<table style="width:90%; margin:auto;">
+			<thead>
+			<tr>
+				<th>Hankintapaikka</th>
+				<th>Tunniste</th>
+				<th>Lähetyspäivä</th>
+				<th style="white-space:nowrap;">Saapumispäivä<i class="material-icons">arrow_downward</i></th>
+				<th class="number">Hinta</th>
+				<th class="number">Rahti</th>
+			</tr>
+			</thead>
+			<tbody>
+			<?php foreach ( $otkt as $otk ) : ?>
+				<tr data-id="<?=$otk->id?>" data-href="yp_ostotilauskirja_historia_tuotteet.php?id=<?=$otk->id?>">
+					<td data-id="<?=$otk->hankintapaikka_id?>"><?= $otk->hankintapaikka ?></td>
+					<td><?= $otk->tunniste ?></td>
+					<td><?= $otk->lahetettyHieno ?></td>
+					<td><?= $otk->saapumispaivaHieno ?></td>
+					<td class="number"><?= format_number($otk->hinta) ?></td>
+					<td class="number"><?= format_number($otk->rahti) ?></td>
+				</tr>
+			<?php endforeach; ?>
+			</tbody>
+		</table>
+	<?php else : ?>
+		<p>Ei historiaa saatavilla!</p>
+	<?php endif; ?>
 
 <?php require 'footer.php'; ?>
 
@@ -65,6 +94,14 @@ $otkt = hae_ostotilauskirjat( $db );
 	document.getElementById('takaisin_nappi').addEventListener('click', function() {
 		window.history.back();
 	});
+
+
+	$('*[data-href]')
+		.css('cursor', 'pointer')
+		.click(function(){
+			window.location = $(this).data('href');
+			return false;
+		});
 </script>
 
 </body>

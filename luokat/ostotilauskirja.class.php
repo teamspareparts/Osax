@@ -42,4 +42,17 @@ class Ostotilauskirja {
 	/** @var int $ostotilauskirja_id WAT?? */
 	public $ostotilauskirja_id;
 
+	//Muut:
+	/** @var double $hinta */
+	public $hinta;
+	/** @var int $kpl Tuotteiden määrä */
+	public $kpl;
+	/** @var string $lahetettyHieno DD.MM.YYYY tulostus */
+	public $lahetettyHieno;
+	/** @var string $saapumispaivaHieno DD.MM.YYYY tulostus */
+	public $saapumispaivaHieno;
+	/** @var string $hankintapaikka */
+	public $hankintapaikka;
+
+
 }
