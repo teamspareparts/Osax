@@ -22,7 +22,6 @@ main { display: block; } /* IE */
 
 a, a:hover, a:focus { text-decoration: none; } /* Poistaa alleviivauksen linkeistä. Näyttää siistimmältä. */
 
-
 h1 { font-size: 1.6em; font-weight: bold; }
 
 h2 { font-size: 1.4em; }
@@ -143,7 +142,6 @@ dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
 
 .td { display: table-cell; }
 .pad { padding: 10px; }
-
 
 
 /********************************************
@@ -328,9 +326,12 @@ dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
 	color: inherit; /* Valkoinen */
 	background-color: inherit; /* Sininen */
 }
-.otsikko_container .otsikko :first-of-type {
-	margin: 0 0 0 15px; /* Margin ja padding asetetaan jo ylhäällä. */
+.otsikko_container .otsikko * {
+	margin: 0 6px; /* Margin ja padding asetetaan jo ylhäällä. */
 	padding: 0; /* Joten nollataan tässä, jotta esim <p> ei aiheita ongelmia. */
+}
+.otsikko_container .otsikko span {
+	color: black;
 }
 .otsikko_container .napit {
 	display: flex;
