@@ -28,6 +28,32 @@ function format_number( $number, int $dec_count = 2, bool $ilman_euro = false ) 
 	}
 }
 
+/**
+ * Tarkistetaan feedback, ja estetään formin uudelleenlähetys.
+ * @return string $feedback
+ */
+function check_feedback_POST() {
+	// Estää formin uudellenlähetyksen
+	if ( !empty($_POST) ){
+		header("Location: " . $_SERVER['REQUEST_URI']);
+		exit();
+	}
+	// Tarkistaa onko SESSION-datassa feedbackia tulostettavana sivulle.
+	$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
+	unset($_SESSION["feedback"]);
+	return $feedback;
+}
+
+/**
+ * Tarkistaa onko käyttäjä admin. Jos ei, heittää etusivulle.
+ * @param \User $user
+ */
+function tarkista_admin( User $user ) {
+	if ( !$user->isAdmin() ) {
+		header("Location:etusivu.php"); exit();
+	}
+}
+
 /*
  * Luokat ladataan jatkossa tarpeen mukaan. PHP etsii tarvittavan luokan automaattisesti luokat-kansiosta
  */

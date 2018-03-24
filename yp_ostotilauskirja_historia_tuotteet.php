@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
 
-if ( !$user->isAdmin() ) {
-	header("Location:etusivu.php"); exit();
-}
+tarkista_admin( $user );
+$feedback = check_feedback_POST();
 
 //tarkastetaan GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
 $otk_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -27,14 +26,6 @@ function sortProductsByName( array $products ) : array {
 	});
 	return $products;
 }
-
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ){
-	header("Location: " . $_SERVER['REQUEST_URI']);
-	exit();
-}
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-unset($_SESSION["feedback"]);
 
 // Haetaan ostotilauskirjalla olevat tuotteet
 $sql = "SELECT t1.*, otk_t.*,
