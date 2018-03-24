@@ -1,9 +1,6 @@
 <?php declare(strict_types=1);
 require '_start.php'; global $db, $user, $cart;
-
-if ( !$user->isAdmin() ) {
-    header("Location:etusivu.php"); exit();
-}
+tarkista_admin( $user );
 
 /**
  * Hakee kaikki ostotilauskirjat
@@ -23,14 +20,6 @@ function hae_ostotilauskirjat( DByhteys $db ) {
  			ORDER BY saapumispaiva DESC";
 	return $db->query( $sql, [], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
 }
-
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ){
-    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-    exit();
-}
-$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-unset($_SESSION["feedback"]);
 
 $otkt = hae_ostotilauskirjat( $db );
 ?>
