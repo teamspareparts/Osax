@@ -32,4 +32,13 @@ class OtkTuote extends Tuote {
 	/** @var float $ostohinta */
 	public $ostohinta;
 
+	// Muuta:
+	/** @var int $vuosimyynti_kpl */
+	public $vuosimyynti_kpl;
+	/** @var int $vuosimyynti_hylly_kpl */
+	public $vuosimyynti_hylly_kpl;
+	/** @var int $sisaanostohinta */
+	public $sisaanostohinta;
+	/** @var int $kokonaishinta */
+	public $kokonaishinta;
 }

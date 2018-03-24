@@ -2,69 +2,65 @@
 require '_start.php'; global $db, $user, $cart;
 
 tarkista_admin( $user );
-$feedback = check_feedback_POST();
 
 //tarkastetaan GET muuttujat sallittuja ja haetaan ostotilauskirjan tiedot
-$otk_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ( !$otk = $db->query(
-		"SELECT id, rahti, hankintapaikka_id, tunniste FROM ostotilauskirja_arkisto WHERE id = ? LIMIT 1", [$otk_id],
-		false, null, "Ostotilauskirja") ) {
+$sql = "SELECT otk_a.id, rahti, hankintapaikka_id, tunniste, hp.nimi AS hankintapaikka, lahetetty
+		FROM ostotilauskirja_arkisto otk_a
+		LEFT JOIN hankintapaikka hp ON otk_a.hankintapaikka_id = hp.id
+		WHERE otk_a.id = ? LIMIT 1";
+/** @var \Ostotilauskirja $otk */
+$otk = $db->query($sql, [ isset($_GET['id']) ? (int)$_GET['id'] : 0 ],
+                  false, null, "Ostotilauskirja");
+if ( !$otk ) {
 	header("Location: yp_ostotilauskirja_historia.php");
 	exit();
 }
 
-/**
- * Järjestetään tuotteet artikkelinumeron mukaan.
- * @param array $products
- * @return array <p> Sama array sortattuna
- */
-function sortProductsByName( array $products ) : array {
-	//TODO: Sitten kun Janne on saanut päivitettyä kantaan tilauskoodit,
-	//TODO: muutetaan vertailu artikkelinumerosta tilauskoodeihin.
-	usort($products, function ($a, $b) {
-		return ($a->articleNo > $b->articleNo);
-	});
-	return $products;
-}
 
 // Haetaan ostotilauskirjalla olevat tuotteet
-$sql = "SELECT t1.*, otk_t.*,
- 			(t1.sisaanostohinta * otk_t.kpl) AS kokonaishinta,
-			SUM(t2.varastosaldo) AS hyllyssa_vastaavia_tuotteita,
+$sql = "SELECT t1.tilauskoodi, t1.tuotekoodi, t1.valmistaja, t1.nimi, t1.sisaanostohinta,
+			otk_t_a.kpl, otk_t_a.selite, (t1.sisaanostohinta * otk_t_a.kpl) AS kokonaishinta,
+			SUM(t_hylly.varastosaldo) AS hyllyssa_vastaavia_tuotteita,
 			
 			(SELECT sum(kpl)
 				FROM tilaus_tuote
-				INNER JOIN tilaus ON tilaus_tuote.tilaus_id = tilaus.id
-					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+				INNER JOIN tilaus 
+					ON tilaus_tuote.tilaus_id = tilaus.id
+					AND tilaus.paivamaara > DATE_SUB( ?, INTERVAL 1 YEAR )
 				WHERE tuote_id = t1.id AND tilaus.maksettu = 1)
 			AS vuosimyynti_kpl,
 				
 			(SELECT sum(tt.kpl)
 				FROM tuote t3
-				INNER JOIN tilaus_tuote tt ON tt.tuote_id = t3.id
-				INNER JOIN tilaus ON tt.tilaus_id = tilaus.id
-					AND tilaus.paivamaara > DATE_SUB(NOW(),INTERVAL 1 YEAR)
+				INNER JOIN tilaus_tuote tt 
+					ON tt.tuote_id = t3.id
+				INNER JOIN tilaus 
+					ON tt.tilaus_id = tilaus.id
+					AND tilaus.paivamaara > DATE_SUB( ?, INTERVAL 1 YEAR )
 				WHERE t3.hyllypaikka = t1.hyllypaikka AND tilaus.maksettu = 1)
 			AS vuosimyynti_hylly_kpl
 				
-        FROM ostotilauskirja_tuote otk_t
+        FROM ostotilauskirja_tuote_arkisto otk_t_a
+        
         INNER JOIN tuote t1
-        	ON otk_t.tuote_id = t1.id
-        LEFT JOIN tuote t2
-        	ON t1.hyllypaikka = t2.hyllypaikka AND t2.hyllypaikka <> ''
-        		AND t1.id != t2.id AND t2.aktiivinen = 1
+        	ON otk_t_a.tuote_id = t1.id
+        	
+        LEFT JOIN tuote t_hylly
+        	ON t1.hyllypaikka = t_hylly.hyllypaikka AND t_hylly.hyllypaikka <> ''
+        		AND t1.id != t_hylly.id AND t_hylly.aktiivinen = 1
+        		
         WHERE ostotilauskirja_id = ?
         GROUP BY tuote_id, automaatti, tilaustuote
         ORDER BY t1.articleNo";
-$tuotteet = $db->query( $sql, [$otk_id], FETCH_ALL, null, "OtkTuote");
-//$products = sortProductsByName($products);
+/** @var \OtkTuote[] $tuotteet */
+$tuotteet = $db->query( $sql, [$otk->lahetetty,$otk->lahetetty,$otk->id], FETCH_ALL, null, "OtkTuote");
 
 // Haetaan tuotteiden yhteishinta ja kappalemäärä
-$sql = "SELECT SUM(tuote.sisaanostohinta * kpl) AS tuotteet_hinta, SUM(kpl) AS tuotteet_kpl
-        FROM ostotilauskirja_tuote 
-        LEFT JOIN tuote ON ostotilauskirja_tuote.tuote_id = tuote.id 
+$sql = "SELECT SUM(tuote.sisaanostohinta * otk_t_a.kpl) AS tuotteet_hinta, SUM(otk_t_a.kpl) AS tuotteet_kpl
+        FROM ostotilauskirja_tuote_arkisto otk_t_a
+        LEFT JOIN tuote ON otk_t_a.tuote_id = tuote.id 
         WHERE ostotilauskirja_id = ?";
-$yht = $db->query($sql, [$otk_id]);
+$yht = $db->query($sql, [$otk->id]);
 $yht_hinta = $yht ? ($yht->tuotteet_hinta + $otk->rahti) : $otk->rahti;
 $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 ?>
@@ -89,18 +85,16 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 		<section class="otsikko">
 			<span>OTK Arkisto</span>
 			<h1><?=$otk->tunniste?></h1>
+			<span><?=$otk->hankintapaikka?></span>
 		</section>
 	</div>
 
-	<?= $feedback?>
-
-	<table style="min-width: 90%;">
+	<table style="min-width: 90%; margin: auto;">
 		<thead>
 			<tr><th>Tilauskoodi</th>
 				<th>Tuotenumero</th>
 				<th>Tuote</th>
 				<th class="number">KPL</th>
-				<th class="number">Varastosaldo</th>
 				<th class="number">Myynti kpl</th>
 				<th class="number">Hyllypaikan myynti</th>
 				<th class="number">Ostohinta</th>
@@ -112,17 +106,17 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 			<!-- Rahtimaksu -->
 			<tr><td colspan="2"></td>
 				<td>Rahtimaksu</td>
-				<td colspan="4"></td>
+				<td colspan="3"></td>
 				<td class="number"><?=format_number($otk->rahti)?></td>
 				<td class="number"><?=format_number($otk->rahti)?></td>
-				<td colspan="5"></td></tr>
+				<td></td>
+			</tr>
 			<!-- Tuotteet -->
 			<?php foreach ( $tuotteet as $tuote ) : ?>
-				<tr class="tuote"><td><?=$tuote->tilauskoodi?></td>
+				<tr data-id="<?=$tuote->id?>"><td><?=$tuote->tilauskoodi?></td>
 					<td><?=$tuote->tuotekoodi?></td>
 					<td><?=$tuote->valmistaja?><br><?=$tuote->nimi?></td>
 					<td class="number"><?=format_number( $tuote->kpl, 0)?></td>
-					<td class="number"><?=format_number( $tuote->varastosaldo, 0)?></td>
 					<td class="number"><?=format_number( $tuote->vuosimyynti_kpl, 0)?></td>
 					<td class="number"><?=format_number( $tuote->vuosimyynti_hylly_kpl, 0)?></td>
 					<td class="number"><?=format_number( $tuote->sisaanostohinta)?></td>
@@ -139,12 +133,13 @@ $yht_kpl = $yht ? $yht->tuotteet_kpl : 0;
 				</tr>
 			<?php endforeach;?>
 			<!-- Yhteensä -->
-			<tr class="border_top"><td>YHTEENSÄ</td>
+			<tr class="border_top">
+				<td>YHTEENSÄ</td>
 				<td colspan="2"></td>
 				<td class="number"><?= format_number($yht_kpl,0)?></td>
-				<td colspan="4"></td>
+				<td colspan="3"></td>
 				<td class="number"><?=format_number($yht_hinta)?></td>
-				<td colspan="5"></td>
+				<td></td>
 			</tr>
 		</tbody>
 	</table>
