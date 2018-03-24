@@ -53,7 +53,7 @@ else if ( isset($_POST['muokkaa']) ) {
             SET oletettu_lahetyspaiva = ?, oletettu_saapumispaiva = ?, rahti = ?, toimitusjakso = ?
             WHERE id = ?";
     if ( $db->query($sql, $arr) ) {
-        $_SESSION["feedback"] = "<p class='success'>Muokaus onnistui.</p>";
+        $_SESSION["feedback"] = "<p class='success'>Muokkaus onnistui.</p>";
     }
     //Merkataan, että tuotteiden riittävyys on laskettava uudelleen
     $sql = "UPDATE tuote
@@ -72,14 +72,7 @@ else if( isset($_POST['poista']) ) {
     }
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ){
-    header("Location: " . $_SERVER['REQUEST_URI']); //Estää formin uudelleenlähetyksen
-    exit();
-} else {
-	$feedback = isset($_SESSION["feedback"]) ? $_SESSION["feedback"] : "";
-	unset($_SESSION["feedback"]);
-}
+$feedback = check_feedback_POST();
 
 // Haetaan ostotilauskirjat
 $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hinta,
@@ -93,15 +86,18 @@ $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hi
  		GROUP BY ostotilauskirja.id";
 $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
-$sql = "SELECT * FROM ostotilauskirja_arkisto 
-			WHERE hankintapaikka_id = ? AND hyvaksytty = 1 
-			ORDER BY saapumispaiva";
+$sql = "SELECT tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
+  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti 
+		FROM ostotilauskirja_arkisto 
+		WHERE hankintapaikka_id = ? AND hyvaksytty = 1 
+		ORDER BY saapumispaiva";
+/** @var \Ostotilauskirja[] $otk_historia */
 $otk_historia = $db->query( $sql, [$hankintapaikka_id],
                             FETCH_ALL, null, "Ostotilauskirja" );
 ?>
 
 <!DOCTYPE html>
-<html lang="fi" xmlns="http://www.w3.org/1999/html">
+<html lang="fi">
 <head>
 <meta charset="UTF-8">
 <link rel="stylesheet" href="css/styles.css">
@@ -138,15 +134,16 @@ $otk_historia = $db->query( $sql, [$hankintapaikka_id],
     <?= $feedback?>
 
     <?php if ( $ostotilauskirjat ) : ?>
-        <table>
+        <table style="margin: auto; width: 90%;">
             <thead>
+            <tr><th colspan="8" class="center" style="background-color:#1d7ae2;">OSTOTILAUSKIRJAT:</th></tr>
             <tr><th>Tunniste</th>
                 <th>Toimitusväli</th>
                 <th>Lähetyspäivä</th>
                 <th>Saapumispäivä</th>
-                <th>Tuotteet</th>
-                <th>Hinta</th>
-                <th>Rahti</th>
+                <th class="number">Tuotteet</th>
+                <th class="number">Hinta</th>
+                <th class="number">Rahti</th>
                 <th></th>
             </tr>
             </thead>
@@ -166,11 +163,11 @@ $otk_historia = $db->query( $sql, [$hankintapaikka_id],
 						<?= date("d.m.Y", strtotime($otk->oletettu_lahetyspaiva))?></td>
                     <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= date("d.m.Y", strtotime($otk->oletettu_saapumispaiva))?></td>
-                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+                    <td class="number" data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_number($otk->kpl,0)?></td>
-                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+                    <td class="number" data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_number($otk->hinta)?></td>
-                    <td data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
+                    <td class="number" data-href="yp_ostotilauskirja_tuote.php?id=<?=$otk->id?>">
                         <?= format_number($otk->rahti)?></td>
                     <td class="toiminnot">
                         <a class="nappi" href='javascript:void(0)'
@@ -190,33 +187,30 @@ $otk_historia = $db->query( $sql, [$hankintapaikka_id],
         <p>Ei ostotilaukirjoja.</p>
     <?php endif; ?>
 
-	<hr>
+	<br><hr>
 
 	<h2>Historia:</h2>
 	<?php if ( $otk_historia ) : ?>
-		<table id="otk_hist">
+		<table id="otk_hist" style="width: 90%; margin: auto;">
 			<thead>
+			<tr><th colspan="7" class="center" style="background-color:#1d7ae2;">HISTORIA:</th></tr>
 			<tr><th>Tunniste</th>
-				<th>Toimitusväli</th>
 				<th>Lähetyspäivä</th>
 				<th>Saapumispäivä</th>
 				<th>Tuotteet</th>
 				<th>Hinta</th>
-				<th>Rahti</th>
-				<th></th>
+				<th class="number">Rahti</th>
 			</tr>
 			</thead>
 			<tbody>
 			<?php foreach ( $otk_historia as $otk ) : ?>
 				<tr data-id="<?=$otk->id?>" data-href="yp_ostotilauskirja_historia_tuotteet.php?id=<?=$otk->id?>">
-					<td><?= $otk->tunniste?></td>
-					<td></td>
-					<td></td>
-					<td></td>
-					<td><?= format_number($otk->kpl,0)?></td>
-					<td><?= format_number($otk->hinta)?></td>
-					<td><?= format_number($otk->rahti)?></td>
-					<td><a href='yp_ostotilauskirja_historia_tuotteet.php?id=<?=$otk->id?>'>Tuotteet</a></td>
+					<td><?= $otk->tunniste ?></td>
+					<td><?= $otk->lahetettyHieno ?></td>
+					<td><?= $otk->saapumispaivaHieno ?></td>
+					<td>---</td>
+					<td>---</td>
+					<td class="number"><?= format_number($otk->rahti) ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
