@@ -62,7 +62,7 @@ $asiakkaat = $rows = $db->query(
 
 	<?= $feedback ?>
 
-	<section class="flex_row" style="margin:5px;">
+	<section class="flex_row" style="margin:5px; align-items: center">
 		<p>Yrityksen tiedot:</p>
 		<div style="padding: 6pt 10pt; background-color:lightgrey;">
 			<?=$yritys->y_tunnus?><br><?=$yritys->puhelin?><br><?=$yritys->sahkoposti?></div>

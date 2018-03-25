@@ -85,7 +85,7 @@ if ( !empty( $_POST ) ) { //Estetään formin uudelleenlähetyksen
 	<div class="otsikko_container">
 		<section class="takaisin">
 			<a href="yp_asiakkaat.php?yritys_id=<?= $yritys_id ?>" class="nappi grey">
-				<i class="material-icons">navigate_before</i>Takaisin</a><br><br>
+				<i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
 			<h1>Lisää uusi käyttäjä</h1>

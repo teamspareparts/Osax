@@ -47,7 +47,7 @@ $hankintapaikat = hae_hankintapaikat($db);
 	<!-- Otsikko ja painikkeet -->
 	<div class="otsikko_container">
 		<section class="takaisin">
-			<a class="nappi grey" href="yp_raportit.php">Takaisin</a>
+			<a class="nappi grey" href="yp_raportit.php"><i class="material-icons">navigate_before</i>Takaisin</a>
 		</section>
 		<section class="otsikko">
 			<h1>Varastolistausraportti</h1>

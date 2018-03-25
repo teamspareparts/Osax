@@ -46,7 +46,8 @@ $tilaukset = hae_tilaukset( $db, $user_id );
 	<div class="otsikko_container">
 		<section class="takaisin">
 			<?php if ($user->isAdmin()) :?>
-				<button class="nappi grey" onclick="history.back();">Takaisin</button>
+				<button class="nappi grey" onclick="history.back();">
+					<i class="material-icons">navigate_before</i>Takaisin</button>
 			<?php endif;?>
 		</section>
 		<section class="otsikko">
