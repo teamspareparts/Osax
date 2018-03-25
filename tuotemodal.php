@@ -624,6 +624,7 @@ require_once 'tecdoc_asetukset.php';?>
         //Tyhjennetään modal
         $( "#modal-thumbnail" ).empty();
         $( "#modal-product" ).empty();
+        $( "#modal-price" ).empty();
         $( "#modal-infos" ).empty();
         $( "#menu2" ).empty();
         $( "#modal-oe" ).find("tr:gt(0)").remove();
