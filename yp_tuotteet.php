@@ -128,10 +128,8 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) : string
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
 	foreach ( $rows as $tr ) {
-		//TODO: Pahoittelut, jos hajotin jotain. :(
-		//TODO: Muutin hieman koodia, että pääsen php errorista eroon.
-		$taso = $tr->oma_taso; // Monesko taso, 11 merkkiä / 3 = 3[,6666]
-		$taso = str_repeat( "-", (int)$taso-1 ); // Montako viivaa == monesko taso
+		$taso = (int)(strlen($tr->oma_taso) / 3); // Monesko taso, 11 merkkiä / 3 = 3[,6666]
+		$taso = str_repeat( "-", $taso-1 ); // Montako viivaa == monesko taso
 		if ( $taso == '' ) {
 			$return_string .= "<option disabled>--------------------------</option>";
 		}
