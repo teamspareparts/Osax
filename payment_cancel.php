@@ -9,7 +9,7 @@ require '_start.php'; global $db, $user, $cart;
 if ( !empty( $_GET['ORDER_NUMBER'] ) ) {
 	if ( PaymentAPI::checkReturnAuthCode( $_GET, true ) ) {
 
-		if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_GET['ORDER_NUMBER'], $cart->ostoskori_id ) ) {
+		if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_GET['ORDER_NUMBER'], $cart->id ) ) {
 			$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
 		}
 		else {

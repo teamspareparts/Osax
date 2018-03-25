@@ -26,7 +26,7 @@ elseif ( !empty( $_POST[ 'tilaus_id' ] ) ) {
  * Käyttäjä peruuttanut maksamisen
  */
 elseif ( !empty( $_POST[ 'peruuta_id' ] ) ) {
-	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_POST[ 'peruuta_id' ], $cart->ostoskori_id ) ) {
+	if ( PaymentAPI::peruutaTilausPalautaTuotteet( $db, $user, (int)$_POST[ 'peruuta_id' ], $cart->id ) ) {
 		$_SESSION[ 'feedback' ] = "<p class='error'>Tilaus peruutettu. Tuotteet lisätty takaisin ostoskoriin.</p>";
 	}
 	else {

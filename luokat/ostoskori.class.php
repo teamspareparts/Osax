@@ -106,7 +106,7 @@ class Ostoskori {
 		if ( !$kaikki_tiedot ) {
 			$sql = "SELECT COUNT(tuote_id) AS count, IFNULL(SUM(kpl_maara), 0) AS kpl_maara 
 					FROM ostoskori_tuote WHERE ostoskori_id = ?";
-			$row = $db->query( $sql, [ $this->ostoskori_id ] );
+			$row = $db->query( $sql, [ $this->id ] );
 			$this->montako_tuotetta = (int)$row->count;
 			$this->montako_tuotetta_kpl_maara_yhteensa = (int)$row->kpl_maara;
 		}
@@ -115,7 +115,7 @@ class Ostoskori {
 				$this->tuotteet = array();
 				$sql = "SELECT tuote_id, kpl_maara, tilaustuote FROM ostoskori_tuote WHERE ostoskori_id = ?";
 				$db->prepare_stmt( $sql );
-				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
+				$db->run_prepared_stmt( [ $this->id ] );
 				while ( $row = $db->get_next_row() ) {
 					$this->tuotteet[ $row->tuote_id ] = $row;
 					$this->montako_tuotetta_kpl_maara_yhteensa += (int)$row->kpl_maara;
@@ -135,7 +135,7 @@ class Ostoskori {
 						LEFT JOIN ALV_kanta ON tuote.ALV_kanta = ALV_kanta.kanta
 						WHERE ostoskori_id = ?";
 				$db->prepare_stmt( $sql );
-				$db->run_prepared_stmt( [ $this->ostoskori_id ] );
+				$db->run_prepared_stmt( [ $this->id ] );
 				/** @var $row Tuote */
 				while ( $row = $db->get_next_row( null, 'Tuote' ) ) {
 					$row->haeTuoteryhmat( $db, false );
@@ -166,7 +166,7 @@ class Ostoskori {
 
 		$sql = "INSERT INTO ostoskori_tuote (ostoskori_id, tuote_id, kpl_maara, tilaustuote) VALUE ( ?, ?, ?, ? )
  				ON DUPLICATE KEY UPDATE kpl_maara = VALUES(kpl_maara), tilaustuote = VALUES(tilaustuote)";
-		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id, $kpl_maara, $tilaustuote ] );
+		$result = $db->query( $sql, [ $this->id, $tuote_id, $kpl_maara, $tilaustuote ] );
 
 		$this->hae_ostoskorin_sisalto( $db, false );
 
@@ -186,7 +186,7 @@ class Ostoskori {
 	public function poista_tuote( DByhteys $db, int $tuote_id) : int {
 		$sql = "DELETE FROM ostoskori_tuote
   				WHERE ostoskori_id = ? AND tuote_id = ? ";
-		$result = $db->query( $sql, [ $this->ostoskori_id, $tuote_id ] );
+		$result = $db->query( $sql, [ $this->id, $tuote_id ] );
 
 		if ( $result && ($this->cart_mode == 1) ) { // Jos successful delete, ja tuotteet haettu olioon.
 			unset( $this->tuotteet[ $tuote_id ] ); // Poistetaan tuote lokaalista arraysta
@@ -201,7 +201,7 @@ class Ostoskori {
 	 * @return int <p> Montako tuotetta poistettu tietokannasta (pitäisi olla kaikki)
 	 */
 	public function tyhjenna_kori( DByhteys $db ) : int {
-		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->ostoskori_id ] );
+		return $db->query( "DELETE FROM ostoskori_tuote WHERE ostoskori_id = ?", [ $this->id ] );
 	}
 
 	/**
@@ -260,7 +260,7 @@ class Ostoskori {
 	 * @return bool
 	 */
 	public function isValid() : bool {
-		return ($this->ostoskori_id !== null);
+		return ($this->id !== null);
 	}
 
 	/**
