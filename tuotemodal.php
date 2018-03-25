@@ -576,7 +576,7 @@ require_once 'tecdoc_asetukset.php';?>
         hinta = hinta.toFixed(2).replace(".", ",");
         alv = tuote.alv_prosentti * 100;
 
-        html ="<p>" + hinta + "€ <span class='small_note'>(sis. alv " + alv + "%)</span></p>";
+        html ="<p>" + hinta + " € <span class='small_note'>(sis. alv " + alv + " %)</span></p>";
         $("#modal-price").empty().append(html);
     }
 
