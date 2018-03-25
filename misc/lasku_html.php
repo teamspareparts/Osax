@@ -108,11 +108,11 @@ $pdf_lasku_html_body .= "
 		<td></td>
 		<td>Rahtimaksu</td>
 		<td></td>
-		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(true)}</td>
+		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(false)}</td>
 		<td style='text-align:right;'>{$lasku->rahtimaksuALV_toString()}</td>
 		<td style='text-align:right;'>". (($lasku->hintatiedot[ 'rahtimaksu' ] === 0) ? "100 %" : "") ."</td>
 		<td style='text-align:right;'></td>
-		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(true)}</td>
+		<td style='text-align:right;'>{$lasku->rahtimaksu_toString(false)}</td>
 	</tr>";
 
 /**
