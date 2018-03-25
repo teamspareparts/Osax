@@ -1,6 +1,5 @@
 <?php declare(strict_types=1);
 require './_start.php'; global $db, $user, $cart;
-require './luokat/tuoteryhma.class.php';
 
 /**
  * Rakentaa puun rekursiivisesti parametrina annetusta 1D object-arraysta. Olioilla oltava luokan muuttujina
@@ -119,10 +118,7 @@ function hae_kaikki_hankintapaikat_ja_luo_alasvetovalikko( DByhteys $db ) : stri
 	return $return_string;
 }
 
-if ( !$user->isAdmin() ) { // Sivu tarkoitettu vain ylläpitäjille
-	header("Location:etusivu.php");
-	exit();
-}
+tarkista_admin( $user );
 
 /*
  * Uusi tuoteryhmä
@@ -132,11 +128,9 @@ if ( isset($_POST['lisaa_parent_id']) ) {
 				[ $_POST['lisaa_parent_id'], $_POST['nimi'], $_POST['hkerroin'] ] );
 
 	$last_id = $db->getConnection()->lastInsertId();
-	if ( $_POST[ 'lisaa_parent_id' ] == 0 ) {
-		$uusi_taso = $_POST['par_taso'] . sprintf("%03d", $last_id);
-	} else {
-		$uusi_taso = $_POST['par_taso'] . sprintf("-%03d", $last_id);
-	}
+
+	$prefix = $_POST[ 'lisaa_parent_id' ]==0 ? "" : "-";
+	$uusi_taso = $_POST['par_taso'] . sprintf("{$prefix}%03d", $last_id);
 
 	$db->query( "UPDATE tuoteryhma SET oma_taso = ? WHERE id = ?",
 				[ $uusi_taso, $last_id ] );
@@ -148,7 +142,6 @@ else if ( !empty($_POST['muokkaa_id']) ) {
 	$db->query( "UPDATE tuoteryhma SET nimi = ?, hinnoittelukerroin = ? WHERE id = ?",
 				[ $_POST['nimi'], $_POST['hkerroin'], $_POST['muokkaa_id'] ] );
 }
-
 /*
  * Alennuksen lisäys
  */
@@ -169,15 +162,7 @@ else if ( !empty($_POST['muokkaa_alennus_id']) ) {
 		[ $_POST['maara'], $_POST['pros']/100, $_POST['alku_pvm'], $_POST['loppu_pvm'], $_POST['muokkaa_alennus_id'] ] );
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) || !empty($_FILES) ) {
-	header("Location: " . $_SERVER['REQUEST_URI']);
-	exit();
-}
-else {
-	$feedback = $_SESSION['feedback'] ?? "";
-	unset($_SESSION["feedback"]);
-}
+$feedback = check_feedback_POST();
 
 $sql = "SELECT id, parent_id AS parentID, oma_taso AS omaTaso, nimi, hinnoittelukerroin FROM tuoteryhma";
 $rows = $db->query( $sql, [], true, null, 'Tuoteryhma' );
@@ -190,9 +175,11 @@ $hkp_nimet_alennuksen_asettamista_varten = hae_kaikki_hankintapaikat_ja_luo_alas
 $today = date('Y-m-d');
 $future = date('Y-m-d',strtotime('+6 months'));
 ?>
-<!DOCTYPE html><html lang="fi">
+<!DOCTYPE html>
+<html lang="fi">
 <head>
 	<meta charset="utf-8">
+	<title>Tuoteryhmät</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="./css/styles.css">
 	<link rel="stylesheet" href="./css/jsmodal-light.css">
@@ -200,15 +187,9 @@ $future = date('Y-m-d',strtotime('+6 months'));
 	<script src="./js/details-shim.min.js" async></script>
 	<script src="./js/jsmodal-1.0d.min.js" async></script>
 	<style>
-		ul {
-			list-style: none;
-		}
-		summary {
-			padding-top: 10px;
-		}
-		a {     /* Käsittää vain ostoskori-linkin */
-			color: #2f5cad; /* Ostoskori-linkin väri ei muutu randomisti. Näyttää siistimmältä, eikä kiinnitä huomiota. */
-		}
+		ul { list-style: none; }
+		summary { padding-top: 10px; }
+		a { color: #2f5cad; /* Sivulla paljon linkkejä ikoneina */ }
 	</style>
 </head>
 <body>
