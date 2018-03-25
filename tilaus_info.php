@@ -203,9 +203,10 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 		let tilaus_id = <?= $tilaus->id ?>;
 		let user_id = <?= $tilaus->asiakas->id ?>;
 
-		peruuta_nappi.addEventListener('click', function() {
-			Modal.open({
-				content: `
+		if ( peruuta_nappi ) {
+            peruuta_nappi.addEventListener('click', function () {
+                Modal.open({
+                    content: `
 					<div>
 						<h2>Oletko varma, että haluat peruuttaa tilauksen?</h2>
 						<h3>Tämä palauttaa tuotteet asiakkaan ostoskoriin,<br>
@@ -220,9 +221,10 @@ $noutolista_file_nimi = "noutolista-".sprintf('%05d',$tilaus->laskunro)."-{$tila
 						</form>
 					</div>
 				`,
-				draggable: true
-			});
-		});
+                    draggable: true
+                });
+            });
+        }
 	</script>
 <?php endif; ?>
 </body>

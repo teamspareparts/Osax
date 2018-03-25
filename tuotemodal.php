@@ -30,10 +30,14 @@ require_once 'tecdoc_asetukset.php';?>
 				<div class="tab-content">
 					<div id="menu1" class="tab-pane fade show active">
 						<div class="flex_row">
+							<!-- Tuotteen kuva -->
 							<div id="modal-thumbnail"></div>
 							<div>
+								<!-- Tuotteen nimi -->
 								<div id="modal-product" style="font-size: 20px;"></div>
-								<!-- div hintatiedoille yms -->
+								<!-- Tuotteen hintatiedot -->
+								<div id="modal-price" style="font-size: 18px;"></div>
+								<!-- Tuotteen tiedot -->
 								<div id="modal-infos" style="font-size: 18px;"></div>
 							</div>
 						</div>
@@ -138,7 +142,9 @@ require_once 'tecdoc_asetukset.php';?>
                     tuote_id: tuote_id
                 },
                 function (tuote) {
-                    // TODO: Modaliin hintatiedot yms
+                    // Lisätään hintatiedot modaliin
+	                hintatiedot(tuote);
+	                // Lisätään perustiedot ensimmäiselle sivulle
                     if (tuote.tecdocissa) {
                         tecdocToCatPort[functionName](params, createFirstPageForTecdocProduct);
                     } else {
@@ -150,7 +156,7 @@ require_once 'tecdoc_asetukset.php';?>
 
     /**
      * Luodaan modalin pääsivu tecdoc-tuotteelle.
-     * @param response
+     * @param response Tecdocista saatavat tuotetiedot.
      */
     function  createFirstPageForTecdocProduct( response ) {
 
@@ -560,6 +566,21 @@ require_once 'tecdoc_asetukset.php';?>
     }
 
 
+    /**
+     * Hintatietojen lisääminen modaliin.
+     * @param tuote Tuotetiedot tietokannasta.
+     */
+    function hintatiedot( tuote ) {
+        let html, hinta, alv;
+        hinta = +tuote.a_hinta;
+        hinta = hinta.toFixed(2).replace(".", ",");
+        alv = tuote.alv_prosentti * 100;
+
+        html ="<p>" + hinta + "€ <span class='small_note'>(sis. alv " + alv + "%)</span></p>";
+        $("#modal-price").empty().append(html);
+    }
+
+
     //avaa tuotteen kuvan uuteen modaliin
     $(document.body)
 	    .on('click', '.kuva', function(){
@@ -603,6 +624,7 @@ require_once 'tecdoc_asetukset.php';?>
         //Tyhjennetään modal
         $( "#modal-thumbnail" ).empty();
         $( "#modal-product" ).empty();
+        $( "#modal-price" ).empty();
         $( "#modal-infos" ).empty();
         $( "#menu2" ).empty();
         $( "#modal-oe" ).find("tr:gt(0)").remove();

@@ -48,6 +48,11 @@ class Tuote {
 	/** @var string $infot <p> */ public $infot = null;
 	/** @var string $hankintapaikkaNimi <p> */ public $hankintapaikkaNimi = null;
 
+	// Vertailutuote (vastaava tecdoctuote)
+	/** @var string $c_articleNo <p> */ public $c_articleNo = null;
+	/** @var string $c_brandNo <p> */ public $c_brandNo = null;
+	/** @var string $c_genericArticleId <p> */ public $c_genericArticleId = null;
+
 	/**
 	 * <code>
 	 * Array [
@@ -69,6 +74,7 @@ class Tuote {
 
 		$sql = "SELECT tuote.id, articleNo, brandNo, tuote.hankintapaikka_id, tuotekoodi,
 					tilauskoodi, varastosaldo, minimimyyntiera, valmistaja, nimi,
+					kuva_url, infot, aktiivinen, tecdocissa,
 					ALV_kanta.prosentti AS alv_prosentti, hyllypaikka, sisaanostohinta AS ostohinta, 
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta,
 					(hinta_ilman_alv * (1+ALV_kanta.prosentti)) AS a_hinta_alennettu,
@@ -117,6 +123,25 @@ class Tuote {
 								[ $this->id ], FETCH_ALL );
 			foreach ( $rows as $row ) {
 				$this->tuoteryhmat[] = $row->tuoteryhma_id;
+			}
+		}
+	}
+
+	/**
+	 * Hakee tuotteen vertailutuotteen, mikäli tuotteelle on linkitetty vastaavaa TecDoc-tuote.
+	 * @param DByhteys $db
+	 */
+	function haeVertailutuote ( DByhteys $db ) {
+		if ( !$this->tecdocissa ) {
+			$sql = "SELECT articleNo, brandNo, genericArticleId
+					FROM tuote_linkitys
+					WHERE tuote_linkitys.tuote_id = ?
+					LIMIT 1";
+			$vertailutuote = $db->query( $sql, [$this->id]);
+			if ( $vertailutuote ) {
+				$this->c_articleNo = $vertailutuote->articleNo;
+				$this->c_brandNo = $vertailutuote->brandNo;
+				$this->c_genericArticleId = $vertailutuote->genericArticleId;
 			}
 		}
 	}
