@@ -147,6 +147,18 @@ class EoltasWebservice {
 	}
 
 	/**
+	 * Hakee tilaukset.
+	 * @return stdClass
+	 * @throws Exception
+	 */
+	private static function getOrders() : stdClass {
+		$fields = array(
+			'action' => 'removeFromBasket'
+		);
+		return self::sendRequest($fields);
+	}
+
+	/**
 	 * KÄYTÄ ERITTÄIN VAROEN!
 	 * Tekee tilauksen.
 	 * @return stdClass
