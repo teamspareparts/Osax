@@ -571,7 +571,6 @@ require_once 'tecdoc_asetukset.php';?>
      * @param tuote Tuotetiedot tietokannasta.
      */
     function hintatiedot( tuote ) {
-        console.log(tuote);
         let html, hinta, alv;
         hinta = +tuote.a_hinta;
         hinta = hinta.toFixed(2).replace(".", ",");

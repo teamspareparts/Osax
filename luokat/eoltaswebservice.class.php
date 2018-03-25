@@ -228,7 +228,6 @@ class EoltasWebservice {
 	 * @param string $articleNo
 	 * @param string $brandName
 	 * @return int|null
-	 * @throws Exception
 	 */
 	public static function getEoltasTehdassaldo( int $hankintapaikka_id, string $articleNo, string $brandName ) {
 		// Vain Eoltaksen tuotteet
@@ -236,7 +235,11 @@ class EoltasWebservice {
 			return null;
 		}
 		// Etsitään tuote webservicestä
-		$eoltas_data = EoltasWebservice::searchProduct( $articleNo , $brandName );
+		try {
+			$eoltas_data = EoltasWebservice::searchProduct($articleNo, $brandName);
+		} catch (Exception $e) {
+			return null;
+		}
 		// Etsitään oikea tuote ja lisätään tuotteelle tehdassaldo
 		foreach ( $eoltas_data->response->products as $eoltas_product) {
 			$eoltas_product->supplierCode = str_replace(" ", "", $eoltas_product->supplierCode);
