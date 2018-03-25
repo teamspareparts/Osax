@@ -128,7 +128,7 @@ function hae_kaikki_tuoteryhmat_ja_luo_alasvetovalikko ( DByhteys $db ) : string
 	$return_string = '<select name="tuoteryhma_id" required>
 		<option selected disabled>- Tyhjä -</option>';
 	foreach ( $rows as $tr ) {
-		$taso = (int)(strlen($tr->oma_taso) / 3); // Monesko taso, 11 merkkiä / 3 = 3[,6666]
+		$taso = (int)(strlen((string)$tr->oma_taso) / 3); // Monesko taso, 11 merkkiä / 3 = 3[,6666]
 		$taso = str_repeat( "-", $taso-1 ); // Montako viivaa == monesko taso
 		if ( $taso == '' ) {
 			$return_string .= "<option disabled>--------------------------</option>";
@@ -742,7 +742,6 @@ require 'tuotemodal.php';
                             <td class="number"><?=round(100*(($product->hinta_ilman_ALV - $product->sisaanostohinta)/$product->hinta_ilman_ALV), 0)?>%</td>
 							<td><?=$product->hyllypaikka?></td>
 							<td class="toiminnot">
-								<!-- //TODO: Disable nappi, ja väritä tausta lisäyksen jälkeen -->
 								<button class="nappi red" onclick="showRemoveDialog(<?=$product->id?>)">
                                     Poista</button><br>
                                 <button class="nappi" onclick="showModifyDialog(<?=$product->id?>, '<?=$product->tuotekoodi?>', '<?=$product->tilauskoodi?>',
