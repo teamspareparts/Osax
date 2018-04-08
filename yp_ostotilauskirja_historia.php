@@ -11,9 +11,8 @@ function hae_ostotilauskirjat( DByhteys $db ) {
 	$sql = "SELECT otk_a.id, tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
   				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti, 
   				hankintapaikka_id, hp.nimi AS hankintapaikka,
-  				(SELECT IFNULL(SUM(otk_t_a.kpl*t.sisaanostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a 
-  				LEFT JOIN tuote t ON t.id = otk_t_a.tuote_id WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
-  					AS hinta
+  				(SELECT IFNULL(SUM(otk_t_a.kpl*otk_t_a.ostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a 
+  				WHERE otk_t_a.ostotilauskirja_id = otk_a.id) AS hinta
 			FROM ostotilauskirja_arkisto otk_a
 			LEFT JOIN hankintapaikka hp ON otk_a.hankintapaikka_id = hp.id
 			WHERE hyvaksytty = 1
@@ -21,7 +20,34 @@ function hae_ostotilauskirjat( DByhteys $db ) {
 	return $db->query( $sql, [], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
 }
 
-$otkt = hae_ostotilauskirjat( $db );
+/**
+ * Hakee ostotilauskirjat tuotekoodin perusteella.
+ * @param DByhteys $db
+ * @param String $tuotekoodi <p> tuotekoodi tai articleNo
+ * @return Ostotilauskirja[]
+ */
+function hae_ostotilauskirjat_tuotekoodilla( DByhteys $db, String $tuotekoodi ) {
+	$sql = "SELECT otk_a.id, tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
+  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti,
+  				otk_a.hankintapaikka_id, hp.nimi AS hankintapaikka,
+  				(SELECT IFNULL(SUM(otk_t_a.kpl*otk_t_a.ostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a 
+  				WHERE otk_t_a.ostotilauskirja_id = otk_a.id) AS hinta
+  			FROM ostotilauskirja_arkisto otk_a
+			LEFT JOIN hankintapaikka hp ON otk_a.hankintapaikka_id = hp.id
+			LEFT JOIN ostotilauskirja_tuote_arkisto otk_t_a ON otk_t_a.ostotilauskirja_id = otk_a.id
+			LEFT JOIN tuote t ON otk_t_a.tuote_id = t.id
+			WHERE hyvaksytty = 1 
+				AND (t.tuotekoodi = ? OR t.articleNo = ?)
+ 			ORDER BY saapumispaiva DESC";
+	return $db->query( $sql, [$tuotekoodi, $tuotekoodi], DByhteys::FETCH_ALL, null, "Ostotilauskirja" );
+}
+
+if ( !empty($_GET['tuotekoodi']) ) {
+	$tuotekoodi = $_GET['tuotekoodi'];
+	$otkt = hae_ostotilauskirjat_tuotekoodilla( $db, $tuotekoodi );
+} else {
+	$otkt = hae_ostotilauskirjat($db);
+}
 ?>
 
 <!DOCTYPE html>
@@ -47,6 +73,14 @@ $otkt = hae_ostotilauskirjat( $db );
 			<h1>Ostotilauskirjahistoria</h1>
 		</section>
 	</div>
+
+	<!-- Haku tuotekoodilla -->
+	<form action="" method="get" class="haku">
+		<label for="tuotekoodi">Hae tuotekoodilla:</label><br>
+		<input type="text" id="tuotekoodi" name="tuotekoodi" placeholder="Tuotekoodi"
+		       title="Tuotekoodi etuliitteellä tai ilman.">
+		<input type="submit" value="Hae" class="nappi">
+	</form>
 
 	<?php if ( $otkt ) : ?>
 		<table style="width:90%; margin:auto;">
@@ -91,6 +125,28 @@ $otkt = hae_ostotilauskirjat( $db );
 			window.location = $(this).data('href');
 			return false;
 		});
+
+    //qs["haluttu ominaisuus"] voi hakea urlista php:n GET
+    //funktion tapaan tietoa
+    let qs = (function (a) {
+        let p, i, b = {};
+        if (a !== "") {
+            for (i = 0; i < a.length; ++i) {
+                p = a[i].split('=', 2);
+                if (p.length === 1) {
+                    b[p[0]] = "";
+                } else {
+                    b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+                }
+            }
+        }
+        return b;
+    })(window.location.search.substr(1).split('&'));
+
+    if (qs["tuotekoodi"]) {
+        let search = qs["tuotekoodi"];
+        $("#tuotekoodi").val(search);
+    }
 </script>
 
 </body>
