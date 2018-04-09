@@ -87,10 +87,10 @@ $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hi
 $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
 $sql = "SELECT otk_a.id, tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
-  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti,
+				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti,
   				
-  				(SELECT IFNULL(SUM(otk_t_a.kpl*t.sisaanostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a
-			        LEFT JOIN tuote t ON t.id = otk_t_a.tuote_id WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
+  				(SELECT IFNULL(SUM(otk_t_a.kpl*otk_t_a.ostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a
+	  				WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
 			    AS hinta,
 			    (SELECT COUNT(otk_t_a.tuote_id) FROM ostotilauskirja_tuote_arkisto otk_t_a 
 			     	WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
