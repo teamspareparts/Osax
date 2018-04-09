@@ -8,7 +8,6 @@ if ( !$tilaus_id ) {
 }
 
 if ( !empty($_POST['peruuta_id']) ) {
-	require './luokat/paymentAPI.class.php';
 	if ( !$user->isAdmin() ) {
 		return;
 	}

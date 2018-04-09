@@ -86,10 +86,17 @@ $sql = "SELECT *, ostotilauskirja.id AS id, SUM(kpl*tuote.sisaanostohinta) AS hi
  		GROUP BY ostotilauskirja.id";
 $ostotilauskirjat = $db->query($sql, [$hankintapaikka_id], FETCH_ALL);
 
-$sql = "SELECT tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
-  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti 
-		FROM ostotilauskirja_arkisto 
-		WHERE hankintapaikka_id = ? AND hyvaksytty = 1 
+$sql = "SELECT otk_a.id, tunniste, lahetetty, DATE_FORMAT(lahetetty, '%d.%m.%Y') AS lahetettyHieno, saapumispaiva,
+  				DATE_FORMAT(saapumispaiva, '%d.%m.%Y') AS saapumispaivaHieno, rahti,
+  				
+  				(SELECT IFNULL(SUM(otk_t_a.kpl*t.sisaanostohinta),0) FROM ostotilauskirja_tuote_arkisto otk_t_a
+			        LEFT JOIN tuote t ON t.id = otk_t_a.tuote_id WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
+			    AS hinta,
+			    (SELECT COUNT(otk_t_a.tuote_id) FROM ostotilauskirja_tuote_arkisto otk_t_a 
+			     	WHERE otk_t_a.ostotilauskirja_id = otk_a.id)
+			    AS kpl
+		FROM ostotilauskirja_arkisto otk_a
+		WHERE otk_a.hankintapaikka_id = ? AND hyvaksytty = 1 
 		ORDER BY saapumispaiva";
 /** @var \Ostotilauskirja[] $otk_historia */
 $otk_historia = $db->query( $sql, [$hankintapaikka_id],
@@ -197,8 +204,8 @@ $otk_historia = $db->query( $sql, [$hankintapaikka_id],
 			<tr><th>Tunniste</th>
 				<th>Lähetyspäivä</th>
 				<th>Saapumispäivä</th>
-				<th>Tuotteet</th>
-				<th>Hinta</th>
+				<th class="number">Tuotteet</th>
+				<th class="number">Hinta</th>
 				<th class="number">Rahti</th>
 			</tr>
 			</thead>
@@ -208,8 +215,8 @@ $otk_historia = $db->query( $sql, [$hankintapaikka_id],
 					<td><?= $otk->tunniste ?></td>
 					<td><?= $otk->lahetettyHieno ?></td>
 					<td><?= $otk->saapumispaivaHieno ?></td>
-					<td>---</td>
-					<td>---</td>
+					<td class="number"><?= format_number($otk->kpl, 0) ?></td>
+					<td class="number"><?= format_number($otk->hinta) ?></td>
 					<td class="number"><?= format_number($otk->rahti) ?></td>
 				</tr>
 			<?php endforeach; ?>
