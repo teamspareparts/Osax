@@ -35,13 +35,7 @@ function jaottele_uutiset ( &$news ) {
 	$news = $arr;
 }
 
-/** Tarkistetaan feedback, ja estetään formin uudelleenlähetys */
-if ( !empty($_POST) ) { //Estetään formin uudelleenlähetyksen
-	header("Location: " . $_SERVER['REQUEST_URI']); exit();
-} else {
-	$feedback = isset($_SESSION['feedback']) ? $_SESSION['feedback'] : "";
-	unset($_SESSION["feedback"]);
-}
+$feedback = check_feedback_POST();
 
 $sql = "SELECT id, tyyppi, otsikko, summary, details, pvm, DATE_FORMAT(pvm,'%d.%m.%Y %H:00') AS simple_pvm, loppu_pvm
 		FROM etusivu_uutinen
@@ -72,7 +66,7 @@ $css_version = filemtime( 'css/styles.css' );
 		</section>
 	</div>
 
-	<?= $feedback ?>
+	<div id="feedback"><?= $feedback ?></div>
 
 	<section class="white-bg" style="border:1px solid; border-radius:4px; padding-top:5px;">
 		<div class="tuotekoodihaku">
@@ -167,5 +161,29 @@ $css_version = filemtime( 'css/styles.css' );
 
 <?php require 'footer.php'; ?>
 
+<script>
+	let ajax = new XMLHttpRequest();
+	let response;
+
+	// Luodaan AJAX-pyyntö
+	ajax.open('POST', 'ajax_requests.php', true);
+	ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
+
+	ajax.onload = function() {
+		console.log( this );
+		if (this.status >= 200 && this.status < 400) {
+			document.getElementById("feedback").innerHTML = "<span class='error'>" + this.responseText + "</span>";
+		} else {
+			// We reached our target server, but it returned an error
+		}
+	};
+
+	ajax.onerror = function() {
+		// There was a connection error of some sort
+		console.log( this );
+	};
+
+	ajax.send( "tecdoc_add_ip=true" );
+</script>
 </body>
 </html>

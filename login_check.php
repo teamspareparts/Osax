@@ -2,7 +2,7 @@
 set_include_path(get_include_path().PATH_SEPARATOR.'luokat/');
 spl_autoload_extensions('.class.php');
 spl_autoload_register();
-require 'tecdoc.php';
+//require 'tecdoc.php';
 
 /**
  * Tarkistaa käyttäjän käyttöoikeuden sivustoon, keskitetysti yhdessä funktiossa.
@@ -182,7 +182,7 @@ if ( $mode === "login" ) {
 		$_SESSION['indev'] = (bool)$config['indev'];
 		$_SESSION['header_tervehdys'] = (string)$config['header_tervehdys'];
 
-		addDynamicAddress();
+		// addDynamicAddress();
 
 		if ( $login_user->vahvista_eula ) {
 			header( "Location:eula.php" );

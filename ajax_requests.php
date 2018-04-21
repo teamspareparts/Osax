@@ -161,6 +161,14 @@ elseif ( isset( $_POST[ 'eoltas_tehdassaldo' ] ) ) {
 	$result = EoltasWebservice::getEoltasTehdassaldo( (int)$_POST['hankintapaikka_id'], $_POST['articleNo'], $_POST['brandName'] );
 }
 
+/**
+ * Lisätään käyttäjän IP, jotta tecdoc toimii
+ */
+elseif ( isset( $_POST[ 'tecdoc_add_ip' ] ) ) {
+	require 'tecdoc.php';
+	$result = addDynamicAddress();
+}
+
 else {
 	$result = 'Jotain meni väärin\n';
 	$result .= print_r($_POST, true);
