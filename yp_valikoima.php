@@ -90,9 +90,9 @@ function hae_tuotteet( DByhteys $db, array $tuote_tiedot=[0,0], array $paginatio
 }
 
 /**
- * Kaikki brändit, kaikki hankintapaikat
- * Kaikki brändit, [hankintapaikka]
- * [Brändi], kaikki hankintapaikat
+ * Kaikki brändit, kaikki hankintapaikat<br>
+ * Kaikki brändit, [hankintapaikka]<br>
+ * [Brändi], kaikki hankintapaikat<br>
  * [Brändi], [hankintapaikka]
  * @param int    $brand_id
  * @param int    $hankintapaikka_id
@@ -191,7 +191,7 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 					<input type="number" name="page" value="<?=$page?>"
 					       min="1" max="<?=$total_pages?>"  maxlength="2"
 					       style="padding:5px; border:0; width:3.5rem; text-align: right;">
-				</label>/ <?=$total_pages?>
+				</label>/ <?=format_number($total_pages,0)?>
 				<input class="hidden" type="submit">
 			</form>
 			<br>Tuotteet: <?=format_number($offset,0)?>&ndash;<?=format_number($offset + $products_per_page,0)?> /
@@ -347,6 +347,9 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 <?php require 'footer.php'; ?>
 
 <script>
+	/**
+	 * Pagination
+	 */
 	let backwards = document.getElementsByClassName('backward_nav');
 	let forwards = document.getElementsByClassName('forward_nav');
 	let total_pages = <?= $total_pages ?>;
@@ -372,10 +375,12 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 		}
 	});
 
+	/**
+	 * Modal toiminnallisuus
+	 */
 	let dialogs = document.querySelectorAll('dialog');
 	let openButtons = document.querySelectorAll('.show');
 	let closeButtons = document.querySelectorAll('.close');
-
 	for (i = 0; i < dialogs.length; i++) {
 		dialogPolyfill.registerDialog(dialogs[i]); // Polyfill
 
@@ -387,14 +392,12 @@ $last_page = "?brand={$brand_id}&hkp={$hankintapaikka_id}&page={$total_pages}&pp
 			}
 		});
 	}
-
 	for (i = 0; i < openButtons.length; i++) {
 		openButtons[i].addEventListener("click", function(e) {
 			let d = document.querySelector( e.target.dataset.dialogId );
 			d.showModal();
 		});
 	}
-
 	for (i = 0; i < closeButtons.length; i++) {
 		closeButtons[i].addEventListener("click", function(e) {
 			let d = document.querySelector( e.target.dataset.dialogId );
