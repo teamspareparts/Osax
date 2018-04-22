@@ -40,9 +40,10 @@ class Tilaus {
 	/**
 	 * @param DByhteys $db
 	 * @param int      $tilaus_id
-	 * @param int      $indev
 	 */
-	function __construct( DByhteys $db, int $tilaus_id, $indev = 1 ) {
+	function __construct( DByhteys $db = null, int $tilaus_id = null ) {
+
+		if ( $db === null or $tilaus_id === null ) return;
 
 		$sql = "SELECT id, paivamaara, pysyva_rahtimaksu, maksutapa, laskunro, maksettu, kasitelty, kayttaja_id
 				FROM tilaus

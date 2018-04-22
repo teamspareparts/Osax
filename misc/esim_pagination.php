@@ -8,10 +8,7 @@
  */
 function hae_rivit( DByhteys $db, array $rivi_tiedot=[0,0], array $pagination=[20,0], array $ordering=[1,1] ) : array {
 
-	$foo = $rivi_tiedot[0];
-	$bar = $rivi_tiedot[1];
-
-	$ppp = $pagination[0];
+	$ipp = $pagination[0];
 	$offset = $pagination[1];
 
 	$orders = array(
@@ -38,26 +35,10 @@ function hae_rivit( DByhteys $db, array $rivi_tiedot=[0,0], array $pagination=[2
 				LEFT JOIN hankintapaikka ON tuote.hankintapaikka_id = hankintapaikka.id 
 				ORDER BY {$ordering} LIMIT ? OFFSET ?";
 
-	$results = $db->query( $sql, [ $ppp, $offset ], FETCH_ALL, null, "Tuote" );
+	$results = $db->query( $sql, [ $ipp, $offset ], FETCH_ALL, null, "Tuote" );
 	$row_count = $db->query("SELECT COUNT(id) AS row_count FROM tuote")->row_count;
 
 	/** @var Tuote[] $results */
-
-	foreach ( $results as $t ) {
-		$t->haeTuoteryhmat( $db, true );
-		$t->haeAlennukset( $db );
-
-		/**
-		 * Seuraava osio voisi olla luultavasti huomattavasti nopeampi jos lisätty ylhäällä olevaan isoon hakuun.
-		 * Mutta en jaksa. Joten nopea ratkaisu. Tämä on ollut jo tarpeeksi pitkään tekeillä.
-		 * --jj 180122
-		 */
-		/** @var \stdClass $temp_myyntitiedot */
-		$temp_myyntitiedot = TuoteMyyntitiedot::tuotteenVuosimyynti( $db, $t->id );
-		//debug( $temp_myyntitiedot, true );
-		$t->keskimyyntihinta = $temp_myyntitiedot->keskimyyntihinta ?? 0;
-		$t->vuosimyynti = $temp_myyntitiedot->kpl_maara ?? 0;
-	}
 
 	return [$row_count, $results];
 }
@@ -73,18 +54,18 @@ $offset = ($page - 1) * $items_per_page; // SQL-lausetta varten; kertoo monennes
 
 $results = hae_rivit( $db, [0,1], [$items_per_page, $offset], [$order_column,$order_direction] );
 
-$total_products = $results[0];
+$total_items = $results[0];
 /**
  * @var Tuote[] $tuotteet
  */
 $tuotteet = $results[1];
 
-if ( $total_products < $items_per_page ) {
-	$items_per_page = $total_products;
+if ( $total_items < $items_per_page ) {
+	$items_per_page = $total_items;
 }
 
-$total_pages = ( $total_products !== 0 )
-	? ceil( $total_products / $items_per_page )
+$total_pages = ( $total_items !== 0 )
+	? ceil( $total_items / $items_per_page )
 	: 1;
 
 if ( $page > $total_pages ) {
@@ -96,7 +77,6 @@ $first_page = "?page=1&ppp={$items_per_page}&col={$order_column}&dir={$order_dir
 $prev_page  = "?&page=".($page-1)."&ipp={$items_per_page}&col={$order_column}&dir={$order_direction}";
 $next_page  = "?&page=".($page+1)."&ipp={$items_per_page}&col={$order_column}&dir={$order_direction}";
 $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&dir={$order_direction}";
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -104,7 +84,7 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 	<meta charset="utf-8">
 	<title>Valikoima</title>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="./css/styles.css">
+	<link rel="stylesheet" href="../css/styles.css">
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<style>
 	</style>
@@ -114,8 +94,7 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 <main class="main_body_container">
 	<div class="otsikko_container">
 		<section class="otsikko">
-			<h1>Valikoima</h1>
-			<span><?= $otsikko_tulostus ?></span>
+			<h1>???</h1>
 		</section>
 	</div>
 
@@ -136,8 +115,8 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 				</label>/ <?=format_number($total_pages,0)?>
 				<input class="hidden" type="submit">
 			</form>
-			<br>Tuotteet: <?=format_number($offset,0)?>&ndash;<?=format_number( $offset + $items_per_page, 0)?> /
-			<?= format_number($total_products, 0) ?>
+			<br>???: <?=format_number($offset,0)?>&ndash;<?=format_number( $offset + $items_per_page, 0)?> /
+			<?= format_number( $total_items, 0) ?>
 		</div>
 
 		<a class="nappi" href="<?=$next_page?>"> <i class="material-icons">navigate_next</i> </a>
@@ -145,7 +124,7 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 
 		<div class="white-bg" style="display:flex; flex-direction:column; margin:auto 40px auto; border: 1px solid; padding:5px;">
 			<span>Valitse sivunumero, ja paina Enter-näppäintä vaihtaaksesi sivua.</span>
-			<div>Tuotteita per sivu:
+			<div>??? per sivu:
 				<form class="productsPerPageForm" method="GET">
 					<input type="hidden" name="foo" value="<?=0?>">
 					<input type="hidden" name="page" value="<?=$page?>">
@@ -165,7 +144,7 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 		</div>
 	</nav>
 
-	<table></table>
+	<table> Ordering<i class="material-icons">arrow_downward</i> </table>
 
 	<nav style="white-space: nowrap; display: inline-flex; margin:20px auto;">
 		<a class="nappi" href="<?=$first_page?>"> <i class="material-icons">first_page</i> </a>
@@ -173,7 +152,7 @@ $last_page  = "?&page={$total_pages}&ipp={$items_per_page}&col={$order_column}&d
 
 		<div class="white-bg" style="border: 1px solid; margin:auto; padding:10px; line-height: 25px;">
 			Sivu: <?=$page?> / <?=$total_pages?><br>
-			Rivit: <?=$offset?>&ndash;<?=$offset + $items_per_page?> / <?=$total_products?>
+			???: <?=$offset?>&ndash;<?=$offset + $items_per_page?> / <?=$total_items?>
 		</div>
 
 		<a class="nappi" href="<?=$next_page?>"> <i class="material-icons">navigate_next</i> </a>
