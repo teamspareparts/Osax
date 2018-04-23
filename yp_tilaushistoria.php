@@ -45,7 +45,7 @@ $order_column = (int)($_GET[ 'col' ] ?? 0);
 $order_direction = (int)($_GET[ 'dir' ] ?? 1);
 
 if ( $page < 1 ) { $page = 1; }
-if ( $items_per_page < 1 || $items_per_page > 5000 ) { $items_per_page = 20; }
+if ( $items_per_page < 1 || $items_per_page > 5000 ) { $items_per_page = 50; }
 $offset = ($page - 1) * $items_per_page; // SQL-lausetta varten; kertoo monennestako tuloksesta aloitetaan haku
 
 $results = hae_rivit( $db, [$items_per_page, $offset], [$order_column,$order_direction] );

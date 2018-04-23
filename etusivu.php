@@ -170,11 +170,12 @@ $css_version = filemtime( 'css/styles.css' );
 	ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=utf-8;');
 
 	ajax.onload = function() {
-		console.log( this );
 		if (this.status >= 200 && this.status < 400) {
-			document.getElementById("feedback").innerHTML = "<span class='error'>" + this.responseText + "</span>";
+			//document.getElementById("feedback").innerHTML = "<span class='error'>" + this.responseText + "</span>";
 		} else {
-			// We reached our target server, but it returned an error
+			document.getElementById("feedback").innerHTML = "<span class='error'>" + this.status + ": " +
+				this.statusText + "<br>" + "Tecdoc pois käytöstä luultavasti. Jotkin sivuston ominaisuudet " +
+				"(esim. tuotehaku) eivät ole käytettävissä.</span>";
 		}
 	};
 
