@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 ini_set('track_errors', '1');
 //
 // Funktioita kommunikointiin TecDoc-tietokannan kanssa.

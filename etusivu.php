@@ -171,7 +171,8 @@ $css_version = filemtime( 'css/styles.css' );
 
 	ajax.onload = function() {
 		if (this.status >= 200 && this.status < 400) {
-			//document.getElementById("feedback").innerHTML = "<span class='error'>" + this.responseText + "</span>";
+			console.log( this.status );
+			console.log(this.responseText);
 		} else {
 			document.getElementById("feedback").innerHTML = "<span class='error'>" + this.status + ": " +
 				this.statusText + "<br>" + "Tecdoc pois käytöstä luultavasti. Jotkin sivuston ominaisuudet " +
