@@ -6,7 +6,8 @@ html {
 	position: relative;
 	min-height: 100%;
 	width: 100%;
-	font-size: small;
+	font-size: 1em;
+	line-height: 1.4;
 	background-color: #ddd;
 }
 body {
@@ -95,6 +96,32 @@ dd {
 }
 dd:nth-of-type(n+2) { /* From: https://stackoverflow.com/q/12744164 */
 	margin-top: 4pt; /* 2x dd->margin == 8 */
+}
+
+
+::-moz-selection {
+	background: #b3d4fc;
+	text-shadow: none;
+}
+::selection {
+	background: #b3d4fc;
+	text-shadow: none;
+}
+hr {
+	display: block;
+	height: 1px;
+	border: 0;
+	border-top: 1px solid #ccc;
+	margin: 1em 0;
+	padding: 0;
+}
+fieldset {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+textarea {
+	resize: vertical;
 }
 
 /********************************************

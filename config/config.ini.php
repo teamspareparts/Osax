@@ -36,7 +36,7 @@ indev_txt = "<p>Osaxin inDev kehityspuoli."
 update = "0"
 update_txt = "<p>Sivustoa päivitetään. Käyttö on päivityksen ajaksi estetty.</p><p>YYYY-MM-DD hh:mm"
 header_tervehdys = "<span style='color: red;'>InDev testaussivusto</span>"
-tecdoc_koodi = "149"
+tecdoc_koodi = "10"
 
 [Admin]
 ; Poista tämä osio asennuksen jälkeen
