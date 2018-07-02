@@ -30,7 +30,7 @@ function _send_json( array $request ) : stdClass {
 		echo '<b>Vastaus:</b><pre>'; print_r($response); echo '</pre>';
 	}
 
-	return $response;
+	return (object)$response;
 }
 
 /**
